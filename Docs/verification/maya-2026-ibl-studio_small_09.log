@@ -1,0 +1,30 @@
+# Verdict (2026-09-20): cooked cubes load and the diffuse environment term lights the ball (see -diffuse-term.png,
+# debug view 27, exposure 1, gamma off). The final composite and the specular term render black in the legacy v2
+# shader regardless of the cube data: the same 32-cube file that works in the diffuse slot is black in the
+# specular slot (both TextureCube params carry Maya's 'environment' semantic), and unbound 2D maps sample black
+# into the final multiply. Both are legacy-shader issues for the phase 2 port, not cook issues.
+
+started Sun Sep 20 14:44:23 2026
+shader D:/Depot/Maya-PBR-BRDF-VP2/legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx
+cooked D:/Depot/Maya-PBR-BRDF-VP2/content/ibl/studio_small_09/cooked
+log is incremental
+TECHNIQUES: ['TessellationOFF']
+CONNECTED specularEnvTextureCube_file (D:/Depot/Maya-PBR-BRDF-VP2/content/ibl/studio_small_09/cooked/specular.dds) -> specularEnvTextureCube; loaded size [(256.0, 256.0)]
+CONNECTED diffuseEnvTextureCube_file (D:/Depot/Maya-PBR-BRDF-VP2/content/ibl/studio_small_09/cooked/irradiance.dds) -> diffuseEnvTextureCube; loaded size [(32.0, 32.0)]
+CONNECTED baseColorMap_file -> baseColorMap; loaded size [(8.0, 8.0)]
+CONNECTED baseNormalMap_file -> baseNormalMap; loaded size [(8.0, 8.0)]
+CONNECTED pbrMasksMap_file -> pbrMasksMap; loaded size [(8.0, 8.0)]
+SET useEnvMaps = True
+SET useShadows = False
+SET envLightingExp = 1.0
+SET linearSpaceLighting = False
+SET materialMetalness = 0.0
+SET materialRoughness = 0.5
+PANEL modelPanel4 renderer=vp2Renderer
+VP2 engine now: ['  Version : 2016.11.62.12. Feature Level 5.\n', '  Adapter : NVIDIA GeForce RTX 5090\n', '  Vendor ID: 4318. Device ID : 11141\n', '  Driver : C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\nv_dispi.inf_amd64_adc55ecfca814224\\nvldumdx.dll,C:\\WINDOWS\\System32\\DriverStore:32.0.15.9186.\n', '  API : DirectX V.11.\n', '  Max texture size : 16384 * 16384.\n', '  Max texture coords : 32\n', '  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).\n', '  Active stereo support available : 0\n', '  GPU Memory Limit : 32607 MB.\n', '  CPU Memory Limit : 61990.4 MB.\n']
+SG members: ['pSphereShape1']
+PNG D:/Depot/Maya-PBR-BRDF-VP2/Docs/verification/maya-2026-ibl-studio_small_09.png exists=True
+PNG D:/Depot/Maya-PBR-BRDF-VP2/Docs/verification/maya-2026-ibl-studio_small_09-debug-27.png exists=True
+PNG D:/Depot/Maya-PBR-BRDF-VP2/Docs/verification/maya-2026-ibl-studio_small_09-debug-28.png exists=True
+RESULT: OK
+MAYA: 2026

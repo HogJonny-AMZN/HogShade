@@ -33,6 +33,7 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
 | 4. Surface authoring | not yet | not yet | Design done |
 | 5. wgpu host | not yet | not yet | Design done |
 | 6. Other hosts | not yet | not yet | Design done |
-| E1. IBL cook | [specs/e1-ibl-cook.md](specs/e1-ibl-cook.md) | [plans/e1-ibl-cook.md](plans/e1-ibl-cook.md) | In progress: `condition` landed; EXR sources blocked on leaving the fork network |
+| E1. IBL cook | [specs/e1-ibl-cook.md](specs/e1-ibl-cook.md) | [plans/e1-ibl-cook.md](plans/e1-ibl-cook.md) | Cook, tests, job and Maya check done; LFS payloads (EXR, DDS) blocked on leaving the fork network |
+| E2. Cook performance and resolution | [specs/e2-cook-performance.md](specs/e2-cook-performance.md) | [plans/e2-cook-performance.md](plans/e2-cook-performance.md) | Done except the roadmap tick: numba 140x, measured to an 8192 cube |
 | E. Parity and pipeline, rest | not yet | not yet | Design done |
 | D. SpriteJammer tiers | lives in the SpriteJammer repo | | Design done here |

@@ -1,0 +1,2 @@
+// HogShade: launch tools/maya_ibl_check.py inside a Maya GUI session. See that file for the environment variables.
+python("import os; exec(open(os.path.join(os.environ.get('HOGSHADE_ROOT', os.getcwd()), 'tools', 'maya_ibl_check.py')).read())");
