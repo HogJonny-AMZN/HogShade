@@ -1,0 +1,11 @@
+started Sun Sep 20 14:15:47 2026
+shader D:/Depot/Maya-PBR-BRDF-VP2/legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx
+cooked D:/Depot/Maya-PBR-BRDF-VP2/content/ibl/studio_small_09/cooked
+TECHNIQUES: ['TessellationOFF']
+CONNECTED specularEnvTextureCube_file (D:/Depot/Maya-PBR-BRDF-VP2/content/ibl/studio_small_09/cooked/specular.dds) -> specularEnvTextureCube
+CONNECTED diffuseEnvTextureCube_file (D:/Depot/Maya-PBR-BRDF-VP2/content/ibl/studio_small_09/cooked/irradiance.dds) -> diffuseEnvTextureCube
+SET useEnvMaps = True
+SET useShadows = False
+PNG D:/Depot/Maya-PBR-BRDF-VP2/Docs/verification/maya-2026-ibl-studio_small_09.png exists=True
+RESULT: OK
+MAYA: 2026

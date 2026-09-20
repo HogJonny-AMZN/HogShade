@@ -1,0 +1,33 @@
+{
+  "face_convention": "d3d11-cube-yup-equirect-center-negz-v1",
+  "hogshade_version": "0.1.0.dev0",
+  "irradiance": {
+    "format": "RGBA16F cube, DX10 DDS",
+    "size": 32,
+    "source_width": 128,
+    "stores": "E/pi (cosine-convolved radiance over pi)"
+  },
+  "outputs": {
+    "irradiance.dds": "44b0399a195678e074437645d067e1a015ebbfda9e0353f30d6de11122e689c6",
+    "irradiance_sh9.json": "2a95d66594b37c556a43861dd3311cefb25704e200e5f1d9ee1b3a82a06c6d26",
+    "specular.dds": "dc044fa42c741ac242f17af5a43236f8a59999b2af5c16b438f5d8315222013c"
+  },
+  "roughness_to_mip": "linear: roughness = mip / (mips - 1)",
+  "sh9": {
+    "stores": "radiance coefficients L_lm; see irradiance_sh9.json note"
+  },
+  "source": "source_4k.exr",
+  "source_sha256": "92d82efe443c0b61b8972f6d01817ed4916a199311662dfc58052817edf03662",
+  "source_size": [
+    4096,
+    2048
+  ],
+  "specular": {
+    "base": 256,
+    "format": "RGBA16F cube, DX10 DDS",
+    "mips": 9,
+    "samples_per_texel": 1024
+  },
+  "tool": "hogshade.ibl.cook",
+  "tool_version": "0.1.0"
+}

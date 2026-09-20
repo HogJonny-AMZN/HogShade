@@ -42,13 +42,23 @@ def run():
         cmds.sets(sphere, e=True, forceElement=sg)
         techs = cmds.getAttr(node + ".techniques")
         out.append(f"TECHNIQUES: {techs!r}")
+        # dx11Shader texture parameters take a connected file node, not a path string
         for attr, fname in (("specularEnvTextureCube", "specular.dds"), ("diffuseEnvTextureCube", "irradiance.dds")):
             if cmds.attributeQuery(attr, node=node, exists=True):
-                cmds.setAttr(f"{node}.{attr}", f"{COOKED}/{fname}", type="string")
-                out.append(f"SET {attr} = {cmds.getAttr(f'{node}.{attr}')}")
+                tex = cmds.shadingNode("file", asTexture=True, isColorManaged=True, name=f"{attr}_file")
+                cmds.setAttr(f"{tex}.fileTextureName", f"{COOKED}/{fname}", type="string")
+                cmds.setAttr(f"{tex}.colorSpace", "Raw", type="string")
+                cmds.connectAttr(f"{tex}.outColor", f"{node}.{attr}", force=True)
+                out.append(f"CONNECTED {tex} ({cmds.getAttr(f'{tex}.fileTextureName')}) -> {attr}")
             else:
                 out.append(f"MISSING attribute {attr}")
-        for attr, value in (("useEnvMaps", True), ("useShadows", False)):
+        # a polished metal ball reflects the cubes, so orientation and mip filtering are visible in the picture
+        for attr, value in (
+            ("useEnvMaps", True),
+            ("useShadows", False),
+            ("materialMetalness", 1.0),
+            ("materialRoughness", 0.15),
+        ):
             if cmds.attributeQuery(attr, node=node, exists=True):
                 cmds.setAttr(f"{node}.{attr}", value)
                 out.append(f"SET {attr} = {value}")
