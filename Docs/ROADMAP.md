@@ -83,7 +83,11 @@ Gate for every phase: the compile tests pass and the Maya 2026 screenshot diff i
 - [ ] Slang toolchain via the `shader-slang` pip package in `pyproject.toml`; `tools/build_shaders.py`
       emits HLSL, GLSL and WGSL into `hosts/*/generated/`.
 - [ ] `tests/compile/`: fxc for dx11, glslangValidator for ogsfx, naga for WGSL, oslc for OSL. CI.
-- [ ] `core/interface/`: `ShadingInputs`, `ShadingResult`, `IShadingModel`.
+- [ ] `core/interface/`: `ShadingInputs`, `ShadingResult`, `IShadingModel` split into `inputs()`
+      (material half) and `evaluate()` (lighting half) so forward runs both and deferred runs them
+      in two passes. A shadow/depth entry exposes alpha mask, vertex offset and PDO alone.
+- [ ] `core/gbuffer/`: encode and decode `ShadingInputs` against a layout parameter; ADR-002's
+      layout is the first. The engine's fill and light passes and its screen-space effects share it.
 - [ ] `core/models/legacy_v1/` and `legacy_v2/`: verbatim ports. Pixel-identical to the baseline
       screenshot on the shader ball.
 - [ ] `core/brdf/`: the toolbox factored out of the ports (NDFs, visibility, Fresnel, diffuse).
@@ -175,6 +179,11 @@ Render headroom is thin, so the tiers are the design, not an afterthought.
 | 2 | Game standard | `core/brdf` GGX, height-correlated Smith, split-sum IBL with one prefiltered probe and the LUT | moderate | Default for hero, near tier, terrain, props |
 | 3 | OpenPBR forward | full model, forward pass | large | Hero and hand-placed set pieces only, forward-drawn after the deferred resolve |
 
+SpriteJammer is deferred, so the core's material half runs in `gbuffer_fill` and its lighting half in
+`deferred_light`; forward is kept for transparents and the tier 3 hero pass. Surface-authoring cost
+(POM, tiling, layering) is paid once per pixel and does not scale with lights; the physics tier is
+what scales with lights. The two are capped independently.
+
 The ID is already per-pixel in GB2, so a material chooses its tier and the light pass branches on it.
 A global cap clamps every ID down under budget pressure, so falling back is a runtime setting, not a
 rebuild. Tier 3 needs data the G-buffer does not carry and is therefore forward-only; it is the one
@@ -187,6 +196,11 @@ tier that costs a second draw.
 - [ ] Vendor `hosts/wgpu/generated/` from track C5 into `src/sj_render/shaders/common/`; the
       shader loader concatenates it ahead of the pass files. One ADR in SpriteJammer records that the
       shading maths is imported, not owned.
+- [ ] `gbuffer_fill.wgsl` runs the core's material half and `core/gbuffer/` encode; the shadow and
+      depth passes use the core's shadow entry so alpha masks and PDO match the main pass.
+- [ ] Decide, with a benchmark, whether to claim a spare G-buffer channel for specular weight or
+      IOR (glTF `KHR_materials_specular`) or assume IOR 1.5 in tier 2. Extending the G-buffer is an
+      engine decision priced in bandwidth; the core takes the layout as a parameter either way.
 - [ ] `deferred_light.wgsl` switches on the shading-model ID with tiers 0 to 2. Tier 1 and 2 land
       together so the comparison is available on day one.
 - [ ] One IBL probe for the arena (the octahedral machinery already exists), a BRDF LUT texture

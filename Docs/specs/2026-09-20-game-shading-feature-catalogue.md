@@ -102,6 +102,25 @@ standard, 3 OpenPBR forward. "Look-dev" means Maya, Blender and OSL hosts regard
 | Alpha-to-coverage and dithered alpha | 2 | wgpu, Maya | MASK mode with soft edges under MSAA; SpriteJammer uses dithered alpha |
 | Dithered LOD and distance fade | engine | wgpu | Temporal dither on the alpha test; an engine per-instance scalar |
 
+## Rendering paths: which half of the core each feature runs in
+
+SpriteJammer is deferred; the DCC hosts are forward. The core is split at the G-buffer (see the
+direction spec). Every feature above belongs to one half, and that decides where it runs and what
+it costs in a deferred frame:
+
+| Half | Runs in | Features |
+| --- | --- | --- |
+| Material half (`surface/`, model `inputs()`) | Forward: the material shader. Deferred: `gbuffer_fill`, once per pixel of opaque geometry | UV and triplanar projection, stochastic tiling, detail maps, macro variation, coverage, wetness, parallax and POM, PDO, vertex offset, layer blending, vertex masks, cavity, texture filtering. All of it is paid once and never per light |
+| Lighting half (`brdf/`, model `evaluate()`, `lighting/`) | Forward: same shader. Deferred: `deferred_light`, once per pixel per light after culling | Diffuse and specular lobes, multiscatter, coat, fuzz, iridescence, subsurface approximation, specular occlusion, horizon clamp, micro-shadowing, IBL |
+| Shadow and depth entry | Shadow maps and the depth prepass | Alpha mask, vertex offset, PDO. Nothing else |
+| Forward-only | Engine hero and transparent passes, all DCC hosts | Anything the G-buffer cannot carry: anisotropy, coat, fuzz, thin-film, subsurface, transmission, alpha BLEND |
+
+The practical consequence for the engine: the expensive surface-authoring features (POM, stochastic
+tiling, layering) cost the same in deferred as in forward and do not multiply with light count,
+while the physics tiers are what scale with lights. That is why tier 1 versus tier 2 is a
+lighting-half choice and POM versus offset mapping is a material-half choice, and the two are
+capped independently.
+
 ## Lights: how they reach the shader
 
 The v2 shader binds Maya scene lights into a fixed array of slots through `Object = "Light N"`

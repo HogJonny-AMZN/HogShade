@@ -45,6 +45,7 @@ core is the single source and every DCC, renderer and engine target is a host of
 | Material UI | Generated from one parameter schema in every host; never hand-edited. |
 | Alpha | One enum, glTF's OPAQUE / MASK / BLEND, mapped per host; MASK is the game default. |
 | Parity | A calibration scene, per-host capture scripts and one diff tool land before the OpenPBR model. See `2026-09-20-wysiwyg-blindspots.md`. |
+| Rendering paths | Deferred (SpriteJammer) and forward (Maya, Blender gpu, engine transparents and hero) served by one core split at the G-buffer boundary: a material half producing `ShadingInputs`, a lighting half consuming it, and a `gbuffer/` encode/decode between them. |
 | Lights | The v2 "gather lights" pattern (DCC binds scene lights into fixed slots) is kept as the universal fallback, widened to 16 slots; the engine feeds a culled light buffer through the same interface. See the feature catalogue. |
 | Triplanar | Build it properly: world-space three-axis projection, normalised weights, per-plane tangent frames for normal maps, parallax occlusion evaluated per projection. Depends on the core restructure. |
 
@@ -64,8 +65,11 @@ core is the single source and every DCC, renderer and engine target is a host of
 ```text
 src/
   core/                      # Slang modules. No host, no UI, no effect syntax.
-    interface/               # IShadingModel: ShadingInputs -> ShadingResult; what every model
-                             #   implements and every host calls
+    interface/               # IShadingModel split in two: inputs() builds ShadingInputs from the
+                             #   material half; evaluate() turns ShadingInputs + lights into a
+                             #   ShadingResult. Forward runs both; deferred runs them in two passes
+    gbuffer/                 # encode/decode ShadingInputs to and from a G-buffer layout; the one
+                             #   definition the fill pass, the light pass and screen-space effects share
     models/
       openpbr/               # OpenPBR slabs: base (diffuse, metal), specular, coat, fuzz,
                              #   emission, thin-film, subsurface (approximated), geometry (opacity)
@@ -120,6 +124,50 @@ What stays hand-written per host: effect techniques and passes, UI annotations (
 semantics like `WorldViewProjection`), texture and sampler declarations with host-specific semantics,
 transparency passes. The core exposes a `ShadingInputs` struct and an `evaluate()` per lobe; a shell
 fills the struct from its textures and constants and calls the core.
+
+## Two rendering paths, one core split at the G-buffer boundary
+
+SpriteJammer is deferred (ADR-002: a five-target G-buffer, lights resolved in a full-screen pass).
+Maya, Blender's `gpu` viewport and the engine's transparent and hero passes are forward. The core
+must serve both without two copies of the maths, so it is split in two halves with the G-buffer as
+the seam:
+
+```text
+core/
+  surface/   +  models/*/inputs   ->  ShadingInputs        (the "material" half)
+  models/*/evaluate + lighting/   ->  ShadingResult        (the "lighting" half)
+```
+
+- **Forward.** One shader runs both halves: sample textures, project, parallax, layer, build
+  `ShadingInputs`, then loop lights and evaluate. Maya `dx11Shader`, `ogsfx`, `blender_gpu`,
+  Substance Painter, and the engine's `lit_mesh`, `skinned_mesh` and tier 3 hero pass.
+- **Deferred.** `gbuffer_fill` runs the material half and encodes `ShadingInputs` into the
+  G-buffer; `deferred_light` decodes it and runs the lighting half, branching on the shading-model
+  ID. The encode and decode live in the core (`core/gbuffer/`) so the packing is one definition
+  used by both passes and by the engine's other consumers (SSAO, SSR, decals).
+- **Shadow and depth passes** run only the parts of the material half they need: alpha mask,
+  vertex offset, and pixel depth offset. The core exposes those as a separate entry so the shadow
+  pass does not sample the full material.
+
+What the G-buffer can carry decides what the deferred tiers can shade. With ADR-002's layout
+(albedo + AO, octahedral normal + roughness + metallic, classification byte, emissive, depth):
+
+| Input | Deferred | Why |
+| --- | --- | --- |
+| Base colour, metalness, roughness, AO, emissive, normal | yes | Carried directly |
+| Specular weight or IOR, specular colour | no, unless a spare channel is claimed | glTF `KHR_materials_specular` needs it; default IOR 1.5 is assumed in tier 2 |
+| Anisotropy | no | Needs a tangent; octahedral normal has none |
+| Coat, fuzz, thin-film, subsurface, transmission | no | Extra lobes and parameters; tier 3 forward |
+| Alpha BLEND | no | Deferred is opaque and MASK; blend goes forward |
+| Pixel depth offset | yes | Written in `gbuffer_fill`, read by every later pass |
+
+Extending the G-buffer (a second normal for coat, a tangent, a spare `rgba8` for specular and
+subsurface) is an engine decision with a bandwidth cost the engine's benchmarks price. The core
+must not assume it; the encode function takes the layout as a parameter and the shading-model ID
+says which inputs are valid.
+
+Forward+ or a visibility buffer would change the pass structure but not this split; the material
+half and the lighting half are the same functions either way.
 
 ## OSL: closures, not a transpile
 
