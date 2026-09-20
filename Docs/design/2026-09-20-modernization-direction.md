@@ -13,7 +13,10 @@ core is the single source and every DCC, renderer and engine target is a host of
 
 - HLSL 5 `.fx` effect shaders for Maya Viewport 2.0 `dx11Shader`, two generations:
   `src/Shaders/HLSL/v.1.0` (2015) and `v.2.0` (2017: IBL, parallax occlusion mapping, tone
-  mapping, depth-peeling transparency, a 32-mode debug view). Last real commit August 2017.
+  mapping, depth-peeling transparency, a 33-mode debug view). Last real commit August 2017.
+  v2.0 has two entry files: `V2_uv0bn-pbs_IBLenv.fx` is the July 2017 rewrite with POM
+  self-shadowing and debug modes 0 to 32, and is the reference; `uv0bn-pbs_IBLenv.fx` is the
+  earlier variant (30 debug modes). Both compile under fxc.
 - 37 stars, 12 forks, one open issue asking for a getting-started guide. No licence.
 - History is 128 MB: Maya scenes, IBL `.dds` cubes, Visual Studio debug output and PSDs. One 20 MB
   scene is committed sixteen times.
@@ -280,7 +283,7 @@ in any order; the numbering below is the recommended one.
 
 1. **Hygiene.** History rewrite via `git-filter-repo`, LFS test set, licence, `.gitignore`,
    README with the getting-started guide the open issue asks for, delete the `v.3.0` folder after
-   salvage. Verify v2.0 loads in Maya 2024 and 2026 `dx11Shader`; record what breaks.
+   salvage. Verify v2.0 loads in Maya 2026 `dx11Shader`; record what breaks.
 2. **Restructure.** Spike first: naga-translated HLSL of one core module compiles inside a v2-style
    `.fx` shell under fxc and renders in Maya; if not, switch the core to Slang and continue. Then
    `naga` in the toolchain, `build_shaders.py`, compile tests in CI,
@@ -292,7 +295,7 @@ in any order; the numbering below is the recommended one.
    so OpenPBR can be judged against v2 on the same shader ball.
 4. **Triplanar + POM.** The surface module; per-projection parallax; debug views for weights and
    projection axes.
-5. **WGSL host.** `hosts/wgpu/` emitted from the core, `naga` validation in CI, a wgpu test
+5. **wgpu host.** `hosts/wgpu/`, the core's native home: pass entry points over the core files as-is, `naga` validation in CI, a wgpu test
    viewport (the `Spikes/wgpu_tile` pattern from LargeWorlds) rendering the shader ball for a
    screenshot diff against `maya_dx11`. SpriteJammer switches to consuming it.
 6. **Other hosts.** `maya_ogsfx`, then Blender: the node generator (EEVEE and Cycles) first because

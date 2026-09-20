@@ -58,7 +58,7 @@ is [design/2026-09-20-wysiwyg-blindspots.md](design/2026-09-20-wysiwyg-blindspot
 
 ## Track B: repo hygiene (phase 1 of the spec)
 
-Gate to finish: v2.0 loads in Maya 2024 and 2026 `dx11Shader`; clone under 5 MB; licence present.
+Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence present.
 
 - [x] The fork under `HogJonny-AMZN` is renamed **HogShade** (2026-09-20) and is the working repo
       today; the docs branch lives there. Old URLs redirect.
@@ -76,7 +76,7 @@ Gate to finish: v2.0 loads in Maya 2024 and 2026 `dx11Shader`; clone under 5 MB;
 - [x] Move `src/Shaders/HLSL/v.1.0` and `v.2.0` to `legacy/` unchanged. They are the reference.
 - [x] Both legacy shaders compile clean under `fxc /T fx_5_0 /D _MAYA_=1` (warnings only).
 - [x] Apache 2.0 licence, `.gitignore` rewritten, README with the getting-started guide.
-- [ ] Launch Maya 2024 and 2026, load the v2 shader on the shader ball, screenshot, record what
+- [ ] Launch Maya 2026, load the v2 shader on the shader ball, screenshot, record what
       breaks. This screenshot is the baseline every later phase diffs against. Headless `mayapy`
       cannot do it (no DirectX device); a scripted GUI launch (`maya.exe -script`) or the
       Job_Orchestrator Maya GUI worker is the automated route.
@@ -261,7 +261,7 @@ The inputs and the proof. Without these, "same shader" produces different pictur
       normal-map test tile, triplanar cube, one alpha cutout. Same camera, rig and HDR in every host.
 - [ ] Capture script per host: `mayapy` batch, `blender -b`, the engine's offscreen path. One diff
       tool with tolerance and background mask, producing a proof page. Lands before C3.
-- [ ] Pin naga and wgpu-py; CI matrix over Maya 2024 and 2026 where licensing allows, Blender
+- [ ] Pin naga and wgpu-py; CI on Maya 2026 where licensing allows, Blender
       LTS; commit `hosts/*/generated/` with a CI check that regeneration produces no diff.
 - [ ] **HogShade job library for Job_Orchestrator and BATS.** Every reproducible step (texture cook,
       IBL and LUT bake, calibration capture per host, sprite bake) is a MODULE-mode job in a

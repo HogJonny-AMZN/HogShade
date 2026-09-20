@@ -28,6 +28,9 @@ separate force-push for the history rewrite. Tick a task only when its verificat
       removed binaries ("adding test files", "new screenie", "whoops" and four more). Command:
       `uvx git-filter-repo --path testFiles --path images --path ShaderDevProj --invert-paths`.
 - [ ] 12. `content/` with the shader-ball scene under LFS (`.gitattributes`), HDR when chosen.
-- [ ] 13. Maya 2024 load check, owner-run, log committed beside the 2026 one.
+- [x] 13. ~~Maya 2024 load check~~ Dropped: Maya 2026 is the only supported version (owner, 2026-09-20).
 - [ ] 14. Close the getting-started issue on the legacy repo with a link to the README.
 - [ ] 15. Roadmap track B ticked; `Docs/README.md` status for phase 1 set to done.
+- [x] 16. `THIRD_PARTY_NOTICES.md` written from a grep of the legacy tree for copyright and licence text.
+- [ ] 17. Owner confirms the provenance of `legacy/v1.0/propertyNames.fxh` ("2015 Bifrost Engine" header) and the notice is updated.
+- [ ] 18. Copilot review findings on PR #2 addressed: gitignore exception, README entry file and map guidance, debug-mode count, stale roadmap wording; log re-run against `V2_uv0bn-pbs_IBLenv.fx`.

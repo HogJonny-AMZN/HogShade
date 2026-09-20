@@ -30,10 +30,16 @@ them.
 6. **Verification.** The two legacy entry shaders compile under
    `fxc /T fx_5_0 /D _MAYA_=1` with no errors. The v2 shader loads in Maya 2026 through
    `dx11Shader` with a non-empty technique list, proven by a scripted GUI launch whose log is
-   committed under `Docs/verification/`. Maya 2024 the same, when the owner runs it.
+   committed under `Docs/verification/`. Maya 2026 is the only supported version (owner,
+   2026-09-20); earlier versions are not tested and not claimed.
 7. **The archived v3 folder.** Salvage attempted and recorded in the design doc; nothing taken;
    folder removed from the tree. The archive stays outside the repo.
-8. **Legacy repo pointer.** A pull request from HogShade to `hogjonny/Maya-PBR-BRDF-VP2` that
+8. **Third-party notices.** `THIRD_PARTY_NOTICES.md` lists the code embedded in the legacy
+   shaders with its licence (Disney BRDF under Apache 2.0 and Unlicense-dedicated snippets in
+   `pbr.sif`; the POM adaptation), and the one provenance question: `legacy/v1.0/propertyNames.fxh`
+   carries a "2015 Bifrost Engine" copyright header. The owner confirms whether that file is theirs
+   to relicense before the repo is announced; until then the notice says so.
+9. **Legacy repo pointer.** A pull request from HogShade to `hogjonny/Maya-PBR-BRDF-VP2` that
    replaces the top of its README with a pointer to HogShade. Merging it is the owner's action from
    the legacy account. This is how the 37 stargazers and 12 forkers learn about the update.
 
