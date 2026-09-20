@@ -19,15 +19,19 @@ separate force-push for the history rewrite. Tick a task only when its verificat
       OpenGL Core Profile (no techniques); the launch sets `MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11`
       so the check does not depend on, or change, the user's preferences. **Verified 2026-09-20:**
       `TECHNIQUES: ['TessellationOFF']`, `RESULT: OK`; log committed; script at `tools/maya_load_check.py`.
-- [ ] 9. Commit and push `chore/hygiene`; open the PR (#2, open); merge after review.
+- [x] 9. `chore/hygiene` merged as PR #2 (31f65e1) after Copilot review, 2026-09-20.
 - [ ] 10. Pointer PR to `hogjonny/Maya-PBR-BRDF-VP2`: README top points at HogShade (#2 there, open). Owner merges.
-- [ ] 11. History rewrite on a fresh clone with `git-filter-repo`, dropping `testFiles/`, `images/`,
-      `ShaderDevProj/`. Force-push `master` after PR #2 merges. Owner detaches the fork network
-      afterwards. **Dry run 2026-09-20:** `.git` 128 MB to 1 MB; `legacy/` tree hash identical
+- [x] 11. History rewrite done 2026-09-20 on a fresh clone after PR #2 merged: 55 commits to 48,
+      `.git` 128 MB to 1 MB, `legacy/` tree hash identical (`f19e94f`), no `testFiles/`, `images/`
+      or `ShaderDevProj/` in any commit; `master` force-pushed (new head `35afa7c`). **Still on the
+      owner:** GitHub reports the old size until (a) the repo leaves the fork network (Settings, or
+      GitHub support "detach fork"), and (b) the `legacy-pointer` branch, which is the head of the
+      pointer PR on the legacy repo and holds the old history, is deleted once that PR merges.
+      Anyone with an older clone must re-clone. **Dry run earlier the same day:** `.git` 128 MB to 1 MB; `legacy/` tree hash identical
       before and after (`b003388`); 47 commits to 40, the seven dropped ones touched only the
       removed binaries ("adding test files", "new screenie", "whoops" and four more). Command:
       `uvx git-filter-repo --path testFiles --path images --path ShaderDevProj --invert-paths`.
-- [ ] 12. `content/` with the shader-ball scene under LFS (`.gitattributes`), HDR when chosen.
+- [x] 12. `content/ibl/` with both HDR sources under LFS (studio_small_09 for calibration, citrus_orchard_road_puresky for look-dev, owner's choice 2026-09-20, 4K). The shader-ball scene moves to track E's calibration-scene item; the old 17 MB scene needed 87 MB of textures and is not the right test asset.
 - [x] 13. ~~Maya 2024 load check~~ Dropped: Maya 2026 is the only supported version (owner, 2026-09-20).
 - [ ] 14. Close the getting-started issue on the legacy repo with a link to the README.
 - [ ] 15. Roadmap track B ticked; `Docs/README.md` status for phase 1 set to done.

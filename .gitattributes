@@ -1,0 +1,2 @@
+content/**/*.exr filter=lfs diff=lfs merge=lfs -text
+content/**/*.dds filter=lfs diff=lfs merge=lfs -text
