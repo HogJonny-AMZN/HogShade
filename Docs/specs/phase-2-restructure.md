@@ -14,11 +14,16 @@ E1 renders a lit ball through the ported v2 model, replacing the black one.
 
 ## The spike comes first, and it can fail
 
-Task 1 of the plan is a spike, not a feature: one core module (the GGX lobe and a Fresnel term) in
-WGSL, translated by naga to HLSL, wrapped in a v2-style `.fx` shell, compiled by fxc, loaded by
-`dx11Shader` in Maya 2026, and drawn on a sphere. Pass means WGSL stays the source language. Fail
-means the core moves to Slang and WGSL becomes an emitted target, as the design doc already allows;
-the rest of this spec is unchanged either way except the toolchain section.
+Task 1 of the plan is a spike, not a feature: one core module in WGSL (the GGX lobe and a Fresnel
+term, plus a function that samples a `texture_2d` through a sampler and reads a light from a
+uniform struct, so the integration path is exercised and not just the arithmetic), translated by
+naga to shader-model 5 HLSL, wrapped in a v2-style `.fx` shell that declares the texture, sampler
+and light parameters with Maya annotations and passes them into the generated code, compiled by
+fxc, loaded by `dx11Shader` in Maya 2026, and drawn on a sphere with a bound texture and a bound
+light. Pass means WGSL stays the source language. Fail means the core moves to Slang and WGSL
+becomes an emitted target, as the design doc already allows; the rest of this spec is unchanged
+either way except the toolchain section. A spike that compiles but cannot bind the texture or the
+light is a fail, not a provisional pass.
 
 Known risks the spike must answer: naga's HLSL emits its own struct and binding conventions
 (`cbuffer` layouts, `Texture2D` and `SamplerState` declarations, entry-point signatures) that must
@@ -36,9 +41,16 @@ stays in the hand-written shell.
   the same package SpriteJammer runs on. It is the `gpu` optional extra.
 - **fxc** from the Windows 10 SDK for the Maya shell, already on the machine; **dxc** for the
   `hosts/hlsl/` shader-model 6 validation.
+- **Two HLSL targets from one WGSL.** naga's HLSL backend takes a shader-model option. The build
+  emits `hosts/maya_dx11/generated/hogshade_core_sm5.hlsl` at shader model 5.0, which is what an
+  `fx_5_0` effect can include, and `hosts/hlsl/hogshade_core.hlsl` at shader model 6 for modern
+  consumers. The Maya shell includes the SM5 artifact and never the SM6 one; fxc validates the
+  first, dxc the second. Anything the core uses that SM5 cannot express fails the build, which is
+  the point: the core stays within what every host can compile.
 - `tools/build_shaders.py` stitches core modules in manifest order, runs naga to validate the WGSL
-  and to emit HLSL and GLSL into `hosts/*/generated/`, and runs fxc and dxc. `tests/compile/` calls
-  it and fails on any error. Generated files are committed; CI checks that regeneration is a no-op.
+  and to emit both HLSL targets and GLSL into `hosts/*/generated/`, and runs fxc and dxc.
+  `tests/compile/` calls it and fails on any error. Generated files are committed; CI checks that
+  regeneration is a no-op.
 
 ## Module conventions in WGSL
 
@@ -46,8 +58,12 @@ WGSL has no `import`. A module is a file under `core/` with a header comment nam
 provides and requires; `core/manifest.toml` lists modules in dependency order and
 `build_shaders.py` concatenates them. Rules:
 
-- Every function and struct is prefixed with its module: `brdf_ggx_d`, `lighting_LightSource`,
-  `surface_triplanar_weights`. No two modules define the same name; the build fails if they do.
+- Every function and struct is prefixed with its module: `brdf_ggx_d`, `lighting_fixed_slots_get`,
+  `surface_triplanar_weights`. The one exemption is the public interface: the structs in
+  `core/interface.wgsl` (`ShadingInputs`, `SurfaceInputs`, `ShadingResult`, `LightSource`,
+  `EnvironmentIBL`) and the model entry names `<model>_inputs` and `<model>_evaluate`, which every
+  host and every model spells the same way. The collision checker knows the exemption list from
+  `manifest.toml`; any other unprefixed name fails the build.
 - No entry points in `core/`. Entry points live in hosts.
 - No bindings in `core/`. Textures, samplers and uniforms are declared by hosts and passed in as
   function arguments or through the `ShadingInputs` struct. This is what keeps the core portable.
@@ -92,9 +108,36 @@ struct LightSource {            // one punctual light; see lighting.wgsl for the
 Every model implements two functions with fixed names, `<model>_inputs(...) -> ShadingInputs` and
 `<model>_evaluate(inputs, lights, env, debug_mode) -> ShadingResult`, and `core/models.wgsl` holds
 the `switch` on `model` that dispatches to them. Forward hosts call both in one shader; the deferred
-host calls `inputs` in the G-buffer fill and `evaluate` in the light pass. `core/gbuffer.wgsl`
-encodes and decodes `ShadingInputs` against a layout struct, with SpriteJammer's ADR-002 layout as
-the first.
+host calls `inputs` in the G-buffer fill and `evaluate` in the light pass.
+
+**The deferred payload contract.** A G-buffer does not carry all of `ShadingInputs`, so the struct
+is split into what is stored and what is reconstructed:
+
+```wgsl
+struct SurfaceInputs {          // what the G-buffer stores; what inputs() must produce for deferred
+    base_color: vec3<f32>,
+    metalness: f32,
+    roughness: f32,
+    ao: f32,                    // cavity is folded into ao at encode time
+    emissive: vec3<f32>,
+    normal_ws: vec3<f32>,
+    model: u32,
+}
+// ShadingInputs = SurfaceInputs + view_ws, position_ws (reconstructed per pixel from depth and the
+// camera by the light pass) + specular_f0 (derived: mix(vec3(0.04), base_color, metalness) in the
+// deferred path; a model may derive it differently in forward, and that is a documented tier-3
+// difference) + opacity (1.0 in the deferred path; MASK has already discarded).
+```
+
+`core/gbuffer.wgsl` encodes and decodes `SurfaceInputs` against a layout struct, with SpriteJammer's
+ADR-002 layout first; the quantisation of each field (octahedral normal in `rgba16float`, 8-bit
+albedo and AO) is part of the contract and the round-trip test measures it. `evaluate()` consumes
+`ShadingInputs` in both paths; the deferred host builds it from `SurfaceInputs` plus the
+reconstruction above. Fields only forward can supply (a distinct specular colour, coat, anisotropy,
+opacity blending) are exactly the tier-3 list in the design doc. A parity test evaluates the same
+surface through the forward path and through encode, decode and reconstruct, and the difference
+must be within the quantisation the layout allows (task 10 of the plan). Any field that cannot be
+reconstructed or defaulted is a build error, not a silent divergence.
 
 `lighting.wgsl` provides `FixedSlots16` (an array of 16 `LightSource`, the v2 gather pattern, filled
 by a DCC host) and `LightBuffer` (a storage buffer the engine fills after culling). Each model's
@@ -147,11 +190,13 @@ machine and are recorded in `Docs/verification/`.
 - `hosts/maya_dx11/`: `hogshade.fx`, the shell: effect parameters and annotations (generated from
   the parameter schema in phase 3; hand-written for the legacy parameter set now), texture and
   sampler declarations, the 16 light slots bound through `Object = "Light N"`, techniques and passes,
-  and a call into naga's HLSL of the core. `tools/maya_ibl_check.py` re-run against it must produce a
-  lit ball with the specular term visible.
+  and a call into naga's shader-model 5 HLSL of the core. `tools/maya_ibl_check.py` re-run against it
+  must produce a lit ball with the specular term visible.
 - `hosts/hlsl/`: naga's shader-model 6 HLSL of the core, formatted, dxc-validated, with a README of
-  its binding layout for Unreal, Unity and DX12 consumers. The Maya shell includes this file rather
-  than a private copy.
+  its binding layout for Unreal, Unity and DX12 consumers. The Maya shell includes the shader-model 5
+  artifact of the same WGSL (`hosts/maya_dx11/generated/hogshade_core_sm5.hlsl`), not this file; both
+  are generated by one build from one source, and the build fails if the core uses anything SM5
+  cannot express.
 
 ## Out of scope
 
