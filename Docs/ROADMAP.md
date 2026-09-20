@@ -20,7 +20,7 @@ Every item below serves that sentence. An item that does not is out of scope.
 
 Maya-PBR-BRDF-VP2 becomes **HogShade**, a shading research repo: one WGSL core holding several shading models as
 peers (the 2015 and 2017 legacy models kept verbatim, plus a new OpenPBR model), imported by thin
-hosts for Maya, Blender, wgpu, OSL and MaterialX. SpriteJammer consumes the wgpu host through its
+hosts for Maya, modern HLSL, Blender, wgpu, OSL and MaterialX. SpriteJammer consumes the wgpu host through its
 existing shading-model ID, with three quality tiers so a modern PBR look is the default and a cheaper
 model is one byte away when the frame budget says so. Around that sit the repo transfer and history
 cleanup that make the work publishable, and the employer conversation that decides what else can be.
@@ -164,6 +164,9 @@ Gate: E's calibration capture runs in `maya_dx11` before this phase opens, so Op
 
 ### C6. Other hosts
 
+- [ ] `hosts/hlsl/`: the modern HLSL host. naga's SM 6 output committed and formatted, dxc validation
+      in CI beside fxc, a documented cbuffer and binding layout, a README for Unreal, Unity and DX12
+      consumers. The `maya_dx11` shell wraps this file rather than its own copy.
 - [ ] `hosts/maya_ogsfx/`: GLSL shell for OpenGL Maya and Mac.
 - [ ] `hosts/blender_nodes/`: Python add-on building a Principled BSDF tree from the OpenPBR
       parameter model, `surface/` as generated node groups. EEVEE and Cycles. Lists what Principled
