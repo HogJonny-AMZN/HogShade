@@ -67,7 +67,7 @@ Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence 
       and rename the transferred repo to HogShade. Path B: skip the transfer; HogShade stays as is and
       the legacy repo gets a one-line README pointing at it. Either way `origin` is HogShade.
 - [ ] Commit the spec and this roadmap as the first change.
-- [ ] `git-filter-repo`: strip `testFiles/`, `images/`, `ShaderDevProj/` from history. Force-push.
+- [x] `git-filter-repo`: strip `testFiles/`, `images/`, `ShaderDevProj/` from history. Force-pushed 2026-09-20; owner detaches the fork network and deletes `legacy-pointer` after the pointer PR merges.
 - [ ] Git LFS: one shader-ball scene, one licence-clean HDR (owner picks), the packed test textures.
 - [ ] Close the getting-started issue on the legacy repo, pointing at the README.
 - [x] v3.0 salvage (2026-09-20): six of eleven includes compile against v2; all six are reformats.
