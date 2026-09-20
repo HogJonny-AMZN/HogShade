@@ -54,6 +54,7 @@ def run():
         techs = cmds.getAttr(node + ".techniques")
         out.append(f"TECHNIQUES: {techs!r}")
         # dx11Shader texture parameters take a connected file node, not a path string
+        connected_cubes = set()
         for attr, fname in (("specularEnvTextureCube", "specular.dds"), ("diffuseEnvTextureCube", "irradiance.dds")):
             if cmds.attributeQuery(attr, node=node, exists=True):
                 tex = cmds.shadingNode("file", asTexture=True, isColorManaged=True, name=f"{attr}_file")
@@ -62,6 +63,8 @@ def run():
                 cmds.connectAttr(f"{tex}.outColor", f"{node}.{attr}", force=True)
                 size = cmds.getAttr(f"{tex}.outSize")  # (0, 0) when Maya could not decode the file
                 out.append(f"CONNECTED {tex} ({cmds.getAttr(f'{tex}.fileTextureName')}) -> {attr}; loaded size {size}")
+                if size and size[0][0] > 0:
+                    connected_cubes.add(attr)
             else:
                 out.append(f"MISSING attribute {attr}")
         # the shader samples its 2D maps unconditionally: with nothing bound the base colour is black and a
@@ -171,7 +174,9 @@ def run():
                 cmds.setAttr(f"{node}.g_DebugMode", mode)
                 capture(PNG.replace(".png", f"-debug-{mode:02d}.png"))
             cmds.setAttr(f"{node}.g_DebugMode", 0)
-        out.append("RESULT: OK" if techs and os.path.exists(PNG) else "RESULT: FAILED")
+        ok = bool(techs) and os.path.exists(PNG) and len(connected_cubes) == 2
+        out.append(f"CUBES connected and decoded: {sorted(connected_cubes)}")
+        out.append("RESULT: OK" if ok else "RESULT: FAILED")
     except Exception:  # noqa: BLE001 - log whatever Maya throws
         out.append("RESULT: FAILED\n" + traceback.format_exc())
     out.append(f"MAYA: {cmds.about(version=True)}")

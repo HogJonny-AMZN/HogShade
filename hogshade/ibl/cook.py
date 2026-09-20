@@ -50,10 +50,7 @@ def condition(src: Path, dst: Path) -> dict:
     if w % SOURCE_WIDTH or (w // SOURCE_WIDTH) != (h // SOURCE_HEIGHT):
         raise ValueError(f"{src.name} is {w}x{h}; need an integer multiple of {SOURCE_WIDTH}x{SOURCE_HEIGHT}")
     factor = w // SOURCE_WIDTH
-    out = rgb
-    while factor > 1:
-        out = box_downsample(out, 2)
-        factor //= 2
+    out = rgb if factor == 1 else box_downsample(rgb, factor)  # one exact box average by the validated factor
     written = out.astype(np.float16)
     dst.parent.mkdir(parents=True, exist_ok=True)
     write_exr_rgb(dst, written, half=True)
@@ -118,6 +115,8 @@ def cook_environment(env_dir: Path, base: int = 256, samples: int = 1024, irradi
     write_png_rgb8(env_dir / "preview.png", preview_srgb8(pyramid[2] if len(pyramid) > 2 else img))
 
     outputs = ["specular.dds", "irradiance.dds", "irradiance_sh9.json"]
+    output_hashes = {name: sha256_file(out_dir / name) for name in outputs}
+    output_hashes["../preview.png"] = sha256_file(env_dir / "preview.png")  # display only, but generated, so hashed
     manifest = {
         "tool": "hogshade.ibl.cook",
         "tool_version": __version__,
@@ -140,7 +139,7 @@ def cook_environment(env_dir: Path, base: int = 256, samples: int = 1024, irradi
             "format": "RGBA16F cube, DX10 DDS",
         },
         "sh9": {"stores": "radiance coefficients L_lm; see irradiance_sh9.json note"},
-        "outputs": {name: sha256_file(out_dir / name) for name in outputs},
+        "outputs": output_hashes,
     }
     (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     provenance = {

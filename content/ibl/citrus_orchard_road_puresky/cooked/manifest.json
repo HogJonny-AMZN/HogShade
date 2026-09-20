@@ -8,6 +8,7 @@
     "stores": "E/pi (cosine-convolved radiance over pi)"
   },
   "outputs": {
+    "../preview.png": "74437291d11a487fbd03489edf0589f9436c7a87c4c6fc5f4b387ca556397d84",
     "irradiance.dds": "44b0399a195678e074437645d067e1a015ebbfda9e0353f30d6de11122e689c6",
     "irradiance_sh9.json": "2a95d66594b37c556a43861dd3311cefb25704e200e5f1d9ee1b3a82a06c6d26",
     "specular.dds": "dc044fa42c741ac242f17af5a43236f8a59999b2af5c16b438f5d8315222013c"
