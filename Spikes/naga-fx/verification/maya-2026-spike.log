@@ -1,0 +1,11 @@
+started Sun Sep 20 18:01:18 2026
+fx D:/Depot/Maya-PBR-BRDF-VP2/Spikes/naga-fx/ggx.fx
+texture D:/Depot/Maya-PBR-BRDF-VP2/Spikes/naga-fx/checker.png
+TECHNIQUES: ['Main']
+TEXTURE decoded size [(256.0, 256.0)]
+LIGHT spike_light created; light0Dir attr exists=True
+PNG A True; light0Dir now [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+PNG B True; light0Dir now [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+FRAMES identical: False
+RESULT: OK
+MAYA: 2026

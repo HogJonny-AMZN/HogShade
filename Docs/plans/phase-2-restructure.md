@@ -5,22 +5,26 @@ own. Tick a task only when its verification ran.
 
 ## PR A: the spike
 
-- [ ] 1. Toolchain: Rust via `winget install Rustlang.Rustup`, then `cargo install naga-cli`; record
-      versions in `Docs/verification/toolchain.md`. Verified: `naga --version`.
-- [ ] 2. `Spikes/naga-fx/`: `ggx.wgsl` (GGX D, Smith visibility, Schlick Fresnel, one function that
+- [x] 1. Toolchain: Rust via `winget install Rustlang.Rustup`, then `cargo install naga-cli`; record
+      versions in `Docs/verification/toolchain.md`. Verified 2026-09-20: naga 30.0.1, Rust 1.98.1.
+- [x] 2. `Spikes/naga-fx/`: `ggx.wgsl` (GGX D, Smith visibility, Schlick Fresnel, one function that
       combines them, plus a function that samples a `texture_2d` through a `sampler` for the base
       colour and reads one light from a uniform struct), `naga --shader-model 50 ggx.wgsl ggx.hlsl`,
       a `ggx.fx` shell that declares the texture, sampler and light as Maya-annotated effect
       parameters and passes them into the generated functions from its pixel shader,
       `fxc /T fx_5_0`. Verified: fxc exit 0; the fxc log and naga's HLSL are committed under the
       spike. If naga's texture and sampler declarations cannot be fed from effect parameters, that
-      is the spike's finding and the verdict is fail.
-- [ ] 3. Maya 2026 loads `ggx.fx` on a sphere through `dx11Shader`, with a file node bound to the
+      is the spike's finding and the verdict is fail. Verified 2026-09-20: fxc exit 0 (`fxc.log`);
+      the first attempt with bound globals produced naga's sampler heap in register spaces, the
+      parameter-passing form produces plain `Texture2D`/`SamplerState` parameters (spike README).
+- [x] 3. Maya 2026 loads `ggx.fx` on a sphere through `dx11Shader`, with a file node bound to the
       texture parameter and a scene light bound to the light slot, and draws the textured ball with
       a specular highlight; screenshot. Verified: `tools/maya_load_check.py` style log with
-      techniques and the decoded texture size, and the PNG.
-- [ ] 4. Verdict written into the spec's "spike" section: WGSL stays, or the core moves to Slang.
+      techniques and the decoded texture size, and the PNG. Verified 2026-09-20: techniques `['Main']`,
+      texture 256x256 decoded, two frames differ with the light rotated (`verification/`).
+- [x] 4. Verdict written into the spec's "spike" section: WGSL stays, or the core moves to Slang.
       Every later task assumes WGSL; if the verdict is Slang, this plan is rewritten before PR B.
+      Verdict 2026-09-20: WGSL stays.
 
 ## PR B: core skeleton, build and compile tests
 

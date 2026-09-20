@@ -1,0 +1,2 @@
+// HogShade phase 2 spike: run maya_spike_check.py inside a Maya GUI session.
+python("import os; exec(open(os.path.join(os.environ.get('HOGSHADE_ROOT', os.getcwd()), 'Spikes', 'naga-fx', 'maya_spike_check.py')).read())");

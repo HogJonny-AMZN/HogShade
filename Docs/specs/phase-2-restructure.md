@@ -25,7 +25,15 @@ becomes an emitted target, as the design doc already allows; the rest of this sp
 either way except the toolchain section. A spike that compiles but cannot bind the texture or the
 light is a fail, not a provisional pass.
 
-Known risks the spike must answer: naga's HLSL emits its own struct and binding conventions
+**Verdict (2026-09-20): pass. WGSL stays the source language.** Evidence in `Spikes/naga-fx/`:
+naga 30.0.1 at shader model 5.0, `fxc /T fx_5_0` exit 0, Maya 2026 draws the checker-textured
+sphere with a GGX highlight from a scene light bound to `Light 0`, and rotating the light changes
+the frame. One finding shapes the core: with `@group/@binding` globals naga emits a sampler heap in
+register spaces that no effect can bind, so the core passes textures, samplers and uniforms as
+function parameters and declares nothing at file scope. That is already the "no bindings in core"
+rule below, now with a reason.
+
+Known risks the spike had to answer: naga's HLSL emits its own struct and binding conventions
 (`cbuffer` layouts, `Texture2D` and `SamplerState` declarations, entry-point signatures) that must
 sit inside an effect file the `dx11Shader` plug-in accepts; naga's shader-model target (5.0 by
 default) must satisfy `fx_5_0`; and naga has no notion of effect annotations, so every UI annotation
