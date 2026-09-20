@@ -1,0 +1,13 @@
+# Maya 2026 load check, legacy v2 shader (phase 1, task 8)
+# Launched: maya.exe -script tools/maya_load_check.mel with MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11
+# (the ENGINE line below is the saved preference, which the override leaves untouched)
+# Script: loads dx11Shader, creates a dx11Shader node, sets .shader to legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx,
+#         reads .techniques, writes this log, quits. Date: 2026-09-20 (re-run against the V2_ entry after review).
+
+started Sun Sep 20 13:17:16 2026
+ENGINE: 'OpenGLCoreProfileCompat'
+PLUGIN: loaded=True
+TECHNIQUES: ['TessellationOFF']
+TECHNIQUE: 'TessellationOFF'
+RESULT: OK
+MAYA: 2026

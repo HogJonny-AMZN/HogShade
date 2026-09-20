@@ -158,7 +158,7 @@ running engine, keyed by material name. Later, not first, but the bus design sho
 Slang, naga, wgpu-py, Blender and Maya all move. Consumers vendoring generated WGSL should not need
 Slang installed.
 
-**Fix.** Pin Slang and naga in `pyproject.toml`; a CI matrix over Maya 2024 and 2026 where a
+**Fix.** Pin naga and wgpu-py in `pyproject.toml`; CI on Maya 2026 where a
 licence allows, Blender LTS; commit `hosts/*/generated/` so consumers vendor files, with a CI check
 that regenerating produces no diff.
 

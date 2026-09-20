@@ -1,7 +1,7 @@
 # HogShade roadmap: the shading research repo and everything around it
 
 Date: 2026-09-20. Owner: Jonny Galloway. Companion to
-[specs/2026-09-20-modernization-direction.md](specs/2026-09-20-modernization-direction.md), which
+[design/2026-09-20-modernization-direction.md](design/2026-09-20-modernization-direction.md), which
 holds the architecture detail. This document is the order of work across four tracks and the
 gates between them. Tick items as they land.
 
@@ -18,9 +18,9 @@ Every item below serves that sentence. An item that does not is out of scope.
 
 ## The one-paragraph version
 
-Maya-PBR-BRDF-VP2 becomes **HogShade**, a shading research repo: one Slang core holding several shading models as
+Maya-PBR-BRDF-VP2 becomes **HogShade**, a shading research repo: one WGSL core holding several shading models as
 peers (the 2015 and 2017 legacy models kept verbatim, plus a new OpenPBR model), imported by thin
-hosts for Maya, Blender, wgpu, OSL and MaterialX. SpriteJammer consumes the wgpu host through its
+hosts for Maya, modern HLSL, Blender, wgpu, OSL and MaterialX. SpriteJammer consumes the wgpu host through its
 existing shading-model ID, with three quality tiers so a modern PBR look is the default and a cheaper
 model is one byte away when the frame budget says so. Around that sit the repo transfer and history
 cleanup that make the work publishable, and the employer conversation that decides what else can be.
@@ -37,7 +37,7 @@ cleanup that make the work publishable, and the employer conversation that decid
 
 Tracks A and B are independent. C follows B. E starts with B and its capture tooling gates C3.
 D follows C5 but its G-buffer prep and the bake decision can start any time. The reasoning behind E
-is [specs/2026-09-20-wysiwyg-blindspots.md](specs/2026-09-20-wysiwyg-blindspots.md).
+is [design/2026-09-20-wysiwyg-blindspots.md](design/2026-09-20-wysiwyg-blindspots.md).
 
 ## Track A: profile and clearance
 
@@ -58,7 +58,7 @@ is [specs/2026-09-20-wysiwyg-blindspots.md](specs/2026-09-20-wysiwyg-blindspots.
 
 ## Track B: repo hygiene (phase 1 of the spec)
 
-Gate to finish: v2.0 loads in Maya 2024 and 2026 `dx11Shader`; clone under 5 MB; licence present.
+Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence present.
 
 - [x] The fork under `HogJonny-AMZN` is renamed **HogShade** (2026-09-20) and is the working repo
       today; the docs branch lives there. Old URLs redirect.
@@ -69,14 +69,17 @@ Gate to finish: v2.0 loads in Maya 2024 and 2026 `dx11Shader`; clone under 5 MB;
 - [ ] Commit the spec and this roadmap as the first change.
 - [ ] `git-filter-repo`: strip `testFiles/`, `images/`, `ShaderDevProj/` from history. Force-push.
 - [ ] Git LFS: one shader-ball scene, one licence-clean HDR (owner picks), the packed test textures.
-- [ ] Apache 2.0 licence, `.gitignore` rewritten for shaders and Maya, README with the getting-started
-      guide the open issue asks for. Close the issue.
-- [ ] v3.0 salvage: compile each v3 include against the v2 main file with fxc; keep what compiles and
-      improves on v2; delete the folder. The archive stays at
-      `D:\Depot\Maya-PBR-BRDF-VP2_BAK\uncommitted-v3.0-2025-04`.
-- [ ] Move `src/Shaders/HLSL/v.1.0` and `v.2.0` to `legacy/` unchanged. They are the reference.
-- [ ] Launch Maya 2024 and 2026, load the v2 shader on the shader ball, screenshot, record what
-      breaks. This screenshot is the baseline every later phase diffs against.
+- [ ] Close the getting-started issue on the legacy repo, pointing at the README.
+- [x] v3.0 salvage (2026-09-20): six of eleven includes compile against v2; all six are reformats.
+      Nothing taken. Folder deleted; archive stays at
+      `D:\Depot\Maya-PBR-BRDF-VP2_BAK\uncommitted-v3.0-2025-04`. Details in the direction spec.
+- [x] Move `src/Shaders/HLSL/v.1.0` and `v.2.0` to `legacy/` unchanged. They are the reference.
+- [x] Both legacy shaders compile clean under `fxc /T fx_5_0 /D _MAYA_=1` (warnings only).
+- [x] Apache 2.0 licence, `.gitignore` rewritten, README with the getting-started guide.
+- [ ] Launch Maya 2026, load the v2 shader on the shader ball, screenshot, record what
+      breaks. This screenshot is the baseline every later phase diffs against. Headless `mayapy`
+      cannot do it (no DirectX device); a scripted GUI launch (`maya.exe -script`) or the
+      Job_Orchestrator Maya GUI worker is the automated route.
 
 ## Track C: shading core and hosts (phases 2 to 6 of the spec)
 
@@ -84,9 +87,18 @@ Gate for every phase: the compile tests pass and the Maya 2026 screenshot diff i
 
 ### C2. Restructure
 
-- [ ] Slang toolchain via the `shader-slang` pip package in `pyproject.toml`; `tools/build_shaders.py`
-      emits HLSL, GLSL and WGSL into `hosts/*/generated/`.
-- [ ] `tests/compile/`: fxc for dx11, glslangValidator for ogsfx, naga for WGSL, oslc for OSL. CI.
+The core is written in WGSL (owner, 2026-09-20). `naga` translates it for the DCC hosts.
+
+- [ ] **Spike, before anything else:** one core module (a GGX lobe) in WGSL, translated by `naga` to
+      HLSL, wrapped in a v2-style `.fx` shell, compiled by fxc and rendered in Maya 2026. Samplers,
+      texture bindings and semantics are the risk. Pass: continue. Fail: the core moves to Slang and
+      WGSL becomes an emitted target; nothing else in the roadmap changes.
+- [ ] Toolchain: `naga-cli` (Rust; `cargo install naga-cli`, or a pinned binary in CI) and
+      `tools/build_shaders.py` stitching core modules and emitting HLSL and GLSL into
+      `hosts/*/generated/`. No Rust toolchain is on the owner's machine today; adding one is a
+      dependency decision to make consciously.
+- [ ] `tests/compile/`: naga validates the core; fxc for dx11, glslangValidator for ogsfx, oslc for
+      OSL. CI.
 - [ ] `core/interface/`: `ShadingInputs`, `ShadingResult`, `IShadingModel` split into `inputs()`
       (material half) and `evaluate()` (lighting half) so forward runs both and deferred runs them
       in two passes. A shadow/depth entry exposes alpha mask, vertex offset and PDO alone.
@@ -128,7 +140,12 @@ Gate: E's calibration capture runs in `maya_dx11` before this phase opens, so Op
       tangent frames for normal maps, parallax occlusion per projection.
 - [ ] Pixel depth offset from the parallaxed height, and the same offset in the shadow pass.
       SpriteJammer's Depth Offset Maps are this feature; the Maya host writes `SV_Depth`.
-- [ ] Debug views: weights, projection axes, parallax offset, layer weights.
+- [ ] Debug views as core contract: one `ShadingResult.debug` slot per model over named intermediates
+      (the v2 33-mode list plus weights, projection axes, parallax offset, layer weights, per-light-slot
+      contribution); forward writes it to colour, deferred to a debug target. Owner requirement: the
+      debug rendering paths survive every phase.
+- [ ] CPV set 0 RGBA masks and tint, CPV set 1 AO, vertex alpha: first-class inputs in every tier,
+      not legacy toggles.
 - [ ] Legacy POM stays available under the legacy models; the new one is a separate path.
 - [ ] Stochastic or hex tiling; biplanar as the cheap variant for the horde tier.
 - [ ] Detail maps (normal, albedo, roughness) with RNM blending and a mask; macro variation noise.
@@ -138,19 +155,23 @@ Gate: E's calibration capture runs in `maya_dx11` before this phase opens, so Op
 - [ ] Specular occlusion from AO and bent normals, cavity, horizon clamp, micro-shadowing.
 - [ ] Geometric specular anti-aliasing in the shader; normal-variance roughness in the cook (track E).
 
-### C5. WGSL host (moved up because it serves active projects)
+### C5. wgpu host (the core's native home)
 
-- [ ] `hosts/wgpu/generated/*.wgsl` from the core, `naga`-validated in CI.
+- [ ] `hosts/wgpu/`: pass entry points over the core (`gbuffer_fill`, `deferred_light`, forward
+      `lit_mesh`), `naga`-validated in CI. No generated step; the core files are the deliverable.
 - [ ] A wgpu test viewport on the `Spikes/wgpu_tile` pattern from LargeWorlds, drawing the shader
       ball for a screenshot diff against `maya_dx11`.
 - [ ] A **game profile** of the core defined as OpenPBR restricted to what glTF 2.0 and its KHR
       material extensions can carry, with a conversion table in the repo. Blender exports it and the
       engine imports it with no code in between. Anything outside glTF is forward-only (tier 3) by
       definition.
-- [ ] Publish the generated WGSL as the artifact SpriteJammer and `hog_rendering` vendor.
+- [ ] Publish the core WGSL as the artifact SpriteJammer and `hog_rendering` vendor.
 
 ### C6. Other hosts
 
+- [ ] `hosts/hlsl/`: the modern HLSL host. naga's SM 6 output committed and formatted, dxc validation
+      in CI beside fxc, a documented cbuffer and binding layout, a README for Unreal, Unity and DX12
+      consumers. The `maya_dx11` shell wraps this file rather than its own copy.
 - [ ] `hosts/maya_ogsfx/`: GLSL shell for OpenGL Maya and Mac.
 - [ ] `hosts/blender_nodes/`: Python add-on building a Principled BSDF tree from the OpenPBR
       parameter model, `surface/` as generated node groups. EEVEE and Cycles. Lists what Principled
@@ -197,8 +218,8 @@ tier that costs a second draw.
 
 - [ ] Measure first: the S3 harness (500 lights at 5120x1440) with tier 0, then a stub tier 2, so
       the cost of PBR in the deferred pass is a number before any material is authored.
-- [ ] Vendor `hosts/wgpu/generated/` from track C5 into `src/sj_render/shaders/common/`; the
-      shader loader concatenates it ahead of the pass files. One ADR in SpriteJammer records that the
+- [ ] Vendor the HogShade core from track C5 into `src/sj_render/shaders/common/`; the shader
+      loader concatenates it ahead of the pass files. One ADR in SpriteJammer records that the
       shading maths is imported, not owned.
 - [ ] `gbuffer_fill.wgsl` runs the core's material half and `core/gbuffer/` encode; the shadow and
       depth passes use the core's shadow entry so alpha masks and PDO match the main pass.
@@ -245,8 +266,17 @@ The inputs and the proof. Without these, "same shader" produces different pictur
       normal-map test tile, triplanar cube, one alpha cutout. Same camera, rig and HDR in every host.
 - [ ] Capture script per host: `mayapy` batch, `blender -b`, the engine's offscreen path. One diff
       tool with tolerance and background mask, producing a proof page. Lands before C3.
-- [ ] Pin Slang, naga and wgpu-py; CI matrix over Maya 2024 and 2026 where licensing allows, Blender
+- [ ] Pin naga and wgpu-py; CI on Maya 2026 where licensing allows, Blender
       LTS; commit `hosts/*/generated/` with a CI check that regeneration produces no diff.
+- [ ] **HogShade job library for Job_Orchestrator and BATS.** Every reproducible step (texture cook,
+      IBL and LUT bake, calibration capture per host, sprite bake) is a MODULE-mode job in a
+      `hogshade.jobs` package with a manifest per job: name, one-paragraph description written for
+      an agent, parameter schema with types and defaults, worker type (Maya headless, Maya GUI,
+      Blender, Python), inputs and outputs. The library registers with the orchestrator's worker
+      and tool registry so the MCP server's `list_tools` and `list_worker_types` surface it, and
+      an LLM can find a job, read what it does and submit it without reading source. Job clones
+      and cooked outputs stay local, never in this repo. Owned jointly with Job_Orchestrator; the
+      registration mechanism is that repo's, the jobs are this one's.
 
 ## Gates that only the owner passes
 

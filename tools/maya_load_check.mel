@@ -1,0 +1,1 @@
+python("exec(open(r'tools/maya_load_check.py').read())");

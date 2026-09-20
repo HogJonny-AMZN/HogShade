@@ -13,7 +13,10 @@ core is the single source and every DCC, renderer and engine target is a host of
 
 - HLSL 5 `.fx` effect shaders for Maya Viewport 2.0 `dx11Shader`, two generations:
   `src/Shaders/HLSL/v.1.0` (2015) and `v.2.0` (2017: IBL, parallax occlusion mapping, tone
-  mapping, depth-peeling transparency, a 32-mode debug view). Last real commit August 2017.
+  mapping, depth-peeling transparency, a 33-mode debug view). Last real commit August 2017.
+  v2.0 has two entry files: `V2_uv0bn-pbs_IBLenv.fx` is the July 2017 rewrite with POM
+  self-shadowing and debug modes 0 to 32, and is the reference; `uv0bn-pbs_IBLenv.fx` is the
+  earlier variant (30 debug modes). Both compile under fxc.
 - 37 stars, 12 forks, one open issue asking for a getting-started guide. No licence.
 - History is 128 MB: Maya scenes, IBL `.dds` cubes, Visual Studio debug output and PSDs. One 20 MB
   scene is committed sixteen times.
@@ -21,6 +24,16 @@ core is the single source and every DCC, renderer and engine target is a host of
   corrupted (interleaved line fragments). Three includes were rewritten to a quarter of their v2 size
   and may or may not compile. `V2_`/`V3_` variants are byte copies of v2. Archived to
   `D:\Depot\Maya-PBR-BRDF-VP2_BAK\uncommitted-v3.0-2025-04` before any cleanup.
+- **v3.0 salvage result (2026-09-20).** With `fxc /T fx_5_0 /D _MAYA_=1`, both legacy shaders
+  compile clean (warnings only). Swapping each archived v3 include into v2 one at a time: six of
+  eleven compile (`samplers`, `toneMapping`, `mayaLightsShadowMaps`, `mayaLights`, `maxUtilities`,
+  `propertyNames`), five do not (`lighting.sif` and `pbr.sif` redefine `cg_PI`; `pbr_shader_ui`
+  references undefined macros; `mayaUtilities` has a syntax error; `mayaLightsUtilities` calls a
+  function that no longer exists). The six that compile are reformatting, comment and macro-layout
+  changes; `mayaLights.fxh` is cut from 548 lines to 117 with no functional gain visible. Nothing
+  was taken. v2 in git is the reference; the archive stays outside the repo.
+- **Maya verification.** Headless `mayapy` 2026 loads the effect but reports no techniques (no
+  DirectX device without a GUI). A scripted GUI launch is the only automated route; see the roadmap.
 - Triplanar does not exist as a feature. Debug view 32 computes per-axis blend weights from the world
   normal and displays them. No texture is sampled through them and the weights are not normalised.
 
@@ -35,11 +48,12 @@ core is the single source and every DCC, renderer and engine target is a host of
 | v3.0 folder | Salvage: compile each v3 include against the v2 main file with fxc, keep any that compile and improve on v2, drop the rest, then delete the folder. |
 | Parameter model | OpenPBR for the new model, as close as the viewport allows; document every deviation. |
 | Legacy models | Kept, not replaced. This is a research shader, not a runtime one. The v1 Disney/Cook-Torrance/"game" BRDFs and the v2 model stay selectable alongside OpenPBR for exploration and side-by-side comparison. Clarity beats instruction count. |
-| Shared code | One shading core, imported by every host and language. Slang modules (see below). |
+| Shared code | One shading core, imported by every host and language. **Source language: WGSL** (owner, 2026-09-20: WebGPU is the native target now that SpriteJammer is the primary consumer). `naga` translates the core to HLSL and GLSL for the DCC hosts. Slang was the first choice and stays the documented fallback if naga's HLSL cannot be made to compile inside Maya's `.fx` shell; the spike that decides this is the first item of phase 2. |
 | Hosts | Maya `dx11Shader` (HLSL `.fx`) first; Maya `glslShader` (`.ogsfx`) second; wgpu/WGSL for the owner's Python engine (`hog_rendering`, SpriteJammer) as a consumer of the same core; OSL for Blender Cycles, 3ds Max's native OSL map and the offline renderers (Arnold, RenderMan, V-Ray, 3Delight); MaterialX document last, for LookdevX and USD. |
-| WGSL | A first-class host maintained here, emitted from the Slang core by `build_shaders.py` and validated with `naga`. SpriteJammer and `hog_rendering` consume the generated `hosts/wgpu/generated/*.wgsl` (vendored or via a git dependency), never a hand-edited copy. Second host after `maya_dx11` because it serves the owner's active projects. |
+| WGSL | The core itself. `hosts/wgpu/` adds only pass entry points. SpriteJammer and `hog_rendering` vendor the core files. First host, because it is the source. |
 | Blender EEVEE | Two routes, both kept. (1) `hosts/blender_nodes/`: a Python add-on that builds a Principled BSDF node tree from the OpenPBR parameter model and emits `surface/` (triplanar, UV utils) as generated node groups; renders in EEVEE and Cycles alike and is the route artists use. (2) `hosts/blender_gpu/`: the core's GLSL, emitted by Slang, run through Blender's `gpu` module in a viewport draw handler; the research route, where the actual core code renders inside Blender for comparison. |
 | 3ds Max | No dedicated host. The owner does not need Max; it is served by the OSL host, which Max runs natively through its OSL map (since 2019), and Max becomes one of the places the OSL host is validated. The `_3DSMAX_` scaffolding in the v2 code is not carried forward. |
+| Modern HLSL | A maintained host, `hosts/hlsl/`: plain shader model 6 HLSL (no effect framework, which fxc already reports as deprecated), generated from the WGSL core by naga, committed, formatted and validated with dxc on every change, with a documented `cbuffer` and binding layout. It is what Unreal custom nodes, Unity, DX12 samples and anyone who reads HLSL consume. Generated, not hand-written: two hand-maintained sources is what this design exists to prevent. Maya's `.fx` shell wraps the same output for fxc. |
 | OSL | A hand-maintained host, not a transpile target. Shares the parameter model, the `surface/` maths and the reference test vectors with the core; lobes are renderer closures. Lives on `main` under `hosts/osl/`, not a long-lived branch. |
 | Game profile | OpenPBR restricted to what glTF 2.0 plus the KHR material extensions can carry, with a conversion table. Blender exports it, the engine imports it, nothing in between. |
 | Interchange | The authored material is a MaterialX `.mtlx` document (OpenPBR is defined in MaterialX). Every host imports it. Moved from last host to phase 3. |
@@ -61,11 +75,13 @@ core is the single source and every DCC, renderer and engine target is a host of
 - **One source, many hosts.** The maths lives once, in the core, and every host and language
   imports it.
 
-## Architecture: Slang core, thin host shells
+## Architecture: WGSL core, thin host shells
 
 ```text
 src/
-  core/                      # Slang modules. No host, no UI, no effect syntax.
+  core/                      # WGSL. No host, no UI, no effect syntax. Modules are files
+                             #   stitched by tools/build_shaders.py (SpriteJammer's shader_loader
+                             #   already concatenates common/ files this way).
     interface/               # IShadingModel split in two: inputs() builds ShadingInputs from the
                              #   material half; evaluate() turns ShadingInputs + lights into a
                              #   ShadingResult. Forward runs both; deferred runs them in two passes
@@ -90,11 +106,14 @@ src/
                              #   cannot delegate display to the DCC
   hosts/
     maya_dx11/               # .fx: techniques, passes, UI annotations, Maya semantics, transparency
+    hlsl/                    # modern SM 6 HLSL from naga, committed, dxc-validated, cbuffer layout
+                             #   documented; the maya_dx11 shell wraps it; UE, Unity, DX12 consume it
     maya_ogsfx/              # .ogsfx: same shell against GLSL emitted from the core
-    wgpu/                    # WGSL emitted from the core; consumed by hog_rendering / SpriteJammer
+    wgpu/                    # the core as-is plus pass entry points; SpriteJammer and
+                             #   hog_rendering consume it with no translation step
     blender_nodes/           # Python add-on: OpenPBR params -> Principled BSDF node tree, surface/
                              #   as generated node groups. EEVEE and Cycles. Artist route.
-    blender_gpu/             # core GLSL via bpy `gpu` module in a viewport draw handler. Research
+    blender_gpu/             # naga GLSL of the core via bpy `gpu` module in a draw handler. Research
                              #   route: the real core renders in Blender for comparison.
     osl/                     # .osl shaders for Cycles, 3ds Max OSL map, Arnold, RenderMan, V-Ray,
                              #   3Delight: closure
@@ -102,21 +121,46 @@ src/
                              #   surface/ (triplanar, UV utils) validated against core test vectors
     materialx/               # .mtlx document mapping the OpenPBR parameters for LookdevX and USD
 tools/
-  build_shaders.py           # slangc → HLSL/GLSL/WGSL into hosts/*/generated/; fxc/dxc validate
+  build_shaders.py           # stitch core modules → WGSL; naga → HLSL (SM 5.0) and GLSL into
+                             #   hosts/*/generated/; naga validates WGSL, fxc validates the .fx shells
 tests/
-  compile/                   # every host shell must compile: fxc for dx11, glslangValidator for
-                             #   ogsfx, naga for WGSL, oslc for OSL. CI gate.
+  compile/                   # naga validates the core; every host shell must compile: fxc for
+                             #   dx11, glslangValidator for ogsfx, oslc for OSL. CI gate.
   reference/                 # BRDF LUT and furnace-test images regenerated from the core; a
                              #   white-furnace energy check per lobe
 ```
 
-Why Slang and not macro-portable HLSL: Slang has real `import` modules, generics and interfaces,
-compiles to HLSL, GLSL, SPIR-V, Metal and WGSL from one source, is hosted by Khronos and used by
-NVIDIA, Valve and Unity. It ships as a pip package (`shader-slang` provides `slangc`), so it fits the
-uv toolchain. Macro-portable HLSL would need a hand-maintained prelude per language and cannot express
-the module boundary. The v2 code already has `#ifdef _MAYA_` / `_3DSMAX_` scaffolding; that scaffolding
-moves into the host shells and disappears from the core; the `_3DSMAX_` branches are dropped, since
-Max is served by OSL.
+### Why WGSL is the source, and what that costs
+
+The owner's engine is wgpu, so WGSL is the language the core runs in natively and the one that is
+debugged in the engine. Generating it from another language (the original Slang plan) would have put
+machine-written WGSL in the engine's hottest shaders. With WGSL as the source:
+
+- **SpriteJammer consumes the core with no translation.** Its `shader_loader` already stitches
+  `common/*.wgsl` ahead of pass files; the core is more of the same.
+- **`naga`** (wgpu's own shader translator, part of the same project the engine depends on)
+  emits HLSL and GLSL for the DCC hosts and validates WGSL. Its HLSL backend targets shader model
+  5.0 and up, which is what `fx_5_0` effects wrap.
+- **The cost is modules.** WGSL has no `import` and no preprocessor. Module boundaries are file
+  boundaries and a stitching step in `build_shaders.py`; interfaces are conventions (a `ShadingInputs`
+  struct and named `fn`s per model), not language features. Generics are out; the model selector is
+  a `switch` on the shading-model ID. For a research shader this is acceptable and it is what the
+  engine does already.
+- **Maya's `.fx` shell wraps naga's HLSL.** naga emits free functions and structs; the shell
+  declares the effect parameters, textures, samplers and techniques and calls into the generated
+  code. The one open risk is naga's handling of samplers, texture bindings and `SV_` semantics
+  inside an effect; the phase 2 spike settles it before anything else is built.
+- **A modern HLSL host is a committed output, not a second source.** `hosts/hlsl/` holds naga's
+  shader model 6 HLSL, formatted and validated with dxc, with a documented binding layout, so it
+  reads and consumes as a maintained HLSL shader. If the owner ever wants HLSL to be the language
+  the core is *written* in, the pipeline inverts: HLSL source, `dxc -spirv`, naga to WGSL and GLSL.
+  That is a real option and it is not the one chosen, because WGSL is what the primary consumer
+  runs and debugs.
+- **Slang stays the fallback.** If the spike fails, the core moves to Slang and WGSL becomes an
+  emitted target; every other decision in this document is unchanged.
+
+The v2 code's `#ifdef _MAYA_` / `_3DSMAX_` scaffolding moves into the host shells and disappears
+from the core; the `_3DSMAX_` branches are dropped, since Max is served by OSL.
 
 Legacy source stays in the tree unchanged under `legacy/v1.0` and `legacy/v2.0` as the reference the
 ports are checked against. They are not built; they are what "verbatim" means.
@@ -239,8 +283,10 @@ in any order; the numbering below is the recommended one.
 
 1. **Hygiene.** History rewrite via `git-filter-repo`, LFS test set, licence, `.gitignore`,
    README with the getting-started guide the open issue asks for, delete the `v.3.0` folder after
-   salvage. Verify v2.0 loads in Maya 2024 and 2026 `dx11Shader`; record what breaks.
-2. **Restructure.** Slang toolchain in `pyproject.toml`, `build_shaders.py`, compile tests in CI,
+   salvage. Verify v2.0 loads in Maya 2026 `dx11Shader`; record what breaks.
+2. **Restructure.** Spike first: naga-translated HLSL of one core module compiles inside a v2-style
+   `.fx` shell under fxc and renders in Maya; if not, switch the core to Slang and continue. Then
+   `naga` in the toolchain, `build_shaders.py`, compile tests in CI,
    the v1 and v2 shading ported into `core/models/legacy_*` behind the `maya_dx11` shell with
    pixel-identical output to the originals on the shader ball (screenshot diff). The model selector
    and the `brdf/` toolbox are born here, factored out of the legacy ports.
@@ -249,7 +295,7 @@ in any order; the numbering below is the recommended one.
    so OpenPBR can be judged against v2 on the same shader ball.
 4. **Triplanar + POM.** The surface module; per-projection parallax; debug views for weights and
    projection axes.
-5. **WGSL host.** `hosts/wgpu/` emitted from the core, `naga` validation in CI, a wgpu test
+5. **wgpu host.** `hosts/wgpu/`, the core's native home: pass entry points over the core files as-is, `naga` validation in CI, a wgpu test
    viewport (the `Spikes/wgpu_tile` pattern from LargeWorlds) rendering the shader ball for a
    screenshot diff against `maya_dx11`. SpriteJammer switches to consuming it.
 6. **Other hosts.** `maya_ogsfx`, then Blender: the node generator (EEVEE and Cycles) first because
@@ -264,7 +310,9 @@ in any order; the numbering below is the recommended one.
 ## References
 
 - OpenPBR specification: https://academysoftwarefoundation.github.io/OpenPBR/
-- Slang: https://shader-slang.org/ (pip: `shader-slang`)
+- naga (wgpu's shader translator): https://github.com/gfx-rs/wgpu/tree/trunk/naga (`cargo install naga-cli`)
+- WGSL specification: https://www.w3.org/TR/WGSL/
+- Slang, the fallback: https://shader-slang.org/ (pip: `shader-slang`)
 - Open Shading Language: https://github.com/AcademySoftwareFoundation/OpenShadingLanguage
   (`oslc`, `testshade`); Blender Cycles OSL: Script node docs
 - Maya dx11Shader / glslShader effect annotations: Autodesk Maya developer docs, "Shader plug-ins"

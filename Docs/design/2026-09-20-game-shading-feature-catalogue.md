@@ -78,7 +78,30 @@ standard, 3 OpenPBR forward. "Look-dev" means Maya, Blender and OSL hosts regard
 | Material layer stack in the editor (base plus N layers with masks) | tooling | editor | Authoring convenience over the blends above; the parameter schema must allow nested layers |
 | Two-sided lighting with back-face normal flip and optional translucency | 2, 3 | all | Foliage cards; cheap thin translucency uses a thickness or transmission mask |
 
-### Occlusion and micro detail
+### Vertex data (CPV): kept from v2, first-class
+
+| Feature | Tier | Hosts | Notes |
+| --- | --- | --- | --- |
+| CPV set 0 RGBA as material masks and tint (`useVertexC0_RGBA` in v2) | all | all | sRGB-aware; the artist's cheapest per-vertex control; drives layer blends and tint |
+| CPV set 1 as baked vertex AO (`useVertexC1_AO` in v2) | all | all | Multiplies diffuse and, through specular occlusion, the specular term. Survives every tier because it costs nothing |
+| Vertex alpha for dissolve and fade | all | all | Pairs with the alpha-mode enum |
+| Second UV set and per-vertex tangent frame | all | all | Required inputs; the engine importer generates tangents (MikkTSpace) when absent |
+
+### Debug and inspection paths: kept from v2, first-class
+
+The v2 `DEBUG VIEW` slider (33 modes) is the most used control in the shader and the reason it
+works as a research tool. It is not a legacy convenience; it is part of the core's contract.
+
+| Feature | Tier | Hosts | Notes |
+| --- | --- | --- | --- |
+| Debug mode switch over named intermediates: base colour, masks, normal raw and mapped, F0, Fresnel, NDF, visibility, diffuse and specular split, IBL diffuse and specular, roughness raw and biased, NdotV, ambient dome, parallax UVs, self-occlusion shadow, triplanar weights, layer weights, projection axes | all | every raster host; OSL via an emission-closure debug output | Every model exposes its intermediates through one `ShadingResult.debug` slot chosen by the mode. Forward: written to colour. Deferred: a debug render target the light pass fills, or a forward debug pass over the G-buffer |
+| UV and texel-density checks (out-of-range UVs coloured, checker overlay) | all | all | v2 mode 30 |
+| Compare views: split-screen and difference image between two models | look-dev, wgpu | Maya, Blender gpu, wgpu | `core/compare/` |
+| Furnace mode: white environment, no lights, energy check by eye | look-dev | Maya, wgpu | Pairs with the numeric furnace test |
+| Light-slot inspection: per-slot contribution, shadow term only | all | raster hosts | Which of the 16 gather slots is doing what |
+| Preview-swatch guard (`IsSwatchRender`) | Maya | Maya | v2 disables the expensive paths for the Hypershade swatch; kept |
+
+
 
 | Feature | Tier | Hosts | Notes |
 | --- | --- | --- | --- |
@@ -170,7 +193,7 @@ provider carries directional, point and spot only, which is what DCCs bind.
 | Blender | The node generator add-on with an "export game profile to glTF" button; the calibration scene as a `.blend` |
 | Houdini | Reads MaterialX natively (Karma) and OSL; no extra host. A BATS worker can bake there |
 | glTF | The game-profile interchange; the converter table; the Khronos validator in CI (S14 found it is the only thing that catches malformed data) |
-| BATS and Job_Orchestrator | Texture cook, IBL and LUT bake, calibration capture in each host, sprite bake. Every reproducible step is a job |
+| BATS and Job_Orchestrator | Texture cook, IBL and LUT bake, calibration capture in each host, sprite bake. Every reproducible step is a MODULE-mode job in a `hogshade.jobs` library with an agent-readable manifest, registered so the MCP tools list it (roadmap, track E) |
 | Engine editor | Material panel generated from the schema, live link over the command bus, tier cap as a setting |
 
 ## What the direction spec did not name and now must
@@ -183,6 +206,8 @@ provider carries directional, point and spot only, which is what DCCs bind.
 - Two-sided foliage with thin translucency; wind vertex offset.
 - Specular anti-aliasing in both the cook and the shader.
 - A Substance Painter GLSL host as an option.
+- CPV masks and CPV AO as first-class inputs in every tier, and the 33-mode debug view as part of the
+  core's contract rather than a Maya-only feature; both from v2 and both preserved by requirement.
 - The light-provider split: DCC-bound fixed slots (the v2 gather pattern, 16 slots) as the universal
   fallback, an engine light buffer as the fast path, one light loop against one interface.
 
