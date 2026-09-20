@@ -50,9 +50,30 @@ first version. Subcommands:
 ### Mathematics, fixed here so hosts agree
 
 - **Cube from equirect:** for each cube texel, the direction through its centre, sampled from the
-  equirect with bilinear filtering. Face order and orientation follow DirectX (+X, -X, +Y, -Y, +Z,
-  -Z), Y up, and the equirect's centre column is -Z. The design doc's light-rig description states
-  the same convention so Maya and wgpu agree on where the sun is.
+  equirect with bilinear filtering. The mapping is fully specified here because two hosts that
+  each "follow DirectX" can still disagree by a mirror or a rotation:
+
+  Texel `(x, y)` on a face of size `N`, with `y = 0` the first row stored in the DDS (top of the
+  face as DirectX displays it), maps to `u = 2 (x + 0.5) / N - 1` and `v = 2 (y + 0.5) / N - 1`,
+  both in `[-1, 1]`. The unnormalised direction per face is the Direct3D cube-map convention:
+
+  | Face | Index | Direction `(dx, dy, dz)` |
+  | --- | --- | --- |
+  | +X | 0 | `( 1, -v, -u)` |
+  | -X | 1 | `(-1, -v,  u)` |
+  | +Y | 2 | `( u,  1,  v)` |
+  | -Y | 3 | `( u, -1, -v)` |
+  | +Z | 4 | `( u, -v,  1)` |
+  | -Z | 5 | `(-u, -v, -1)` |
+
+  Normalise, then look up the equirect with longitude `phi = atan2(dx, -dz)` in `(-pi, pi]` and
+  latitude `theta = asin(dy)` in `[-pi/2, pi/2]`: `s = 0.5 + phi / (2 pi)`, `t = 0.5 - theta / pi`,
+  where `s` runs left to right across the equirect's columns and `t` runs top to bottom across its
+  rows, so row 0 is straight up (+Y) and the centre column (`s = 0.5`) is `-Z`. Longitude increases
+  towards `+X`, so `+X` is at `s = 0.75` and `-X` at `s = 0.25`. Wrap `s` modulo 1; clamp `t`.
+  Y is up throughout; a Z-up host converts on its side. The design doc's light-rig description
+  states this same convention so Maya and wgpu agree on where the sun is. The plan's task 4 test
+  uses asymmetric off-centre markers so a mirrored or rotated face fails.
 - **Specular prefilter:** GGX importance sampling with the split-sum approximation, N = V = R.
   Mip `m` of `M` levels has roughness `m / (M - 1)`; base 256 gives 9 levels. 1024 samples per
   texel, with the "sample from a lower mip of the source" trick to suppress fireflies. Roughness
@@ -64,12 +85,16 @@ first version. Subcommands:
 - **No exposure or tonemapping anywhere.** Outputs are scene-linear radiance in the source's units.
   Display is the host's job through the shared OCIO config.
 
-### Manifest
+### Manifest and provenance
 
-`cooked/manifest.json` records: tool version, HogShade git hash, source file sha256, cube size,
-mip count, sample counts, roughness-to-mip mapping, face convention, wall time, and the machine.
-A cook with the same inputs and version produces byte-identical outputs; CI checks this on the
-studio environment.
+Two files, because reproducibility and provenance pull in opposite directions:
+
+- `cooked/manifest.json` is **deterministic**: tool version, source file sha256, cube size, mip
+  count, sample counts, roughness-to-mip mapping, the face-convention identifier, and the sha256
+  of every output file. A cook with the same source and tool version produces byte-identical
+  outputs and a byte-identical manifest; CI checks this on the studio environment.
+- `cooked/provenance.json` is **volatile** and excluded from every reproducibility check: wall
+  time, machine name, HogShade git hash, Python and NumPy versions. It says who cooked, not what.
 
 ### Job_Orchestrator
 
@@ -83,7 +108,7 @@ mechanism; this repo ships the job and the manifest.
 - `furnace` passes: a white environment cooks to white at every mip of `specular.dds`, in
   `irradiance.dds`, and in the SH9 constant term.
 - Both shipped environments cook from `source_4k.exr` with no manual step; re-cooking on CI
-  reproduces the committed outputs byte for byte.
+  reproduces the committed outputs and `manifest.json` byte for byte (`provenance.json` excluded).
 - Maya 2026 loads `studio_small_09/cooked/specular.dds` and `irradiance.dds` into the legacy v2
   shader's environment slots and shades the shader ball; screenshot in `Docs/verification/`.
 - `content/ibl/README.md` explains how to add a third environment in five steps.

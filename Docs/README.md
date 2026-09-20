@@ -33,6 +33,6 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
 | 4. Surface authoring | not yet | not yet | Design done |
 | 5. wgpu host | not yet | not yet | Design done |
 | 6. Other hosts | not yet | not yet | Design done |
-| E1. IBL cook | [specs/e1-ibl-cook.md](specs/e1-ibl-cook.md) | [plans/e1-ibl-cook.md](plans/e1-ibl-cook.md) | In progress: sources and `condition` landed |
+| E1. IBL cook | [specs/e1-ibl-cook.md](specs/e1-ibl-cook.md) | [plans/e1-ibl-cook.md](plans/e1-ibl-cook.md) | In progress: `condition` landed; EXR sources blocked on leaving the fork network |
 | E. Parity and pipeline, rest | not yet | not yet | Design done |
 | D. SpriteJammer tiers | lives in the SpriteJammer repo | | Design done here |

@@ -9,15 +9,18 @@ wgpu light a material from the same numbers.
 | `studio_small_09/` | Calibration. Neutral, no colour cast. The acceptance environment in the E1 spec | Poly Haven, CC0 |
 | `citrus_orchard_road_puresky/` | Look-dev. Warm outdoor sky for screenshots | Poly Haven, CC0 |
 
-Each folder holds a `LICENSE.md` (source URL, licence, fetch date), `source_4k.exr` (4096x2048
-linear half-float, under Git LFS, made from the 8K master by the tool's `condition` step), and,
-once E1 lands, `cooked/` with the prefiltered specular cube, the irradiance cube, the SH9
-constants and a manifest. The 8K masters are not in the repository.
+Each folder holds a `LICENSE.md` (source URL, licence, fetch date) and will hold `source_4k.exr`
+(4096x2048 linear half-float, under Git LFS, made from the 8K master by the tool's `condition`
+step) and, once E1 lands, `cooked/` with the prefiltered specular cube, the irradiance cube, the
+SH9 constants and a manifest. The 8K masters are not in the repository.
 
 ## Status
 
-E1 in progress: the `condition` step exists and both sources are here. The cook itself, the BRDF
-LUT and the cooked outputs follow in the E1 PR (`Docs/plans/e1-ibl-cook.md`).
+**The `source_4k.exr` files are not in the repository yet.** They are conditioned and committed on
+a local branch; GitHub refuses LFS uploads into a public fork, so they land once the repository
+leaves the fork network. Until then a checkout has the layout, the licences and the tool, and
+cannot cook. The cook itself, the BRDF LUT and the cooked outputs follow in the E1 PR
+(`Docs/plans/e1-ibl-cook.md`).
 
 ## Adding an environment
 

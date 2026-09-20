@@ -46,7 +46,10 @@ def _read_exr_rgb(path: Path) -> np.ndarray:
 
 
 def _write_exr_rgb(path: Path, rgb: np.ndarray, half: bool = True) -> None:
-    """Write an (H, W, 3) array as an RGB EXR, half-float by default, PIZ compressed."""
+    """Write an (H, W, 3) array as an RGB EXR, half-float by default, PIZ compressed.
+
+    Callers that report statistics should quantise first and pass the array the file will hold.
+    """
     import OpenEXR
 
     data = rgb.astype(np.float16 if half else np.float32)
@@ -85,8 +88,9 @@ def condition(src: Path, dst: Path) -> dict:
         raise ValueError(f"{src.name} is {w}x{h}; need an integer multiple of {SOURCE_WIDTH}x{SOURCE_HEIGHT}")
     factor = w // SOURCE_WIDTH
     out = rgb if factor == 1 else _box_downsample(rgb, factor)
+    written = out.astype(np.float16)  # what the file holds; the record reports this, not the float32
     dst.parent.mkdir(parents=True, exist_ok=True)
-    _write_exr_rgb(dst, out, half=True)
+    _write_exr_rgb(dst, written, half=True)
     record = {
         "source": str(src),
         "source_sha256": _sha256(src),
@@ -95,7 +99,9 @@ def condition(src: Path, dst: Path) -> dict:
         "output_size": [SOURCE_WIDTH, SOURCE_HEIGHT],
         "factor": factor,
         "mean_radiance_in": [float(x) for x in rgb.mean(axis=(0, 1), dtype=np.float64)],
-        "mean_radiance_out": [float(x) for x in out.mean(axis=(0, 1), dtype=np.float64)],
+        "mean_radiance_box_float32": [float(x) for x in out.mean(axis=(0, 1), dtype=np.float64)],
+        "mean_radiance_out_float16": [float(x) for x in written.astype(np.float64).mean(axis=(0, 1))],
+        "output_dtype": "float16",
         "tool_version": __version__,
     }
     _LOGGER.info(f"Conditioned {src.name} {w}x{h} -> {dst.name} {SOURCE_WIDTH}x{SOURCE_HEIGHT} (factor {factor})")
