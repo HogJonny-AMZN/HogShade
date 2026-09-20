@@ -1,3 +1,10 @@
+> **This project continues as [HogShade](https://github.com/HogJonny-AMZN/HogShade).**
+>
+> HogShade is the same author's remaster of this shader: one polyglot PBR shading core for Maya,
+> Blender, wgpu, OSL and MaterialX, with the v1 and v2 shaders below kept verbatim as selectable
+> models beside a new OpenPBR one. New work, the roadmap and the getting-started guide live there.
+> This repository stays as the 2015 to 2017 record and is no longer updated.
+
 # Maya-PBR-BRDF-VP2
 A WIP Implementation of a Physically Plausible (PBR/PBS) HLSL Shader for the Maya Viewport 2.0
 
