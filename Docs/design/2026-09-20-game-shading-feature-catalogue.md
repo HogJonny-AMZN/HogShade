@@ -170,7 +170,7 @@ provider carries directional, point and spot only, which is what DCCs bind.
 | Blender | The node generator add-on with an "export game profile to glTF" button; the calibration scene as a `.blend` |
 | Houdini | Reads MaterialX natively (Karma) and OSL; no extra host. A BATS worker can bake there |
 | glTF | The game-profile interchange; the converter table; the Khronos validator in CI (S14 found it is the only thing that catches malformed data) |
-| BATS and Job_Orchestrator | Texture cook, IBL and LUT bake, calibration capture in each host, sprite bake. Every reproducible step is a job |
+| BATS and Job_Orchestrator | Texture cook, IBL and LUT bake, calibration capture in each host, sprite bake. Every reproducible step is a MODULE-mode job in a `hogshade.jobs` library with an agent-readable manifest, registered so the MCP tools list it (roadmap, track E) |
 | Engine editor | Material panel generated from the schema, live link over the command bus, tier cap as a setting |
 
 ## What the direction spec did not name and now must
