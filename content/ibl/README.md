@@ -37,6 +37,15 @@ branch, but **cannot be pushed until the repository leaves the fork network**: G
 uploads into a public fork. Everything else (licences, manifests, SH9, previews, the tool, the tests)
 is in the tree. A fresh clone can run the tool but has nothing to cook until then.
 
+## Using the cubes in the legacy v2 Maya shader
+
+The legacy shader was written for RGBM-encoded 8-bit cubes: it decodes `rgb.bgr * a * envLightingExp`
+with `envLightingExp` defaulting to 5 and then applies a 2.23 gamma. The cooked cubes are linear
+fp16 with alpha 1, so set `envLightingExp` to 1 and `linearSpaceLighting` off. Bind a base colour,
+normal and masks map as well; unbound 2D maps sample black and the shader multiplies them in. The
+specular cube slot renders black in Maya 2026 even with data that works in the diffuse slot; see
+`Docs/plans/e1-ibl-cook.md` task 11. The phase 2 port removes all of this.
+
 ## Cooking
 
 ```text

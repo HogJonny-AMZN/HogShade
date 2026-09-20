@@ -111,6 +111,8 @@ mechanism; this repo ships the job and the manifest.
   reproduces the committed outputs and `manifest.json` byte for byte (`provenance.json` excluded).
 - Maya 2026 loads `studio_small_09/cooked/specular.dds` and `irradiance.dds` into the legacy v2
   shader's environment slots and shades the shader ball; screenshot in `Docs/verification/`.
+  Met for loading and for the diffuse term on 2026-09-20; the specular term and final composite
+  are blocked by legacy-shader behaviour recorded in the plan (task 11) and handed to phase 2.
 - `content/ibl/README.md` explains how to add a third environment in five steps.
 
 ## Out of scope

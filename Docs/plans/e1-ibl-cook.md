@@ -43,10 +43,18 @@ verification ran.
       produced a byte-identical manifest (which embeds every output's sha256).
 - [x] 10. Cook both environments (studio 75 s, orchard 68 s); `preview.png` per environment. The `.dds`
       outputs are LFS and wait with the EXRs for the fork-network detach; manifests, SH9 and previews are in.
-- [x] 11. Maya 2026: load `studio_small_09/cooked/*.dds` into the v2 shader's environment slots on a
-      sphere; screenshot to `Docs/verification/maya-2026-ibl-studio_small_09.png`. **Verified 2026-09-20:**
-      `tools/maya_ibl_check.py`, `RESULT: OK`, log and playblast committed. The texture slots take a
-      connected `file` node, not a path string; the script does that.
+- [ ] 11. Maya 2026: load `studio_small_09/cooked/*.dds` into the v2 shader's environment slots on a
+      sphere; screenshot to `Docs/verification/`. **Partial 2026-09-20.** Both DDS files decode in Maya
+      (256 and 32 reported by the file nodes) and the diffuse environment term visibly lights a white
+      dielectric ball (`maya-2026-ibl-studio_small_09-diffuse-term.png`, debug view 27, exposure 1,
+      gamma off). The final composite and the specular term render black, and the cause is in the
+      legacy shader, not the data: the same 32-cube file that lights the diffuse slot is black in the
+      specular slot across DX10 and legacy headers, with and without mips (both `TextureCube`
+      parameters carry Maya's `environment` semantic); and unbound 2D maps sample black into the final
+      multiply. The v2 shader also expects RGBM 8-bit cubes with a `.bgr` swizzle and exposure 5,
+      which the linear fp16 cubes are not. All of this is phase 2 port work, where the legacy source
+      may change; phase 1 and E1 keep it verbatim. `tools/maya_ibl_check.py` carries the whole
+      investigation (variants, debug views, settable parameters) so the port can re-run it.
 - [x] 12. `content/ibl/README.md`: what is here, how to add an environment, how to cook.
 - [x] 13. `hogshade/jobs/cook_ibl.py` with an agent-readable `MANIFEST`, `hogshade.jobs.manifest()`
       for the library; `tests/jobs/` imports and calls `main(parameters)` exactly as

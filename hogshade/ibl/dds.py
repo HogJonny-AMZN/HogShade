@@ -32,10 +32,15 @@ D3D10_RESOURCE_MISC_TEXTURECUBE = 0x4
 BYTES_PER_PIXEL = 8
 
 
-def write_cube_rgba16f(path: Path, mips: list[NDArray]) -> None:
+D3DFMT_A16B16G16R16F = 113  # legacy-header fourCC for RGBA16F, read by loaders that predate DX10 headers
+
+
+def write_cube_rgba16f(path: Path, mips: list[NDArray], legacy_header: bool = False) -> None:
     """Write a cube map with mips. ``mips[m]`` has shape (6, n_m, n_m, 3 or 4), any float dtype.
 
-    Alpha is set to 1 when only RGB is given. Values are cast to float16 on write.
+    Alpha is set to 1 when only RGB is given. Values are cast to float16 on write. With
+    ``legacy_header`` the pixel format is the pre-DX10 fourCC 113 (D3DFMT_A16B16G16R16F) and no
+    DX10 block follows; the pixel data is identical. Some DCC image loaders read only that form.
     """
     if not mips or mips[0].shape[0] != 6:
         raise ValueError("expected a non-empty list of (6, n, n, C) arrays")
@@ -58,7 +63,7 @@ def write_cube_rgba16f(path: Path, mips: list[NDArray]) -> None:
         *([0] * 11),
         32,
         DDPF_FOURCC,
-        int.from_bytes(b"DX10", "little"),
+        D3DFMT_A16B16G16R16F if legacy_header else int.from_bytes(b"DX10", "little"),
         0,
         0,
         0,
@@ -70,15 +75,19 @@ def write_cube_rgba16f(path: Path, mips: list[NDArray]) -> None:
         0,
         0,  # dwReserved2
     )
-    dx10 = struct.pack(
-        "<5I",
-        DXGI_FORMAT_R16G16B16A16_FLOAT,
-        D3D10_RESOURCE_DIMENSION_TEXTURE2D,
-        D3D10_RESOURCE_MISC_TEXTURECUBE,
-        1,
-        0,
+    dx10 = (
+        b""
+        if legacy_header
+        else struct.pack(
+            "<5I",
+            DXGI_FORMAT_R16G16B16A16_FLOAT,
+            D3D10_RESOURCE_DIMENSION_TEXTURE2D,
+            D3D10_RESOURCE_MISC_TEXTURECUBE,
+            1,
+            0,
+        )
     )
-    assert len(header) == 128 and len(dx10) == 20
+    assert len(header) == 128 and len(dx10) in (0, 20)
 
     chunks = [header, dx10]
     for face in range(6):
@@ -138,17 +147,22 @@ def read_cube_rgba16f(path: Path) -> list[NDArray]:
     size, _flags, height, width, _pitch, _depth, mip_count = struct.unpack_from("<7I", data, 4)
     _pf_size, pf_flags, fourcc = struct.unpack_from("<3I", data, 76)
     _caps, caps2 = struct.unpack_from("<2I", data, 108)
-    if size != 124 or pf_flags != DDPF_FOURCC or fourcc != int.from_bytes(b"DX10", "little"):
-        raise ValueError("not a DX10 DDS")
-    dxgi, _dim, misc, _array_size, _misc2 = struct.unpack_from("<5I", data, 128)
-    if dxgi != DXGI_FORMAT_R16G16B16A16_FLOAT or not (misc & D3D10_RESOURCE_MISC_TEXTURECUBE):
-        raise ValueError("not an RGBA16F cube")
+    if size != 124 or pf_flags != DDPF_FOURCC:
+        raise ValueError("not a fourCC DDS")
+    if fourcc == int.from_bytes(b"DX10", "little"):
+        dxgi, _dim, misc, _array_size, _misc2 = struct.unpack_from("<5I", data, 128)
+        if dxgi != DXGI_FORMAT_R16G16B16A16_FLOAT or not (misc & D3D10_RESOURCE_MISC_TEXTURECUBE):
+            raise ValueError("not an RGBA16F cube")
+        offset = 148
+    elif fourcc == D3DFMT_A16B16G16R16F:
+        offset = 128
+    else:
+        raise ValueError(f"unsupported fourCC {fourcc}")
     if not (caps2 & DDSCAPS2_CUBEMAP) or (caps2 & DDSCAPS2_CUBEMAP_ALLFACES) != DDSCAPS2_CUBEMAP_ALLFACES:
         raise ValueError("cube caps missing")
     if width != height:
         raise ValueError("cube faces must be square")
 
-    offset = 148
     faces: list[list[NDArray]] = [[] for _ in range(6)]
     for face in range(6):
         for m in range(mip_count):
