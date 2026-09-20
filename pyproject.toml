@@ -1,0 +1,35 @@
+[project]
+name = "hogshade"
+version = "0.1.0.dev0"
+description = "One polyglot PBR shading core for Maya, Blender, wgpu, OSL and MaterialX"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "numpy>=1.26",
+    "OpenEXR>=3.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+hogshade-cook-ibl = "hogshade.ibl.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["hogshade*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
