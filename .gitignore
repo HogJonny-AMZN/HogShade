@@ -53,7 +53,8 @@ Thumbs.db
 .DS_Store
 desktop.ini
 
-# Logs and scratch
+# Logs and scratch (verification logs are committed on purpose)
 *.log
+!Docs/verification/*.log
 logs/
 tmp/

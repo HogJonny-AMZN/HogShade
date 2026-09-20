@@ -6,7 +6,7 @@ import maya.cmds as cmds
 DIR = __import__("os").environ.get("HOGSHADE_LOG_DIR", ".") + "/"
 LOG = DIR + "maya_gui_test.log"
 MARK = DIR + "maya_gui_test.marker"
-SHADER = __import__("os").environ.get("HOGSHADE_SHADER", "legacy/v2.0/uv0bn-pbs_IBLenv.fx")
+SHADER = __import__("os").environ.get("HOGSHADE_SHADER", "legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx")
 
 with open(MARK, "w") as f:
     f.write("script started %s\n" % time.ctime())
