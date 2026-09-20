@@ -15,6 +15,7 @@ Conventions (spec, "Mathematics"):
 from __future__ import annotations
 
 import logging as _logging
+import time
 
 import numpy as np
 from numpy.typing import NDArray
@@ -66,26 +67,76 @@ def tangent_frames(n: NDArray) -> tuple[NDArray, NDArray]:
     return t, b
 
 
+try:
+    from hogshade.ibl import prefilter_numba as _nb
+
+    HAVE_NUMBA = True
+except ImportError:  # numba is the optional ``jit`` extra
+    _nb = None
+    HAVE_NUMBA = False
+
+BACKENDS = ("auto", "numpy", "numba")
+
+
+def resolve_backend(backend: str = "auto") -> str:
+    """Which backend a request resolves to. ``auto`` is numba when it imports, else numpy."""
+    if backend not in BACKENDS:
+        raise ValueError(f"backend must be one of {BACKENDS}, got {backend!r}")
+    if backend == "numba" and not HAVE_NUMBA:
+        raise RuntimeError("numba backend requested but numba is not installed (uv sync --extra jit)")
+    if backend == "auto":
+        return "numba" if HAVE_NUMBA else "numpy"
+    return backend
+
+
+def _prefilter_mip_numpy(pyramid: list[NDArray], dirs: NDArray, h_t: NDArray, levels: NDArray, chunk: int) -> NDArray:
+    acc = np.zeros((dirs.shape[0], 3), dtype=np.float64)
+    wsum = np.zeros((dirs.shape[0],), dtype=np.float64)
+    for start in range(0, dirs.shape[0], chunk):
+        nn = dirs[start : start + chunk]
+        t, b = tangent_frames(nn)
+        h = h_t[None, :, 0:1] * t[:, None, :] + h_t[None, :, 1:2] * b[:, None, :] + h_t[None, :, 2:3] * nn[:, None, :]
+        v_dot_h = np.einsum("pj,psj->ps", nn, h)
+        l = 2.0 * v_dot_h[..., None] * h - nn[:, None, :]
+        n_dot_l = np.einsum("pj,psj->ps", nn, l)
+        weight = np.maximum(n_dot_l, 0.0)
+        s, tt = direction_to_equirect(l)
+        radiance = np.zeros(l.shape, dtype=np.float64)
+        for lv in np.unique(levels):
+            sel = levels == lv
+            radiance[:, sel] = sample_equirect(pyramid[lv].astype(np.float64), s[:, sel], tt[:, sel])
+        acc[start : start + chunk] = np.einsum("ps,psc->pc", weight, radiance)
+        wsum[start : start + chunk] = weight.sum(axis=1)
+    return acc / np.maximum(wsum, 1e-12)[:, None]
+
+
 def prefilter_specular(
     pyramid: list[NDArray],
     base: int = 256,
     mips: int | None = None,
     samples: int = 1024,
     chunk: int = 4096,
+    backend: str = "auto",
+    timings: dict | None = None,
 ) -> list[NDArray]:
     """Prefilter an equirect pyramid into a GGX cube mip chain. Returns ``mips[m]`` of shape (6, n_m, n_m, 3) float32.
 
     Mip 0 (roughness 0) is a plain resample of the pyramid level whose texel size matches the
     cube's; every other mip integrates ``samples`` GGX-distributed directions per texel.
+    ``backend`` is ``auto`` (numba if installed), ``numpy`` or ``numba``; the two agree within
+    float accumulation noise and a test pins that. ``timings``, if given, receives seconds per mip.
     """
+    resolved = resolve_backend(backend)
     if mips is None:
         mips = int(np.log2(base)) + 1
     src_w, src_h = pyramid[0].shape[1], pyramid[0].shape[0]
     src_omega = 4.0 * np.pi / (src_w * src_h)
     max_level = len(pyramid) - 1
     xi = hammersley(samples)
+    packed = _nb.pack_pyramid(pyramid) if resolved == "numba" else None
     out: list[NDArray] = []
     for m in range(mips):
+        started = time.perf_counter()
         n = max(base >> m, 1)
         roughness = m / (mips - 1) if mips > 1 else 0.0
         alpha = roughness * roughness
@@ -94,37 +145,35 @@ def prefilter_specular(
             level = int(np.clip(round(0.5 * np.log2(cube_omega / src_omega)), 0, max_level))
             out.append(equirect_to_cube(pyramid[level], n).astype(np.float32))
             _LOGGER.info(f"mip 0: resampled pyramid level {level} to {n} cube")
+            if timings is not None:
+                timings[0] = time.perf_counter() - started
             continue
         h_t = ggx_half_vectors(xi, alpha)  # (S, 3)
         n_dot_h = h_t[:, 2]
         pdf = ggx_d(n_dot_h, alpha) / 4.0  # N = V, so NdotH = VdotH
         sample_omega = 1.0 / (samples * np.maximum(pdf, 1e-12))
         levels = np.clip(np.round(0.5 * np.log2(sample_omega / src_omega) + 1.0), 0, max_level).astype(np.int64)
-        dirs = face_directions(n).reshape(-1, 3)
-        acc = np.zeros((dirs.shape[0], 3), dtype=np.float64)
-        wsum = np.zeros((dirs.shape[0],), dtype=np.float64)
-        for start in range(0, dirs.shape[0], chunk):
-            nn = dirs[start : start + chunk]
-            t, b = tangent_frames(nn)
-            h = (
-                h_t[None, :, 0:1] * t[:, None, :]
-                + h_t[None, :, 1:2] * b[:, None, :]
-                + h_t[None, :, 2:3] * nn[:, None, :]
-            )
-            v_dot_h = np.einsum("pj,psj->ps", nn, h)
-            l = 2.0 * v_dot_h[..., None] * h - nn[:, None, :]
-            n_dot_l = np.einsum("pj,psj->ps", nn, l)
-            weight = np.maximum(n_dot_l, 0.0)
-            s, tt = direction_to_equirect(l)
-            radiance = np.zeros(l.shape, dtype=np.float64)
-            for lv in np.unique(levels):
-                sel = levels == lv
-                radiance[:, sel] = sample_equirect(pyramid[lv].astype(np.float64), s[:, sel], tt[:, sel])
-            acc[start : start + chunk] = np.einsum("ps,psc->pc", weight, radiance)
-            wsum[start : start + chunk] = weight.sum(axis=1)
-        result = (acc / np.maximum(wsum, 1e-12)[:, None]).reshape(6, n, n, 3).astype(np.float32)
-        out.append(result)
-        _LOGGER.info(f"mip {m}: roughness {roughness:.3f}, {n} cube, {samples} samples/texel")
+        if resolved == "numba":
+            # per face, so an 8192 cube never holds a 6-face float64 direction array (10 GB) at once
+            flat, offsets, heights, widths = packed
+            result = np.zeros((6, n, n, 3), dtype=np.float32)
+            all_dirs = face_directions(n)
+            for face in range(6):
+                dirs = np.ascontiguousarray(all_dirs[face].reshape(-1, 3))
+                face_out = np.zeros((dirs.shape[0], 3), dtype=np.float64)
+                _nb.prefilter_mip(flat, offsets, heights, widths, dirs, h_t, levels, face_out)
+                result[face] = face_out.reshape(n, n, 3)
+            out.append(result)
+        else:
+            dirs = face_directions(n).reshape(-1, 3)
+            result = _prefilter_mip_numpy(pyramid, dirs, h_t, levels, chunk)
+            out.append(result.reshape(6, n, n, 3).astype(np.float32))
+        elapsed = time.perf_counter() - started
+        if timings is not None:
+            timings[m] = elapsed
+        _LOGGER.info(
+            f"mip {m}: roughness {roughness:.3f}, {n} cube, {samples} samples/texel, {resolved}, {elapsed:.1f} s"
+        )
     return out
 
 

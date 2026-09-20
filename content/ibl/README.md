@@ -61,6 +61,32 @@ The same cook is a Job_Orchestrator job: `module_path = hogshade.jobs.cook_ibl`,
 main`, parameters `env_dir` (and optionally `master_exr`, `base`, `samples`, `irradiance_size`).
 `hogshade.jobs.manifest()` returns the agent-readable description the MCP tools list.
 
+## Backends and resolution
+
+The prefilter has two implementations behind one function: NumPy, the reference, and a numba kernel
+that is the same algorithm one texel per thread. `uv sync --all-extras` installs numba (the `jit`
+extra); `cook --backend auto` picks it when present. The two agree to 1e-4 relative, each is
+deterministic run to run, and the manifest records which one cooked, because they are not
+byte-identical to each other. Measured numbers live in `Docs/research/benchmarks/`.
+
+Resolution rule of thumb: a cube face of N texels covers 90 degrees, so it matches an equirect of
+width 4N. The 4K sources support a 1024 cube; a 2048 cube wants the 8K master
+(`condition --width 8192`), and anything larger resamples rather than adds detail. The repo ships
+256 cubes. Measured on a 24-thread desktop (`Docs/research/benchmarks/2026-09-20-cook-4k.md` and
+`-8k.md`), prefilter only, 1024 samples per texel:
+
+| Cube base | Source | NumPy | numba | Cube size, RGBA16F with mips |
+| --- | --- | --- | --- | --- |
+| 256 | 4K | 1.3 min | 0.5 s | 4 MB |
+| 512 | 4K | 4.6 min | 2.1 s | 16 MB |
+| 1024 | 4K | 18 min (extrapolated) | 8.1 s | 64 MB |
+| 2048 | 8K | 1.2 h (extrapolated) | 33 s | 256 MB |
+| 4096 | 8K, oversampled | | 2.2 min | 1 GB |
+| 8192 | 8K, oversampled | | 8.5 min | 4 GB |
+
+numba is about 140x NumPy. Above 2048 the mip 0 resample (still NumPy) is a third of the time and
+the file sizes make the case for BC6H; both are noted for later.
+
 ## Adding an environment
 
 1. Download the 8K EXR from Poly Haven, or another CC0 or otherwise redistributable source.

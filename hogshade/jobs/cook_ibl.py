@@ -45,6 +45,11 @@ MANIFEST = {
         "base": {"type": "int", "default": 256, "description": "Specular cube base size; mips follow"},
         "samples": {"type": "int", "default": 1024, "description": "GGX samples per texel"},
         "irradiance_size": {"type": "int", "default": 32, "description": "Irradiance cube size"},
+        "backend": {
+            "type": "str",
+            "default": "auto",
+            "description": "Prefilter implementation: auto (numba if installed), numpy, numba",
+        },
     },
     "inputs": ["<env_dir>/source_4k.exr", "(optional) master_exr"],
     "outputs": [
@@ -73,7 +78,10 @@ def main(parameters: dict) -> dict:
     if master:
         result["conditioned"] = cook.condition(Path(str(master)), env_dir / cook.SOURCE_NAME)
     _LOGGER.info(f"cook_ibl job: {env_dir} base={base} samples={samples} irradiance={irradiance_size}")
-    result.update(cook.cook_environment(env_dir, base=base, samples=samples, irradiance_size=irradiance_size))
+    backend = str(parameters.get("backend", "auto"))
+    result.update(
+        cook.cook_environment(env_dir, base=base, samples=samples, irradiance_size=irradiance_size, backend=backend)
+    )
     return result
 
 

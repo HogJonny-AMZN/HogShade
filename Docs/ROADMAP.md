@@ -256,8 +256,9 @@ The inputs and the proof. Without these, "same shader" produces different pictur
       Texture colour space declared per texture in the material, never inferred from a filename.
 - [ ] Light-rig description: HDR file, rotation in a stated axis convention, exposure in EV, punctual
       lights in one unit with a documented conversion per host.
-- [ ] IBL prefilter and BRDF LUT baked by one tool in this repo, shipped as content, run as a BATS job.
-      No real-time host convolves its own.
+- [x] IBL prefilter and BRDF LUT baked by one tool in this repo, shipped as content, run as a BATS job.
+      No real-time host convolves its own. E1 and E2 (2026-09-20): NumPy reference plus a numba kernel
+      at 140x; measured to an 8192 cube; LFS payloads wait on the fork detach.
 - [ ] Texture conventions written down: OpenGL +Y normals, ORM packing, sRGB only for base colour and
       emissive, linear-space mips, BC5 normals and BC7 colour. Authoring set (one map per parameter)
       and runtime set (packed, compressed) with one cook tool, run as a BATS job.

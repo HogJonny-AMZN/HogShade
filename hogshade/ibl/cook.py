@@ -21,7 +21,7 @@ from hogshade.ibl import dds
 from hogshade.ibl.cubemap import FACE_CONVENTION, box_downsample, equirect_pyramid
 from hogshade.ibl.imageio import preview_srgb8, read_exr_rgb, write_exr_rgb, write_png_rgb8
 from hogshade.ibl.irradiance import irradiance_cube, sh9_irradiance, sh9_project
-from hogshade.ibl.prefilter import ROUGHNESS_TO_MIP, brdf_lut, prefilter_specular
+from hogshade.ibl.prefilter import ROUGHNESS_TO_MIP, brdf_lut, prefilter_specular, resolve_backend
 
 _MODULE_NAME = "hogshade.ibl.cook"
 __version__ = "0.1.0"
@@ -41,15 +41,22 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def condition(src: Path, dst: Path) -> dict:
-    """Box-downsample an equirect HDR master to the repo's 4096x2048 half-float source. No tonemapping."""
+def condition(src: Path, dst: Path, width: int = SOURCE_WIDTH) -> dict:
+    """Box-downsample an equirect HDR master to a ``width`` x ``width/2`` half-float source. No tonemapping.
+
+    The repo default is 4096; a hero cook may keep 8192 (a cube face of N texels wants a source of
+    width 4N for matching density).
+    """
+    if width < 2 or width % 2:
+        raise ValueError(f"width must be even and positive, got {width}")
+    height = width // 2
     rgb = read_exr_rgb(src)
     h, w, _ = rgb.shape
     if w != 2 * h:
         raise ValueError(f"{src.name} is {w}x{h}, not 2:1 equirectangular")
-    if w % SOURCE_WIDTH or (w // SOURCE_WIDTH) != (h // SOURCE_HEIGHT):
-        raise ValueError(f"{src.name} is {w}x{h}; need an integer multiple of {SOURCE_WIDTH}x{SOURCE_HEIGHT}")
-    factor = w // SOURCE_WIDTH
+    if w % width or (w // width) != (h // height):
+        raise ValueError(f"{src.name} is {w}x{h}; need an integer multiple of {width}x{height}")
+    factor = w // width
     out = rgb if factor == 1 else box_downsample(rgb, factor)  # one exact box average by the validated factor
     written = out.astype(np.float16)
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -59,15 +66,15 @@ def condition(src: Path, dst: Path) -> dict:
         "source_sha256": sha256_file(src),
         "source_size": [w, h],
         "output": str(dst),
-        "output_size": [SOURCE_WIDTH, SOURCE_HEIGHT],
-        "factor": w // SOURCE_WIDTH,
+        "output_size": [width, height],
+        "factor": factor,
         "mean_radiance_in": [float(x) for x in rgb.mean(axis=(0, 1), dtype=np.float64)],
         "mean_radiance_box_float32": [float(x) for x in out.mean(axis=(0, 1), dtype=np.float64)],
         "mean_radiance_out_float16": [float(x) for x in written.astype(np.float64).mean(axis=(0, 1))],
         "output_dtype": "float16",
         "tool_version": __version__,
     }
-    _LOGGER.info(f"Conditioned {src.name} {w}x{h} -> {dst.name} {SOURCE_WIDTH}x{SOURCE_HEIGHT}")
+    _LOGGER.info(f"Conditioned {src.name} {w}x{h} -> {dst.name} {width}x{height}")
     return record
 
 
@@ -78,11 +85,23 @@ def _git_hash() -> str:
         return "unknown"
 
 
-def cook_environment(env_dir: Path, base: int = 256, samples: int = 1024, irradiance_size: int = 32) -> dict:
-    """Cook ``env_dir/source_4k.exr`` into ``env_dir/cooked/``. Returns the deterministic manifest."""
-    src = env_dir / SOURCE_NAME
+def cook_environment(
+    env_dir: Path,
+    base: int = 256,
+    samples: int = 1024,
+    irradiance_size: int = 32,
+    backend: str = "auto",
+    source: str = SOURCE_NAME,
+) -> dict:
+    """Cook ``env_dir/<source>`` into ``env_dir/cooked/``. Returns the deterministic manifest.
+
+    ``backend`` selects the prefilter implementation (``auto``, ``numpy``, ``numba``); the manifest
+    records which one ran. ``source`` lets a hero cook read an 8K conditioned file.
+    """
+    src = env_dir / source
     if not src.exists():
         raise FileNotFoundError(f"{src} is missing; run condition first")
+    resolved = resolve_backend(backend)
     started = time.time()
     out_dir = env_dir / "cooked"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -91,7 +110,8 @@ def cook_environment(env_dir: Path, base: int = 256, samples: int = 1024, irradi
     pyramid = equirect_pyramid(img)
     _LOGGER.info(f"{env_dir.name}: source {img.shape[1]}x{img.shape[0]}, pyramid of {len(pyramid)} levels")
 
-    spec_mips = prefilter_specular(pyramid, base=base, samples=samples)
+    timings: dict[int, float] = {}
+    spec_mips = prefilter_specular(pyramid, base=base, samples=samples, backend=resolved, timings=timings)
     dds.write_cube_rgba16f(out_dir / "specular.dds", spec_mips)
 
     small = next(lv for lv in pyramid if lv.shape[1] <= IRRADIANCE_SOURCE_WIDTH)
@@ -121,8 +141,9 @@ def cook_environment(env_dir: Path, base: int = 256, samples: int = 1024, irradi
         "tool": "hogshade.ibl.cook",
         "tool_version": __version__,
         "hogshade_version": HOGSHADE_VERSION,
-        "source": SOURCE_NAME,
+        "source": source,
         "source_sha256": sha256_file(src),
+        "backend": resolved,
         "source_size": [int(img.shape[1]), int(img.shape[0])],
         "face_convention": FACE_CONVENTION,
         "roughness_to_mip": ROUGHNESS_TO_MIP,
@@ -150,6 +171,7 @@ def cook_environment(env_dir: Path, base: int = 256, samples: int = 1024, irradi
         "python": sys.version.split()[0],
         "numpy": np.__version__,
         "git_hash": _git_hash(),
+        "prefilter_seconds_per_mip": {str(k): round(v, 3) for k, v in sorted(timings.items())},
     }
     (out_dir / "provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     _LOGGER.info(f"{env_dir.name}: cooked in {provenance['wall_seconds']} s")
