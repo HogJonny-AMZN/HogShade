@@ -62,10 +62,11 @@ Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence 
 
 - [x] The fork under `HogJonny-AMZN` is renamed **HogShade** (2026-09-20) and is the working repo
       today; the docs branch lives there. Old URLs redirect.
-- [ ] Owner decides the transfer. Path A: transfer `hogjonny/Maya-PBR-BRDF-VP2` to `HogJonny-AMZN`
-      (keeps 37 stars, forks, the issue), then delete the HogShade fork after re-pushing its branches
-      and rename the transferred repo to HogShade. Path B: skip the transfer; HogShade stays as is and
-      the legacy repo gets a one-line README pointing at it. Either way `origin` is HogShade.
+- [x] Owner decided (2026-09-20): no transfer. HogShade is the modern replacement; the legacy repo
+      is abandoned as a frozen record. The pointer PR on it (hogjonny/Maya-PBR-BRDF-VP2#2) is a
+      courtesy to its stargazers and merges when the owner gets to it; archiving that repo on GitHub
+      is the natural last step. HogShade must **leave the fork network** (Settings, Danger Zone) so
+      LFS uploads work at all and the object store shrinks; until then no EXR or DDS can be pushed.
 - [ ] Commit the spec and this roadmap as the first change.
 - [x] `git-filter-repo`: strip `testFiles/`, `images/`, `ShaderDevProj/` from history. Force-pushed 2026-09-20; owner detaches the fork network and deletes `legacy-pointer` after the pointer PR merges.
 - [ ] Git LFS: one shader-ball scene, one licence-clean HDR (owner picks), the packed test textures.
@@ -264,6 +265,9 @@ The inputs and the proof. Without these, "same shader" produces different pictur
       host reads supplied tangents; the calibration scene ships them.
 - [ ] Calibration scene: metal and dielectric roughness ramps, 18 percent grey card, colour checker,
       normal-map test tile, triplanar cube, one alpha cutout. Same camera, rig and HDR in every host.
+      The mesh is derkreature/ShaderBall (Unlicense, public domain; the same ball the 2015 shader was
+      tested on), re-exported lean as glTF and OBJ without the old 87 MB texture set; textures come
+      from CC0 sources (Poly Haven, ambientCG) or are authored here. Environment: `studio_small_09`.
 - [ ] Capture script per host: `mayapy` batch, `blender -b`, the engine's offscreen path. One diff
       tool with tolerance and background mask, producing a proof page. Lands before C3.
 - [ ] Pin naga and wgpu-py; CI on Maya 2026 where licensing allows, Blender
