@@ -37,8 +37,9 @@ them.
 8. **Third-party notices.** `THIRD_PARTY_NOTICES.md` lists the code embedded in the legacy
    shaders with its licence (Disney BRDF under Apache 2.0 and Unlicense-dedicated snippets in
    `pbr.sif`; the POM adaptation), and the one provenance question: `legacy/v1.0/propertyNames.fxh`
-   carries a "2015 Bifrost Engine" copyright header. The owner confirms whether that file is theirs
-   to relicense before the repo is announced; until then the notice says so.
+   carried a "2015 Bifrost Engine" copyright header. Resolved: the owner confirmed it was added by
+   mistake and the company is defunct; the line is replaced with a note. That is the single
+   permitted edit to a legacy file in this phase.
 9. **Legacy repo pointer.** A pull request from HogShade to `hogjonny/Maya-PBR-BRDF-VP2` that
    replaces the top of its README with a pointer to HogShade. Merging it is the owner's action from
    the legacy account. This is how the 37 stargazers and 12 forkers learn about the update.
@@ -46,6 +47,7 @@ them.
 ## Out of scope
 
 - Any change to shader source, including warnings fxc reports. Phase 2 ports; phase 1 preserves.
+  The one exception is the header line above, which changes no code.
 - Tooling, CI, `pyproject.toml`. Phase 2.
 - Transferring the legacy repo. Recorded as an owner option in the roadmap; not required.
 

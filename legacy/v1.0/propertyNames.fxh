@@ -2,7 +2,7 @@
 @file FbxPropertyNames.h
 @brief Contains the material variable names that have been made common
 to all Maya fbx & include files
-@copyright 2015 Bifrost Engine
+@note The 2015 header once carried a studio copyright line added by mistake; removed 2026-09-20 by the author (see THIRD_PARTY_NOTICES.md). Otherwise this file is verbatim.
 */
 
 #ifndef _PROPERTY_NAMES_H_

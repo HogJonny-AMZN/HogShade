@@ -32,5 +32,5 @@ separate force-push for the history rewrite. Tick a task only when its verificat
 - [ ] 14. Close the getting-started issue on the legacy repo with a link to the README.
 - [ ] 15. Roadmap track B ticked; `Docs/README.md` status for phase 1 set to done.
 - [x] 16. `THIRD_PARTY_NOTICES.md` written from a grep of the legacy tree for copyright and licence text.
-- [ ] 17. Owner confirms the provenance of `legacy/v1.0/propertyNames.fxh` ("2015 Bifrost Engine" header) and the notice is updated.
+- [x] 17. Owner confirmed `legacy/v1.0/propertyNames.fxh` is theirs; the studio copyright line was a mistake and the company is defunct. Line replaced with a note; notice updated. Verified: fxc still compiles v1 (header-only change).
 - [ ] 18. Copilot review findings on PR #2 addressed: gitignore exception, README entry file and map guidance, debug-mode count, stale roadmap wording; log re-run against `V2_uv0bn-pbs_IBLenv.fx`.
