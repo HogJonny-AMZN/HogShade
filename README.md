@@ -64,8 +64,8 @@ session, loads the shader, logs the technique list and quits; the last run is in
 
 ```text
 set MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11
-set HOGSHADE_LOG_DIR=Docserification
-maya.exe -script tools\maya_load_check.mel
+set HOGSHADE_LOG_DIR=Docs/verification
+maya.exe -script tools/maya_load_check.mel
 ```
 
 ## Licence
