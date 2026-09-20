@@ -15,12 +15,17 @@ separate force-push for the history rewrite. Tick a task only when its verificat
 - [x] 6. README with the getting-started guide and carried-forward credits.
 - [x] 7. `Docs/` split into roadmap, design, specs, plans with a `Docs/README.md` explaining the layers.
 - [ ] 8. Scripted Maya 2026 GUI launch loads v2 through `dx11Shader`; log committed to
-      `Docs/verification/maya-2026-v2-load.log` with `RESULT: OK`.
+      `Docs/verification/maya-2026-v2-load.log` with `RESULT: OK`. First run found the viewport on
+      OpenGL Core Profile (no techniques); the launch sets `MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11`
+      so the check does not depend on, or change, the user's preferences.
 - [ ] 9. Commit and push `chore/hygiene`; open the PR; merge after review.
 - [ ] 10. Pointer PR to `hogjonny/Maya-PBR-BRDF-VP2`: README top points at HogShade. Owner merges.
 - [ ] 11. History rewrite on a fresh clone with `git-filter-repo`, dropping `testFiles/`, `images/`,
-      `ShaderDevProj/`. Verify: clone size under 5 MB, legacy files byte-identical to before, commit
-      count unchanged. Force-push `master`. Owner detaches the fork network afterwards.
+      `ShaderDevProj/`. Force-push `master` after PR #2 merges. Owner detaches the fork network
+      afterwards. **Dry run 2026-09-20:** `.git` 128 MB to 1 MB; `legacy/` tree hash identical
+      before and after (`b003388`); 47 commits to 40, the seven dropped ones touched only the
+      removed binaries ("adding test files", "new screenie", "whoops" and four more). Command:
+      `uvx git-filter-repo --path testFiles --path images --path ShaderDevProj --invert-paths`.
 - [ ] 12. `content/` with the shader-ball scene under LFS (`.gitattributes`), HDR when chosen.
 - [ ] 13. Maya 2024 load check, owner-run, log committed beside the 2026 one.
 - [ ] 14. Close the getting-started issue on the legacy repo with a link to the README.
