@@ -140,7 +140,12 @@ Gate: E's calibration capture runs in `maya_dx11` before this phase opens, so Op
       tangent frames for normal maps, parallax occlusion per projection.
 - [ ] Pixel depth offset from the parallaxed height, and the same offset in the shadow pass.
       SpriteJammer's Depth Offset Maps are this feature; the Maya host writes `SV_Depth`.
-- [ ] Debug views: weights, projection axes, parallax offset, layer weights.
+- [ ] Debug views as core contract: one `ShadingResult.debug` slot per model over named intermediates
+      (the v2 33-mode list plus weights, projection axes, parallax offset, layer weights, per-light-slot
+      contribution); forward writes it to colour, deferred to a debug target. Owner requirement: the
+      debug rendering paths survive every phase.
+- [ ] CPV set 0 RGBA masks and tint, CPV set 1 AO, vertex alpha: first-class inputs in every tier,
+      not legacy toggles.
 - [ ] Legacy POM stays available under the legacy models; the new one is a separate path.
 - [ ] Stochastic or hex tiling; biplanar as the cheap variant for the horde tier.
 - [ ] Detail maps (normal, albedo, roughness) with RNM blending and a mask; macro variation noise.
