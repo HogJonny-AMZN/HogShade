@@ -1,4 +1,4 @@
-# Roadmap: the shading research repo and everything around it
+# HogShade roadmap: the shading research repo and everything around it
 
 Date: 2026-09-20. Owner: Jonny Galloway. Companion to
 [specs/2026-09-20-modernization-direction.md](specs/2026-09-20-modernization-direction.md), which
@@ -10,14 +10,15 @@ gates between them. Tick items as they land.
 **Own one shader and use it anywhere the pipeline, the content tools or a workflow needs it.**
 One shading core, authored once, owned by HogJonny-AMZN, that lands as a Maya look-dev material, a
 Blender material, an OSL shader for offline renderers, a MaterialX document for USD, and the lighting
-model inside the owner's own wgpu engine. The legacy Maya shader is the seed; this repo is its owned
-fork, port and eventual replacement, under the HogJonny-AMZN account.
+model inside the owner's own wgpu engine. The legacy Maya shader is the seed; HogShade is its owned
+fork, port and eventual replacement, under the HogJonny-AMZN account. The name joins the
+`hog_color`, `hog_wild` and `hog_rendering` family; "polyglot" is the tagline.
 
 Every item below serves that sentence. An item that does not is out of scope.
 
 ## The one-paragraph version
 
-Maya-PBR-BRDF-VP2 becomes a shading research repo: one Slang core holding several shading models as
+Maya-PBR-BRDF-VP2 becomes **HogShade**, a shading research repo: one Slang core holding several shading models as
 peers (the 2015 and 2017 legacy models kept verbatim, plus a new OpenPBR model), imported by thin
 hosts for Maya, Blender, wgpu, OSL and MaterialX. SpriteJammer consumes the wgpu host through its
 existing shading-model ID, with three quality tiers so a modern PBR look is the default and a cheaper
@@ -59,9 +60,12 @@ is [specs/2026-09-20-wysiwyg-blindspots.md](specs/2026-09-20-wysiwyg-blindspots.
 
 Gate to finish: v2.0 loads in Maya 2024 and 2026 `dx11Shader`; clone under 5 MB; licence present.
 
-- [ ] Owner transfers `hogjonny/Maya-PBR-BRDF-VP2` to `HogJonny-AMZN`. The name is free; the
-      identical fork was renamed `Maya-PBR-BRDF-VP2-old-fork`.
-- [ ] Delete the old fork. Point the local clone's `origin` at the transferred repo.
+- [x] The fork under `HogJonny-AMZN` is renamed **HogShade** (2026-09-20) and is the working repo
+      today; the docs branch lives there. Old URLs redirect.
+- [ ] Owner decides the transfer. Path A: transfer `hogjonny/Maya-PBR-BRDF-VP2` to `HogJonny-AMZN`
+      (keeps 37 stars, forks, the issue), then delete the HogShade fork after re-pushing its branches
+      and rename the transferred repo to HogShade. Path B: skip the transfer; HogShade stays as is and
+      the legacy repo gets a one-line README pointing at it. Either way `origin` is HogShade.
 - [ ] Commit the spec and this roadmap as the first change.
 - [ ] `git-filter-repo`: strip `testFiles/`, `images/`, `ShaderDevProj/` from history. Force-push.
 - [ ] Git LFS: one shader-ball scene, one licence-clean HDR (owner picks), the packed test textures.
