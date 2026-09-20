@@ -50,6 +50,7 @@ core is the single source and every DCC, renderer and engine target is a host of
 | WGSL | The core itself. `hosts/wgpu/` adds only pass entry points. SpriteJammer and `hog_rendering` vendor the core files. First host, because it is the source. |
 | Blender EEVEE | Two routes, both kept. (1) `hosts/blender_nodes/`: a Python add-on that builds a Principled BSDF node tree from the OpenPBR parameter model and emits `surface/` (triplanar, UV utils) as generated node groups; renders in EEVEE and Cycles alike and is the route artists use. (2) `hosts/blender_gpu/`: the core's GLSL, emitted by Slang, run through Blender's `gpu` module in a viewport draw handler; the research route, where the actual core code renders inside Blender for comparison. |
 | 3ds Max | No dedicated host. The owner does not need Max; it is served by the OSL host, which Max runs natively through its OSL map (since 2019), and Max becomes one of the places the OSL host is validated. The `_3DSMAX_` scaffolding in the v2 code is not carried forward. |
+| Modern HLSL | A maintained host, `hosts/hlsl/`: plain shader model 6 HLSL (no effect framework, which fxc already reports as deprecated), generated from the WGSL core by naga, committed, formatted and validated with dxc on every change, with a documented `cbuffer` and binding layout. It is what Unreal custom nodes, Unity, DX12 samples and anyone who reads HLSL consume. Generated, not hand-written: two hand-maintained sources is what this design exists to prevent. Maya's `.fx` shell wraps the same output for fxc. |
 | OSL | A hand-maintained host, not a transpile target. Shares the parameter model, the `surface/` maths and the reference test vectors with the core; lobes are renderer closures. Lives on `main` under `hosts/osl/`, not a long-lived branch. |
 | Game profile | OpenPBR restricted to what glTF 2.0 plus the KHR material extensions can carry, with a conversion table. Blender exports it, the engine imports it, nothing in between. |
 | Interchange | The authored material is a MaterialX `.mtlx` document (OpenPBR is defined in MaterialX). Every host imports it. Moved from last host to phase 3. |
@@ -102,6 +103,8 @@ src/
                              #   cannot delegate display to the DCC
   hosts/
     maya_dx11/               # .fx: techniques, passes, UI annotations, Maya semantics, transparency
+    hlsl/                    # modern SM 6 HLSL from naga, committed, dxc-validated, cbuffer layout
+                             #   documented; the maya_dx11 shell wraps it; UE, Unity, DX12 consume it
     maya_ogsfx/              # .ogsfx: same shell against GLSL emitted from the core
     wgpu/                    # the core as-is plus pass entry points; SpriteJammer and
                              #   hog_rendering consume it with no translation step
@@ -144,6 +147,12 @@ machine-written WGSL in the engine's hottest shaders. With WGSL as the source:
   declares the effect parameters, textures, samplers and techniques and calls into the generated
   code. The one open risk is naga's handling of samplers, texture bindings and `SV_` semantics
   inside an effect; the phase 2 spike settles it before anything else is built.
+- **A modern HLSL host is a committed output, not a second source.** `hosts/hlsl/` holds naga's
+  shader model 6 HLSL, formatted and validated with dxc, with a documented binding layout, so it
+  reads and consumes as a maintained HLSL shader. If the owner ever wants HLSL to be the language
+  the core is *written* in, the pipeline inverts: HLSL source, `dxc -spirv`, naga to WGSL and GLSL.
+  That is a real option and it is not the one chosen, because WGSL is what the primary consumer
+  runs and debugs.
 - **Slang stays the fallback.** If the spike fails, the core moves to Slang and WGSL becomes an
   emitted target; every other decision in this document is unchanged.
 
