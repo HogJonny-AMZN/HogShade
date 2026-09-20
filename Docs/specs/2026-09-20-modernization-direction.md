@@ -1,4 +1,4 @@
-# Maya-PBR-BRDF-VP2 modernization: direction
+# HogShade: modernization direction for Maya-PBR-BRDF-VP2
 
 Date: 2026-09-20. Status: direction agreed with the owner; no code changed yet.
 This is the pre-plan design record. The phased plan with checkboxes follows once phase 1 lands.
@@ -28,7 +28,8 @@ core is the single source and every DCC, renderer and engine target is a host of
 
 | Question | Decision |
 | --- | --- |
-| Where the repo lives | Transfer `hogjonny/Maya-PBR-BRDF-VP2` to `HogJonny-AMZN` (keeps stars, forks, issue, URL redirect). The identical fork was renamed to `Maya-PBR-BRDF-VP2-old-fork` to free the name; delete it after the transfer. |
+| Where the repo lives | `HogJonny-AMZN/HogShade` (2026-09-20: the identical fork, renamed). Whether the legacy `hogjonny/Maya-PBR-BRDF-VP2` is transferred in and renamed to take over, keeping its 37 stars, is the owner's open call; see the roadmap, track B. |
+| Name | **HogShade**. Joins the `hog_*` package family; "one polyglot PBR shading core" is the tagline. |
 | History | Rewrite. Strip `testFiles/`, `images/`, `ShaderDevProj/` from history; reintroduce a minimal shader-ball scene and one HDR under Git LFS. Forks diverge; acceptable. |
 | Licence | Apache 2.0. |
 | v3.0 folder | Salvage: compile each v3 include against the v2 main file with fxc, keep any that compile and improve on v2, drop the rest, then delete the folder. |
