@@ -57,8 +57,16 @@ To check a shader compiles without opening Maya, on a machine with the Windows 1
 fxc /T fx_5_0 /D _MAYA_=1 /Fo out.fxo legacy\v2.0\uv0bn-pbs_IBLenv.fx
 ```
 
-Headless `mayapy` can load the effect but cannot compile it (no DirectX device), so a real Maya
-session is the only full test until the compile tests in the roadmap land.
+Headless `mayapy` can load the effect but cannot compile it (no DirectX device). The scripted GUI
+check in `tools/maya_load_check.py` launches Maya with the viewport forced to DirectX 11 for that
+session, loads the shader, logs the technique list and quits; the last run is in
+`Docs/verification/`. To run it:
+
+```text
+set MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11
+set HOGSHADE_LOG_DIR=Docserification
+maya.exe -script tools\maya_load_check.mel
+```
 
 ## Licence
 

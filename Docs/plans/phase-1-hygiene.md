@@ -14,12 +14,13 @@ separate force-push for the history rewrite. Tick a task only when its verificat
 - [x] 5. `.gitignore` rewritten for shaders, Maya, Blender, editors. Verified by inspection.
 - [x] 6. README with the getting-started guide and carried-forward credits.
 - [x] 7. `Docs/` split into roadmap, design, specs, plans with a `Docs/README.md` explaining the layers.
-- [ ] 8. Scripted Maya 2026 GUI launch loads v2 through `dx11Shader`; log committed to
+- [x] 8. Scripted Maya 2026 GUI launch loads v2 through `dx11Shader`; log committed to
       `Docs/verification/maya-2026-v2-load.log` with `RESULT: OK`. First run found the viewport on
       OpenGL Core Profile (no techniques); the launch sets `MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11`
-      so the check does not depend on, or change, the user's preferences.
-- [ ] 9. Commit and push `chore/hygiene`; open the PR; merge after review.
-- [ ] 10. Pointer PR to `hogjonny/Maya-PBR-BRDF-VP2`: README top points at HogShade. Owner merges.
+      so the check does not depend on, or change, the user's preferences. **Verified 2026-09-20:**
+      `TECHNIQUES: ['TessellationOFF']`, `RESULT: OK`; log committed; script at `tools/maya_load_check.py`.
+- [ ] 9. Commit and push `chore/hygiene`; open the PR (#2, open); merge after review.
+- [ ] 10. Pointer PR to `hogjonny/Maya-PBR-BRDF-VP2`: README top points at HogShade (#2 there, open). Owner merges.
 - [ ] 11. History rewrite on a fresh clone with `git-filter-repo`, dropping `testFiles/`, `images/`,
       `ShaderDevProj/`. Force-push `master` after PR #2 merges. Owner detaches the fork network
       afterwards. **Dry run 2026-09-20:** `.git` 128 MB to 1 MB; `legacy/` tree hash identical
