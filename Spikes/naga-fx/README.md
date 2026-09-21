@@ -11,7 +11,7 @@ Maya-annotated effect parameters? **Verdict, 2026-09-20: yes. WGSL stays the sou
 | `ggx.fx` | The Maya shell: transforms, annotated texture and sliders, one light slot bound to `Light 0`, vertex and pixel shaders, a technique; the pixel shader calls `spike_shade` |
 | `fxc.log` | `fxc /T fx_5_0 ggx.fx`: exit 0, only the usual effects-deprecated warning |
 | `checker.png` | The texture the check binds |
-| `maya_spike_check.py`, `.mel` | The Maya 2026 check; log and two frames under `verification/` |
+| `maya_spike_check.py`, `.mel` | The Maya 2026 check; log and two frames under `verification/`. Binds the scene light to the slot explicitly (`dx11Shader -connectLight "Light 0" <light>`), reports Maya's own `-lightConnectionStatus`, captures uncompressed BMP frames and counts the sphere pixels that change when the light rotates (95 percent in the committed run); the PNGs are converted from those BMPs for the record |
 
 ## What the spike found
 
@@ -25,7 +25,10 @@ Maya-annotated effect parameters? **Verdict, 2026-09-20: yes. WGSL stays the sou
    annotations and passes it in. This is the binding model for the whole core.
 3. **Maya's light binding works unchanged.** `float3 light0Dir : DIRECTION < string Object = "Light 0"; >`
    in the shell is auto-bound to a scene directional light; rotating the light changed the frame.
-4. **naga's HLSL is readable.** Temporaries are named `_eN` and locals get `_1` suffixes on
+4. **Maya's Python is 3.11.** Nested same-quote f-strings are a 3.12 feature; a script that uses
+   them fails to parse inside Maya, silently from the outside, and the session then sits open until
+   its timeout. Parse-check check scripts with `mayapy` before launching the GUI.
+5. **naga's HLSL is readable.** Temporaries are named `_eN` and locals get `_1` suffixes on
    collision, which is fine for a generated file and irrelevant to a shell that only calls the
    API-level functions.
 
