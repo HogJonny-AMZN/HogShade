@@ -18,6 +18,9 @@ dev = [
 jit = [
     "numba>=0.61",
 ]
+gpu = [
+    "wgpu>=0.32",
+]
 
 [project.scripts]
 hogshade-cook-ibl = "hogshade.ibl.cli:main"

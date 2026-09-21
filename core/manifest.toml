@@ -15,6 +15,10 @@ file = "interface.wgsl"
 prefix = "interface_"
 
 [[module]]
+file = "brdf.wgsl"
+prefix = "brdf_"
+
+[[module]]
 file = "lighting.wgsl"
 prefix = "lighting_"
 
