@@ -161,8 +161,10 @@ def main(argv: list[str] | None = None) -> int:
         "## Reading it",
         "",
         "- Work scales with texels times samples; each doubling of the cube base is 4x the time.",
-        "- A source of width W matches a cube face of W / 4 texels; cooking a larger cube from the same source "
-        "resamples mip 0 rather than adding detail.",
+        (
+            "- A source of width W matches a cube face of W / 4 texels; cooking a larger cube from the same source "
+            "resamples mip 0 rather than adding detail."
+        ),
         "- Mip 1 dominates: it has the most texels of the prefiltered mips. Mip 0 is a resample and is free.",
     ]
     report = "\n".join(lines) + "\n"
