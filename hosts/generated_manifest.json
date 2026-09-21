@@ -1,0 +1,17 @@
+{
+  "artifacts": {
+    "glsl": "hosts/maya_ogsfx/generated/hogshade_core_validate.frag",
+    "hlsl_sm5": "hosts/maya_dx11/generated/hogshade_core_sm5.hlsl",
+    "hlsl_sm6": "hosts/hlsl/hogshade_core.hlsl",
+    "wgsl": "hosts/wgpu/generated/hogshade_core.wgsl"
+  },
+  "dxc": true,
+  "fxc": true,
+  "naga": "30.0.1",
+  "sha256": {
+    "glsl": "08a48d1b1509ce8b2d94aaf7d33b9300b3ab68757256ae55326fbd678ef66a93",
+    "hlsl_sm5": "d045b0251e0a33e4504f3b4678be5882c4f1ec4a5f63bbc5e0db142402dc0f41",
+    "hlsl_sm6": "d045b0251e0a33e4504f3b4678be5882c4f1ec4a5f63bbc5e0db142402dc0f41",
+    "wgsl": "accf3c442bad3429de5a6bc2cd37b01d442d6b34e43a4884570f8a49b3dd7cf2"
+  }
+}

@@ -1,0 +1,47 @@
+name: tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  windows:
+    # Windows because the Maya shell needs fxc and dxc from the Windows SDK, which the runner ships.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false  # LFS payloads are not needed for compile and unit tests
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Rust toolchain for naga-cli
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo binaries
+        id: cargo-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin
+          key: cargo-bin-${{ runner.os }}-naga-cli-30.0.1
+
+      - name: Install naga-cli
+        if: steps.cargo-cache.outputs.cache-hit != 'true'
+        run: cargo install naga-cli --version 30.0.1 --locked
+
+      - name: Sync
+        run: uv sync --all-extras
+
+      - name: Lint
+        run: |
+          uv run ruff check hogshade tests tools Spikes
+          uv run ruff format --check hogshade tests tools Spikes
+
+      - name: Build shaders (fails if committed artifacts are stale)
+        run: uv run tools/build_shaders.py --check --require-compilers
+
+      - name: Tests
+        run: uv run pytest -q

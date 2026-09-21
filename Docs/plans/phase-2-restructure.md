@@ -28,17 +28,24 @@ own. Tick a task only when its verification ran.
 
 ## PR B: core skeleton, build and compile tests
 
-- [ ] 5. `core/manifest.toml` (module order and the unprefixed-name exemption list),
+- [x] 5. `core/manifest.toml` (module order and the unprefixed-name exemption list),
       `core/constants.wgsl`, `core/interface.wgsl` (`ShadingInputs`, `SurfaceInputs`, `ShadingResult`,
       `LightSource`, `EnvironmentIBL`), `core/lighting.wgsl`
       (`LightSource`, `FixedSlots16`, `LightBuffer` accessor), `core/environment.wgsl`
       (`EnvironmentIBL`, sampling with the E1 conventions), `core/gbuffer.wgsl` (ADR-002 layout
       encode and decode), `core/models.wgsl` (the dispatch switch with a placeholder model).
-- [ ] 6. `tools/build_shaders.py`: stitch by manifest, naga validate, emit shader-model 5 HLSL for
+      Done 2026-09-20; the placeholder is a real Lambert model (tier 0). One adjustment from the
+      spike: models expose `<model>_evaluate_light` and `<model>_evaluate_env`; the fixed-slot loop
+      is `models_evaluate_slots` in the core and an engine loops its own buffer calling the per-light
+      function, since WGSL has no function pointers for an accessor.
+- [x] 6. `tools/build_shaders.py`: stitch by manifest, naga validate, emit shader-model 5 HLSL for
       the Maya shell and shader-model 6 HLSL for `hosts/hlsl/`, GLSL, into `hosts/*/generated/`; fxc
       on the SM5 output and dxc on the SM6 output; name-collision check with the exemption list. `tests/compile/` runs it.
-      Verified: passes locally; CI workflow added with the Rust and SDK steps.
-- [ ] 7. `hogshade/core_constants.py` mirrors `constants.wgsl`; a test parses the WGSL and compares.
+      Verified 2026-09-20: naga validates, both HLSL targets compile (fxc ps_5_0, dxc ps_6_0), GLSL
+      emitted, `--check` reports the committed artifacts current; `.github/workflows/tests.yml` on
+      windows-latest with Rust, cached naga-cli, uv, ruff, the check, and pytest.
+- [x] 7. `hogshade/core_constants.py` mirrors `constants.wgsl`; a test parses the WGSL and compares.
+      Verified 2026-09-20: both directions (every Python constant matches; every WGSL constant is mirrored).
 
 ## PR C: the GPU test harness and the BRDF toolbox
 

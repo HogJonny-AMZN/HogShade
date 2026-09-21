@@ -1,0 +1,45 @@
+# HogShade core: the modules that make up the shading core, in dependency order.
+# tools/build_shaders.py concatenates them in this order into one WGSL file, validates it with
+# naga, and translates it for the hosts. WGSL has no import; this file is the import graph.
+#
+# Naming rule (spec, "Module conventions"): every function, struct and constant a module declares
+# starts with that module's prefix. The public interface symbols listed under [names].exempt are
+# the one exception; the build fails on any other unprefixed name or on a name declared twice.
+
+[[module]]
+file = "constants.wgsl"
+prefix = "HOGSHADE_"
+
+[[module]]
+file = "interface.wgsl"
+prefix = "interface_"
+
+[[module]]
+file = "lighting.wgsl"
+prefix = "lighting_"
+
+[[module]]
+file = "environment.wgsl"
+prefix = "environment_"
+
+[[module]]
+file = "gbuffer.wgsl"
+prefix = "gbuffer_"
+
+[[module]]
+file = "models/lambert.wgsl"
+prefix = "lambert_"
+
+[[module]]
+file = "models.wgsl"
+prefix = "models_"
+
+[names]
+# Structs every host and model spells the same way, and the model entry-point pattern.
+exempt = ["ShadingInputs", "SurfaceInputs", "ShadingResult", "LightSource", "FixedSlots16", "EnvironmentIBL", "GBufferLayoutAdr002", "GBufferTargets"]
+
+[validate]
+# An entry point that touches the public API so naga has a module to translate and fxc/dxc have
+# something to compile. Not part of the core; appended by the build for the generated artifacts.
+file = "_validate.wgsl"
+entry_point = "hogshade_validate"

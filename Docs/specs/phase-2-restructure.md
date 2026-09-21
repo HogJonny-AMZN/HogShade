@@ -82,41 +82,54 @@ provides and requires; `core/manifest.toml` lists modules in dependency order an
 ## Interfaces
 
 ```wgsl
-// core/interface.wgsl
-struct ShadingInputs {          // the material half's output, the lighting half's input
+// core/interface.wgsl (as implemented in PR B; this file is the contract, the spec quotes it)
+struct SurfaceInputs {          // what the G-buffer stores; what inputs() must produce for deferred
     base_color: vec3<f32>,      // linear
     metalness: f32,
     roughness: f32,             // perceptual, before bias
-    ao: f32,
-    cavity: f32,
+    ao: f32,                    // cavity folded in at encode time
     emissive: vec3<f32>,
     normal_ws: vec3<f32>,       // unit, world space, after normal mapping
+    model: u32,                 // shading-model ID; the same byte the G-buffer carries
+}
+struct ShadingInputs {          // the lighting half's input: the surface plus what forward has
+    surface: SurfaceInputs,
     view_ws: vec3<f32>,         // unit, surface to eye
     position_ws: vec3<f32>,
-    specular_f0: vec3<f32>,     // derived by the model's inputs() from the parameters above
-    opacity: f32,
-    model: u32,                 // shading-model ID; the same byte the G-buffer carries
+    specular_f0: vec3<f32>,     // forward: from the model; deferred: mix(0.04, base_color, metalness)
+    cavity: f32,                // forward only; deferred folds it into surface.ao and reconstructs 1.0
+    opacity: f32,               // forward only; 1.0 after MASK in deferred
 }
 struct ShadingResult {
     color: vec3<f32>,           // scene-linear radiance
     debug: vec3<f32>,           // the intermediate selected by the debug mode, or zero
 }
-struct LightSource {            // one punctual light; see lighting.wgsl for the providers
-    kind: u32,                  // 0 off, 1 directional, 2 point, 3 spot
-    position_ws: vec3<f32>,
-    direction_ws: vec3<f32>,    // unit, towards the light for directional
-    color: vec3<f32>,           // linear, in the light-rig unit (design doc, track E)
-    intensity: f32,
-    range: f32,
-    cone_cos: vec2<f32>,        // inner, outer
-    shadow: f32,                // 0..1, supplied by the host
+struct LightSource {            // one punctual light. The field order is the buffer ABI:
+    position_ws: vec3<f32>,     //   offset 0
+    kind: u32,                  //   12: 0 off, 1 directional, 2 point, 3 spot
+    direction_ws: vec3<f32>,    //   16: unit, towards the light for directional; spot axis, from the light
+    intensity: f32,             //   28
+    color: vec3<f32>,           //   32: linear, in the light-rig unit (design doc, track E)
+    range: f32,                 //   44: point and spot; <= 0 unbounded
+    cone_cos: vec2<f32>,        //   48: cos(inner), cos(outer)
+    shadow: f32,                //   56: 0..1, supplied by the host
+    _pad: f32,                  //   60; size 64
 }
 ```
 
-Every model implements two functions with fixed names, `<model>_inputs(...) -> ShadingInputs` and
-`<model>_evaluate(inputs, lights, env, debug_mode) -> ShadingResult`, and `core/models.wgsl` holds
-the `switch` on `model` that dispatches to them. Forward hosts call both in one shader; the deferred
-host calls `inputs` in the G-buffer fill and `evaluate` in the light pass.
+The nesting is deliberate: `SurfaceInputs` is the deferred payload and `ShadingInputs` wraps it, so
+the two paths share one definition of the stored fields. `hogshade/core_layout.py` mirrors the
+`LightSource` order and offsets and a test checks the WGSL against it.
+
+Every model implements `<model>_inputs(...) -> ShadingInputs`, `<model>_evaluate_light(inputs,
+light) -> vec3` for one light, `<model>_evaluate_env(inputs, irradiance_over_pi) -> vec3` and
+`<model>_debug(inputs, mode) -> vec3`; `core/models.wgsl` holds the `switch` on `surface.model` for
+each, plus `models_evaluate_slots` (the loop over `FixedSlots16`) and `models_shade` (direct plus
+environment plus emissive, with the debug slot). WGSL has no function pointers, so an engine loops
+its own light buffer calling `models_evaluate_light`; the per-light maths is shared, the loop is per
+provider. Forward hosts call inputs and the evaluations in one shader; the deferred host calls
+`inputs` in the G-buffer fill (through `gbuffer_encode_from_inputs`) and the evaluations in the
+light pass after `gbuffer_reconstruct`.
 
 **The deferred payload contract.** A G-buffer does not carry all of `ShadingInputs`, so the struct
 is split into what is stored and what is reconstructed:
