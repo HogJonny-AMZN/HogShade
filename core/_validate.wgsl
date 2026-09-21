@@ -20,7 +20,7 @@ fn hogshade_validate(@location(0) normal_ws: vec3<f32>, @location(1) view_ws: ve
     layout_meta.layer = 0u;
     layout_meta.channel_mask = 255u;
     layout_meta.flags = 0u;
-    let targets = gbuffer_encode_adr002(i.surface, layout_meta);
+    let targets = gbuffer_encode_from_inputs(i, layout_meta);
     let back = gbuffer_reconstruct(gbuffer_decode_adr002(targets), i.view_ws, i.position_ws);
     return vec4<f32>(r.color + back.specular_f0 * 0.0, 1.0);
 }

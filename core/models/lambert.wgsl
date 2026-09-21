@@ -20,6 +20,7 @@ fn lambert_inputs(
     i.view_ws = normalize(view_ws);
     i.position_ws = position_ws;
     i.specular_f0 = vec3<f32>(HOGSHADE_DIELECTRIC_F0);
+    i.cavity = 1.0;
     i.opacity = 1.0;
     return i;
 }

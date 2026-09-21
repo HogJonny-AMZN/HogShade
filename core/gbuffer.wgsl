@@ -53,6 +53,13 @@ fn gbuffer_encode_adr002(s: SurfaceInputs, layout_meta: GBufferLayoutAdr002) -> 
     return t;
 }
 
+// The fill pass's entry: fold the forward-only cavity into ao, then encode the surface.
+fn gbuffer_encode_from_inputs(i: ShadingInputs, layout_meta: GBufferLayoutAdr002) -> GBufferTargets {
+    var s = i.surface;
+    s.ao = s.ao * i.cavity;
+    return gbuffer_encode_adr002(s, layout_meta);
+}
+
 fn gbuffer_decode_adr002(t: GBufferTargets) -> SurfaceInputs {
     var s: SurfaceInputs;
     s.base_color = t.gb0.rgb;
@@ -72,6 +79,7 @@ fn gbuffer_reconstruct(s: SurfaceInputs, view_ws: vec3<f32>, position_ws: vec3<f
     i.view_ws = view_ws;
     i.position_ws = position_ws;
     i.specular_f0 = mix(vec3<f32>(HOGSHADE_DIELECTRIC_F0), s.base_color, s.metalness);
+    i.cavity = 1.0;             // folded into ao by gbuffer_encode_from_inputs
     i.opacity = 1.0;
     return i;
 }

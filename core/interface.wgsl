@@ -24,6 +24,7 @@ struct ShadingInputs {
     view_ws: vec3<f32>,         // unit, surface to eye
     position_ws: vec3<f32>,
     specular_f0: vec3<f32>,     // forward: from the model; deferred: mix(DIELECTRIC_F0, base_color, metalness)
+    cavity: f32,                // forward only: specular occlusion detail; deferred folds it into surface.ao
     opacity: f32,               // forward only; 1.0 after MASK in deferred
 }
 
@@ -33,6 +34,9 @@ struct ShadingResult {
 }
 
 // One punctual light. kind: 0 off, 1 directional, 2 point, 3 spot.
+// Field order is the ABI a host packs into a uniform or storage buffer; std140/std430 offsets:
+//   position_ws 0, kind 12, direction_ws 16, intensity 28, color 32, range 44, cone_cos 48,
+//   shadow 56, _pad 60; size 64. hogshade/core_layout.py mirrors this and a test checks the order.
 struct LightSource {
     position_ws: vec3<f32>,
     kind: u32,

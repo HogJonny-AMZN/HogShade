@@ -10,7 +10,7 @@ and the naga version that produced it.
 | `wgpu/generated/hogshade_core.wgsl` | WGSL | the core itself, no entry points, no bindings | SpriteJammer, `hog_rendering`; prepend to a pass file |
 | `maya_dx11/generated/hogshade_core_sm5.hlsl` | HLSL | shader model 5.0, compiled by fxc | the Maya `.fx` shell includes it |
 | `hlsl/hogshade_core.hlsl` | HLSL | shader model 6.0, compiled by dxc | Unreal custom nodes, Unity, DX12 |
-| `maya_ogsfx/generated/hogshade_core.frag` | GLSL | core profile, fragment stage | the `.ogsfx` shell, phase 6 |
+| `maya_ogsfx/generated/hogshade_core_validate.frag` | GLSL | core profile, the validation entry point as a complete fragment shader | proof the core translates to GLSL; not an include. naga emits GLSL only from entry points, so the phase 6 `.ogsfx` host translates its own pass entry points together with the core |
 
 ## What the generated code looks like
 

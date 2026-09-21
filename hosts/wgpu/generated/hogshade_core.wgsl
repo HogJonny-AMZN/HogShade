@@ -60,6 +60,7 @@ struct ShadingInputs {
     view_ws: vec3<f32>,         // unit, surface to eye
     position_ws: vec3<f32>,
     specular_f0: vec3<f32>,     // forward: from the model; deferred: mix(DIELECTRIC_F0, base_color, metalness)
+    cavity: f32,                // forward only: specular occlusion detail; deferred folds it into surface.ao
     opacity: f32,               // forward only; 1.0 after MASK in deferred
 }
 
@@ -69,6 +70,9 @@ struct ShadingResult {
 }
 
 // One punctual light. kind: 0 off, 1 directional, 2 point, 3 spot.
+// Field order is the ABI a host packs into a uniform or storage buffer; std140/std430 offsets:
+//   position_ws 0, kind 12, direction_ws 16, intensity 28, color 32, range 44, cone_cos 48,
+//   shadow 56, _pad 60; size 64. hogshade/core_layout.py mirrors this and a test checks the order.
 struct LightSource {
     position_ws: vec3<f32>,
     kind: u32,
@@ -293,6 +297,13 @@ fn gbuffer_encode_adr002(s: SurfaceInputs, layout_meta: GBufferLayoutAdr002) -> 
     return t;
 }
 
+// The fill pass's entry: fold the forward-only cavity into ao, then encode the surface.
+fn gbuffer_encode_from_inputs(i: ShadingInputs, layout_meta: GBufferLayoutAdr002) -> GBufferTargets {
+    var s = i.surface;
+    s.ao = s.ao * i.cavity;
+    return gbuffer_encode_adr002(s, layout_meta);
+}
+
 fn gbuffer_decode_adr002(t: GBufferTargets) -> SurfaceInputs {
     var s: SurfaceInputs;
     s.base_color = t.gb0.rgb;
@@ -312,6 +323,7 @@ fn gbuffer_reconstruct(s: SurfaceInputs, view_ws: vec3<f32>, position_ws: vec3<f
     i.view_ws = view_ws;
     i.position_ws = position_ws;
     i.specular_f0 = mix(vec3<f32>(HOGSHADE_DIELECTRIC_F0), s.base_color, s.metalness);
+    i.cavity = 1.0;             // folded into ao by gbuffer_encode_from_inputs
     i.opacity = 1.0;
     return i;
 }
@@ -339,6 +351,7 @@ fn lambert_inputs(
     i.view_ws = normalize(view_ws);
     i.position_ws = position_ws;
     i.specular_f0 = vec3<f32>(HOGSHADE_DIELECTRIC_F0);
+    i.cavity = 1.0;
     i.opacity = 1.0;
     return i;
 }

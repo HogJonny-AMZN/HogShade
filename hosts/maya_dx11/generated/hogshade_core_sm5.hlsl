@@ -18,7 +18,11 @@ struct ShadingInputs {
     float3 position_ws;
     int _pad3_0;
     float3 specular_f0_;
+    float cavity;
     float opacity;
+    int _end_pad_0;
+    int _end_pad_1;
+    int _end_pad_2;
 };
 
 struct ShadingResult {
@@ -319,87 +323,102 @@ GBufferTargets gbuffer_encode_adr002_(SurfaceInputs s, GBufferLayoutAdr002_ layo
     return gbuffertargets;
 }
 
-SurfaceInputs gbuffer_decode_adr002_(GBufferTargets t_1)
+GBufferTargets gbuffer_encode_from_inputs(ShadingInputs i_2, GBufferLayoutAdr002_ layout_meta_2)
 {
     SurfaceInputs s_1 = (SurfaceInputs)0;
 
-    s_1.base_color = t_1.gb0_.xyz;
-    s_1.ao = t_1.gb0_.w;
+    s_1 = i_2.surface;
+    float _e6 = s_1.ao;
+    s_1.ao = (_e6 * i_2.cavity);
+    SurfaceInputs _e9 = s_1;
+    const GBufferTargets _e10 = gbuffer_encode_adr002_(_e9, layout_meta_2);
+    const GBufferTargets gbuffertargets_1 = _e10;
+    return gbuffertargets_1;
+}
+
+SurfaceInputs gbuffer_decode_adr002_(GBufferTargets t_1)
+{
+    SurfaceInputs s_2 = (SurfaceInputs)0;
+
+    s_2.base_color = t_1.gb0_.xyz;
+    s_2.ao = t_1.gb0_.w;
     const float3 _e11 = gbuffer_oct_decode(t_1.gb1_.xy);
-    s_1.normal_ws = _e11;
-    s_1.roughness = t_1.gb1_.z;
-    s_1.metalness = t_1.gb1_.w;
-    s_1.model = t_1.gb2_.z;
-    s_1.emissive = t_1.gb3_.xyz;
-    SurfaceInputs _e24 = s_1;
+    s_2.normal_ws = _e11;
+    s_2.roughness = t_1.gb1_.z;
+    s_2.metalness = t_1.gb1_.w;
+    s_2.model = t_1.gb2_.z;
+    s_2.emissive = t_1.gb3_.xyz;
+    SurfaceInputs _e24 = s_2;
     const SurfaceInputs surfaceinputs = _e24;
     return surfaceinputs;
 }
 
-ShadingInputs gbuffer_reconstruct(SurfaceInputs s_2, float3 view_ws_1, float3 position_ws_1)
+ShadingInputs gbuffer_reconstruct(SurfaceInputs s_3, float3 view_ws_1, float3 position_ws_1)
 {
-    ShadingInputs i_2 = (ShadingInputs)0;
+    ShadingInputs i_3 = (ShadingInputs)0;
 
-    i_2.surface = s_2;
-    i_2.view_ws = view_ws_1;
-    i_2.position_ws = position_ws_1;
-    i_2.specular_f0_ = lerp((0.04).xxx, s_2.base_color, s_2.metalness);
-    i_2.opacity = 1.0;
-    ShadingInputs _e15 = i_2;
-    const ShadingInputs shadinginputs = _e15;
+    i_3.surface = s_3;
+    i_3.view_ws = view_ws_1;
+    i_3.position_ws = position_ws_1;
+    i_3.specular_f0_ = lerp((0.04).xxx, s_3.base_color, s_3.metalness);
+    i_3.cavity = 1.0;
+    i_3.opacity = 1.0;
+    ShadingInputs _e17 = i_3;
+    const ShadingInputs shadinginputs = _e17;
     return shadinginputs;
 }
 
 ShadingInputs lambert_inputs(float3 base_color, float ao, float3 emissive, float3 normal_ws_1, float3 view_ws_2, float3 position_ws_2)
 {
-    ShadingInputs i_3 = (ShadingInputs)0;
+    ShadingInputs i_4 = (ShadingInputs)0;
 
-    i_3.surface.base_color = base_color;
-    i_3.surface.metalness = 0.0;
-    i_3.surface.roughness = 1.0;
-    i_3.surface.ao = ao;
-    i_3.surface.emissive = emissive;
-    i_3.surface.normal_ws = normalize(normal_ws_1);
-    i_3.surface.model = HOGSHADE_MODEL_LAMBERT;
-    i_3.view_ws = normalize(view_ws_2);
-    i_3.position_ws = position_ws_2;
-    i_3.specular_f0_ = (0.04).xxx;
-    i_3.opacity = 1.0;
-    ShadingInputs _e33 = i_3;
-    const ShadingInputs shadinginputs_1 = _e33;
+    i_4.surface.base_color = base_color;
+    i_4.surface.metalness = 0.0;
+    i_4.surface.roughness = 1.0;
+    i_4.surface.ao = ao;
+    i_4.surface.emissive = emissive;
+    i_4.surface.normal_ws = normalize(normal_ws_1);
+    i_4.surface.model = HOGSHADE_MODEL_LAMBERT;
+    i_4.view_ws = normalize(view_ws_2);
+    i_4.position_ws = position_ws_2;
+    i_4.specular_f0_ = (0.04).xxx;
+    i_4.cavity = 1.0;
+    i_4.opacity = 1.0;
+    ShadingInputs _e35 = i_4;
+    const ShadingInputs shadinginputs_1 = _e35;
     return shadinginputs_1;
 }
 
-float3 lambert_evaluate_light(ShadingInputs i_4, LightSource light_2)
+float3 lambert_evaluate_light(ShadingInputs i_5, LightSource light_2)
 {
-    const lighting_Incident _e3 = lighting_incident(light_2, i_4.position_ws);
+    const lighting_Incident _e3 = lighting_incident(light_2, i_5.position_ws);
     if (!(_e3.valid)) {
         return (0.0).xxx;
     }
-    float n_dot_l = max(dot(i_4.surface.normal_ws, _e3.l_ws), 0.0);
+    float n_dot_l = max(dot(i_5.surface.normal_ws, _e3.l_ws), 0.0);
     const float3 _e19 = lighting_radiance(light_2, _e3);
-    return (((i_4.surface.base_color * HOGSHADE_INV_PI) * n_dot_l) * _e19);
+    return (((i_5.surface.base_color * HOGSHADE_INV_PI) * n_dot_l) * _e19);
 }
 
-float3 lambert_evaluate_env(ShadingInputs i_5, float3 irradiance_over_pi)
+float3 lambert_evaluate_env(ShadingInputs i_6, float3 irradiance_over_pi)
 {
-    return ((i_5.surface.base_color * irradiance_over_pi) * i_5.surface.ao);
+    return ((i_6.surface.base_color * irradiance_over_pi) * i_6.surface.ao);
 }
 
-float3 lambert_debug(ShadingInputs i_6, uint mode)
+float3 lambert_debug(ShadingInputs i_7, uint mode)
 {
     switch(mode) {
         case 1u: {
-            return i_6.surface.base_color;
+            return i_7.surface.base_color;
         }
         case 2u: {
-            return ((i_6.surface.normal_ws * 0.5) + (0.5).xxx);
+            return ((i_7.surface.normal_ws * 0.5) + (0.5).xxx);
         }
         case 3u: {
-            return (i_6.surface.ao).xxx;
+            return (i_7.surface.ao).xxx;
         }
         case 4u: {
-            return i_6.surface.emissive;
+            return i_7.surface.emissive;
         }
         default: {
             return (0.0).xxx;
@@ -407,49 +426,49 @@ float3 lambert_debug(ShadingInputs i_6, uint mode)
     }
 }
 
-float3 models_evaluate_light(ShadingInputs i_7, LightSource light_3)
-{
-    switch(i_7.surface.model) {
-        case 0u: {
-            const float3 _e4 = lambert_evaluate_light(i_7, light_3);
-            return _e4;
-        }
-        default: {
-            const float3 _e5 = lambert_evaluate_light(i_7, light_3);
-            return _e5;
-        }
-    }
-}
-
-float3 models_evaluate_env(ShadingInputs i_8, float3 irradiance_over_pi_1)
+float3 models_evaluate_light(ShadingInputs i_8, LightSource light_3)
 {
     switch(i_8.surface.model) {
         case 0u: {
-            const float3 _e4 = lambert_evaluate_env(i_8, irradiance_over_pi_1);
+            const float3 _e4 = lambert_evaluate_light(i_8, light_3);
             return _e4;
         }
         default: {
-            const float3 _e5 = lambert_evaluate_env(i_8, irradiance_over_pi_1);
+            const float3 _e5 = lambert_evaluate_light(i_8, light_3);
             return _e5;
         }
     }
 }
 
-float3 models_debug(ShadingInputs i_9, uint mode_1)
+float3 models_evaluate_env(ShadingInputs i_9, float3 irradiance_over_pi_1)
 {
     switch(i_9.surface.model) {
         case 0u: {
-            const float3 _e4 = lambert_debug(i_9, mode_1);
+            const float3 _e4 = lambert_evaluate_env(i_9, irradiance_over_pi_1);
             return _e4;
         }
         default: {
-            const float3 _e5 = lambert_debug(i_9, mode_1);
+            const float3 _e5 = lambert_evaluate_env(i_9, irradiance_over_pi_1);
             return _e5;
         }
     }
 }
 
-float3 models_evaluate_slots(ShadingInputs i_10, FixedSlots16_ slots_2)
+float3 models_debug(ShadingInputs i_10, uint mode_1)
+{
+    switch(i_10.surface.model) {
+        case 0u: {
+            const float3 _e4 = lambert_debug(i_10, mode_1);
+            return _e4;
+        }
+        default: {
+            const float3 _e5 = lambert_debug(i_10, mode_1);
+            return _e5;
+        }
+    }
+}
+
+float3 models_evaluate_slots(ShadingInputs i_11, FixedSlots16_ slots_2)
 {
     float3 sum = (0.0).xxx;
     uint k = 0u;
@@ -473,7 +492,7 @@ float3 models_evaluate_slots(ShadingInputs i_10, FixedSlots16_ slots_2)
         {
             float3 _e12 = sum;
             uint _e14 = k;
-            const float3 _e16 = models_evaluate_light(i_10, slots_2.light[min(uint(_e14), 15u)]);
+            const float3 _e16 = models_evaluate_light(i_11, slots_2.light[min(uint(_e14), 15u)]);
             sum = (_e12 + _e16);
         }
     }
@@ -481,16 +500,16 @@ float3 models_evaluate_slots(ShadingInputs i_10, FixedSlots16_ slots_2)
     return _e21;
 }
 
-ShadingResult models_shade(ShadingInputs i_11, FixedSlots16_ slots_3, float3 irradiance_over_pi_2, uint debug_mode)
+ShadingResult models_shade(ShadingInputs i_12, FixedSlots16_ slots_3, float3 irradiance_over_pi_2, uint debug_mode)
 {
     ShadingResult r = (ShadingResult)0;
 
-    const float3 _e6 = models_evaluate_slots(i_11, slots_3);
-    const float3 _e7 = models_evaluate_env(i_11, irradiance_over_pi_2);
-    r.color = ((_e6 + _e7) + i_11.surface.emissive);
+    const float3 _e6 = models_evaluate_slots(i_12, slots_3);
+    const float3 _e7 = models_evaluate_env(i_12, irradiance_over_pi_2);
+    r.color = ((_e6 + _e7) + i_12.surface.emissive);
     r.debug = (0.0).xxx;
     if ((debug_mode != HOGSHADE_DEBUG_NONE)) {
-        const float3 _e18 = models_debug(i_11, debug_mode);
+        const float3 _e18 = models_debug(i_12, debug_mode);
         r.debug = _e18;
     }
     ShadingResult _e19 = r;
@@ -521,9 +540,9 @@ float4 hogshade_validate(FragmentInput_hogshade_validate fragmentinput_hogshade_
     layout_meta.layer = 0u;
     layout_meta.channel_mask = 255u;
     layout_meta.flags = 0u;
-    GBufferLayoutAdr002_ _e54 = layout_meta;
-    const GBufferTargets _e55 = gbuffer_encode_adr002_(_e9.surface, _e54);
-    const SurfaceInputs _e56 = gbuffer_decode_adr002_(_e55);
-    const ShadingInputs _e59 = gbuffer_reconstruct(_e56, _e9.view_ws, _e9.position_ws);
-    return float4((_e45.color + (_e59.specular_f0_ * 0.0)), 1.0);
+    GBufferLayoutAdr002_ _e53 = layout_meta;
+    const GBufferTargets _e54 = gbuffer_encode_from_inputs(_e9, _e53);
+    const SurfaceInputs _e55 = gbuffer_decode_adr002_(_e54);
+    const ShadingInputs _e58 = gbuffer_reconstruct(_e55, _e9.view_ws, _e9.position_ws);
+    return float4((_e45.color + (_e58.specular_f0_ * 0.0)), 1.0);
 }

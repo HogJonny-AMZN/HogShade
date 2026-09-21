@@ -10,7 +10,9 @@ Steps (Docs/specs/phase-2-restructure.md, "Toolchain"):
   2. naga validate the stitched core plus the validation entry point
   3. naga -> hosts/maya_dx11/generated/hogshade_core_sm5.hlsl   (shader model 5.0; fxc /T ps_5_0 compiles it)
      naga -> hosts/hlsl/hogshade_core.hlsl                       (shader model 6.0; dxc -T ps_6_0 compiles it)
-     naga -> hosts/maya_ogsfx/generated/hogshade_core.frag       (GLSL core profile; naga picks the language from the .frag extension)
+     naga -> hosts/maya_ogsfx/generated/hogshade_core_validate.frag (GLSL of the validation shader, proof the core
+             translates to GLSL; not an include. naga emits GLSL only from an entry point, so the ogsfx host
+             (phase 6) translates its own pass entry points together with the core instead of including this)
      copy -> hosts/wgpu/generated/hogshade_core.wgsl             (the core itself, the wgpu deliverable)
   4. fxc and dxc validation when those tools are on this machine (Windows SDK); skipped elsewhere
   5. write hosts/generated_manifest.json with the sha256 of every artifact
@@ -41,7 +43,7 @@ ARTIFACTS = {
     "wgsl": HOSTS / "wgpu" / "generated" / "hogshade_core.wgsl",
     "hlsl_sm5": HOSTS / "maya_dx11" / "generated" / "hogshade_core_sm5.hlsl",
     "hlsl_sm6": HOSTS / "hlsl" / "hogshade_core.hlsl",
-    "glsl": HOSTS / "maya_ogsfx" / "generated" / "hogshade_core.frag",
+    "glsl": HOSTS / "maya_ogsfx" / "generated" / "hogshade_core_validate.frag",
 }
 
 _DECL = re.compile(r"^\s*(?:fn|struct|const)\s+([A-Za-z_][A-Za-z0-9_]*)", re.MULTILINE)
@@ -202,6 +204,13 @@ def check(require_compilers: bool = False) -> list[str]:
             committed = hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest() if path.exists() else None
             if committed != fresh[key]:
                 stale.append(str(path.relative_to(ROOT)))
+        # the manifest is the reproducibility record: its sha256 map must match what a fresh build produces
+        manifest_path = HOSTS / "generated_manifest.json"
+        recorded = (
+            json.loads(manifest_path.read_text(encoding="utf-8")).get("sha256", {}) if manifest_path.exists() else {}
+        )
+        if recorded != fresh:
+            stale.append(str(manifest_path.relative_to(ROOT)))
         return stale
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
