@@ -1,0 +1,13 @@
+started Sun Sep 20 21:16:12 2026
+fx D:/Depot/Maya-PBR-BRDF-VP2/Spikes/naga-fx/ggx.fx
+texture D:/Depot/Maya-PBR-BRDF-VP2/Spikes/naga-fx/checker.png
+TECHNIQUES: ['Main']
+TEXTURE decoded size [(256.0, 256.0)]
+LIGHT spike_light created; light0Dir attr exists=True
+LIGHT BOUND: spike_light
+PNG A True; light0Dir now [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+PNG B True; light0Dir now [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+LIGHT BINDING (dx11Shader -listLightInformation): None
+FRAMES 960x720x4: 3011 sampled non-background pixels, 95.0% of them changed by more than 16/255 when the light rotated
+RESULT: OK
+MAYA: 2026
