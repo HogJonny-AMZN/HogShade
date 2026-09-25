@@ -1,0 +1,36 @@
+HogShade core GPU test run
+
+Date: 2026-09-25T04:26:07Z
+Machine: BIGHOG-4090RTX (Windows 11)
+Command: uv run pytest tests/core -v -o addopts="" -p no:cacheprovider
+
+Adapter: NVIDIA GeForce RTX 5090 | Vulkan | driver 591.86
+wgpu-py 0.32.0
+
+============================= test session starts =============================
+platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0 -- D:\Depot\Maya-PBR-BRDF-VP2\.venv\Scripts\python.exe
+rootdir: D:\Depot\Maya-PBR-BRDF-VP2
+configfile: pyproject.toml
+collecting ... collected 19 items
+
+tests/core/test_brdf_gpu.py::test_ggx_d_smith_v_schlick_burley PASSED
+tests/core/test_brdf_gpu.py::test_fresnel_f82 PASSED
+tests/core/test_brdf_gpu.py::test_specular_ggx_composite PASSED
+tests/core/test_constants.py::test_every_python_constant_matches_the_wgsl PASSED
+tests/core/test_constants.py::test_every_wgsl_constant_is_mirrored PASSED
+tests/core/test_constants.py::test_model_ids_match_the_dispatch_switch PASSED
+tests/core/test_gbuffer_gpu.py::test_octahedral_gpu_matches_reference PASSED
+tests/core/test_gbuffer_gpu.py::test_surface_round_trip_and_forward_deferred_parity PASSED
+tests/core/test_gbuffer_gpu.py::test_parity_within_attachment_quantisation PASSED
+tests/core/test_gbuffer_reference.py::test_octahedral_round_trip_both_hemispheres PASSED
+tests/core/test_gbuffer_reference.py::test_octahedral_axes_and_corners PASSED
+tests/core/test_gbuffer_reference.py::test_reversed_signs_would_fail PASSED
+tests/core/test_gbuffer_reference.py::test_wgsl_decode_uses_the_same_operand_order PASSED
+tests/core/test_gbuffer_reference.py::test_deferred_f0_reconstruction PASSED
+tests/core/test_layout.py::test_light_source_field_order_matches_the_mirror PASSED
+tests/core/test_layout.py::test_light_source_offsets_are_consistent PASSED
+tests/core/test_layout.py::test_fixed_slots_wraps_sixteen_lights PASSED
+tests/core/test_lighting_gpu.py::test_slots_equal_sum_of_single_lights PASSED
+tests/core/test_lighting_gpu.py::test_incident_geometry_matches_reference PASSED
+
+============================= 19 passed in 0.90s ==============================

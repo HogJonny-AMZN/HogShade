@@ -49,14 +49,23 @@ own. Tick a task only when its verification ran.
 
 ## PR C: the GPU test harness and the BRDF toolbox
 
-- [ ] 8. `wgpu` as the `gpu` extra; `tests/core/conftest.py` acquires an adapter or skips.
-- [ ] 9. `core/brdf.wgsl`: GGX D, height-correlated Smith visibility, Schlick and F82-tint Fresnel,
+- [x] 8. `wgpu` as the `gpu` extra; `tests/core/conftest.py` acquires an adapter or skips. Done
+      2026-09-21: wgpu-py 0.32 on the RTX 5090 through Vulkan; `tests/core/gpu_harness.py` stitches the
+      core in front of a per-test compute kernel and runs one thread per test vector.
+- [x] 9. `core/brdf.wgsl`: GGX D, height-correlated Smith visibility, Schlick and F82-tint Fresnel,
       Lambert and Burley diffuse; `hogshade/reference/brdf.py` NumPy twins. Verified: compute-shader
-      comparison on a grid within 1e-5; run recorded in `Docs/verification/`.
-- [ ] 10. `core/lighting.wgsl` test: 16 slots equal 16 single calls. `core/gbuffer.wgsl` tests:
+      comparison on a grid within 1e-5; run recorded in `Docs/verification/`. Verified 2026-09-21:
+      GGX D, height-correlated Smith, Schlick, F82-tint, Lambert, Burley and the GGX composite match
+      the NumPy references (2e-5 relative on the grid for alpha >= 0.1; GGX D below that is limited
+      by float32 cancellation at the peak and is held to 1e-2, with the reason in the test). The GPU
+      run is recorded in `Docs/verification/gpu-core-tests.log` (machine, adapter, per-test result).
+- [x] 10. `core/lighting.wgsl` test: 16 slots equal 16 single calls. `core/gbuffer.wgsl` tests:
       `SurfaceInputs` round trip within the layout's quantisation, and forward-versus-deferred parity
       (evaluate on `ShadingInputs` built directly, against evaluate on encode, decode and
-      reconstruct) within that same quantisation.
+      reconstruct) within that same quantisation. Verified 2026-09-21: 16 slots equal 16 single calls
+      to 1e-6; incident geometry (directional, windowed inverse-square point, spot cone) matches the
+      reference; forward and deferred Lambert agree to 1e-5 un-quantised; with ADR-002's 8-bit albedo
+      and AO and fp16 octahedral normal the worst normal error is 0.11 degrees.
 
 ## PR D: the legacy v2 port
 

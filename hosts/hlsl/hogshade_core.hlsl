@@ -101,6 +101,64 @@ struct FragmentInput_hogshade_validate {
     float3 view_ws_3 : LOC1;
 };
 
+float brdf_ggx_d(float n_dot_h, float alpha)
+{
+    float a2_ = (alpha * alpha);
+    float d = (((n_dot_h * n_dot_h) * (a2_ - 1.0)) + 1.0);
+    return (a2_ / ((HOGSHADE_PI * d) * d));
+}
+
+float brdf_smith_v_height_correlated(float n_dot_v, float n_dot_l, float alpha_1)
+{
+    float a2_1 = (alpha_1 * alpha_1);
+    float gv = (n_dot_l * sqrt((((n_dot_v * n_dot_v) * (1.0 - a2_1)) + a2_1)));
+    float gl = (n_dot_v * sqrt((((n_dot_l * n_dot_l) * (1.0 - a2_1)) + a2_1)));
+    return (0.5 / max((gv + gl), 1e-5));
+}
+
+float3 brdf_fresnel_schlick(float3 f0_, float v_dot_h)
+{
+    float fc = pow((1.0 - v_dot_h), 5.0);
+    return (f0_ + (((1.0).xxx - f0_) * fc));
+}
+
+float3 brdf_fresnel_f82_(float3 f0_1, float3 tint, float v_dot_h_1)
+{
+    float mu = clamp(v_dot_h_1, 0.0, 1.0);
+    float denom = (0.14285715 * pow((1.0 - 0.14285715), 6.0));
+    float3 f_schlick_bar = (f0_1 + (((1.0).xxx - f0_1) * pow((1.0 - 0.14285715), 5.0)));
+    float3 a = ((f_schlick_bar - (f_schlick_bar * tint)) / (max(denom, 1e-6)).xxx);
+    float3 f_schlick = (f0_1 + (((1.0).xxx - f0_1) * pow((1.0 - mu), 5.0)));
+    return max((f_schlick - ((a * mu) * pow((1.0 - mu), 6.0))), (0.0).xxx);
+}
+
+float3 brdf_lambert(float3 albedo)
+{
+    return (albedo * HOGSHADE_INV_PI);
+}
+
+float3 brdf_burley(float3 albedo_1, float roughness, float n_dot_v_1, float n_dot_l_1, float v_dot_h_2)
+{
+    float fd90_ = (0.5 + (((2.0 * roughness) * v_dot_h_2) * v_dot_h_2));
+    float light_scatter = (1.0 + ((fd90_ - 1.0) * pow((1.0 - n_dot_l_1), 5.0)));
+    float view_scatter = (1.0 + ((fd90_ - 1.0) * pow((1.0 - n_dot_v_1), 5.0)));
+    return (((albedo_1 * HOGSHADE_INV_PI) * light_scatter) * view_scatter);
+}
+
+float3 brdf_specular_ggx(float3 n, float3 v, float3 l, float3 f0_2, float roughness_1)
+{
+    float3 h = normalize((v + l));
+    float n_dot_l_2 = max(dot(n, l), 0.0);
+    float n_dot_v_3 = max(dot(n, v), 0.0001);
+    float n_dot_h_1 = max(dot(n, h), 0.0);
+    float v_dot_h_3 = max(dot(v, h), 0.0);
+    float alpha_2 = max(((roughness_1 + HOGSHADE_ROUGHNESS_BIAS) * (roughness_1 + HOGSHADE_ROUGHNESS_BIAS)), 0.0001);
+    const float _e26 = brdf_ggx_d(n_dot_h_1, alpha_2);
+    const float _e27 = brdf_smith_v_height_correlated(n_dot_v_3, n_dot_l_2, alpha_2);
+    const float3 _e28 = brdf_fresnel_schlick(f0_2, v_dot_h_3);
+    return (((_e26 * _e27) * _e28) * n_dot_l_2);
+}
+
 lighting_Incident lighting_incident(LightSource light, float3 position_ws)
 {
     lighting_Incident out_ = (lighting_Incident)0;
@@ -189,9 +247,9 @@ FixedSlots16_ lighting_slots_empty()
     return fixedslots16_;
 }
 
-float3 environment_specular(TextureCube<float4> specular_cube, SamplerState cube_sampler, EnvironmentIBL env, float3 r_ws, float roughness)
+float3 environment_specular(TextureCube<float4> specular_cube, SamplerState cube_sampler, EnvironmentIBL env, float3 r_ws, float roughness_2)
 {
-    float mip = (clamp(roughness, 0.0, 1.0) * max((env.specular_mip_count - 1.0), 0.0));
+    float mip = (clamp(roughness_2, 0.0, 1.0) * max((env.specular_mip_count - 1.0), 0.0));
     float4 _e14 = specular_cube.SampleLevel(cube_sampler, r_ws, mip);
     return (_e14.xyz * env.exposure);
 }
@@ -230,9 +288,9 @@ float3 environment_irradiance_sh9_(EnvironmentIBL env_2, float3 n_ws_1)
     return (max((_e86 * HOGSHADE_INV_PI), (0.0).xxx) * env_2.exposure);
 }
 
-float2 environment_brdf_lut(Texture2D<float4> lut, SamplerState lut_sampler, float n_dot_v, float roughness_1)
+float2 environment_brdf_lut(Texture2D<float4> lut, SamplerState lut_sampler, float n_dot_v_2, float roughness_3)
 {
-    float2 uv = float2(clamp(n_dot_v, 0.0, 1.0), clamp(roughness_1, 0.0, 1.0));
+    float2 uv = float2(clamp(n_dot_v_2, 0.0, 1.0), clamp(roughness_3, 0.0, 1.0));
     float4 _e12 = lut.SampleLevel(lut_sampler, uv, 0.0);
     return _e12.xy;
 }
@@ -271,13 +329,13 @@ EnvironmentIBL environment_default(float mip_count)
     return environmentibl;
 }
 
-float2 gbuffer_oct_encode(float3 n)
+float2 gbuffer_oct_encode(float3 n_1)
 {
     float2 p = (float2)0;
 
-    float l1_ = ((abs(n.x) + abs(n.y)) + abs(n.z));
-    p = (n.xy / (max(l1_, 1e-8)).xx);
-    if ((n.z < 0.0)) {
+    float l1_ = ((abs(n_1.x) + abs(n_1.y)) + abs(n_1.z));
+    p = (n_1.xy / (max(l1_, 1e-8)).xx);
+    if ((n_1.z < 0.0)) {
         float _e19 = p.x;
         float sx = ((_e19 >= 0.0) ? 1.0 : -1.0);
         float _e26 = p.y;
@@ -291,21 +349,21 @@ float2 gbuffer_oct_encode(float3 n)
 
 float3 gbuffer_oct_decode(float2 e_1)
 {
-    float3 n_1 = (float3)0;
+    float3 n_2 = (float3)0;
 
     float2 p_1 = ((e_1 * 2.0) - (1.0).xx);
-    n_1 = float3(p_1.x, p_1.y, ((1.0 - abs(p_1.x)) - abs(p_1.y)));
-    float _e18 = n_1.z;
+    n_2 = float3(p_1.x, p_1.y, ((1.0 - abs(p_1.x)) - abs(p_1.y)));
+    float _e18 = n_2.z;
     float t_2 = clamp(-(_e18), 0.0, 1.0);
-    float _e25 = n_1.x;
+    float _e25 = n_2.x;
     float sx_1 = ((_e25 >= 0.0) ? -(t_2) : t_2);
-    float _e31 = n_1.y;
+    float _e31 = n_2.y;
     float sy_1 = ((_e31 >= 0.0) ? -(t_2) : t_2);
-    float _e36 = n_1.x;
-    float _e39 = n_1.y;
-    float _e42 = n_1.z;
-    n_1 = float3((_e36 + sx_1), (_e39 + sy_1), _e42);
-    float3 _e44 = n_1;
+    float _e36 = n_2.x;
+    float _e39 = n_2.y;
+    float _e42 = n_2.z;
+    n_2 = float3((_e36 + sx_1), (_e39 + sy_1), _e42);
+    float3 _e44 = n_2;
     return normalize(_e44);
 }
 
@@ -395,9 +453,9 @@ float3 lambert_evaluate_light(ShadingInputs i_5, LightSource light_2)
     if (!(_e3.valid)) {
         return (0.0).xxx;
     }
-    float n_dot_l = max(dot(i_5.surface.normal_ws, _e3.l_ws), 0.0);
+    float n_dot_l_3 = max(dot(i_5.surface.normal_ws, _e3.l_ws), 0.0);
     const float3 _e19 = lighting_radiance(light_2, _e3);
-    return (((i_5.surface.base_color * HOGSHADE_INV_PI) * n_dot_l) * _e19);
+    return (((i_5.surface.base_color * HOGSHADE_INV_PI) * n_dot_l_3) * _e19);
 }
 
 float3 lambert_evaluate_env(ShadingInputs i_6, float3 irradiance_over_pi)
@@ -473,7 +531,7 @@ float3 models_evaluate_slots(ShadingInputs i_11, FixedSlots16_ slots_2)
     float3 sum = (0.0).xxx;
     uint k = 0u;
 
-    uint n_2 = min(slots_2.count, 16u);
+    uint n_3 = min(slots_2.count, 16u);
     uint2 loop_bound_2 = uint2(4294967295u, 4294967295u);
     bool loop_init_2 = true;
     while(true) {
@@ -485,7 +543,7 @@ float3 models_evaluate_slots(ShadingInputs i_11, FixedSlots16_ slots_2)
         }
         loop_init_2 = false;
         uint _e10 = k;
-        if ((_e10 < n_2)) {
+        if ((_e10 < n_3)) {
         } else {
             break;
         }

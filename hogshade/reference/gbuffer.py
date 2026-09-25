@@ -42,6 +42,25 @@ def oct_decode(e: NDArray) -> NDArray:
     return n / np.linalg.norm(n, axis=-1, keepdims=True)
 
 
+def srgb_encode(linear: NDArray) -> NDArray:
+    """The sRGB transfer function an rgba8unorm-srgb attachment applies on store."""
+    x = np.clip(np.asarray(linear, dtype=np.float64), 0.0, 1.0)
+    return np.where(x <= 0.0031308, 12.92 * x, 1.055 * np.power(x, 1.0 / 2.4) - 0.055)
+
+
+def srgb_decode(encoded: NDArray) -> NDArray:
+    """The inverse, applied on sample."""
+    y = np.clip(np.asarray(encoded, dtype=np.float64), 0.0, 1.0)
+    return np.where(y <= 0.04045, y / 12.92, np.power((y + 0.055) / 1.055, 2.4))
+
+
+def quantise_gb0_adr002(base_color_linear: NDArray, ao: NDArray) -> tuple[NDArray, NDArray]:
+    """What ADR-002's GB0 (rgba8unorm-srgb) stores: sRGB-encoded 8-bit colour, linear 8-bit alpha."""
+    rgb = srgb_decode(np.round(srgb_encode(base_color_linear) * 255.0) / 255.0)
+    a = np.round(np.clip(np.asarray(ao, dtype=np.float64), 0.0, 1.0) * 255.0) / 255.0
+    return rgb, a
+
+
 def reconstruct_specular_f0(base_color: NDArray, metalness: NDArray) -> NDArray:
     """Deferred F0: mix(DIELECTRIC_F0, base_color, metalness). Mirrors gbuffer_reconstruct."""
     base_color = np.asarray(base_color, dtype=np.float64)
