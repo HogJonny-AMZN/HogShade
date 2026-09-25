@@ -122,8 +122,15 @@ the two paths share one definition of the stored fields. `hogshade/core_layout.p
 `LightSource` order and offsets and a test checks the WGSL against it.
 
 Every model implements `<model>_inputs(...) -> ShadingInputs`, `<model>_evaluate_light(inputs,
-light) -> vec3` for one light, `<model>_evaluate_env(inputs, irradiance_over_pi) -> vec3` and
-`<model>_debug(inputs, mode) -> vec3`; `core/models.wgsl` holds the `switch` on `surface.model` for
+light, env) -> vec3` for one light, `<model>_evaluate_env(inputs, env) -> vec3` and
+`<model>_debug(inputs, slots, env, mode) -> vec3`, where `env` is an `EnvironmentSamples`: the
+irradiance over pi, the prefiltered specular radiance, the split-sum LUT pair and the v2 hemisphere
+dome, sampled once per fragment by `environment_sample` (numbers, so the models never touch a
+texture and the GPU tests need none). The per-light function receives it because the v2 model scales
+its direct specular by the LUT (PR D, 2026-09-25; the first draft passed only `irradiance_over_pi`).
+`ShadingInputs` also carries `specular_weight`, the material's specular amount (v2 `materialSpecular`,
+OpenPBR `specular_weight`), forward-only and one after reconstruction.
+`core/models.wgsl` holds the `switch` on `surface.model` for
 each, plus `models_evaluate_slots` (the loop over `FixedSlots16`) and `models_shade` (direct plus
 environment plus emissive, with the debug slot). WGSL has no function pointers, so an engine loops
 its own light buffer calling `models_evaluate_light`; the per-light maths is shared, the loop is per
@@ -196,7 +203,11 @@ each core function, small and readable, the same role E1's NumPy path plays for 
 - `models`: `legacy_v2_evaluate` on a set of `ShadingInputs` and one light, within 1e-4.
 - `gbuffer`: encode then decode round-trips within the quantisation the layout allows.
 - `lighting`: `FixedSlots16` with 16 lights sums to the same radiance as 16 single-light calls.
-- A furnace: white environment, white dielectric, every model returns 1 within 1 percent.
+- A furnace: white environment, white dielectric, every model returns 1 within 1 percent. Amended
+  for the legacy ports (2026-09-25): a legacy model returns what the legacy shader returned, and
+  the test asserts that value; v2 never scales diffuse by (1 - F), so it returns 1 plus the
+  specular albedo, a few percent facing the camera and up to 0.57 at grazing. Recorded, not fixed:
+  the ports are the record.
 
 The harness is skipped, not failed, when no GPU adapter is available; CI on a headless runner
 therefore checks compile and the Python references only, and the GPU tests run on the owner's

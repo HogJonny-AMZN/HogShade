@@ -165,6 +165,38 @@ from the core; the `_3DSMAX_` branches are dropped, since Max is served by OSL.
 Legacy source stays in the tree unchanged under `legacy/v1.0` and `legacy/v2.0` as the reference the
 ports are checked against. They are not built; they are what "verbatim" means.
 
+### Legacy v2 port: what was kept and what deviates (PR D, 2026-09-25)
+
+`core/models/legacy_v2.wgsl` is `V2_uv0bn-pbs_IBLenv.fx` plus `pbr.sif`, function by function, on
+the core interfaces. Kept verbatim because they are the look: specular carries NdotL squared (the
+Hable GGX includes NdotL and the light term multiplies by it again); the GGX Fresnel uses only the
+red channel of Cspec0 (it went through a `float` parameter) and the colour arrives through cSpecLin;
+cSpecLin (`mix(Cspec0, base, metalness) * lut.x + lut.y`) scales the direct specular as well as the
+environment specular; the final specular is multiplied by the linear base colour; diffuse is not
+scaled by (1 - F), so a white furnace returns 1 + the specular albedo (a few percent facing, up to
+0.57 at grazing, measured); the roughness bias goes on alpha for the lobes and on the perceptual
+roughness for the lookups; NdotV is abs(n.v) + 1e-4.
+
+Deviations, each recorded in the module header:
+
+1. **Environment.** The E1 linear cubes and LUT replace RGBM 8-bit cubes: the RGBM decode, the `.bgr`
+   swizzle, the exposure of 5, the gamma parameter and the constant nine-mip count are gone. Hosts
+   pass linear values; colour management is the host's.
+2. **Unbound maps.** The host passes defaults (white base, flat normal, roughness and metalness maps
+   of one so the scalars rule, AO and cavity one) instead of v2's "black unless > 0" tests. The
+   black specular from an unbound cavity map, found in E1's Maya check, goes with it.
+3. **Lights.** Geometry and attenuation come from `lighting.wgsl` (windowed inverse square, smooth
+   spot cone) instead of Maya's `1 / (d * decay)` and `cos(angle)`; a light's shadow scales that
+   light only, where v2 multiplied the running sum, so the result depended on slot order; the
+   "ambient" light kind, which contributed nothing in v2 (NdotL of -n is zero), is dropped.
+4. **Emissive and the specular map.** Both were sampled and never used. Emissive is added by
+   `models_shade`; the specular map scales `specular_weight` (its default of one keeps v2's output).
+5. **Vertex AO** uses the red channel: `surface.ao` is a scalar.
+6. **Host concerns.** POM, POM self-shadowing, depth peeling, tone mapping and the twelve debug
+   modes that read texels or UVs stay in the host; the core answers those modes from the nearest
+   `ShadingInputs` value so every mode is finite in a deferred host, and `legacy_v2_debug_inputs`
+   computes them exactly for a forward host.
+
 What stays hand-written per host: effect techniques and passes, UI annotations (`UIGroup`, `UIWidget`,
 semantics like `WorldViewProjection`), texture and sampler declarations with host-specific semantics,
 transparency passes. The core exposes a `ShadingInputs` struct and an `evaluate()` per lobe; a shell

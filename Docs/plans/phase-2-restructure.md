@@ -69,11 +69,23 @@ own. Tick a task only when its verification ran.
 
 ## PR D: the legacy v2 port
 
-- [ ] 11. `core/models/legacy_v2.wgsl`: `inputs()` and `evaluate()` from `V2_uv0bn-pbs_IBLenv.fx`
+- [x] 11. `core/models/legacy_v2.wgsl`: `inputs()` and `evaluate()` from `V2_uv0bn-pbs_IBLenv.fx`
       and `pbr.sif`, function by function, with the four deviations from the spec in the header.
       `hogshade/reference/legacy_v2.py` twin. Verified: compute comparison on a set of inputs and one
-      light within 1e-4; furnace within 1 percent.
-- [ ] 12. The 33 debug views as `debug` output; a test that every mode index yields a finite value.
+      light within 1e-4; furnace within 1 percent. Verified 2026-09-25: `legacy_v2_inputs` (2048
+      random materials, samples and tangent frames), `legacy_v2_evaluate_light` (2048 inputs with a
+      directional, point or spot light), `legacy_v2_evaluate_env` (all three hemisphere modes) and
+      `models_shade` through the dispatcher match the NumPy twin within 1e-4 relative. The furnace
+      returns 1 + (F0 * lut.x + lut.y) exactly as predicted (v2 has no diffuse energy conservation):
+      the test asserts that value; the spec's furnace line is amended. Six deviations, not four, in
+      the header and the design doc. Interface change: `EnvironmentSamples` replaces the bare
+      irradiance argument and `ShadingInputs.specular_weight` is added (spec updated). The toolbox
+      gains `brdf_g1_schlick_ggx` and `brdf_vis_hable` (Hable's G1V product) with references.
+- [x] 12. The 33 debug views as `debug` output; a test that every mode index yields a finite value.
+      Verified 2026-09-25: modes 0 to 32 through `legacy_v2_debug` are finite and equal the reference
+      on 128 random inputs each; the twelve texel-and-UV modes (`legacy_v2_debug_is_inputs_mode`)
+      are also computed exactly by `legacy_v2_debug_inputs` for forward hosts and match the
+      reference. `Docs/verification/gpu-core-tests.log` refreshed: 69 core tests on the RTX 5090.
 
 ## PR E: the wgpu host
 

@@ -54,6 +54,48 @@ fn environment_brdf_lut(
     return textureSampleLevel(lut, lut_sampler, uv, 0.0).rg;
 }
 
+// The v2 hemispherical ambient dome: ground below, sky above, blended on the up-axis component of the normal.
+fn environment_hemisphere(sky: vec3<f32>, ground: vec3<f32>, n_ws: vec3<f32>, up_ws: vec3<f32>) -> vec3<f32> {
+    return mix(ground, sky, clamp(dot(n_ws, up_ws) * 0.5 + 0.5, 0.0, 1.0));
+}
+
+// No environment: black, and a neutral LUT so a model's specular scale is F0.
+fn environment_samples_none() -> EnvironmentSamples {
+    var s: EnvironmentSamples;
+    s.irradiance_over_pi = vec3<f32>(0.0);
+    s.specular = vec3<f32>(0.0);
+    s.brdf = vec2<f32>(1.0, 0.0);
+    s.hemisphere = vec3<f32>(0.0);
+    s.hemisphere_mode = 0u;
+    return s;
+}
+
+// Everything a model needs from the E1 cook at one point: irradiance at n, prefiltered radiance at
+// the reflection of the view vector, and the LUT. The hemisphere fields stay off; a v2 host sets them.
+fn environment_sample(
+    specular_cube: texture_cube<f32>,
+    irradiance_cube: texture_cube<f32>,
+    lut: texture_2d<f32>,
+    cube_sampler: sampler,
+    lut_sampler: sampler,
+    env: EnvironmentIBL,
+    n_ws: vec3<f32>,
+    view_ws: vec3<f32>,
+    roughness: f32,
+) -> EnvironmentSamples {
+    var s = environment_samples_none();
+    let r_ws = reflect(-view_ws, n_ws);
+    let n_dot_v = max(dot(n_ws, view_ws), 0.0);
+    if (env.use_sh9 != 0u) {
+        s.irradiance_over_pi = environment_irradiance_sh9(env, n_ws);
+    } else {
+        s.irradiance_over_pi = environment_irradiance_cube(irradiance_cube, cube_sampler, env, n_ws);
+    }
+    s.specular = environment_specular(specular_cube, cube_sampler, env, r_ws, roughness);
+    s.brdf = environment_brdf_lut(lut, lut_sampler, n_dot_v, roughness);
+    return s;
+}
+
 // A neutral environment description: no exposure change, cube-based irradiance, nine zero coefficients.
 fn environment_default(mip_count: f32) -> EnvironmentIBL {
     var env: EnvironmentIBL;

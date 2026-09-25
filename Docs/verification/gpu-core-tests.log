@@ -1,6 +1,6 @@
 HogShade core GPU test run
 
-Date: 2026-09-25T04:26:07Z
+Date: 2026-09-25T05:03:10Z
 Machine: BIGHOG-4090RTX (Windows 11)
 Command: uv run pytest tests/core -v -o addopts="" -p no:cacheprovider
 
@@ -11,7 +11,7 @@ wgpu-py 0.32.0
 platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0 -- D:\Depot\Maya-PBR-BRDF-VP2\.venv\Scripts\python.exe
 rootdir: D:\Depot\Maya-PBR-BRDF-VP2
 configfile: pyproject.toml
-collecting ... collected 19 items
+collecting ... collected 69 items
 
 tests/core/test_brdf_gpu.py::test_ggx_d_smith_v_schlick_burley PASSED
 tests/core/test_brdf_gpu.py::test_fresnel_f82 PASSED
@@ -30,7 +30,57 @@ tests/core/test_gbuffer_reference.py::test_deferred_f0_reconstruction PASSED
 tests/core/test_layout.py::test_light_source_field_order_matches_the_mirror PASSED
 tests/core/test_layout.py::test_light_source_offsets_are_consistent PASSED
 tests/core/test_layout.py::test_fixed_slots_wraps_sixteen_lights PASSED
+tests/core/test_legacy_v2_gpu.py::test_inputs_match_reference PASSED
+tests/core/test_legacy_v2_gpu.py::test_evaluate_light_matches_reference PASSED
+tests/core/test_legacy_v2_gpu.py::test_evaluate_env_matches_reference PASSED
+tests/core/test_legacy_v2_gpu.py::test_furnace_returns_one_plus_the_specular_albedo PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[0] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[1] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[2] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[3] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[4] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[5] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[6] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[7] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[8] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[9] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[10] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[11] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[12] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[13] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[14] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[15] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[16] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[17] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[18] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[19] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[20] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[21] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[22] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[23] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[24] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[25] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[26] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[27] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[28] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[29] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[30] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[31] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[32] PASSED
+tests/core/test_legacy_v2_gpu.py::test_shade_through_the_dispatcher_equals_the_model PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[1] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[2] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[5] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[6] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[11] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[12] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[13] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[14] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[15] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[25] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[30] PASSED
+tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[31] PASSED
 tests/core/test_lighting_gpu.py::test_slots_equal_sum_of_single_lights PASSED
 tests/core/test_lighting_gpu.py::test_incident_geometry_matches_reference PASSED
 
-============================= 19 passed in 0.90s ==============================
+============================= 69 passed in 1.47s ==============================
