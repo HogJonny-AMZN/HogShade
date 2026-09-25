@@ -26,6 +26,7 @@ struct ShadingInputs {
     specular_f0: vec3<f32>,     // forward: from the model; deferred: mix(DIELECTRIC_F0, base_color, metalness)
     cavity: f32,                // forward only: specular occlusion detail; deferred folds it into surface.ao
     opacity: f32,               // forward only; 1.0 after MASK in deferred
+    specular_weight: f32,       // forward only: the material's specular amount (v2 materialSpecular, OpenPBR specular_weight); 1.0 in deferred
 }
 
 struct ShadingResult {
@@ -56,6 +57,18 @@ struct FixedSlots16 {
     _pad0: u32,
     _pad1: u32,
     _pad2: u32,
+}
+
+// What the environment contributes at one surface point, sampled by the host (environment_sample)
+// and consumed by the models. Numbers, not textures, so the models stay pure and testable.
+// The per-light functions receive it too: the v2 model scales its direct specular by the split-sum
+// LUT (a v2 characteristic kept verbatim), and the light pass has the LUT bound anyway.
+struct EnvironmentSamples {
+    irradiance_over_pi: vec3<f32>,  // diffuse: E / pi at the normal (cube or SH9)
+    specular: vec3<f32>,            // prefiltered radiance at the reflection vector for the roughness
+    brdf: vec2<f32>,                // split-sum LUT (scale, bias) at (n.v, roughness); (1, 0) when a host has no LUT
+    hemisphere: vec3<f32>,          // v2 hemispherical ambient dome colour at the normal, linear
+    hemisphere_mode: u32,           // 0 none, 1 add the dome to both env terms, 2 multiply them by it
 }
 
 // Constants of the E1 cook a host passes with its cube textures; the textures and samplers are
