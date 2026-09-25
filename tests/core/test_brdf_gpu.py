@@ -74,8 +74,10 @@ def test_fresnel_f82(gpu) -> None:
     """
     out = gpu.run(kernel(body, 7), inputs, 3, len(vh))
     np.testing.assert_allclose(out, ref.fresnel_f82(f0, tint, vh), rtol=2e-5, atol=1e-6)
-    # tint of one reduces F82 to Schlick
+    # tint of one reduces F82 to Schlick: on the GPU, against the Schlick reference, and in the reference itself
     ones = np.ones_like(tint)
+    out_unity = gpu.run(kernel(body, 7), np.concatenate([vh[:, None], f0, ones], axis=-1), 3, len(vh))
+    np.testing.assert_allclose(out_unity, ref.fresnel_schlick(f0, vh), rtol=2e-5, atol=1e-6)
     np.testing.assert_allclose(ref.fresnel_f82(f0, ones, vh), ref.fresnel_schlick(f0, vh), atol=1e-12)
 
 

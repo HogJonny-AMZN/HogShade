@@ -56,8 +56,9 @@ own. Tick a task only when its verification ran.
       Lambert and Burley diffuse; `hogshade/reference/brdf.py` NumPy twins. Verified: compute-shader
       comparison on a grid within 1e-5; run recorded in `Docs/verification/`. Verified 2026-09-21:
       GGX D, height-correlated Smith, Schlick, F82-tint, Lambert, Burley and the GGX composite match
-      the NumPy references (2e-5 relative on the grid, 2e-4 for D where float32 cancellation at the
-      peak limits it; the grid starts at roughness 0.05 for that reason).
+      the NumPy references (2e-5 relative on the grid for alpha >= 0.1; GGX D below that is limited
+      by float32 cancellation at the peak and is held to 1e-2, with the reason in the test). The GPU
+      run is recorded in `Docs/verification/gpu-core-tests.log` (machine, adapter, per-test result).
 - [x] 10. `core/lighting.wgsl` test: 16 slots equal 16 single calls. `core/gbuffer.wgsl` tests:
       `SurfaceInputs` round trip within the layout's quantisation, and forward-versus-deferred parity
       (evaluate on `ShadingInputs` built directly, against evaluate on encode, decode and

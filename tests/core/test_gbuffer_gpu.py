@@ -98,13 +98,21 @@ def test_surface_round_trip_and_forward_deferred_parity(gpu) -> None:
 
 
 def test_parity_within_attachment_quantisation() -> None:
-    """What a real ADR-002 G-buffer loses: 8-bit albedo and AO, fp16 octahedral normal. NumPy only."""
+    """What a real ADR-002 G-buffer loses: 8-bit sRGB-encoded albedo, 8-bit linear AO, fp16 octahedral normal.
+
+    GB0 is rgba8unorm-srgb, so the hardware encodes linear base colour to sRGB before the 8-bit
+    store and decodes on sample; the rounding happens in the encoded domain. NumPy only.
+    """
     rows = _surfaces(4096, 41)
-    base = np.round(rows[:, 0:3] * 255) / 255
-    ao = np.round(rows[:, 5] * 255) / 255
+    base, ao = ref.quantise_gb0_adr002(rows[:, 0:3], rows[:, 5])
     oct16 = ref.oct_encode(rows[:, 9:12]).astype(np.float16).astype(np.float64)
     n_back = ref.oct_decode(oct16)
-    assert np.abs(base - rows[:, 0:3]).max() <= 0.5 / 255 + 1e-9
+    # 8 bits in the sRGB domain: the linear step is largest near white, d(linear)/d(srgb) at 1.0 is about 2.4,
+    # so half a code is 0.0047 linear; near black the encode expands and the linear error is far smaller
+    base_err = np.abs(base - rows[:, 0:3])
+    assert base_err.max() <= 0.5 / 255 * 2.4 + 1e-6, base_err.max()
+    dark = rows[:, 0:3] < 0.05
+    assert base_err[dark].max() <= 0.5 / 255 * 0.5 + 1e-6, base_err[dark].max()
     assert np.abs(ao - rows[:, 5]).max() <= 0.5 / 255 + 1e-9
     angle = np.degrees(np.arccos(np.clip((n_back * rows[:, 9:12]).sum(-1), -1, 1)))
     assert angle.max() < 0.15, angle.max()  # fp16 octahedral: measured 0.11 degrees worst case over 4096 normals
