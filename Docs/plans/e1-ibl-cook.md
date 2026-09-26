@@ -44,7 +44,8 @@ verification ran.
       2026-09-20:** unit test at small size, and two full 256-cube cooks of the studio environment
       produced a byte-identical manifest (which embeds every output's sha256).
 - [x] 10. Cook both environments (studio 75 s, orchard 68 s); `preview.png` per environment. The `.dds`
-      outputs are LFS and wait with the EXRs for the fork-network detach; manifests, SH9 and previews are in.
+      outputs are LFS and waited with the EXRs for the fork-network detach; manifests, SH9 and previews
+      landed first, the `.dds` files and `brdf_lut.dds` on 2026-09-26 with the EXRs.
 - [ ] 11. Maya 2026: load `studio_small_09/cooked/*.dds` into the v2 shader's environment slots on a
       sphere; screenshot to `Docs/verification/`. **Partial 2026-09-20.** Both DDS files decode in Maya
       (256 and 32 reported by the file nodes) and the diffuse environment term visibly lights a white
