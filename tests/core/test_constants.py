@@ -32,3 +32,4 @@ def test_every_wgsl_constant_is_mirrored() -> None:
 def test_model_ids_match_the_dispatch_switch() -> None:
     models = (ROOT / "core" / "models.wgsl").read_text(encoding="utf-8")
     assert f"case {cc.MODEL_LAMBERT}u:" in models
+    assert f"case {cc.MODEL_LEGACY_V2}u:" in models

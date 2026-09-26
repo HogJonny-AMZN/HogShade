@@ -14,13 +14,17 @@ fn hogshade_validate(@location(0) normal_ws: vec3<f32>, @location(1) view_ws: ve
     slots.light[0].shadow = 1.0;
     slots.count = 1u;
     let env = environment_default(9.0);
-    let irradiance = environment_irradiance_sh9(env, i.surface.normal_ws);
-    let r = models_shade(i, slots, irradiance, HOGSHADE_DEBUG_NONE);
+    var samples = environment_samples_none();
+    samples.irradiance_over_pi = environment_irradiance_sh9(env, i.surface.normal_ws);
+    let r = models_shade(i, slots, samples, HOGSHADE_DEBUG_NONE);
+    var v2 = i;
+    v2.surface.model = HOGSHADE_MODEL_LEGACY_V2;
+    let r2 = models_shade(v2, slots, samples, 16u);
     var layout_meta: GBufferLayoutAdr002;
     layout_meta.layer = 0u;
     layout_meta.channel_mask = 255u;
     layout_meta.flags = 0u;
     let targets = gbuffer_encode_from_inputs(i, layout_meta);
     let back = gbuffer_reconstruct(gbuffer_decode_adr002(targets), i.view_ws, i.position_ws);
-    return vec4<f32>(r.color + back.specular_f0 * 0.0, 1.0);
+    return vec4<f32>(r.color + back.specular_f0 * 0.0 + r2.debug * 0.0, 1.0);
 }

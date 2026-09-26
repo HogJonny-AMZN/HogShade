@@ -81,5 +81,6 @@ fn gbuffer_reconstruct(s: SurfaceInputs, view_ws: vec3<f32>, position_ws: vec3<f
     i.specular_f0 = mix(vec3<f32>(HOGSHADE_DIELECTRIC_F0), s.base_color, s.metalness);
     i.cavity = 1.0;             // folded into ao by gbuffer_encode_from_inputs
     i.opacity = 1.0;
+    i.specular_weight = 1.0;
     return i;
 }

@@ -43,6 +43,15 @@ def fresnel_f82(f0: NDArray, tint: NDArray, v_dot_h: NDArray) -> NDArray:
     return np.maximum(f_schlick - a * mu * (1.0 - mu) ** 6, 0.0)
 
 
+def g1_schlick_ggx(n_dot_x: NDArray, k: NDArray) -> NDArray:
+    return 1.0 / np.maximum(n_dot_x * (1.0 - k) + k, 1e-5)
+
+
+def vis_hable(n_dot_l: NDArray, n_dot_v: NDArray, alpha: NDArray) -> NDArray:
+    k = alpha * 0.5
+    return g1_schlick_ggx(n_dot_l, k) * g1_schlick_ggx(n_dot_v, k)
+
+
 def lambert(albedo: NDArray) -> NDArray:
     return albedo * INV_PI
 

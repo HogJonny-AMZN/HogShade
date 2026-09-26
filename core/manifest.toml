@@ -35,12 +35,16 @@ file = "models/lambert.wgsl"
 prefix = "lambert_"
 
 [[module]]
+file = "models/legacy_v2.wgsl"
+prefix = "legacy_v2_"
+
+[[module]]
 file = "models.wgsl"
 prefix = "models_"
 
 [names]
 # Structs every host and model spells the same way, and the model entry-point pattern.
-exempt = ["ShadingInputs", "SurfaceInputs", "ShadingResult", "LightSource", "FixedSlots16", "EnvironmentIBL", "GBufferLayoutAdr002", "GBufferTargets"]
+exempt = ["ShadingInputs", "SurfaceInputs", "ShadingResult", "LightSource", "FixedSlots16", "EnvironmentIBL", "EnvironmentSamples", "GBufferLayoutAdr002", "GBufferTargets"]
 
 [validate]
 # An entry point that touches the public API so naga has a module to translate and fxc/dxc have

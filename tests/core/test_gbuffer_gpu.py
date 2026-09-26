@@ -45,6 +45,7 @@ fn hs_inputs(base: u32) -> ShadingInputs {
     i.specular_f0 = mix(vec3<f32>(HOGSHADE_DIELECTRIC_F0), i.surface.base_color, i.surface.metalness);
     i.cavity = 1.0;
     i.opacity = 1.0;
+    i.specular_weight = 1.0;
     return i;
 }
 """
@@ -77,9 +78,10 @@ def test_surface_round_trip_and_forward_deferred_parity(gpu) -> None:
     slots.light[0].kind = 1u; slots.light[0].direction_ws = normalize(vec3<f32>(0.3, 1.0, 0.2));
     slots.light[0].color = vec3<f32>(1.0); slots.light[0].intensity = 2.0; slots.light[0].shadow = 1.0;
     slots.count = 1u;
-    let irr = vec3<f32>(0.25, 0.3, 0.35);
-    let fwd = models_shade(i0, slots, irr, HOGSHADE_DEBUG_NONE).color;
-    let dfr = models_shade(i1, slots, irr, HOGSHADE_DEBUG_NONE).color;
+    var env = environment_samples_none();
+    env.irradiance_over_pi = vec3<f32>(0.25, 0.3, 0.35);
+    let fwd = models_shade(i0, slots, env, HOGSHADE_DEBUG_NONE).color;
+    let dfr = models_shade(i1, slots, env, HOGSHADE_DEBUG_NONE).color;
     let o = i * 12u;
     hs_out[o + 0u] = s.base_color.x; hs_out[o + 1u] = s.ao; hs_out[o + 2u] = s.roughness; hs_out[o + 3u] = s.metalness;
     hs_out[o + 4u] = s.normal_ws.x; hs_out[o + 5u] = f32(s.model);

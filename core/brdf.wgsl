@@ -38,6 +38,17 @@ fn brdf_fresnel_f82(f0: vec3<f32>, tint: vec3<f32>, v_dot_h: f32) -> vec3<f32> {
     return max(f_schlick - a * mu * pow(1.0 - mu, 6.0), vec3<f32>(0.0));
 }
 
+// Schlick-GGX G1 with a free k (Hable's G1V): 1 / (n.x (1 - k) + k).
+fn brdf_g1_schlick_ggx(n_dot_x: f32, k: f32) -> f32 {
+    return 1.0 / max(n_dot_x * (1.0 - k) + k, 1e-5);
+}
+
+// Hable's visibility: G1V(n.l) G1V(n.v) with k = alpha / 2, the "vis" of the legacy v2 GGX.
+fn brdf_vis_hable(n_dot_l: f32, n_dot_v: f32, alpha: f32) -> f32 {
+    let k = alpha * 0.5;
+    return brdf_g1_schlick_ggx(n_dot_l, k) * brdf_g1_schlick_ggx(n_dot_v, k);
+}
+
 // Lambert diffuse: albedo / pi. The n.l is applied by the caller.
 fn brdf_lambert(albedo: vec3<f32>) -> vec3<f32> {
     return albedo * HOGSHADE_INV_PI;

@@ -55,10 +55,11 @@ def test_slots_equal_sum_of_single_lights(gpu) -> None:
         slots.light[k] = hs_light(k * 16u);
     }
     slots.count = 16u;
-    let total = models_evaluate_slots(i0, slots);
+    let env = environment_samples_none();
+    let total = models_evaluate_slots(i0, slots, env);
     var single = vec3<f32>(0.0);
     for (var k = 0u; k < 16u; k = k + 1u) {
-        single = single + models_evaluate_light(i0, hs_light(k * 16u));
+        single = single + models_evaluate_light(i0, hs_light(k * 16u), env);
     }
     hs_out[0u] = total.x; hs_out[1u] = total.y; hs_out[2u] = total.z;
     hs_out[3u] = single.x; hs_out[4u] = single.y; hs_out[5u] = single.z;
