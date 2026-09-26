@@ -60,3 +60,6 @@ desktop.ini
 !Spikes/**/verification/*.log
 logs/
 tmp/
+
+# 8K HDR masters stay on the owner's machine; only the conditioned 4K sources are committed
+content/**/source_8k.exr
