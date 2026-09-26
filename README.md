@@ -24,8 +24,18 @@ The direction, the roadmap and the reasoning are in [Docs/](Docs/):
 
 ## Status
 
-Phase 1, repo hygiene. The legacy shaders compile clean under `fxc` (warnings only) and are the
-reference every later phase is diffed against. Nothing under `core/` or `hosts/` exists yet.
+Phase 2, the restructure, in progress (2026-09-26). The WGSL core exists under `core/`: the
+interfaces, the BRDF toolbox, punctual lights with sixteen bound slots, the ADR-002 G-buffer
+encode and decode, a Lambert model and the legacy v2 model ported function by function, all with
+NumPy references and GPU tests. `tools/build_shaders.py` translates it with naga into the
+generated artifacts under `hosts/` (shader-model 5 and 6 HLSL, GLSL, WGSL), validated by fxc and
+dxc on every change. The IBL cook (`hogshade/ibl`) produces prefiltered cubes, irradiance, SH9
+and the BRDF LUT for two Poly Haven environments; the manifests, SH9 and previews are in the tree
+and the EXR and DDS payloads are under Git LFS (PR #12, once the repository left the fork
+network). Nothing renders through the core in a host yet; the
+wgpu viewport and the Maya shell are the next two PRs. Phase 1 (hygiene) is done except for the
+owner's GitHub steps. The legacy shaders compile clean under `fxc` (warnings only) and are the
+reference every port is diffed against.
 
 | Path | What |
 | --- | --- |
