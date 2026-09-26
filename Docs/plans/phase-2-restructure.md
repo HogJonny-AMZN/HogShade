@@ -98,7 +98,11 @@ own. Tick a task only when its verification ran.
       the environment bindings, the host's material and geometry builders, `host_shade`); the three
       stitched passes validate under naga in `tests/compile/` and compile on the RTX 5090 through
       Vulkan. The deferred pair renders into ADR-002's real formats (rgba8unorm-srgb, rgba16float,
-      rgba8uint, rg11b10ufloat) so its cost is measured, not modelled.
+      rgba8uint, rg11b10ufloat) so its cost is measured, not modelled. FXC finding (Copilot asked for a
+      D3D12 check): the deferred pass failed under wgpu's D3D12 backend with FXC's "no storage type
+      for block output", bisected to `switch (i.surface.model)` in `core/models.wgsl` when the
+      selector comes from the uint G-buffer texture in a shader that also passes textures into
+      functions; the dispatcher is an if-chain now and both backends render the pass.
 - [x] 14. `tools/wgpu_viewport.py`: shader ball (derkreature, OBJ; the plan first said glTF), legacy v2 model, studio IBL from
       `content/ibl`, one directional light; writes `Docs/verification/wgpu-v2-studio.png`. Verified:
       the PNG shows a lit ball with a specular reflection of the studio. Done 2026-09-26: the ball is

@@ -30,21 +30,24 @@ fn host_position_from_depth(pixel: vec2<f32>, depth: f32) -> vec3<f32> {
     return p.xyz / p.w;
 }
 
+// One return, with the background as the else branch; the FXC failure this pass exposed was the
+// switch in models.wgsl (see its header), not this function's shape.
 @fragment
 fn fs_main(v: host_ScreenOut) -> @location(0) vec4<f32> {
     let px = vec2<i32>(v.clip.xy);
     let depth = textureLoad(host_depth, px, 0);
-    if (depth >= 1.0) {
-        return vec4<f32>(0.0, 0.0, 0.0, 1.0);
+    var color = vec3<f32>(0.0);
+    if (depth < 1.0) {
+        var t: GBufferTargets;
+        t.gb0 = textureLoad(host_gb0, px, 0);
+        t.gb1 = textureLoad(host_gb1, px, 0);
+        t.gb2 = textureLoad(host_gb2, px, 0);
+        t.gb3 = textureLoad(host_gb3, px, 0);
+        let s = gbuffer_decode_adr002(t);
+        let position_ws = host_position_from_depth(v.clip.xy, depth);
+        let view_ws = normalize(host_frame.camera_ws.xyz - position_ws);
+        let i = gbuffer_reconstruct(s, view_ws, position_ws);
+        color = host_shade(i);
     }
-    var t: GBufferTargets;
-    t.gb0 = textureLoad(host_gb0, px, 0);
-    t.gb1 = textureLoad(host_gb1, px, 0);
-    t.gb2 = textureLoad(host_gb2, px, 0);
-    t.gb3 = textureLoad(host_gb3, px, 0);
-    let s = gbuffer_decode_adr002(t);
-    let position_ws = host_position_from_depth(v.clip.xy, depth);
-    let view_ws = normalize(host_frame.camera_ws.xyz - position_ws);
-    let i = gbuffer_reconstruct(s, view_ws, position_ws);
-    return vec4<f32>(host_shade(i), 1.0);
+    return vec4<f32>(color, 1.0);
 }
