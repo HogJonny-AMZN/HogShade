@@ -21,6 +21,19 @@ def test_frame_layout_matches_the_wgsl_struct() -> None:
         assert f"    {name}:" in common, name
 
 
+ASSETS_HYDRATED = all(
+    wgpu_host.lfs_hydrated(p)
+    for p in (
+        wgpu_host.SHADER_BALL,
+        wgpu_host.IBL_ROOT / "brdf_lut.dds",
+        wgpu_host.IBL_ROOT / "studio_small_09" / "cooked" / "specular.dds",
+    )
+)
+NO_ASSETS = "LFS payloads not hydrated (CI checks out with lfs: false)"
+needs_assets = pytest.mark.skipif(not ASSETS_HYDRATED, reason=NO_ASSETS)
+
+
+@needs_assets
 def test_shader_ball_loads_and_normalises() -> None:
     mesh = wgpu_host.load_shader_ball()
     assert len(mesh.indices) % 3 == 0 and len(mesh.indices) > 50_000
@@ -31,6 +44,8 @@ def test_shader_ball_loads_and_normalises() -> None:
 
 @pytest.fixture(scope="module")
 def renderer():
+    if not ASSETS_HYDRATED:
+        pytest.skip(NO_ASSETS)
     try:
         import wgpu  # noqa: F401
     except ImportError:

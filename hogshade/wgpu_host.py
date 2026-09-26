@@ -56,6 +56,15 @@ COLOR_FORMAT = "rgba16float"
 GBUFFER_FORMATS = ("rgba8unorm-srgb", "rgba16float", "rgba8uint", "rg11b10ufloat")
 
 
+def lfs_hydrated(path: Path) -> bool:
+    """False when ``path`` is a Git LFS pointer file rather than the payload (a checkout without LFS)."""
+    try:
+        with open(path, "rb") as fh:
+            return not fh.read(64).startswith(b"version https://git-lfs")
+    except OSError:
+        return False
+
+
 def stitch_pass(name: str) -> str:
     """Core, then common.wgsl, then the pass file: what a wgpu pipeline compiles for pass ``name``."""
     if name not in PASSES:

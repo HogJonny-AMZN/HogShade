@@ -73,7 +73,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     print(f"forward vs deferred over covered pixels: mean {mean_diff:.5f}, max {max_diff:.5f}")
     print(f"wrote {out} and {deferred_path} in {elapsed:.1f} s")
-    return 0 if covered.any() and np.isfinite(lit).all() else 1
+    finite = np.isfinite(frames.forward).all() and np.isfinite(frames.deferred).all()
+    return 0 if covered.any() and finite else 1
 
 
 if __name__ == "__main__":
