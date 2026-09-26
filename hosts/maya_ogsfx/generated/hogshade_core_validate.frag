@@ -324,22 +324,21 @@ EnvironmentSamples environment_samples_none() {
     return _e16;
 }
 
-EnvironmentSamples environment_sample(samplerCube specular_cube_1, samplerCube irradiance_cube_1, sampler2D lut_1, EnvironmentIBL env_3, vec3 n_ws_3, vec3 view_ws_1, float roughness_4) {
+EnvironmentSamples environment_sample(samplerCube specular_cube_1, samplerCube irradiance_cube_1, sampler2D lut_1, EnvironmentIBL env_3, vec3 n_ws_3, vec3 view_ws_1, vec2 lookup) {
     EnvironmentSamples s_1 = EnvironmentSamples(vec3(0.0), vec3(0.0), vec2(0.0), vec3(0.0), 0u);
     EnvironmentSamples _e9 = environment_samples_none();
     s_1 = _e9;
     vec3 r_ws_1 = reflect(-(view_ws_1), n_ws_3);
-    float n_dot_v_5 = max(dot(n_ws_3, view_ws_1), 0.0);
     if ((env_3.use_sh9_ != 0u)) {
-        vec3 _e20 = environment_irradiance_sh9_(env_3, n_ws_3);
-        s_1.irradiance_over_pi = _e20;
+        vec3 _e17 = environment_irradiance_sh9_(env_3, n_ws_3);
+        s_1.irradiance_over_pi = _e17;
     } else {
-        vec3 _e22 = environment_irradiance_cube(irradiance_cube_1, env_3, n_ws_3);
-        s_1.irradiance_over_pi = _e22;
+        vec3 _e19 = environment_irradiance_cube(irradiance_cube_1, env_3, n_ws_3);
+        s_1.irradiance_over_pi = _e19;
     }
-    vec3 _e24 = environment_specular(specular_cube_1, env_3, r_ws_1, roughness_4);
-    s_1.specular = _e24;
-    vec2 _e26 = environment_brdf_lut(lut_1, n_dot_v_5, roughness_4);
+    vec3 _e22 = environment_specular(specular_cube_1, env_3, r_ws_1, lookup.y);
+    s_1.specular = _e22;
+    vec2 _e26 = environment_brdf_lut(lut_1, lookup.x, lookup.y);
     s_1.brdf = _e26;
     EnvironmentSamples _e27 = s_1;
     return _e27;
@@ -474,33 +473,37 @@ ShadingInputs lambert_inputs(vec3 base_color, float ao, vec3 emissive, vec3 norm
     return _e37;
 }
 
-vec3 lambert_evaluate_light(ShadingInputs i_5, LightSource light_2, EnvironmentSamples env_5) {
-    lighting_Incident _e4 = lighting_incident(light_2, i_5.position_ws);
+vec2 lambert_env_lookup(ShadingInputs i_5) {
+    return vec2(max(dot(i_5.surface.normal_ws, i_5.view_ws), 0.0), i_5.surface.roughness);
+}
+
+vec3 lambert_evaluate_light(ShadingInputs i_6, LightSource light_2, EnvironmentSamples env_5) {
+    lighting_Incident _e4 = lighting_incident(light_2, i_6.position_ws);
     if (!(_e4.valid)) {
         return vec3(0.0);
     }
-    float n_dot_l_4 = max(dot(i_5.surface.normal_ws, _e4.l_ws), 0.0);
+    float n_dot_l_4 = max(dot(i_6.surface.normal_ws, _e4.l_ws), 0.0);
     vec3 _e20 = lighting_radiance(light_2, _e4);
-    return (((i_5.surface.base_color * HOGSHADE_INV_PI) * n_dot_l_4) * _e20);
+    return (((i_6.surface.base_color * HOGSHADE_INV_PI) * n_dot_l_4) * _e20);
 }
 
-vec3 lambert_evaluate_env(ShadingInputs i_6, EnvironmentSamples env_6) {
-    return ((i_6.surface.base_color * env_6.irradiance_over_pi) * i_6.surface.ao);
+vec3 lambert_evaluate_env(ShadingInputs i_7, EnvironmentSamples env_6) {
+    return ((i_7.surface.base_color * env_6.irradiance_over_pi) * i_7.surface.ao);
 }
 
-vec3 lambert_debug(ShadingInputs i_7, FixedSlots16_ slots_2, EnvironmentSamples env_7, uint mode) {
+vec3 lambert_debug(ShadingInputs i_8, FixedSlots16_ slots_2, EnvironmentSamples env_7, uint mode) {
     switch(mode) {
         case 1u: {
-            return i_7.surface.base_color;
+            return i_8.surface.base_color;
         }
         case 2u: {
-            return ((i_7.surface.normal_ws * 0.5) + vec3(0.5));
+            return ((i_8.surface.normal_ws * 0.5) + vec3(0.5));
         }
         case 3u: {
-            return vec3(i_7.surface.ao);
+            return vec3(i_8.surface.ao);
         }
         case 4u: {
-            return i_7.surface.emissive;
+            return i_8.surface.emissive;
         }
         default: {
             return vec3(0.0);
@@ -512,13 +515,13 @@ bool legacy_v2_flag(uint f) {
     return (f != 0u);
 }
 
-float legacy_v2_alpha_biased(float roughness_5) {
-    float rough_a = (roughness_5 * roughness_5);
+float legacy_v2_alpha_biased(float roughness_4) {
+    float rough_a = (roughness_4 * roughness_4);
     return ((rough_a * 0.995) + HOGSHADE_ROUGHNESS_BIAS);
 }
 
-float legacy_v2_roughness_biased(float roughness_6) {
-    return ((roughness_6 * 0.995) + HOGSHADE_ROUGHNESS_BIAS);
+float legacy_v2_roughness_biased(float roughness_5) {
+    return ((roughness_5 * 0.995) + HOGSHADE_ROUGHNESS_BIAS);
 }
 
 float legacy_v2_luminance(vec3 c) {
@@ -552,7 +555,7 @@ vec3 legacy_v2_normal_ts(legacy_v2_Material m, legacy_v2_Samples s_6, bool front
 }
 
 ShadingInputs legacy_v2_inputs(legacy_v2_Material m_1, legacy_v2_Samples s_7, legacy_v2_Geometry g) {
-    ShadingInputs i_8 = ShadingInputs(SurfaceInputs(vec3(0.0), 0.0, 0.0, 0.0, vec3(0.0), vec3(0.0), 0u), vec3(0.0), vec3(0.0), vec3(0.0), 0.0, 0.0, 0.0);
+    ShadingInputs i_9 = ShadingInputs(SurfaceInputs(vec3(0.0), 0.0, 0.0, 0.0, vec3(0.0), vec3(0.0), 0u), vec3(0.0), vec3(0.0), vec3(0.0), 0.0, 0.0, 0.0);
     vec3 base_lin = vec3(0.0);
     float ao_1 = 0.0;
     float opacity = 1.0;
@@ -564,7 +567,7 @@ ShadingInputs legacy_v2_inputs(legacy_v2_Material m_1, legacy_v2_Samples s_7, le
         vec3 _e11 = base_lin;
         base_lin = (_e11 * g.vertex_color.xyz);
     }
-    float roughness_7 = (s_7.roughness * m_1.roughness);
+    float roughness_6 = (s_7.roughness * m_1.roughness);
     float metalness = (s_7.metalness * m_1.metalness);
     ao_1 = mix(1.0, s_7.ao, m_1.bump_intensity);
     bool _e27 = legacy_v2_flag(m_1.use_vertex_ao);
@@ -601,55 +604,61 @@ ShadingInputs legacy_v2_inputs(legacy_v2_Material m_1, legacy_v2_Samples s_7, le
     vec3 _e85 = base_lin;
     vec3 cspec0_ = mix(((m_1.specular * _e77) * mix(vec3(1.0), _e81, m_1.specular_tint)), _e85, metalness);
     vec3 _e89 = base_lin;
-    i_8.surface.base_color = _e89;
-    i_8.surface.metalness = metalness;
-    i_8.surface.roughness = roughness_7;
+    i_9.surface.base_color = _e89;
+    i_9.surface.metalness = metalness;
+    i_9.surface.roughness = roughness_6;
     float _e96 = ao_1;
-    i_8.surface.ao = _e96;
-    i_8.surface.emissive = s_7.emissive;
-    i_8.surface.normal_ws = n_ws_5;
-    i_8.surface.model = HOGSHADE_MODEL_LEGACY_V2_;
-    i_8.view_ws = normalize(g.view_ws);
-    i_8.position_ws = g.position_ws;
-    i_8.specular_f0_ = cspec0_;
-    i_8.cavity = s_7.cavity;
+    i_9.surface.ao = _e96;
+    i_9.surface.emissive = s_7.emissive;
+    i_9.surface.normal_ws = n_ws_5;
+    i_9.surface.model = HOGSHADE_MODEL_LEGACY_V2_;
+    i_9.view_ws = normalize(g.view_ws);
+    i_9.position_ws = g.position_ws;
+    i_9.specular_f0_ = cspec0_;
+    i_9.cavity = s_7.cavity;
     float _e114 = opacity;
-    i_8.opacity = _e114;
-    i_8.specular_weight = (m_1.specular * s_7.specular_amount);
-    ShadingInputs _e119 = i_8;
+    i_9.opacity = _e114;
+    i_9.specular_weight = (m_1.specular * s_7.specular_amount);
+    ShadingInputs _e119 = i_9;
     return _e119;
 }
 
-float legacy_v2_n_dot_v(ShadingInputs i_9) {
-    return (abs(dot(i_9.surface.normal_ws, i_9.view_ws)) + 0.0001);
+float legacy_v2_n_dot_v(ShadingInputs i_10) {
+    return (abs(dot(i_10.surface.normal_ws, i_10.view_ws)) + 0.0001);
 }
 
-vec3 legacy_v2_c_spec(ShadingInputs i_10, EnvironmentSamples env_8) {
-    return ((mix(i_10.specular_f0_, i_10.surface.base_color, i_10.surface.metalness) * env_8.brdf.x) + vec3(env_8.brdf.y));
+vec2 legacy_v2_env_lookup(ShadingInputs i_11) {
+    float _e1 = legacy_v2_n_dot_v(i_11);
+    float _e4 = legacy_v2_roughness_biased(i_11.surface.roughness);
+    return vec2(_e1, _e4);
 }
 
-legacy_v2_Terms legacy_v2_light_terms(ShadingInputs i_11, LightSource light_3) {
+vec3 legacy_v2_c_spec(ShadingInputs i_12, EnvironmentSamples env_8) {
+    return ((mix(i_12.specular_f0_, i_12.surface.base_color, i_12.surface.metalness) * env_8.brdf.x) + vec3(env_8.brdf.y));
+}
+
+legacy_v2_Terms legacy_v2_light_terms(ShadingInputs i_13, LightSource light_3) {
     legacy_v2_Terms t_2 = legacy_v2_Terms(vec3(0.0), vec3(0.0));
     t_2.diffuse = vec3(0.0);
     t_2.specular = vec3(0.0);
-    lighting_Incident _e10 = lighting_incident(light_3, i_11.position_ws);
+    lighting_Incident _e10 = lighting_incident(light_3, i_13.position_ws);
     if (!(_e10.valid)) {
         legacy_v2_Terms _e13 = t_2;
         return _e13;
     }
-    vec3 n_3 = i_11.surface.normal_ws;
-    vec3 v_1 = i_11.view_ws;
+    vec3 n_3 = i_13.surface.normal_ws;
+    vec3 v_1 = i_13.view_ws;
     vec3 l_1 = _e10.l_ws;
     vec3 h_1 = normalize((l_1 + v_1));
-    float _e20 = legacy_v2_n_dot_v(i_11);
+    float _e20 = legacy_v2_n_dot_v(i_13);
     float n_dot_l_5 = clamp(dot(n_3, l_1), 0.0, 1.0);
     float l_dot_h = clamp(dot(l_1, h_1), 0.0, 1.0);
     float n_dot_h_2 = clamp(dot(n_3, h_1), 0.0, 1.0);
-    float _e35 = legacy_v2_alpha_biased(i_11.surface.roughness);
+    float _e35 = legacy_v2_alpha_biased(i_13.surface.roughness);
     vec3 _e38 = brdf_burley(vec3(1.0), _e35, _e20, n_dot_l_5, l_dot_h);
     float diffuse_term = _e38.x;
     float _e40 = brdf_ggx_d(n_dot_h_2, _e35);
-    vec3 _e44 = brdf_fresnel_schlick(vec3(i_11.specular_f0_.x), l_dot_h);
+    vec3 _e44 = brdf_fresnel_schlick(vec3(i_13.specular_f0_.x), l_dot_h);
     float f_1 = _e44.x;
     float _e46 = brdf_vis_hable(n_dot_l_5, _e20, _e35);
     float specular_term = (((n_dot_l_5 * _e40) * f_1) * _e46);
@@ -660,12 +669,12 @@ legacy_v2_Terms legacy_v2_light_terms(ShadingInputs i_11, LightSource light_3) {
     return _e57;
 }
 
-vec3 legacy_v2_composite(ShadingInputs i_12, EnvironmentSamples env_9, legacy_v2_Terms t_3) {
-    vec3 base = i_12.surface.base_color;
-    vec3 m_color = (base * (1.0 - i_12.surface.metalness));
-    vec3 _e10 = legacy_v2_c_spec(i_12, env_9);
-    float ao_2 = i_12.surface.ao;
-    return (((t_3.diffuse * m_color) * ao_2) + (((((t_3.specular * _e10) * i_12.specular_weight) * base) * ao_2) * i_12.cavity));
+vec3 legacy_v2_composite(ShadingInputs i_14, EnvironmentSamples env_9, legacy_v2_Terms t_3) {
+    vec3 base = i_14.surface.base_color;
+    vec3 m_color = (base * (1.0 - i_14.surface.metalness));
+    vec3 _e10 = legacy_v2_c_spec(i_14, env_9);
+    float ao_2 = i_14.surface.ao;
+    return (((t_3.diffuse * m_color) * ao_2) + (((((t_3.specular * _e10) * i_14.specular_weight) * base) * ao_2) * i_14.cavity));
 }
 
 legacy_v2_Terms legacy_v2_env_terms(EnvironmentSamples env_10) {
@@ -689,15 +698,15 @@ legacy_v2_Terms legacy_v2_env_terms(EnvironmentSamples env_10) {
     return _e32;
 }
 
-vec3 legacy_v2_evaluate_light(ShadingInputs i_13, LightSource light_4, EnvironmentSamples env_11) {
-    legacy_v2_Terms _e3 = legacy_v2_light_terms(i_13, light_4);
-    vec3 _e4 = legacy_v2_composite(i_13, env_11, _e3);
+vec3 legacy_v2_evaluate_light(ShadingInputs i_15, LightSource light_4, EnvironmentSamples env_11) {
+    legacy_v2_Terms _e3 = legacy_v2_light_terms(i_15, light_4);
+    vec3 _e4 = legacy_v2_composite(i_15, env_11, _e3);
     return _e4;
 }
 
-vec3 legacy_v2_evaluate_env(ShadingInputs i_14, EnvironmentSamples env_12) {
+vec3 legacy_v2_evaluate_env(ShadingInputs i_16, EnvironmentSamples env_12) {
     legacy_v2_Terms _e2 = legacy_v2_env_terms(env_12);
-    vec3 _e3 = legacy_v2_composite(i_14, env_12, _e2);
+    vec3 _e3 = legacy_v2_composite(i_16, env_12, _e2);
     return _e3;
 }
 
@@ -810,16 +819,16 @@ vec3 legacy_v2_triplanar_weights(vec3 n_ws_4) {
     return smoothstep(vec3(0.57357645), vec3(0.81915206), a_1);
 }
 
-vec3 legacy_v2_debug(ShadingInputs i_15, FixedSlots16_ slots_3, EnvironmentSamples env_13, uint mode_3) {
+vec3 legacy_v2_debug(ShadingInputs i_17, FixedSlots16_ slots_3, EnvironmentSamples env_13, uint mode_3) {
     vec3 sum = vec3(0.0);
     uint k_1 = 0u;
     legacy_v2_Terms direct = legacy_v2_Terms(vec3(0.0), vec3(0.0));
     uint k_2 = 0u;
-    vec3 base_1 = i_15.surface.base_color;
-    float rough = i_15.surface.roughness;
+    vec3 base_1 = i_17.surface.base_color;
+    float rough = i_17.surface.roughness;
     float rough_a_1 = (rough * rough);
     float _e9 = legacy_v2_alpha_biased(rough);
-    vec3 n_vis = ((i_15.surface.normal_ws * 0.5) + vec3(0.5));
+    vec3 n_vis = ((i_17.surface.normal_ws * 0.5) + vec3(0.5));
     float _e17 = legacy_v2_luminance(base_1);
     switch(mode_3) {
         case 0u: {
@@ -839,13 +848,13 @@ vec3 legacy_v2_debug(ShadingInputs i_15, FixedSlots16_ slots_3, EnvironmentSampl
                 {
                     vec3 _e28 = sum;
                     uint _e30 = k_1;
-                    vec3 _e32 = legacy_v2_evaluate_light(i_15, slots_3.light[_e30], env_13);
+                    vec3 _e32 = legacy_v2_evaluate_light(i_17, slots_3.light[_e30], env_13);
                     sum = (_e28 + _e32);
                 }
             }
             vec3 _e37 = sum;
-            vec3 _e38 = legacy_v2_evaluate_env(i_15, env_13);
-            return ((_e37 + _e38) + i_15.surface.emissive);
+            vec3 _e38 = legacy_v2_evaluate_env(i_17, env_13);
+            return ((_e37 + _e38) + i_17.surface.emissive);
         }
         case 1u:
         case 3u: {
@@ -853,45 +862,42 @@ vec3 legacy_v2_debug(ShadingInputs i_15, FixedSlots16_ slots_3, EnvironmentSampl
         }
         case 2u:
         case 6u: {
-            return vec3(i_15.opacity);
+            return vec3(i_17.opacity);
         }
         case 4u: {
-            return (base_1 * (1.0 - i_15.surface.metalness));
+            return (base_1 * (1.0 - i_17.surface.metalness));
         }
         case 5u: {
             return vec3(1.0);
         }
         case 7u: {
-            return vec3(i_15.surface.metalness);
+            return vec3(i_17.surface.metalness);
         }
         case 8u:
         case 19u: {
             return vec3(rough);
         }
         case 9u: {
-            return vec3(i_15.surface.ao);
+            return vec3(i_17.surface.ao);
         }
         case 10u: {
-            return vec3(i_15.cavity);
+            return vec3(i_17.cavity);
         }
         case 11u:
         case 12u: {
             return n_vis;
         }
         case 13u: {
-            return vec3(i_15.specular_f0_.x);
+            return vec3(i_17.specular_f0_.x);
         }
         case 14u: {
             return vec3(_e17);
         }
         case 15u: {
-            if ((_e17 > 0.0)) {
-                return (base_1 / vec3(_e17));
-            }
-            return vec3(1.0);
+            return ((_e17 > 0.0) ? (base_1 / vec3(max(_e17, 1e-8))) : vec3(1.0));
         }
         case 16u: {
-            return i_15.specular_f0_;
+            return i_17.specular_f0_;
         }
         case 17u:
         case 18u: {
@@ -901,32 +907,31 @@ vec3 legacy_v2_debug(ShadingInputs i_15, FixedSlots16_ slots_3, EnvironmentSampl
             bool loop_init_3 = true;
             while(true) {
                 if (!loop_init_3) {
-                    uint _e100 = k_2;
-                    k_2 = (_e100 + 1u);
+                    uint _e103 = k_2;
+                    k_2 = (_e103 + 1u);
                 }
                 loop_init_3 = false;
-                uint _e84 = k_2;
-                if ((_e84 < n_5)) {
+                uint _e87 = k_2;
+                if ((_e87 < n_5)) {
                 } else {
                     break;
                 }
                 {
-                    uint _e87 = k_2;
-                    legacy_v2_Terms _e89 = legacy_v2_light_terms(i_15, slots_3.light[_e87]);
-                    vec3 _e92 = direct.diffuse;
-                    direct.diffuse = (_e92 + _e89.diffuse);
-                    vec3 _e97 = direct.specular;
-                    direct.specular = (_e97 + _e89.specular);
+                    uint _e90 = k_2;
+                    legacy_v2_Terms _e92 = legacy_v2_light_terms(i_17, slots_3.light[_e90]);
+                    vec3 _e95 = direct.diffuse;
+                    direct.diffuse = (_e95 + _e92.diffuse);
+                    vec3 _e100 = direct.specular;
+                    direct.specular = (_e100 + _e92.specular);
                 }
             }
-            legacy_v2_Terms _e103 = legacy_v2_env_terms(env_13);
-            if ((mode_3 == 17u)) {
-                vec3 _e107 = direct.diffuse;
-                return (_e107 + _e103.diffuse);
-            }
-            vec3 _e111 = direct.specular;
-            vec3 _e114 = legacy_v2_c_spec(i_15, env_13);
-            return (((_e111 + _e103.specular) * _e114) * i_15.specular_weight);
+            legacy_v2_Terms _e106 = legacy_v2_env_terms(env_13);
+            vec3 _e108 = direct.diffuse;
+            vec3 diffuse = (_e108 + _e106.diffuse);
+            vec3 _e112 = direct.specular;
+            vec3 _e115 = legacy_v2_c_spec(i_17, env_13);
+            vec3 specular = (((_e112 + _e106.specular) * _e115) * i_17.specular_weight);
+            return ((mode_3 == 17u) ? diffuse : specular);
         }
         case 20u: {
             return vec3(rough_a_1);
@@ -941,24 +946,24 @@ vec3 legacy_v2_debug(ShadingInputs i_15, FixedSlots16_ slots_3, EnvironmentSampl
             return vec3((_e9 * _e9));
         }
         case 24u: {
-            float _e124 = legacy_v2_n_dot_v(i_15);
-            return vec3(_e124);
+            float _e128 = legacy_v2_n_dot_v(i_17);
+            return vec3(_e128);
         }
         case 25u:
         case 26u: {
             return env_13.hemisphere;
         }
         case 27u: {
-            legacy_v2_Terms _e127 = legacy_v2_env_terms(env_13);
-            return _e127.diffuse;
+            legacy_v2_Terms _e131 = legacy_v2_env_terms(env_13);
+            return _e131.diffuse;
         }
         case 28u: {
-            legacy_v2_Terms _e129 = legacy_v2_env_terms(env_13);
-            return _e129.specular;
+            legacy_v2_Terms _e133 = legacy_v2_env_terms(env_13);
+            return _e133.specular;
         }
         case 29u: {
-            vec3 _e131 = legacy_v2_c_spec(i_15, env_13);
-            return _e131;
+            vec3 _e135 = legacy_v2_c_spec(i_17, env_13);
+            return _e135;
         }
         case 30u: {
             return vec3(0.0);
@@ -967,8 +972,8 @@ vec3 legacy_v2_debug(ShadingInputs i_15, FixedSlots16_ slots_3, EnvironmentSampl
             return vec3(1.0);
         }
         case 32u: {
-            vec3 _e138 = legacy_v2_triplanar_weights(i_15.surface.normal_ws);
-            return _e138;
+            vec3 _e142 = legacy_v2_triplanar_weights(i_17.surface.normal_ws);
+            return _e142;
         }
         default: {
             return vec3(0.0);
@@ -976,58 +981,75 @@ vec3 legacy_v2_debug(ShadingInputs i_15, FixedSlots16_ slots_3, EnvironmentSampl
     }
 }
 
-vec3 models_evaluate_light(ShadingInputs i_16, LightSource light_5, EnvironmentSamples env_14) {
-    switch(i_16.surface.model) {
+vec3 models_evaluate_light(ShadingInputs i_18, LightSource light_5, EnvironmentSamples env_14) {
+    switch(i_18.surface.model) {
         case 0u: {
-            vec3 _e5 = lambert_evaluate_light(i_16, light_5, env_14);
+            vec3 _e5 = lambert_evaluate_light(i_18, light_5, env_14);
             return _e5;
         }
         case 2u: {
-            vec3 _e6 = legacy_v2_evaluate_light(i_16, light_5, env_14);
+            vec3 _e6 = legacy_v2_evaluate_light(i_18, light_5, env_14);
             return _e6;
         }
         default: {
-            vec3 _e7 = lambert_evaluate_light(i_16, light_5, env_14);
+            vec3 _e7 = lambert_evaluate_light(i_18, light_5, env_14);
             return _e7;
         }
     }
 }
 
-vec3 models_evaluate_env(ShadingInputs i_17, EnvironmentSamples env_15) {
-    switch(i_17.surface.model) {
+vec2 models_env_lookup(ShadingInputs i_19) {
+    switch(i_19.surface.model) {
         case 0u: {
-            vec3 _e4 = lambert_evaluate_env(i_17, env_15);
+            vec2 _e3 = lambert_env_lookup(i_19);
+            return _e3;
+        }
+        case 2u: {
+            vec2 _e4 = legacy_v2_env_lookup(i_19);
+            return _e4;
+        }
+        default: {
+            vec2 _e5 = lambert_env_lookup(i_19);
+            return _e5;
+        }
+    }
+}
+
+vec3 models_evaluate_env(ShadingInputs i_20, EnvironmentSamples env_15) {
+    switch(i_20.surface.model) {
+        case 0u: {
+            vec3 _e4 = lambert_evaluate_env(i_20, env_15);
             return _e4;
         }
         case 2u: {
-            vec3 _e5 = legacy_v2_evaluate_env(i_17, env_15);
+            vec3 _e5 = legacy_v2_evaluate_env(i_20, env_15);
             return _e5;
         }
         default: {
-            vec3 _e6 = lambert_evaluate_env(i_17, env_15);
+            vec3 _e6 = lambert_evaluate_env(i_20, env_15);
             return _e6;
         }
     }
 }
 
-vec3 models_debug(ShadingInputs i_18, FixedSlots16_ slots_4, EnvironmentSamples env_16, uint mode_4) {
-    switch(i_18.surface.model) {
+vec3 models_debug(ShadingInputs i_21, FixedSlots16_ slots_4, EnvironmentSamples env_16, uint mode_4) {
+    switch(i_21.surface.model) {
         case 0u: {
-            vec3 _e6 = lambert_debug(i_18, slots_4, env_16, mode_4);
+            vec3 _e6 = lambert_debug(i_21, slots_4, env_16, mode_4);
             return _e6;
         }
         case 2u: {
-            vec3 _e7 = legacy_v2_debug(i_18, slots_4, env_16, mode_4);
+            vec3 _e7 = legacy_v2_debug(i_21, slots_4, env_16, mode_4);
             return _e7;
         }
         default: {
-            vec3 _e8 = lambert_debug(i_18, slots_4, env_16, mode_4);
+            vec3 _e8 = lambert_debug(i_21, slots_4, env_16, mode_4);
             return _e8;
         }
     }
 }
 
-vec3 models_evaluate_slots(ShadingInputs i_19, FixedSlots16_ slots_5, EnvironmentSamples env_17) {
+vec3 models_evaluate_slots(ShadingInputs i_22, FixedSlots16_ slots_5, EnvironmentSamples env_17) {
     vec3 sum_1 = vec3(0.0);
     uint k_3 = 0u;
     uint n_6 = min(slots_5.count, 16u);
@@ -1046,7 +1068,7 @@ vec3 models_evaluate_slots(ShadingInputs i_19, FixedSlots16_ slots_5, Environmen
         {
             vec3 _e13 = sum_1;
             uint _e15 = k_3;
-            vec3 _e17 = models_evaluate_light(i_19, slots_5.light[_e15], env_17);
+            vec3 _e17 = models_evaluate_light(i_22, slots_5.light[_e15], env_17);
             sum_1 = (_e13 + _e17);
         }
     }
@@ -1054,14 +1076,14 @@ vec3 models_evaluate_slots(ShadingInputs i_19, FixedSlots16_ slots_5, Environmen
     return _e22;
 }
 
-ShadingResult models_shade(ShadingInputs i_20, FixedSlots16_ slots_6, EnvironmentSamples env_18, uint debug_mode) {
+ShadingResult models_shade(ShadingInputs i_23, FixedSlots16_ slots_6, EnvironmentSamples env_18, uint debug_mode) {
     ShadingResult r = ShadingResult(vec3(0.0), vec3(0.0));
-    vec3 _e6 = models_evaluate_slots(i_20, slots_6, env_18);
-    vec3 _e7 = models_evaluate_env(i_20, env_18);
-    r.color = ((_e6 + _e7) + i_20.surface.emissive);
+    vec3 _e6 = models_evaluate_slots(i_23, slots_6, env_18);
+    vec3 _e7 = models_evaluate_env(i_23, env_18);
+    r.color = ((_e6 + _e7) + i_23.surface.emissive);
     r.debug = vec3(0.0);
     if ((debug_mode != HOGSHADE_DEBUG_NONE)) {
-        vec3 _e18 = models_debug(i_20, slots_6, env_18, debug_mode);
+        vec3 _e18 = models_debug(i_23, slots_6, env_18, debug_mode);
         r.debug = _e18;
     }
     ShadingResult _e19 = r;

@@ -9,9 +9,9 @@
   "fxc": true,
   "naga": "30.0.1",
   "sha256": {
-    "glsl": "cf4109af653d16dc61f3c54634a301ffc8df3654d7bbe3b654a09f62a4171891",
-    "hlsl_sm5": "d2cdd22bdbb0a0604c2ab1d70c5f993cfb430624f8017d460b2ad25d342d3eff",
-    "hlsl_sm6": "d2cdd22bdbb0a0604c2ab1d70c5f993cfb430624f8017d460b2ad25d342d3eff",
-    "wgsl": "d758e082e4e48a36d3a1fc266b821a5440ceb7fe371aa00b5e295245b85cd8ff"
+    "glsl": "fcddee9f963351690a3d5d8b5201c9f70d52eec64bdb31db1dd04f37c6531649",
+    "hlsl_sm5": "7bb7a65bc3b9ab9c6c2b280abbc3b1ae1cef69426b652b51ce0ac33884600934",
+    "hlsl_sm6": "7bb7a65bc3b9ab9c6c2b280abbc3b1ae1cef69426b652b51ce0ac33884600934",
+    "wgsl": "0b91ae273935858cbfee60cc50f8509f2aad886508f63864a552568f02da8321"
   }
 }

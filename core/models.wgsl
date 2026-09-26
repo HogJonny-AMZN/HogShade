@@ -1,6 +1,6 @@
 // HogShade core: the dispatch on the shading-model ID, and the fixed-slot light loop.
 //
-// A host samples its environment once (environment_sample), then calls models_evaluate_light per
+// A host samples its environment once (environment_sample, at models_env_lookup), then calls models_evaluate_light per
 // light (its own buffer) or models_evaluate_slots once (a DCC's 16 bound slots), then
 // models_evaluate_env once, adds emissive, and reads models_debug when a debug view is on;
 // models_shade does all of that. Every branch here is a model's own function; nothing
@@ -11,6 +11,16 @@ fn models_evaluate_light(i: ShadingInputs, light: LightSource, env: EnvironmentS
         case 0u: { return lambert_evaluate_light(i, light, env); }
         case 2u: { return legacy_v2_evaluate_light(i, light, env); }
         default: { return lambert_evaluate_light(i, light, env); }
+    }
+}
+
+// The (n.v, roughness) a model wants its LUT and prefiltered-mip lookups made at; a host passes
+// the result to environment_sample. v2 uses abs(n.v) + 1e-4 and its biased roughness.
+fn models_env_lookup(i: ShadingInputs) -> vec2<f32> {
+    switch (i.surface.model) {
+        case 0u: { return lambert_env_lookup(i); }
+        case 2u: { return legacy_v2_env_lookup(i); }
+        default: { return lambert_env_lookup(i); }
     }
 }
 

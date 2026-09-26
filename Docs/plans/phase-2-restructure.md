@@ -85,7 +85,11 @@ own. Tick a task only when its verification ran.
       Verified 2026-09-25: modes 0 to 32 through `legacy_v2_debug` are finite and equal the reference
       on 128 random inputs each; the twelve texel-and-UV modes (`legacy_v2_debug_is_inputs_mode`)
       are also computed exactly by `legacy_v2_debug_inputs` for forward hosts and match the
-      reference. `Docs/verification/gpu-core-tests.log` refreshed: 69 core tests on the RTX 5090.
+      reference. `Docs/verification/gpu-core-tests.log` refreshed: 69 core tests on the RTX 5090
+      (the host is named BIGHOG-4090RTX after its previous card; the log's adapter line is the
+      truth). Copilot on PR D: the lookup coordinates moved into the model (`models_env_lookup`,
+      tested); FXC on the CI runner's DX12 adapter rejected two multi-return switch cases in
+      `legacy_v2_debug`, now single `select` returns, so the GPU tests run on CI too.
 
 ## PR E: the wgpu host
 

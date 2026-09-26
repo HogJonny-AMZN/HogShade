@@ -125,8 +125,9 @@ Every model implements `<model>_inputs(...) -> ShadingInputs`, `<model>_evaluate
 light, env) -> vec3` for one light, `<model>_evaluate_env(inputs, env) -> vec3` and
 `<model>_debug(inputs, slots, env, mode) -> vec3`, where `env` is an `EnvironmentSamples`: the
 irradiance over pi, the prefiltered specular radiance, the split-sum LUT pair and the v2 hemisphere
-dome, sampled once per fragment by `environment_sample` (numbers, so the models never touch a
-texture and the GPU tests need none). The per-light function receives it because the v2 model scales
+dome, sampled once per fragment by `environment_sample` at the `(n.v, roughness)` the model
+returns from `<model>_env_lookup` (v2: `abs(n.v) + 1e-4` and its biased roughness; numbers, so the
+models never touch a texture and the GPU tests need none). The per-light function receives it because the v2 model scales
 its direct specular by the LUT (PR D, 2026-09-25; the first draft passed only `irradiance_over_pi`).
 `ShadingInputs` also carries `specular_weight`, the material's specular amount (v2 `materialSpecular`,
 OpenPBR `specular_weight`), forward-only and one after reconstruction.

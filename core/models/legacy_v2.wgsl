@@ -173,6 +173,12 @@ fn legacy_v2_n_dot_v(i: ShadingInputs) -> f32 {
     return abs(dot(i.surface.normal_ws, i.view_ws)) + 1e-4;
 }
 
+// The (n.v, roughness) v2 feeds its BRDF LUT and prefiltered-mip lookups: its own NdotV and the
+// biased perceptual roughness. environment_sample takes these from models_env_lookup.
+fn legacy_v2_env_lookup(i: ShadingInputs) -> vec2<f32> {
+    return vec2<f32>(legacy_v2_n_dot_v(i), legacy_v2_roughness_biased(i.surface.roughness));
+}
+
 // v2's cSpecLin: the split-sum scale on the (re-)metal-mixed Cspec0.
 fn legacy_v2_c_spec(i: ShadingInputs, env: EnvironmentSamples) -> vec3<f32> {
     return mix(i.specular_f0, i.surface.base_color, i.surface.metalness) * env.brdf.x + env.brdf.y;
@@ -338,10 +344,7 @@ fn legacy_v2_debug(i: ShadingInputs, slots: FixedSlots16, env: EnvironmentSample
         case 11u, 12u: { return n_vis; }
         case 13u: { return vec3<f32>(i.specular_f0.x); }
         case 14u: { return vec3<f32>(lum); }
-        case 15u: {
-            if (lum > 0.0) { return base / lum; }
-            return vec3<f32>(1.0);
-        }
+        case 15u: { return select(vec3<f32>(1.0), base / max(lum, 1e-8), lum > 0.0); }
         case 16u: { return i.specular_f0; }
         case 17u, 18u: {
             // v2's accumulators at debug time: direct sums with the environment folded in
@@ -355,10 +358,9 @@ fn legacy_v2_debug(i: ShadingInputs, slots: FixedSlots16, env: EnvironmentSample
                 direct.specular = direct.specular + t.specular;
             }
             let e = legacy_v2_env_terms(env);
-            if (mode == 17u) {
-                return direct.diffuse + e.diffuse;
-            }
-            return (direct.specular + e.specular) * legacy_v2_c_spec(i, env) * i.specular_weight;
+            let diffuse = direct.diffuse + e.diffuse;
+            let specular = (direct.specular + e.specular) * legacy_v2_c_spec(i, env) * i.specular_weight;
+            return select(specular, diffuse, mode == 17u);
         }
         case 20u: { return vec3<f32>(rough_a); }
         case 21u: { return vec3<f32>(rough_a * rough_a); }

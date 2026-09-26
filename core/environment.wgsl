@@ -71,7 +71,9 @@ fn environment_samples_none() -> EnvironmentSamples {
 }
 
 // Everything a model needs from the E1 cook at one point: irradiance at n, prefiltered radiance at
-// the reflection of the view vector, and the LUT. The hemisphere fields stay off; a v2 host sets them.
+// the reflection of the view vector, and the LUT. lookup is (n.v, roughness) from models_env_lookup,
+// because a model owns how it clamps n.v and whether it biases the roughness (v2 does both).
+// The hemisphere fields stay off; a v2 host sets them.
 fn environment_sample(
     specular_cube: texture_cube<f32>,
     irradiance_cube: texture_cube<f32>,
@@ -81,18 +83,17 @@ fn environment_sample(
     env: EnvironmentIBL,
     n_ws: vec3<f32>,
     view_ws: vec3<f32>,
-    roughness: f32,
+    lookup: vec2<f32>,
 ) -> EnvironmentSamples {
     var s = environment_samples_none();
     let r_ws = reflect(-view_ws, n_ws);
-    let n_dot_v = max(dot(n_ws, view_ws), 0.0);
     if (env.use_sh9 != 0u) {
         s.irradiance_over_pi = environment_irradiance_sh9(env, n_ws);
     } else {
         s.irradiance_over_pi = environment_irradiance_cube(irradiance_cube, cube_sampler, env, n_ws);
     }
-    s.specular = environment_specular(specular_cube, cube_sampler, env, r_ws, roughness);
-    s.brdf = environment_brdf_lut(lut, lut_sampler, n_dot_v, roughness);
+    s.specular = environment_specular(specular_cube, cube_sampler, env, r_ws, lookup.y);
+    s.brdf = environment_brdf_lut(lut, lut_sampler, lookup.x, lookup.y);
     return s;
 }
 

@@ -26,6 +26,11 @@ fn lambert_inputs(
     return i;
 }
 
+// Lookup coordinates for environment_sample: plain clamped n.v and the unbiased roughness.
+fn lambert_env_lookup(i: ShadingInputs) -> vec2<f32> {
+    return vec2<f32>(max(dot(i.surface.normal_ws, i.view_ws), 0.0), i.surface.roughness);
+}
+
 // Radiance from one light. The environment samples are unused: Lambert has no specular.
 fn lambert_evaluate_light(i: ShadingInputs, light: LightSource, env: EnvironmentSamples) -> vec3<f32> {
     let inc = lighting_incident(light, i.position_ws);

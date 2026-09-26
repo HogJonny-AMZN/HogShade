@@ -1,6 +1,6 @@
 HogShade core GPU test run
 
-Date: 2026-09-25T05:03:10Z
+Date: 2026-09-26T19:12:13Z
 Machine: BIGHOG-4090RTX (Windows 11)
 Command: uv run pytest tests/core -v -o addopts="" -p no:cacheprovider
 
@@ -11,7 +11,7 @@ wgpu-py 0.32.0
 platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0 -- D:\Depot\Maya-PBR-BRDF-VP2\.venv\Scripts\python.exe
 rootdir: D:\Depot\Maya-PBR-BRDF-VP2
 configfile: pyproject.toml
-collecting ... collected 69 items
+collecting ... collected 70 items
 
 tests/core/test_brdf_gpu.py::test_ggx_d_smith_v_schlick_burley PASSED
 tests/core/test_brdf_gpu.py::test_fresnel_f82 PASSED
@@ -67,6 +67,7 @@ tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_referenc
 tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[30] PASSED
 tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[31] PASSED
 tests/core/test_legacy_v2_gpu.py::test_debug_modes_are_finite_and_match_reference[32] PASSED
+tests/core/test_legacy_v2_gpu.py::test_env_lookup_is_the_models_own PASSED
 tests/core/test_legacy_v2_gpu.py::test_shade_through_the_dispatcher_equals_the_model PASSED
 tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[1] PASSED
 tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[2] PASSED
@@ -83,4 +84,6 @@ tests/core/test_legacy_v2_gpu.py::test_debug_inputs_modes_match_reference[31] PA
 tests/core/test_lighting_gpu.py::test_slots_equal_sum_of_single_lights PASSED
 tests/core/test_lighting_gpu.py::test_incident_geometry_matches_reference PASSED
 
-============================= 69 passed in 1.47s ==============================
+============================= 70 passed in 1.26s ==============================
+
+Second run, WGPU_BACKEND_TYPE=D3D12 (naga HLSL through FXC, the CI runner path): 70 passed in 2.97s

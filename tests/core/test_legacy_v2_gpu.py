@@ -389,6 +389,23 @@ def test_debug_modes_are_finite_and_match_reference(gpu, mode: int) -> None:
     )
 
 
+def test_env_lookup_is_the_models_own(gpu) -> None:
+    """The sampler takes its (n.v, roughness) from the model: v2's abs(n.v) + 1e-4 and biased roughness."""
+    n = 1024
+    i, ir = _inputs(n, 61)
+    body = """
+    var i0 = hs_inputs(base);
+    let v2 = models_env_lookup(i0);
+    i0.surface.model = HOGSHADE_MODEL_LAMBERT;
+    let lam = models_env_lookup(i0);
+    hs_out[i * 4u + 0u] = v2.x; hs_out[i * 4u + 1u] = v2.y; hs_out[i * 4u + 2u] = lam.x; hs_out[i * 4u + 3u] = lam.y;
+    """
+    out = gpu.run(_LOADERS + kernel(body, INPUTS), ir, 4, n)
+    np.testing.assert_allclose(out[:, 0:2], ref.env_lookup(i), rtol=1e-5, atol=1e-6)
+    np.testing.assert_allclose(out[:, 2], np.maximum((i.normal_ws * i.view_ws).sum(-1), 0.0), rtol=1e-5, atol=1e-6)
+    np.testing.assert_allclose(out[:, 3], i.roughness, rtol=1e-6)
+
+
 def test_shade_through_the_dispatcher_equals_the_model(gpu) -> None:
     n = 512
     i, ir = _inputs(n, 41)

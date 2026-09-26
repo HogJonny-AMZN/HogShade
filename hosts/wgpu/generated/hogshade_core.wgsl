@@ -337,7 +337,9 @@ fn environment_samples_none() -> EnvironmentSamples {
 }
 
 // Everything a model needs from the E1 cook at one point: irradiance at n, prefiltered radiance at
-// the reflection of the view vector, and the LUT. The hemisphere fields stay off; a v2 host sets them.
+// the reflection of the view vector, and the LUT. lookup is (n.v, roughness) from models_env_lookup,
+// because a model owns how it clamps n.v and whether it biases the roughness (v2 does both).
+// The hemisphere fields stay off; a v2 host sets them.
 fn environment_sample(
     specular_cube: texture_cube<f32>,
     irradiance_cube: texture_cube<f32>,
@@ -347,18 +349,17 @@ fn environment_sample(
     env: EnvironmentIBL,
     n_ws: vec3<f32>,
     view_ws: vec3<f32>,
-    roughness: f32,
+    lookup: vec2<f32>,
 ) -> EnvironmentSamples {
     var s = environment_samples_none();
     let r_ws = reflect(-view_ws, n_ws);
-    let n_dot_v = max(dot(n_ws, view_ws), 0.0);
     if (env.use_sh9 != 0u) {
         s.irradiance_over_pi = environment_irradiance_sh9(env, n_ws);
     } else {
         s.irradiance_over_pi = environment_irradiance_cube(irradiance_cube, cube_sampler, env, n_ws);
     }
-    s.specular = environment_specular(specular_cube, cube_sampler, env, r_ws, roughness);
-    s.brdf = environment_brdf_lut(lut, lut_sampler, n_dot_v, roughness);
+    s.specular = environment_specular(specular_cube, cube_sampler, env, r_ws, lookup.y);
+    s.brdf = environment_brdf_lut(lut, lut_sampler, lookup.x, lookup.y);
     return s;
 }
 
@@ -490,6 +491,11 @@ fn lambert_inputs(
     i.opacity = 1.0;
     i.specular_weight = 1.0;
     return i;
+}
+
+// Lookup coordinates for environment_sample: plain clamped n.v and the unbiased roughness.
+fn lambert_env_lookup(i: ShadingInputs) -> vec2<f32> {
+    return vec2<f32>(max(dot(i.surface.normal_ws, i.view_ws), 0.0), i.surface.roughness);
 }
 
 // Radiance from one light. The environment samples are unused: Lambert has no specular.
@@ -694,6 +700,12 @@ fn legacy_v2_n_dot_v(i: ShadingInputs) -> f32 {
     return abs(dot(i.surface.normal_ws, i.view_ws)) + 1e-4;
 }
 
+// The (n.v, roughness) v2 feeds its BRDF LUT and prefiltered-mip lookups: its own NdotV and the
+// biased perceptual roughness. environment_sample takes these from models_env_lookup.
+fn legacy_v2_env_lookup(i: ShadingInputs) -> vec2<f32> {
+    return vec2<f32>(legacy_v2_n_dot_v(i), legacy_v2_roughness_biased(i.surface.roughness));
+}
+
 // v2's cSpecLin: the split-sum scale on the (re-)metal-mixed Cspec0.
 fn legacy_v2_c_spec(i: ShadingInputs, env: EnvironmentSamples) -> vec3<f32> {
     return mix(i.specular_f0, i.surface.base_color, i.surface.metalness) * env.brdf.x + env.brdf.y;
@@ -859,10 +871,7 @@ fn legacy_v2_debug(i: ShadingInputs, slots: FixedSlots16, env: EnvironmentSample
         case 11u, 12u: { return n_vis; }
         case 13u: { return vec3<f32>(i.specular_f0.x); }
         case 14u: { return vec3<f32>(lum); }
-        case 15u: {
-            if (lum > 0.0) { return base / lum; }
-            return vec3<f32>(1.0);
-        }
+        case 15u: { return select(vec3<f32>(1.0), base / max(lum, 1e-8), lum > 0.0); }
         case 16u: { return i.specular_f0; }
         case 17u, 18u: {
             // v2's accumulators at debug time: direct sums with the environment folded in
@@ -876,10 +885,9 @@ fn legacy_v2_debug(i: ShadingInputs, slots: FixedSlots16, env: EnvironmentSample
                 direct.specular = direct.specular + t.specular;
             }
             let e = legacy_v2_env_terms(env);
-            if (mode == 17u) {
-                return direct.diffuse + e.diffuse;
-            }
-            return (direct.specular + e.specular) * legacy_v2_c_spec(i, env) * i.specular_weight;
+            let diffuse = direct.diffuse + e.diffuse;
+            let specular = (direct.specular + e.specular) * legacy_v2_c_spec(i, env) * i.specular_weight;
+            return select(specular, diffuse, mode == 17u);
         }
         case 20u: { return vec3<f32>(rough_a); }
         case 21u: { return vec3<f32>(rough_a * rough_a); }
@@ -900,7 +908,7 @@ fn legacy_v2_debug(i: ShadingInputs, slots: FixedSlots16, env: EnvironmentSample
 // ---- models.wgsl ----
 // HogShade core: the dispatch on the shading-model ID, and the fixed-slot light loop.
 //
-// A host samples its environment once (environment_sample), then calls models_evaluate_light per
+// A host samples its environment once (environment_sample, at models_env_lookup), then calls models_evaluate_light per
 // light (its own buffer) or models_evaluate_slots once (a DCC's 16 bound slots), then
 // models_evaluate_env once, adds emissive, and reads models_debug when a debug view is on;
 // models_shade does all of that. Every branch here is a model's own function; nothing
@@ -911,6 +919,16 @@ fn models_evaluate_light(i: ShadingInputs, light: LightSource, env: EnvironmentS
         case 0u: { return lambert_evaluate_light(i, light, env); }
         case 2u: { return legacy_v2_evaluate_light(i, light, env); }
         default: { return lambert_evaluate_light(i, light, env); }
+    }
+}
+
+// The (n.v, roughness) a model wants its LUT and prefiltered-mip lookups made at; a host passes
+// the result to environment_sample. v2 uses abs(n.v) + 1e-4 and its biased roughness.
+fn models_env_lookup(i: ShadingInputs) -> vec2<f32> {
+    switch (i.surface.model) {
+        case 0u: { return lambert_env_lookup(i); }
+        case 2u: { return legacy_v2_env_lookup(i); }
+        default: { return lambert_env_lookup(i); }
     }
 }
 

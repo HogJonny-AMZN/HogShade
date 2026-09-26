@@ -220,6 +220,11 @@ def n_dot_v(i: Inputs) -> NDArray:
     return np.abs((i.normal_ws * i.view_ws).sum(-1)) + N_DOT_V_EPSILON
 
 
+def env_lookup(i: Inputs) -> NDArray:
+    """(n, 2): the NdotV and roughness v2 feeds its LUT and mip lookups."""
+    return np.stack([n_dot_v(i), roughness_biased(i.roughness)], axis=-1)
+
+
 def c_spec(i: Inputs, env: EnvSamples) -> NDArray:
     mixed = i.specular_f0 + (i.base_color - i.specular_f0) * _col(i.metalness)
     return mixed * env.brdf[:, 0:1] + env.brdf[:, 1:2]
