@@ -59,4 +59,4 @@ verification ran.
 - [x] 13. `hogshade/jobs/cook_ibl.py` with an agent-readable `MANIFEST`, `hogshade.jobs.manifest()`
       for the library; `tests/jobs/` imports and calls `main(parameters)` exactly as
       `python_rpc_server` does. Registration inside Job_Orchestrator is that repo's item.
-- [ ] 14. Roadmap track E ticked for the IBL item; `Docs/README.md` status row for E1.
+- [x] 14. Roadmap track E ticked for the IBL item; `Docs/README.md` status row for E1. Both done 2026-09-20; the row notes the LFS payloads waiting on the fork detach.

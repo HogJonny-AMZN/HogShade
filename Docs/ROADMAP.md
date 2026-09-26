@@ -90,27 +90,44 @@ Gate for every phase: the compile tests pass and the Maya 2026 screenshot diff i
 
 The core is written in WGSL (owner, 2026-09-20). `naga` translates it for the DCC hosts.
 
-- [ ] **Spike, before anything else:** one core module (a GGX lobe) in WGSL, translated by `naga` to
+- [x] **Spike, before anything else:** one core module (a GGX lobe) in WGSL, translated by `naga` to
       HLSL, wrapped in a v2-style `.fx` shell, compiled by fxc and rendered in Maya 2026. Samplers,
       texture bindings and semantics are the risk. Pass: continue. Fail: the core moves to Slang and
-      WGSL becomes an emitted target; nothing else in the roadmap changes.
-- [ ] Toolchain: `naga-cli` (Rust; `cargo install naga-cli`, or a pinned binary in CI) and
+      WGSL becomes an emitted target; nothing else in the roadmap changes. Passed 2026-09-20
+      (`Spikes/naga-fx/`): WGSL stays; the rule that came out of it is that the core takes textures,
+      samplers and uniforms as function parameters, never bound globals.
+- [x] Toolchain: `naga-cli` (Rust; `cargo install naga-cli`, or a pinned binary in CI) and
       `tools/build_shaders.py` stitching core modules and emitting HLSL and GLSL into
       `hosts/*/generated/`. No Rust toolchain is on the owner's machine today; adding one is a
-      dependency decision to make consciously.
-- [ ] `tests/compile/`: naga validates the core; fxc for dx11, glslangValidator for ogsfx, oslc for
-      OSL. CI.
-- [ ] `core/interface/`: `ShadingInputs`, `ShadingResult`, `IShadingModel` split into `inputs()`
+      dependency decision to make consciously. Done 2026-09-20: Rust 1.98.1 and naga-cli 30.0.1
+      installed (`Docs/verification/toolchain.md`); CI installs and caches them.
+- [x] `tests/compile/`: naga validates the core; fxc for dx11, glslangValidator for ogsfx, oslc for
+      OSL. CI. Done for naga, fxc (SM 5) and dxc (SM 6) on 2026-09-20, with `--check` proving the
+      committed artifacts are current; glslangValidator and oslc join when those hosts exist (C6).
+      The CI runner has a DirectX 12 adapter, so the GPU tests run there too (PR #10).
+- [x] `core/interface/`: `ShadingInputs`, `ShadingResult`, `IShadingModel` split into `inputs()`
       (material half) and `evaluate()` (lighting half) so forward runs both and deferred runs them
-      in two passes. A shadow/depth entry exposes alpha mask, vertex offset and PDO alone.
-- [ ] `core/gbuffer/`: encode and decode `ShadingInputs` against a layout parameter; ADR-002's
+      in two passes. A shadow/depth entry exposes alpha mask, vertex offset and PDO alone. Done
+      2026-09-20 to 25 (`core/interface.wgsl`, `models.wgsl`): the `<model>_inputs` /
+      `_evaluate_light` / `_evaluate_env` / `_env_lookup` / `_debug` pattern with `EnvironmentSamples`.
+      The shadow/depth entry waits for the surface features it exposes (C4).
+- [x] `core/gbuffer/`: encode and decode `ShadingInputs` against a layout parameter; ADR-002's
       layout is the first. The engine's fill and light passes and its screen-space effects share it.
+      Done 2026-09-21 (`core/gbuffer.wgsl`): octahedral normals, forward-versus-deferred parity within
+      the attachments' quantisation.
 - [ ] `core/models/legacy_v1/` and `legacy_v2/`: verbatim ports. Pixel-identical to the baseline
-      screenshot on the shader ball.
-- [ ] `core/brdf/`: the toolbox factored out of the ports (NDFs, visibility, Fresnel, diffuse).
-- [ ] `core/lighting/`: `ILightSource`, `FixedSlots<16>` filled by Maya's `Object = "Light N"`
+      screenshot on the shader ball. v2 ported 2026-09-25 (PR #10), numerically identical to its
+      NumPy twin with six documented deviations; v1 and the Maya screenshot diff wait for the Maya
+      shell (phase 2 PRs E and F).
+- [x] `core/brdf/`: the toolbox factored out of the ports (NDFs, visibility, Fresnel, diffuse). Done
+      2026-09-21 and 25 (`core/brdf.wgsl`): GGX D, height-correlated Smith, Hable visibility,
+      Schlick and F82 Fresnel, Lambert and Burley, each with a NumPy reference and a GPU test.
+- [x] `core/lighting/`: `ILightSource`, `FixedSlots<16>` filled by Maya's `Object = "Light N"`
       binding (the v2 gather pattern, up from 4 slots), and `LightBuffer` for the engine. The
-      legacy ports' light loops are rewritten against the interface with identical output.
+      legacy ports' light loops are rewritten against the interface with identical output. Done
+      2026-09-21 (`core/lighting.wgsl`): `LightSource` with a documented ABI, `FixedSlots16`, the
+      per-light function an engine loops itself; sixteen slots equal sixteen single calls. The Maya
+      binding into the slots is the shell's job (below).
 - [ ] `hosts/maya_dx11/`: the `.fx` shell with the model selector in the material UI.
 
 ### C3. OpenPBR model and the MaterialX carrier
