@@ -32,10 +32,11 @@ how the cook itself is kept honest.
 
 ## Status
 
-The two `source_4k.exr` files and the cooked `.dds` files exist locally and are committed on a local
-branch, but **cannot be pushed until the repository leaves the fork network**: GitHub refuses LFS
-uploads into a public fork. Everything else (licences, manifests, SH9, previews, the tool, the tests)
-is in the tree. A fresh clone can run the tool but has nothing to cook until then.
+Complete (2026-09-26). The two `source_4k.exr` files, the cooked `.dds` files and `brdf_lut.dds`
+are in the repository under Git LFS (the repository left the fork network that day; GitHub refuses
+LFS uploads into a public fork, which had held them back). A fresh clone with `git lfs` installed
+gets the payloads; without it, the pointer files. Licences, manifests, SH9, previews, the tool and
+the tests are alongside.
 
 ## Using the cubes in the legacy v2 Maya shader
 

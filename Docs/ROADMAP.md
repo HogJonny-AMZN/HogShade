@@ -68,7 +68,7 @@ Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence 
       is the natural last step. HogShade must **leave the fork network** (Settings, Danger Zone) so
       LFS uploads work at all and the object store shrinks; until then no EXR or DDS can be pushed.
 - [ ] Commit the spec and this roadmap as the first change.
-- [x] `git-filter-repo`: strip `testFiles/`, `images/`, `ShaderDevProj/` from history. Force-pushed 2026-09-20; owner detaches the fork network and deletes `legacy-pointer` after the pointer PR merges.
+- [x] `git-filter-repo`: strip `testFiles/`, `images/`, `ShaderDevProj/` from history. Force-pushed 2026-09-20; fork network left 2026-09-26; the owner deletes `legacy-pointer` after the pointer PR merges.
 - [ ] Git LFS: one shader-ball scene, one licence-clean HDR (owner picks), the packed test textures.
 - [ ] Close the getting-started issue on the legacy repo, pointing at the README.
 - [x] v3.0 salvage (2026-09-20): six of eleven includes compile against v2; all six are reformats.
@@ -275,7 +275,7 @@ The inputs and the proof. Without these, "same shader" produces different pictur
       lights in one unit with a documented conversion per host.
 - [x] IBL prefilter and BRDF LUT baked by one tool in this repo, shipped as content, run as a BATS job.
       No real-time host convolves its own. E1 and E2 (2026-09-20): NumPy reference plus a numba kernel
-      at 140x; measured to an 8192 cube; LFS payloads wait on the fork detach.
+      at 140x; measured to an 8192 cube; LFS payloads in the repo since the fork detach (2026-09-26).
 - [ ] Texture conventions written down: OpenGL +Y normals, ORM packing, sRGB only for base colour and
       emissive, linear-space mips, BC5 normals and BC7 colour. Authoring set (one map per parameter)
       and runtime set (packed, compressed) with one cook tool, run as a BATS job.

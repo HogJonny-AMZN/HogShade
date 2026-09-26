@@ -5,12 +5,14 @@ verification ran.
 
 ## Tasks
 
-- [ ] 1. `content/ibl/` layout, `.gitattributes` tracking `content/**/*.exr` and `content/**/*.dds`
+- [x] 1. `content/ibl/` layout, `.gitattributes` tracking `content/**/*.exr` and `content/**/*.dds`
       under LFS, `LICENSE.md` for both environments (Poly Haven, CC0, URL, author, fetch date, 8K
       master location outside the repo). **Partial 2026-09-20:** layout, attributes and licences are
       in; the two `source_4k.exr` files are conditioned and committed on a local branch but GitHub
       refuses LFS uploads into a public fork, so they are not in the repository yet. Ticks when
       `git lfs ls-files` on a fresh clone lists both EXRs, after the owner leaves the fork network.
+      **Done 2026-09-26:** the owner left the fork network; both EXRs, the four cooked DDS files
+      and `brdf_lut.dds` pushed under LFS.
 - [x] 2. `tools/cook_ibl.py condition`: 8K to 4K box downsample, linear half-float EXR out.
       Verified 2026-09-20: both outputs 4096x2048; the float32 box average preserves mean radiance to
       10 digits, and the record now also reports the mean after float16 quantisation, which is what
