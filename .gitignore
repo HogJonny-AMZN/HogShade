@@ -63,3 +63,6 @@ tmp/
 
 # 8K HDR masters stay on the owner's machine; only the conditioned 4K sources are committed
 content/**/source_8k.exr
+
+# the shader ball test asset lives under LFS (content/shaderball/LICENSE.md)
+!content/shaderball/*.obj

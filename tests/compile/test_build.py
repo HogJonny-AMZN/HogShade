@@ -70,3 +70,17 @@ def test_build_produces_every_artifact_and_they_compile() -> None:
 def test_committed_artifacts_are_current() -> None:
     stale = bs.check()
     assert not stale, f"run tools/build_shaders.py and commit: {stale}"
+
+
+@needs_naga
+@pytest.mark.parametrize("name", ("lit_mesh", "gbuffer_fill", "deferred_light"))
+def test_wgpu_host_passes_validate(name: str) -> None:
+    """Each hosts/wgpu pass, stitched behind the committed core, is a valid WGSL module (plan task 13)."""
+    import subprocess
+
+    from hogshade.wgpu_host import stitch_pass
+
+    src = Path(tempfile.mkdtemp(prefix="hogshade_host_")) / f"{name}.wgsl"
+    src.write_text(stitch_pass(name), encoding="utf-8")
+    result = subprocess.run([bs.find_tool("naga"), str(src)], capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr or result.stdout

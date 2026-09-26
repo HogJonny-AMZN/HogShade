@@ -136,6 +136,26 @@ def write_2d_rgba16f(path: Path, rgb: NDArray) -> None:
     Path(path).write_bytes(header + dx10 + np.ascontiguousarray(rgb.astype(np.float16)).tobytes())
 
 
+def read_2d_rgba16f(path: Path) -> NDArray:
+    """Read a file written by ``write_2d_rgba16f``: one RGBA16F level, returned as (H, W, 4) float32."""
+    data = Path(path).read_bytes()
+    if data[:4] != DDS_MAGIC:
+        raise ValueError("not a DDS file")
+    size, _flags, height, width, _pitch, _depth, _mips = struct.unpack_from("<7I", data, 4)
+    _pf_size, pf_flags, fourcc = struct.unpack_from("<3I", data, 76)
+    if size != 124 or pf_flags != DDPF_FOURCC or fourcc != int.from_bytes(b"DX10", "little"):
+        raise ValueError("not a DX10 DDS")
+    dxgi, dim, misc, _array_size, _misc2 = struct.unpack_from("<5I", data, 128)
+    if (
+        dxgi != DXGI_FORMAT_R16G16B16A16_FLOAT
+        or dim != D3D10_RESOURCE_DIMENSION_TEXTURE2D
+        or misc & D3D10_RESOURCE_MISC_TEXTURECUBE
+    ):
+        raise ValueError("not an RGBA16F 2D texture")
+    count = width * height * 4
+    return np.frombuffer(data, dtype=np.float16, count=count, offset=148).reshape(height, width, 4).astype(np.float32)
+
+
 def read_cube_rgba16f(path: Path) -> list[NDArray]:
     """Read a file written by ``write_cube_rgba16f``. Returns ``mips[m]`` of shape (6, n_m, n_m, 4) float32.
 
