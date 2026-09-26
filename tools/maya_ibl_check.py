@@ -5,7 +5,7 @@ Package: tools/maya_ibl_check.py
 Run inside a Maya GUI session (headless mayapy has no DirectX device):
 
     set MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11
-    set HOGSHADE_ROOT=D:/Depot/Maya-PBR-BRDF-VP2
+    set HOGSHADE_ROOT=D:/Depot/HogShade
     maya.exe -script tools/maya_ibl_check.mel
 
 Creates a sphere, assigns the v2 shader, points its environment slots at
