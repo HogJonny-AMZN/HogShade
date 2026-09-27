@@ -16,7 +16,8 @@ merge). The open PR is the standards pass's remainder: the decision log is decis
 working knowledge lives in `Docs/knowledge/` (`toolchain.md`, `maya-scripting.md`), its repository
 state is the section at the end of this file, its open questions are the board's gates; specs and
 plans are under `Docs/superpowers/`. Phase 3 is next in the order of operations and is blocked on
-G3 and G4; nothing unblocked remains on the board's Next except what the owner picks from the Icebox.
+G4 only: the owner closed G3 the same evening (ADR-009, HogShade owns the material schema and
+data, the editor lives in LargeWorlds), so the schema's pre-spec design is the unblocked Next row.
 
 What the standards pass landed: `Docs/standards/python.md` and `wgsl.md`, `Docs/standards/failure-modes.md`
 (twelve entries from this week, five with checks), `.github/copilot-instructions.md`, `Docs/decisions/`

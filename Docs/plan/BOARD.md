@@ -31,7 +31,7 @@ A gate is not a task. It is a question that blocks tasks, and the cost of guessi
 | --- | --- | --- | --- |
 | **G1 · Track A, open-source clearance** | 🔴 **Open, owner-only.** The repo is private; `hog_color` in LargeWorlds derives from `bp_color`; the generated orchestrator profile carries a `bp_python` path from the dev checkout's canon config | Publishing anything; any public link from HogShade to LargeWorlds, Job_Orchestrator or BATS | The employer conversation in the roadmap's track A, in the order it states. Until then the hygiene grep is the rule, and the `bp_python` line is the owner's call: strip it in `make_profile.py`, or leave it while private |
 | **G2 · Which OCIO config seeds the repo** | 🟡 **Open.** Blender's 4.x config (CC0, ships AgX) with the ACES views added, or an ACES studio config with an AgX view added, or an own AgX view from the published transform | Track E colour management: scene-referred ACEScg captures, the AgX default view, the ACES alternative, the wgpu host's numeric twin of the view | The owner's pick; the roadmap's colour-management item holds the trade-off |
-| **G3 · The material contract and editor split** | 🟡 **Open, recommendation on record.** HogShade owns the parameter schema and the material document; LargeWorlds owns the editor; dependency one way (decision log, section 3) | Phase C3's parameter schema; the ADR the standards pass would write | Agree, amend or reverse |
+| ~~**G3 · The material contract and editor split**~~ | 🟢 **CLOSED 2026-09-27.** Owner: "let's not build the material editor here, but let's own the core generalized material schema / data." [ADR-009](../decisions/ADR-009-hogshade-owns-the-material-schema.md) | — | Done: HogShade owns the schema, the document, the mapping and the Python library; LargeWorlds owns the editor; dependency one way |
 | **G4 · When the comparison framework design is written** | 🟡 **Open.** The current plan says after the standards pass; the owner may pull it earlier | The pixel-identical screenshot diff of both legacy ports against the legacy effects (plan task 18's open half); the C3 comparison view; the bake comparisons | A date relative to the standards pass |
 | **G5 · Does the owner's edited shader ball replace the verbatim OBJ?** | 🟡 **Open.** The legacy scene carries UV sets and CPV values the verbatim OBJ lacks; the diff was meant to happen while Maya was open in PR F and did not | The calibration mesh in track E's calibration scene; the CPV mask and AO features in C4 need a mesh that carries them | A diff of `testFiles/v2.0/shaderBall_pbr_IBLenv.ma` against `content/shaderball/`, then a yes or no |
 
@@ -59,6 +59,7 @@ is the first two rows, in that order.
 
 | Item | Cost | Notes |
 | --- | --- | --- |
+| **The material schema, pre-spec design** (unblocked by G3, ADR-009) | ½ to 1 d of conversation and writing | A design doc under `Docs/design/`: the parameter definition (name, type, range, default, UI group, semantic, colour space), the OpenPBR-in-MaterialX document as the authored form, the glTF game-profile mapping, the extension-block rule, the Python library's shape, what a host UI generator consumes. The owner locks it; then a spec. C3's build still waits on G4 |
 | **Job providers and capability discovery** (owner note, 2026-09-27) | 1 d on the Job_Orchestrator dev checkout, ½ d here | Decision log, "Job providers and capability discovery". Here: `hogshade.jobs` discovers its jobs by scanning, a test fails on a job without a `MANIFEST` (the Maya job was unregistered for a day). There: a provider field in the profile, `bats_list_jobs` and `bats_describe_job`, a CLI flag. Cross-repo; the HogShade half can go first |
 | **The history-log fix, verified** | one job | `tools/maya/_session.py` now stops Script Editor mirroring at the end of a check (PR H); the next Maya job proves the committed log stops growing |
 
@@ -68,7 +69,7 @@ is the first two rows, in that order.
 
 | Item | Blocked on |
 | --- | --- |
-| **Phase C3 · OpenPBR model, MaterialX carrier, parameter schema** | **G3** for the schema's home; **G4** because the roadmap says E's calibration capture runs in `maya_dx11` before C3 opens; the standards pass and the close are done |
+| **Phase C3 · OpenPBR model, MaterialX carrier, parameter schema** | **G4** because the roadmap says E's calibration capture runs in `maya_dx11` before C3 opens; G3 closed 2026-09-27 (ADR-009), so the schema's pre-spec design is unblocked (Next) |
 | **The comparison framework** (roadmap, track E) | **G4** for its design date. Design first, then spec, then build; `tools/wgpu/viewport.py` is replaced, not extended |
 | **Colour management: ACEScg, AgX default, ACES alternative** (track E) | **G2** |
 | **The pixel-identical screenshot diff of v1 and v2 against the legacy effects** | The comparison framework |

@@ -69,7 +69,7 @@ Formalised: the standards-pass section of `ROADMAP.md`; the phase 2 plan.
 - **Visual proof before merging visual work (owner preference, from the sibling project):** offer a
   page of real rendered output alongside a PR that changes a picture. Here only.
 
-### Material data, contracts and editor: where they live (owner asked 2026-09-26; recommendation, soft)
+### Material data, contracts and editor: where they live (owner asked 2026-09-26; decided 2026-09-27, ADR-009)
 
 The question: does a base material data model and editor live here and get extended in LargeWorlds
 and again per game, or does this repo stay focused on shading? Recommendation, not yet decided:
@@ -94,7 +94,8 @@ and again per game, or does this repo stay focused on shading? Recommendation, n
 - **The grey zone**: HogShade's viewer and comparison tool get a minimal generic parameter panel
   generated from the schema; anything beyond (node graphs, asset browsing) belongs in LargeWorlds.
 
-Decided when phase 3 designs the schema; becomes an ADR in the standards pass if the owner agrees.
+Decided by the owner on 2026-09-27 as recommended ("let's not build the material editor here, but let's own
+the core generalized material schema / data"): `../decisions/ADR-009-hogshade-owns-the-material-schema.md`.
 
 ### Agent instructions as a knowledge base (owner, 2026-09-26; decided)
 
