@@ -52,7 +52,9 @@ def output_dir(check: str, variant: str = "") -> Path:
     if variant:
         path = path.joinpath(*variant.replace("\\", "/").split("/"))
     root = VERIFICATION.resolve()
-    if root not in path.resolve().parents:  # check and variant come from job parameters; ".." stays inside
+    resolved = path.resolve()
+    # check and variant arrive as job parameters: no ".." component, and the result stays under the root
+    if ".." in path.parts or root not in resolved.parents:
         raise ValueError(f"output directory escapes {root}: check={check!r} variant={variant!r}")
     path.mkdir(parents=True, exist_ok=True)
     return path
