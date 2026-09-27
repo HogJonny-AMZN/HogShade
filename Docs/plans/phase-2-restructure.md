@@ -1,6 +1,6 @@
 # Phase 2 plan: the WGSL core and its first two hosts
 
-**Status:** Accepted. In progress: the standards pass and the phase close remain.
+**Status:** Accepted. Done 2026-09-27 (`0.2.0`); kept as the record of the tasks and their verification.
 
 Spec: [../specs/phase-2-restructure.md](../specs/phase-2-restructure.md). Several PRs; the spike is its
 own. Tick a task only when its verification ran.
@@ -179,5 +179,13 @@ own. Tick a task only when its verification ran.
 
 ## Close
 
-- [ ] 19. Design doc: the deviations list; `Docs/README.md` status rows; roadmap C2 ticked; README
-      "Status" updated to phase 2 done; VERSION to `0.2.0`.
+- [x] 19. Design doc: the deviations list; `Docs/README.md` status rows; roadmap C2 ticked; README
+      "Status" updated to phase 2 done; VERSION to `0.2.0`. Done 2026-09-27 (the close PR). The
+      acceptance gate, item by item: the spike verdict is in task 1; `tests/compile/` runs in CI with
+      fxc and dxc; `tests/core/` on the owner's GPU is logged at `verification/core/gpu-tests.log`
+      (the standards-pass run, commit noted inside); Maya 2026 renders the v2 model with a visible
+      specular reflection from the check tool (`verification/maya-2026/ibl-check/studio_small_09/`);
+      the wgpu host renders the same lighting and material (`verification/wgpu/shader-ball/`), compared
+      by eye at the close and recorded in the design doc; the deviations list is in the design doc.
+      Stated, not met: "the same scene" is the same lighting and material, not the same mesh (the
+      Maya check draws a sphere; the shader ball in Maya waits on G5). Pixel identity is track E.

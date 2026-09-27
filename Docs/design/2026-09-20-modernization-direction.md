@@ -219,6 +219,47 @@ semantics like `WorldViewProjection`), texture and sampler declarations with hos
 transparency passes. The core exposes a `ShadingInputs` struct and an `evaluate()` per lobe; a shell
 fills the struct from its textures and constants and calls the core.
 
+### The phase 2 deviations list (the close, 2026-09-27)
+
+Every deviation the two ports made from the legacy effects, in one place, as the phase 2 acceptance
+gate asks. Each is also in its module's header. Everything not listed here was kept verbatim,
+quirks included, and the kept quirks are listed in the same headers.
+
+**Legacy v1 (2015), `core/models/legacy_v1.wgsl`:**
+
+1. **Environment.** E1 linear cubes and LUT replace the RGBM 8-bit cubes; the eight-mip constant,
+   the exposure and gamma parameters are gone; hosts pass linear values.
+2. **Lights.** Any number of slots and any kind through `lighting.wgsl`; v1 used slot 0 only, as a
+   point light with a power-law decay. The core's falloff and cone apply.
+3. **Unbound maps.** The host passes defaults, as for v2.
+4. **Vertex-colour AO** uses the red channel; `surface.ao` is a scalar (v1 multiplied rgb).
+5. **Display.** In-shader display gamma and the filmic tone map are host concerns and are gone.
+6. **The dead includes.** The Cook-Torrance and "game" BRDF includes were never compiled by the
+   effect and are not ported; the "game" GGX is the v2 model's lobe already in the toolbox.
+
+**Legacy v2 (2017), `core/models/legacy_v2.wgsl`:** the six deviations listed under "Legacy v2
+port" above: the environment (linear cubes and LUT, no RGBM, swizzle, exposure of 5, gamma or
+nine-mip constant), unbound maps (host defaults instead of "black unless > 0"), lights (the core's
+geometry and attenuation, per-light shadow, no "ambient" kind), emissive and the specular map (used
+now; both were sampled and unused), vertex AO on the red channel, and the host concerns (POM,
+self-shadowing, depth peeling, tone mapping, the texel-reading debug modes).
+
+**Shared, both models:** the interface additions the ports needed (`specular_weight`, a tangent
+frame, two `model_params` vectors) are forward-only; the deferred reconstruction builds an arbitrary
+frame and zeros the parameters, so anisotropy and v1's extra lobes are forward features until the
+G-buffer grows a tangent channel (ADR-005).
+
+**Not a deviation, but not yet proven:** pixel identity with the legacy effects on the shader ball.
+Phase 2 compared by eye (below); the comparison framework (track E) measures it.
+
+**The eye comparison, recorded at the close.** `verification/maya-2026/ibl-check/studio_small_09/main.png`
+(Maya 2026, the shell, v2, a sphere and the red Lambert control) against
+`verification/wgpu/shader-ball/studio_small_09/forward.png` (the wgpu host, v2, the shader ball):
+the same neutral grey material under the same studio environment, the same soft reflection and a
+single highlight from the key light, consistent in tone. Not the same mesh: the Maya check draws a
+sphere because the shader ball in Maya waits on the calibration-scene decision (board, G5). The
+spec's "same scene" is therefore the same lighting and material, and the framework closes the gap.
+
 ## Two rendering paths, one core split at the G-buffer boundary
 
 SpriteJammer is deferred (ADR-002: a five-target G-buffer, lights resolved in a full-screen pass).

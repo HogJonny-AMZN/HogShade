@@ -1,6 +1,6 @@
 # Phase 2 spec: the WGSL core and its first two hosts
 
-**Status:** Accepted. In progress; amended as interfaces land (last 2026-09-27).
+**Status:** Accepted. Delivered 2026-09-27 at `0.2.0`; the acceptance gate's last two lines are met by the eye comparison and the deviations list in the design doc, with pixel identity left to track E.
 
 Date: 2026-09-20. Design: [../design/2026-09-20-modernization-direction.md](../design/2026-09-20-modernization-direction.md)
 ("Architecture", "Two rendering paths", "Why WGSL is the source"), roadmap track C2. Plan:

@@ -75,7 +75,7 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
 | Phase | Spec | Plan | Status |
 | --- | --- | --- | --- |
 | 1. Repo hygiene | [specs/phase-1-hygiene.md](specs/phase-1-hygiene.md) | [plans/phase-1-hygiene.md](plans/phase-1-hygiene.md) | In progress |
-| 2. Restructure (WGSL core, naga spike) | [specs/phase-2-restructure.md](specs/phase-2-restructure.md) | [plans/phase-2-restructure.md](plans/phase-2-restructure.md) | PRs A to G done: spike, skeleton, GPU harness, BRDF toolbox, legacy v2 and v1 ports, wgpu host, Maya shell with a model selector (both legacy models render in Maya 2026 and wgpu); the standards pass, then the phase close, next |
+| 2. Restructure (WGSL core, naga spike) | [specs/phase-2-restructure.md](specs/phase-2-restructure.md) | [plans/phase-2-restructure.md](plans/phase-2-restructure.md) | Done 2026-09-27, `0.2.0`: PRs A to G plus the standards pass; both legacy models in both hosts; the acceptance gate met with the eye comparison recorded and pixel identity left to track E |
 | 3. OpenPBR model and MaterialX carrier | not yet | not yet | Design done |
 | 4. Surface authoring | not yet | not yet | Design done |
 | 5. wgpu host | not yet | not yet | Design done |
