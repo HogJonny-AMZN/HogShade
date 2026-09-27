@@ -19,6 +19,13 @@ not the machinery. It is a week that reads differently.
 Before the architecture, the days it changes. Every case below keeps a person in the loop; the
 agent proposes and runs, the person reads and decides, and nothing merges without a human.
 
+**Thursday, on the train.** You send "produce a character: <a paragraph describing it>". A workflow
+starts: concept images, a blockout, a textured model, a turntable rendered in the DCC or in the
+editor, each step a job. At every gate the result reaches your phone and waits. You approve the
+concept, send the blockout back with one sentence, approve the rest, and the final turntable is
+waiting when you reach your desk. Why a workflow with gates: the machine can do each step; the
+judgement at each step is yours, and it should not need your chair.
+
 **Friday, 4 p.m.** Your phone shows three lines and a link: CI got 40 seconds slower this week and
 the commit that did it; the Maya check was run by hand three times and is a one-line job now; the
 export experiment from August never proved out and is still described as current in two documents.
@@ -43,7 +50,7 @@ The follow-up is enforced by the report, not by anyone's memory.
 orchestrator answers with its jobs, their parameters and what each produces, instead of a week of
 reading and asking.
 
-Those five days are the whole case. The rest of this memo says why they are not possible today,
+Those six days are the whole case. The rest of this memo says why they are not possible today,
 what makes them possible, and what it costs to find out.
 
 ## Why
@@ -157,6 +164,9 @@ queue and a memory that outlives the window. Once it has those, the following st
   type: caption every capture, judge a diff, triage a log, summarise the week, at no API cost and
   with private data never leaving the machine. The harness keeps the hard reasoning; the local model
   takes the volume.
+- **Workflows with human gates.** The Thursday character above is a list of jobs with edges, and a
+  gate is a message out and a reply in. Once jobs carry typed inputs and outputs, a workflow is data
+  the orchestrator runs, pauses at each gate, and resumes on your word from anywhere.
 - **Agents as jobs, jobs as agents.** A reviewer, a verifier and a writer are worker roles that hand
   off through the queue, each leaving a manifest and a log. The queue is the message bus, and every
   hand-off is durable, inspectable and replayable. Multi-agent work on infrastructure that already

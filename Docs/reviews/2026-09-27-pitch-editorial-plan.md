@@ -106,8 +106,11 @@ directly after the lead: five concrete moments (Friday's three-line verdict, the
 the phone, Wednesday's waiting pull request, thinking out loud, a new person on Monday), each naming
 why a schedule or a remote channel is the thing that makes it possible and what it buys. The lead
 gained one sentence saying the machinery is not the point. Every case keeps the person deciding; the
-agent never merges. Word count 1,720 to 2,090; the growth is the author's requested content, and it
-displaces nothing.
+agent never merges. Then the owner named the headline case the section had missed: "here is a character I want to
+produce <description>", a workflow of jobs with a human gate at each step, reviewed from anywhere
+before reaching the machine. Added as the first day, and workflows moved from the long-shot list to
+"plausible within a year" as the shape the Thursday case takes. Word count 1,720 to 2,240; the
+growth is the author's requested content, and it displaces nothing.
 
 ## Layer 9, first pass: for the author
 
