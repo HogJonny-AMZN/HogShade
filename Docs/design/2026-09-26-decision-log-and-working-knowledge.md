@@ -222,6 +222,42 @@ phases; this log stays the index of decisions; the board is the tracker. Section
 growing: a new idea goes to the Icebox with a cost, and a decision that schedules one is recorded here
 with a pointer to its row.
 
+### The weekly review routine (owner, 2026-09-27; soft, design first)
+
+Owner: "something like a cloud cron job that runs on Fridays and does a deep dive on the journal and
+other context, to deliver a report on CI, improvements, things to streamline, etc.; it needs to both
+follow industry standards and known quantities, but also think outside of the box, anticipate and look
+around corners and think about agentic context engineering and agentic development practices
+(including accessing the projections, and being clear about experiments and maybes that don't prove out
+and need to be redacted, reversed and displaced later)." And: "what would be really cool is if it could
+text SMS me when this report is done so I actually review and look at it; generation is a thing,
+reading and following up is a very different problem."
+
+Assessment. The substrate exists and SpriteJammer already designed its twin: the Sunday devblog
+routine (`docs/design/devblog.md`, locked 2026-09-13) runs a repo skill from a cloud routine, clones
+private repositories, writes to a branch and opens a pull request, and found that routines have no
+notification of their own. The weekly review is that design's review-side counterpart: a
+`weekly-review` skill runnable locally or by a Friday routine, reading the journal, board, handoff,
+decision log, merged and open PRs, Copilot threads and CI run history, and writing
+`Docs/reviews/<date>-weekly-review.md` on a `claude/` branch with a pull request. The report's contract:
+every claim cites a file and heading, a commit, a PR or a run id; it proposes and never edits the
+board; sections for CI health, process compliance against the DoD, streamlining candidates (a manual
+step the journal repeats becomes a skill or a job), agentic context engineering (what agents got wrong
+and which instruction would have prevented it, the size and staleness of the knowledge files),
+projections against the roadmap, a verdict table for experiments and maybes (proved, unproven,
+redact or reverse or displace, with the document that holds the belief), and an explicitly labelled
+speculative section for around-the-corner thinking. The follow-through loop is the part that answers
+the second message: each report opens with last week's items and whether they were acted on, and
+the nudge carries the three-line verdict and the PR link, not "report ready".
+
+The nudge. SMS proper means Twilio from inside the routine with a secret in the cloud environment
+and, in the US, A2P 10DLC or toll-free registration even for personal use (as of the assistant's
+knowledge; verify before choosing). A push channel does the same job with one HTTP POST and one
+secret: ntfy (free, open source) or Pushover (one-time fee). GitHub Mobile's review-request
+notification is the zero-cost baseline and needs nothing. Recommendation: push first, SMS only if
+the owner wants SMS specifically. Not built; the board's Icebox row carries the cost and the open
+questions. A memory records the direction for the other repositories.
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`

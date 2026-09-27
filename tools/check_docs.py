@@ -185,7 +185,7 @@ def check_status_headers(files: Iterable[Path], root: Path = REPO_ROOT) -> list[
         rel = _rel(path, root)
         if not _governed(rel):
             continue
-        head = "\n".join(path.read_text(encoding="utf-8", errors="replace").splitlines()[:12])
+        head = "\n".join(strip_fences(path.read_text(encoding="utf-8", errors="replace")).splitlines()[:12])
         match = _STATUS_RE.search(head)
         if match is None:
             findings.append(Finding("status", rel, "no `**Status:**` line in the first 12 lines"))

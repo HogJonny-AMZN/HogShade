@@ -74,6 +74,11 @@ def test_unknown_status_word_is_found(corpus: Path) -> None:
     ]
 
 
+def test_status_inside_a_fence_does_not_count(corpus: Path) -> None:
+    _write(corpus, "Docs/standards/x.md", "# X\n\n```markdown\n**Status:** Living\n```\n")
+    assert [f.check for f in check_docs.run(corpus)] == ["status"]
+
+
 def test_superseded_must_say_by_what(corpus: Path) -> None:
     _write(corpus, "Docs/standards/x.md", "**Status:** Superseded\n")
     assert "by what" in check_docs.run(corpus)[0].detail
