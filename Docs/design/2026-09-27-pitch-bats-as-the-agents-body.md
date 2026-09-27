@@ -9,10 +9,10 @@ research" and the decision log entry of the same name hold the working detail be
 Date: 2026-09-27. Author: the owner.
 
 AI agents think well and persist badly. The harness that reads a repository, plans, edits, tests and
-opens a pull request is the brain, and it gets better every quarter without our effort. What it lacks
-is a body: something that starts work on a schedule, runs it on the machine with the DCC on it, and
-tells a person when it is done. BATS already is most of that body. Three small additions finish it, and the point of finishing it is
-not the machinery. It is a week that reads differently.
+opens a pull request is the brain, and it gets better every quarter without our effort. What it
+lacks is a body: something that starts work on a schedule, runs it on the machine with the DCC on
+it, and tells a person when it is done. BATS already is most of that body. Three small additions
+finish it, and the point of finishing it is not the machinery. It is a week that reads differently.
 
 ## A week with it
 
