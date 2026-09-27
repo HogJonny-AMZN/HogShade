@@ -1,0 +1,22 @@
+{
+  "name": "HogShade Blender 5.2 worker environment",
+  "description": "The canon Blender environment plus the HogShade root; Blender's embedded Python ignores PYTHONPATH, so the worker bootstraps sys.path itself and HOGSHADE_ROOT is what a job reads; generated, never hand-edited",
+  "environment": {
+    "variables": {
+      "PYTHONUNBUFFERED": "1",
+      "ORCHESTRATOR_HOST": "localhost",
+      "ORCHESTRATOR_PORT": "50051",
+      "GLOBAL_LOGLEVEL": "INFO",
+      "GLOBAL_DEBUG": "False",
+      "HOGSHADE_ROOT": "D:/Depot/HogShade"
+    },
+    "PYTHONPATH": {
+      "prepend": [
+        "D:/Depot/HogShade",
+        "${WORKSPACE_ROOT}",
+        "${WORKSPACE_ROOT}\\shared\\blender\\Python-3.13.13\\Lib\\site-packages"
+      ],
+      "append": []
+    }
+  }
+}
