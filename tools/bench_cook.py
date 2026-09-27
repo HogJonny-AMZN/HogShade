@@ -1,6 +1,6 @@
 """
 HogShade: benchmark the IBL prefilter across backends, cube sizes and sample counts (E2 plan, task 5).
-Package: tools/bench_cook.py
+Package: tools/bench_cook
 
     uv run tools/bench_cook.py --source content/ibl/studio_small_09/source_4k.exr --out Docs/research/benchmarks/2026-09-20-cook.md
     uv run tools/bench_cook.py --quick            # 256 only, both backends; a smoke run
@@ -25,6 +25,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from hogshade.ibl import prefilter
 from hogshade.ibl.cubemap import equirect_pyramid
 from hogshade.ibl.imageio import read_exr_rgb
+
+_MODULE_NAME = "tools.bench_cook"
+__version__ = "0.1.0"
+__updated__ = "2026-09-27"
 
 
 def cube_bytes(base: int) -> int:

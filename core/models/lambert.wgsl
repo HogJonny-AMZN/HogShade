@@ -1,5 +1,6 @@
 // HogShade core, model 0: Lambert. The floor every host can run, and the placeholder that proves the
 // model interface before the legacy ports land. Diffuse only; the specular F0 is ignored.
+// NumPy twin in hogshade/reference/lambert.py; tests/core/test_lambert_gpu.py compares them.
 
 fn lambert_inputs(
     base_color: vec3<f32>,

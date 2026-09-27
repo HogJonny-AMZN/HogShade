@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-09-27, after #21 merged (nothing in flight; next is the standards pass).
+**Last updated:** 2026-09-27, late (the standards pass is a PR run overnight; the phase 2 close is next).
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -10,12 +10,29 @@ how much to decide alone.
 
 ## In flight
 
-**Nothing in flight.** Merged 2026-09-27: #19 (the v1 port), #20 (the journal, the definition of
-done and workflow, the PR template, `tools/check_docs.py` in CI, the `local-review` skill, the board,
-the BATS case), #21 (the README as the case for the repo, the pitch for the agent loop, the checker
-hardened after its own local review). Next in the agreed order: the standards pass (board, Next),
-then the phase 2 close at 0.2.0. The agent loop and the weekly review are Icebox rows awaiting a
-design lock, not work.
+**Sit rep, 2026-09-27 late.** The standards pass ran as one PR (`docs/standards-pass`) while the owner
+slept, per the owner's last instruction ("do the next increment of real HogShade work and then report
+back with a revised roadmap and sit rep"). Also open: #24, the pitch's horizon split (the owner said
+to forget the pitch for now; merge or leave).
+
+What the standards pass landed: `Docs/standards/python.md` and `wgsl.md`, `Docs/standards/failure-modes.md`
+(twelve entries from this week, five with checks), `.github/copilot-instructions.md`, `Docs/decisions/`
+with ADR-001 to ADR-008 and the index (`check_docs.py` governs it), a `**Status:**` line on every
+document under `Docs/` with the checker widened to all of it, and a project review
+(`Docs/reviews/2026-09-27-standards-pass-project-review.md`, needs-work, lowest 6/10) with its ten
+fixes applied: NumPy twins and GPU tests for `environment.wgsl` and `lambert.wgsl`, module headers on
+every tool, unused loggers dropped and the rule written, the stale "switch" wording and the unused
+`HOGSHADE_IRRADIANCE_OVER_PI` removed (artifacts regenerated), the FXC rule restated as what actually
+bites, the Maya helpers logging to their `Log`, `Path.open`, a dead parameter gone, shared reference
+helpers in `hogshade/reference/_common.py`, `submit.py`'s stub built from a literal. 149 tests green
+on the owner's GPU; `build_shaders.py --check --require-compilers` clean.
+
+Not done, on purpose, and on the board as the pass's remainder: the decision log split into topic
+files, and the `Docs/superpowers/` move. Not decided, the owner's: the `bp_python` path in the
+generated orchestrator profile (G1); the five gates.
+
+Next in the agreed order: the phase 2 close (deviations list, status rows, roadmap C2, VERSION
+`0.2.0`), then phase 3. The agent loop and the weekly review stay Icebox rows awaiting a design lock.
 
 Owner asks recorded this session and not yet built: none open. Standing: journal continuously; a
 `→ BATS:` line wherever the orchestrator made the difference; `pathlib` everywhere.

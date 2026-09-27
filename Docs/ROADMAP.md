@@ -1,5 +1,7 @@
 # HogShade roadmap: the shading research repo and everything around it
 
+**Status:** Living. The tracks and phases; ticked as items land. The tracker is `plan/BOARD.md`.
+
 Date: 2026-09-20. Owner: Jonny Galloway. Companion to
 [design/2026-09-20-modernization-direction.md](design/2026-09-20-modernization-direction.md), which
 holds the architecture detail. This document is the order of work across four tracks and the
@@ -92,7 +94,13 @@ Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence 
       log and the roadmap, standards never mixed with state; the 2026-09-26 decision log is split
       into those topic files in this pass. Files stay small; a file past a few hundred lines splits.
       Started 2026-09-26 with a thin `AGENTS.md`, a `CLAUDE.md` that imports it, and
-      `tools/bats/AGENTS.md`; the pass fills in the standards and the remaining topic files.
+      `tools/bats/AGENTS.md`. **Landed 2026-09-27 (the standards-pass PR):** `Docs/standards/python.md`,
+      `Docs/standards/wgsl.md`, `Docs/standards/failure-modes.md` (twelve entries from this repo's own
+      week), `.github/copilot-instructions.md`, the first eight ADRs with their index, a `**Status:**` line
+      on every document under `Docs/` with `tools/check_docs.py` governing all of it, and the project
+      review with its ten fixes applied (`Docs/reviews/2026-09-27-standards-pass-project-review.md`).
+      **Remaining:** the decision log split into topic files under `Docs/knowledge/`, and the
+      `Docs/superpowers/{design,specs,plans,handoff}` move; both on the board as the pass's remainder.
 - [x] v3.0 salvage (2026-09-20): six of eleven includes compile against v2; all six are reformats.
       Nothing taken. Folder deleted; archive stays at
       `D:\Depot\Maya-PBR-BRDF-VP2_BAK\uncommitted-v3.0-2025-04`. Details in the direction spec.
@@ -152,7 +160,8 @@ The core is written in WGSL (owner, 2026-09-20). `naga` translates it for the DC
       2026-09-21 (`core/lighting.wgsl`): `LightSource` with a documented ABI, `FixedSlots16`, the
       per-light function an engine loops itself; sixteen slots equal sixteen single calls. The Maya
       binding into the slots is the shell's job (below).
-- [ ] `hosts/maya_dx11/`: the `.fx` shell with the model selector in the material UI.
+- [x] `hosts/maya_dx11/`: the `.fx` shell with the model selector in the material UI. Done 2026-09-27
+      (#18 the shell and the Maya gate as a job; #19 the Shading Model dropdown with both legacy models).
 
 ### C3. OpenPBR model and the MaterialX carrier
 
@@ -440,6 +449,16 @@ testing rule, the LFS and hygiene rules. Scheduled for the end of phase 2 (after
 port, before the phase 2 close and VERSION 0.2.0), because phase 3 (OpenPBR, MaterialX, the
 parameter schema) builds on every one of those decisions and is the last cheap moment to change
 them.
+
+**What landed on 2026-09-27**, in one PR run while the owner slept: the two standards pages, the
+ledger, Copilot's instructions, ADR-001 to ADR-008 (WGSL as the source; resources as parameters and
+the prefix rule; the model interface; the NumPy-twin rule; the G-buffer layout contract; shader
+specialisation, Proposed; the orchestrator as the developer track; LFS and hygiene), status lines
+everywhere, and the code review: `environment.wgsl` and `lambert.wgsl` gained their twins and GPU
+tests, headers and loggers were made consistent, the stale "switch" wording and an unused constant
+went, the Maya helpers log instead of print, `submit.py` builds its stub from a literal. Not done:
+the decision-log split and the folder move (the board's Next), and the `bp_python` path in the
+generated profile, which is the owner's call under the clearance gate.
 
 The pass also aligns the documentation layout with the owner's cross-repo convention (owner,
 2026-09-26): `Docs/superpowers/design/` (the pre-spec conversational decision lock), `specs/`,

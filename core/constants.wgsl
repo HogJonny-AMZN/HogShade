@@ -8,8 +8,7 @@ const HOGSHADE_INV_PI: f32 = 0.318309886183791;
 const HOGSHADE_ROUGHNESS_BIAS: f32 = 0.005;
 
 // The E1 cook: specular mips are linear in roughness, mip = roughness * (mip_count - 1);
-// irradiance cubes and SH9 store E / pi, so multiply by albedo directly.
-const HOGSHADE_IRRADIANCE_OVER_PI: f32 = 1.0;
+// irradiance cubes and SH9 store E / pi, so a model multiplies by albedo directly.
 
 // Spherical-harmonic cosine-lobe band weights for L2 (Ramamoorthi and Hanrahan), applied to
 // radiance coefficients before dividing by pi.
@@ -20,7 +19,7 @@ const HOGSHADE_SH_A2: f32 = 0.78539816339745;
 // Dielectric F0 assumed when a host cannot supply a specular colour (the deferred path).
 const HOGSHADE_DIELECTRIC_F0: f32 = 0.04;
 
-// Shading-model IDs: the byte the G-buffer carries and the switch in models.wgsl dispatches on.
+// Shading-model IDs: the byte the G-buffer carries and the if-chain in models.wgsl dispatches on.
 const HOGSHADE_MODEL_LAMBERT: u32 = 0u;
 const HOGSHADE_MODEL_LEGACY_V1: u32 = 1u;
 const HOGSHADE_MODEL_LEGACY_V2: u32 = 2u;

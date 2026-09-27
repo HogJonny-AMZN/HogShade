@@ -1,5 +1,7 @@
 # Phase 2 spec: the WGSL core and its first two hosts
 
+**Status:** Accepted. In progress; amended as interfaces land (last 2026-09-27).
+
 Date: 2026-09-20. Design: [../design/2026-09-20-modernization-direction.md](../design/2026-09-20-modernization-direction.md)
 ("Architecture", "Two rendering paths", "Why WGSL is the source"), roadmap track C2. Plan:
 [../plans/phase-2-restructure.md](../plans/phase-2-restructure.md).

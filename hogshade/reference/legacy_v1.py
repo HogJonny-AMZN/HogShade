@@ -15,7 +15,8 @@ from numpy.typing import NDArray
 
 from hogshade.core_constants import INV_PI, MODEL_LEGACY_V1
 from hogshade.reference import brdf, lighting
-from hogshade.reference.legacy_v2 import EnvSamples, _col, _unit
+from hogshade.reference._common import _col, _unit
+from hogshade.reference.legacy_v2 import EnvSamples
 
 _MODULE_NAME = "hogshade.reference.legacy_v1"
 __version__ = "0.1.0"

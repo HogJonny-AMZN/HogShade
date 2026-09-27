@@ -5,7 +5,6 @@ Package: hogshade/ibl/imageio
 
 from __future__ import annotations
 
-import logging as _logging
 import struct
 import zlib
 from pathlib import Path
@@ -16,7 +15,6 @@ from numpy.typing import NDArray
 _MODULE_NAME = "hogshade.ibl.imageio"
 __version__ = "0.1.0"
 __updated__ = "2026-09-20"
-_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 
 def read_exr_rgb(path: Path) -> NDArray[np.float32]:

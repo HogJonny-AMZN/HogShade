@@ -1,5 +1,7 @@
 # Phase 1 plan: repo hygiene
 
+**Status:** Accepted. In progress: the owner's GitHub steps remain (roadmap, track B).
+
 Spec: [../specs/phase-1-hygiene.md](../specs/phase-1-hygiene.md). Branch: `chore/hygiene`, then a
 separate force-push for the history rewrite. Tick a task only when its verification ran.
 

@@ -1,5 +1,7 @@
 # E2 spec: cook performance and resolution
 
+**Status:** Accepted. Delivered.
+
 Date: 2026-09-20. Track E, second item. Follows [e1-ibl-cook.md](e1-ibl-cook.md). Plan:
 [../plans/e2-cook-performance.md](../plans/e2-cook-performance.md).
 

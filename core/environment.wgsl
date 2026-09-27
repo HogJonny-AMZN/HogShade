@@ -1,4 +1,6 @@
 // HogShade core: image-based lighting from the E1 cook. Textures and samplers are parameters.
+// NumPy twins for the texture-free functions in hogshade/reference/environment.py; the GPU harness
+// compares them (tests/core/test_environment_gpu.py). The sampling functions are exercised by the hosts.
 //
 // Conventions (Docs/specs/e1-ibl-cook.md): the specular cube is GGX-prefiltered with roughness
 // linear in mip; the irradiance cube and the SH9 constants store E / pi; the BRDF LUT is indexed

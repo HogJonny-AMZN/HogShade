@@ -26,6 +26,10 @@ sys.path.insert(0, str(ROOT))
 from hogshade.ibl.imageio import preview_srgb8, write_png_rgb8
 from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
 
+_MODULE_NAME = "tools.wgpu.viewport"
+__version__ = "0.1.0"
+__updated__ = "2026-09-27"
+
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)

@@ -1,5 +1,7 @@
 # E2 plan: cook performance and resolution
 
+**Status:** Accepted. Done except the roadmap tick; kept as the record.
+
 Spec: [../specs/e2-cook-performance.md](../specs/e2-cook-performance.md). One PR. Tick a task only when
 its verification ran.
 

@@ -63,7 +63,7 @@ GBUFFER_FORMATS = ("rgba8unorm-srgb", "rgba16float", "rgba8uint", "rg11b10ufloat
 def lfs_hydrated(path: Path) -> bool:
     """False when ``path`` is a Git LFS pointer file rather than the payload (a checkout without LFS)."""
     try:
-        with open(path, "rb") as fh:
+        with path.open("rb") as fh:
             return not fh.read(64).startswith(b"version https://git-lfs")
     except OSError:
         return False
@@ -93,7 +93,7 @@ def load_obj(path: Path) -> Mesh:
     corners: dict[tuple[int, int], int] = {}
     vertices: list[tuple[float, ...]] = []
     tris: list[int] = []
-    with open(path, encoding="utf-8", errors="replace") as fh:
+    with path.open(encoding="utf-8", errors="replace") as fh:
         for line in fh:
             if line.startswith("v "):
                 positions.append([float(x) for x in line.split()[1:4]])
@@ -499,7 +499,7 @@ class Renderer:
         rpass.draw_indexed(self.index_count)
         rpass.end()
 
-    def _read_texture(self, encoder_submit, texture, width: int, height: int, bytes_per_pixel: int, dtype) -> NDArray:
+    def _read_texture(self, texture, width: int, height: int, bytes_per_pixel: int, dtype) -> NDArray:
         wgpu = self.wgpu
         stride = (width * bytes_per_pixel + 255) // 256 * 256
         out = self.device.create_buffer(
@@ -556,9 +556,9 @@ class Renderer:
         rpass.draw(3)
         rpass.end()
         self.device.queue.submit([encoder.finish()])
-        fwd = self._read_texture(None, t["forward"], w, h, 8, np.float16).reshape(h, w, 4)[..., :3].astype(np.float32)
-        dfr = self._read_texture(None, t["deferred"], w, h, 8, np.float16).reshape(h, w, 4)[..., :3].astype(np.float32)
-        depth = self._read_texture(None, t["depth"], w, h, 4, np.float32).reshape(h, w)
+        fwd = self._read_texture(t["forward"], w, h, 8, np.float16).reshape(h, w, 4)[..., :3].astype(np.float32)
+        dfr = self._read_texture(t["deferred"], w, h, 8, np.float16).reshape(h, w, 4)[..., :3].astype(np.float32)
+        depth = self._read_texture(t["depth"], w, h, 4, np.float32).reshape(h, w)
         return Frames(fwd, dfr, depth < 1.0)
 
 

@@ -1,5 +1,7 @@
 # HogShade documentation
 
+**Status:** Living. The map from task to document; rewritten as folders and documents land.
+
 Four layers, in the order they are written. Nothing is built from a layer that does not exist yet.
 
 | Layer | Folder | What it answers | When it is written |

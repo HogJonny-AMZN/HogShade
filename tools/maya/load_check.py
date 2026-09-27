@@ -17,6 +17,10 @@ from pathlib import Path
 import _session as s
 from maya import cmds
 
+_MODULE_NAME = "tools.maya.load_check"
+__version__ = "0.1.0"
+__updated__ = "2026-09-27"
+
 SHADER = Path(os.environ.get("HOGSHADE_FX", str(s.ROOT / "hosts" / "maya_dx11" / "hogshade.fx")))
 LOG = s.output_dir(os.environ.get("HOGSHADE_CHECK", "load-check")) / "check.log"
 

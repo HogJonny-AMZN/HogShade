@@ -16,6 +16,7 @@ from numpy.typing import NDArray
 
 from hogshade.core_constants import MODEL_LEGACY_V2, ROUGHNESS_BIAS
 from hogshade.reference import brdf, lighting
+from hogshade.reference._common import _col, _unit, luminance
 
 _MODULE_NAME = "hogshade.reference.legacy_v2"
 __version__ = "0.1.0"
@@ -139,14 +140,6 @@ class Terms:
     specular: NDArray
 
 
-def _unit(v: NDArray) -> NDArray:
-    return v / np.maximum(np.linalg.norm(v, axis=-1, keepdims=True), 1e-12)
-
-
-def _col(x: NDArray) -> NDArray:
-    return np.asarray(x)[..., None]
-
-
 def alpha_biased(roughness: NDArray) -> NDArray:
     rough_a = roughness * roughness
     return rough_a * (1.0 - ROUGHNESS_BIAS) + ROUGHNESS_BIAS
@@ -154,10 +147,6 @@ def alpha_biased(roughness: NDArray) -> NDArray:
 
 def roughness_biased(roughness: NDArray) -> NDArray:
     return roughness * (1.0 - ROUGHNESS_BIAS) + ROUGHNESS_BIAS
-
-
-def luminance(c: NDArray) -> NDArray:
-    return 0.3 * c[..., 0] + 0.6 * c[..., 1] + 0.1 * c[..., 2]
 
 
 def f0_from_ior(ior: NDArray) -> NDArray:

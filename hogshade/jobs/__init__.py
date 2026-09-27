@@ -14,12 +14,10 @@ them so a registry or an MCP tool can list the library without importing anythin
 from __future__ import annotations
 
 import importlib
-import logging as _logging
 
 _MODULE_NAME = "hogshade.jobs"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
-_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 JOB_MODULES = ("hogshade.jobs.cook_ibl", "hogshade.jobs.maya_ibl_check")
 

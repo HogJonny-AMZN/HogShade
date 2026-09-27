@@ -29,7 +29,7 @@ def test_every_wgsl_constant_is_mirrored() -> None:
     assert not missing, f"add to hogshade/core_constants.py: {sorted(missing)}"
 
 
-def test_model_ids_match_the_dispatch_switch() -> None:
+def test_model_ids_match_the_dispatch_chain() -> None:
     models = (ROOT / "core" / "models.wgsl").read_text(encoding="utf-8")
     assert f"i.surface.model == {cc.MODEL_LAMBERT}u" in models
     assert f"i.surface.model == {cc.MODEL_LEGACY_V1}u" in models
