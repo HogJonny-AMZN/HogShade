@@ -412,6 +412,18 @@ the schema; an instance is the engine's in-memory overrides and never a file. Th
 2026-09-20 "Interchange" row, written before the Prime noun existed, is amended in place with the
 date. The other nine questions of the design remain open; the design stays Exploring.
 
+### The schema design locked (owner, 2026-09-27)
+
+All ten questions answered; the design's table keeps the owner's words. The calls that shape S1:
+the legacy models are separate material types sharing the document format, with conversion tables
+as the comparison route ("separate and legacy, but then what's the best route to compare???", and
+the answer is convert, not share); texture packing is out of the schema ("a cook and runtime loader
+question, not material authoring; they are optimizations"); HogShade's standard is the base
+standard for every downstream project; emission in nits; the version mechanism from the first file
+with nothing brought forward; specular occlusion in the surface group as a game and taste choice;
+MaterialX an optional extra (measured: Maya's Python lacks it, Blender's ships 1.39.4); the schema
+as package data; the three truths of question 10. Formalised in the design; ADR-009 stands.
+
 ## 4. What moved out of this file (2026-09-27)
 
 | Was here | Now |

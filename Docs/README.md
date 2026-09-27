@@ -69,9 +69,9 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
 - [design/2026-09-20-wysiwyg-blindspots.md](design/2026-09-20-wysiwyg-blindspots.md): what it takes for
   the same material to look the same in every host, and the gaps the first direction had.
 - [design/2026-09-27-material-schema.md](design/2026-09-27-material-schema.md): the material
-  schema's pre-spec design, Exploring until the owner locks it: the versioned parameter definition,
+  schema's pre-spec design, locked by the owner on 2026-09-27: the versioned parameter definition,
   the O3DE-shaped document, the MaterialX and glTF exports, the `hogshade.material` library and its
-  generators, the library of materials, a cross-repo table, ten open questions, six increments.
+  generators, the library of materials, a cross-repo table, the ten questions answered in the owner's words, six increments.
 - [design/2026-09-27-pitch-bats-as-the-agents-body.md](design/2026-09-27-pitch-bats-as-the-agents-body.md):
   the pitch for the agent loop on the orchestrator (why, why BATS, what, how, risks, the ask), written
   for the owner's team; Proposed until sent.
