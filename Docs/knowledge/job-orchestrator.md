@@ -99,6 +99,10 @@ inline probe, `--pool` for what is running. Until a worker runs on the HogShade 
 - `JobRequest` fields: `dcc_type` (the worker type), `execution_mode` (`HEADLESS` or `GUI`),
   `script` or `module_path` plus `entry_point`, `parameters` (strings), `execute_on_main_thread`
   (viewport work), `job_name`, `tags`. Statuses stream as enums; `JobStatus.Name()` gives the text.
+- MCP validated 2026-09-26 with a scratch stdio client (`mcp.client.stdio` against
+  `python -m mcp_server.server` in the dev checkout): twenty `bats_*` tools, `bats_list_worker_types`
+  correct; `bats_get_orchestrator_status` reported `ready_workers: 0` with four READY, a counting
+  bug to fix on the dev checkout. A session started in this repo attaches it through `.mcp.json`.
 - The MCP server (`launchers/run_mcp_server.ps1`, stdio or HTTP on 8765) exposes the same
   operations as `bats_*` tools; attaching it to an agent session is a settings change the owner
   approves.

@@ -46,8 +46,10 @@ verification ran.
 - [x] 10. Cook both environments (studio 75 s, orchard 68 s); `preview.png` per environment. The `.dds`
       outputs are LFS and waited with the EXRs for the fork-network detach; manifests, SH9 and previews
       landed first, the `.dds` files and `brdf_lut.dds` on 2026-09-26 with the EXRs.
-- [ ] 11. Maya 2026: load `studio_small_09/cooked/*.dds` into the v2 shader's environment slots on a
-      sphere; screenshot to `Docs/verification/`. **Partial 2026-09-20.** Both DDS files decode in Maya
+- [x] 11. Maya 2026: load `studio_small_09/cooked/*.dds` into the v2 shader's environment slots on a
+      sphere; screenshot to `Docs/verification/`. **Closed 2026-09-26 by phase 2 task 17:** the HogShade
+      shell renders both terms and the specular reflection (`Docs/verification/maya/maya-2026-hogshade-ibl-*.png`).
+      **Partial 2026-09-20 (legacy shader):** Both DDS files decode in Maya
       (256 and 32 reported by the file nodes) and the diffuse environment term visibly lights a white
       dielectric ball (`Docs/verification/maya/maya-2026-ibl-studio_small_09-diffuse-term.png`, debug view 27, exposure 1,
       gamma off). The final composite and the specular term render black, and the cause is in the

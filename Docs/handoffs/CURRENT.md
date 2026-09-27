@@ -1,12 +1,20 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-09-26, on branch `feat/phase2-maya-shell` (phase 2 PR F, not yet a PR).
+**Last updated:** 2026-09-26, PR #18 (the Maya gate passed; PR F complete).
 
 A new session reads this, then `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then
 `Docs/ROADMAP.md`, then the plan in flight (`Docs/plans/phase-2-restructure.md`).
 
 ## In flight
+
+**PR F is complete.** The Maya gate (plan task 17) passed on 2026-09-26 as a BATS job on the
+`hogshade_maya_gui` worker: `Main` technique listed, cubes and LUT decoded, pictures under
+`Docs/verification/maya/`. Next in the agreed order: the legacy v1 port (plan task 18), then the
+standards pass, then the phase 2 close. The MCP path was validated the same day with a scratch
+stdio client: twenty tools, correct per-type counts.
+
+## Previous state (kept until the v1 port starts)
 
 Phase 2 PR F: the Maya `dx11Shader` shell over the generated shader-model 5 core. Done and committed
 on the branch: `hosts/maya_dx11/hogshade.fx` (compiles under fxc in 14 s, `tests/compile`),

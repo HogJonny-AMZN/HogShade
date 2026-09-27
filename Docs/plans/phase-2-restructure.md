@@ -136,7 +136,7 @@ own. Tick a task only when its verification ran.
       tone mapping, the output is scene-linear pre-multiplied. `tests/compile/` compiles it with
       `fxc /T fx_5_0 /D _MAYA_=1`: 14 seconds, the FXC canary's first reading. One naga rename bit:
       `specular_f0` is `specular_f0_` in the generated HLSL.
-- [ ] 17. `tools/maya/ibl_check.py` pointed at `hogshade.fx`: lit ball, specular visible, both cube
+- [x] 17. `tools/maya/ibl_check.py` pointed at `hogshade.fx`: lit ball, specular visible, both cube
       slots decoded; screenshot and log committed. This replaces E1's partial task 11.
       **In progress 2026-09-26.** The shell compiles under fxc but Maya's dx11Shader lists no
       techniques for it, so Maya's own compile error is the next thing to read; the session helper
@@ -145,6 +145,13 @@ own. Tick a task only when its verification ran.
       launcher bug, and a retry loop that killed a Maya the owner's orchestrator had started), so
       the check moves to a Job_Orchestrator (BATS) job on a resident Maya GUI worker; the `.mel`
       launcher stays for anyone without BATS. `tools/maya/_session.py` is shared by both paths.
+      **Passed 2026-09-26** as the job `hogshade.jobs.maya_ibl_check` on the `hogshade_maya_gui`
+      worker (PR #18): `TECHNIQUES: ['Main']` (effect load 14.4 s), both cubes decoded (256 and 32),
+      the LUT decoded (256), `RESULT: OK`; `Docs/verification/maya/maya-2026-hogshade-ibl-studio_small_09.png`
+      shows the lit grey dielectric with the key-light highlight and the studio reflection, and
+      `-debug-28.png` (the specular environment term) mirrors the studio in the ball. The compile
+      failure of the first standalone runs was the string parameters carrying vertex semantics,
+      removed in PR #15; nothing else changed in the shell. E1 task 11 is closed by this.
 - [ ] 18. Legacy v1 port (`core/models/legacy_v1.wgsl`) with its own reference and tests; selectable
       in both hosts.
 
