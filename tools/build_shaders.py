@@ -1,6 +1,6 @@
 """
 HogShade: stitch the WGSL core, validate it, translate it for the hosts, and compile what the hosts compile.
-Package: tools/build_shaders.py
+Package: tools/build_shaders
 
     uv run tools/build_shaders.py            # build everything, write hosts/*/generated/
     uv run tools/build_shaders.py --check    # build to a temp dir and fail if it differs from what is committed
@@ -34,6 +34,10 @@ import sys
 import tempfile
 import tomllib
 from pathlib import Path
+
+_MODULE_NAME = "tools.build_shaders"
+__version__ = "0.1.0"
+__updated__ = "2026-09-27"
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE = ROOT / "core"

@@ -1,0 +1,130 @@
+# Failure modes
+
+**Status:** Living. Append-only, like the ADRs.
+**Last updated:** 2026-09-27 (seeded in the standards pass from this repository's own week)
+**Read with:** [definition-of-done.md](definition-of-done.md), [../plan/BOARD.md](../plan/BOARD.md) "How this stays honest", [../journal/README.md](../journal/README.md)
+
+**This is the ledger of how the work has gone wrong**, not the work. Every entry is a defect in
+process this repository can prove from its own history, written as **Trigger, Do, Because** so it is
+usable at the moment it applies. The shape is LargeWorlds' ledger, which took it from SpriteJammer.
+
+It works by being read: `Docs/` is loaded before work starts, so retrieval is the enforcement.
+Where a class can be mechanised, mechanise it and link the check here; the entry then says why the
+check exists. Entries 3, 4, 6, 8 and 9 have checks today.
+
+## The ledger
+
+### 1 · A belief carried from a document instead of the record
+
+**Trigger:** Porting, summarising or planning from a roadmap, a design doc or a README's description
+of what code does.
+**Do:** Read the source, the include graph, the log. Correct the document in the same change.
+**Because:** The roadmap and the direction doc said the 2015 shader shipped three BRDFs. The effect
+file included one; the other two could not have compiled. Found only when the port began (PR #19;
+journal, session 01).
+
+### 2 · A claim made before the evidence exists
+
+**Trigger:** Writing "CI green", "tests pass", "carried on the board" or "passed on D3D12" into a
+reply, a PR body or a review thread.
+**Do:** Run the thing, read the result, then write the sentence. A checkbox ticked at open is
+unticked until read.
+**Because:** PR #13's D3D12 claim went out before the run finished and had to be corrected; PR #20's
+CI box was ticked while CI was pending; a Copilot reply said a note was "carried on the board" before
+the row existed. Each was true a few minutes later, which is not the same as true.
+
+### 3 · A gate whose failure a pipe swallowed
+
+**Trigger:** A command chain with `| tail`, `| head` or `| grep` after the command that decides.
+**Do:** Capture the exit code (`cmd > log; rc=$?`) and test it before anything that commits or
+pushes. The `review-and-pr` skill says so.
+**Because:** The board's first commit went out with two failing checker tests because pytest's exit
+code disappeared behind a `tail` and the chain kept going to `git push` (journal, session 01).
+
+### 4 · A shell heredoc carrying a script it cannot quote
+
+**Trigger:** Writing a Python script with backslashes (`\n` in strings, regex, Windows paths) inside
+a Bash heredoc in an agent session.
+**Do:** Write the script to a file with the Write tool and run the file.
+**Because:** The Bash tool mangles backslashes inside heredocs; an edit script's anchor silently
+missed and the failing state was committed (entry 3 caught the second half). LargeWorlds' ledger has
+the same entry; it was re-learned here.
+
+### 5 · A manifest nobody registered
+
+**Trigger:** Adding a job, a model, a module, a host: anything with a registry beside it.
+**Do:** Prefer discovery to a hand-kept list; where the list exists, the test that lists it fails
+on a member missing from it.
+**Because:** `hogshade.jobs.maya_ibl_check` carried a `MANIFEST` for a day while `JOB_MODULES`
+listed only the cook, so the registry could not find it (Copilot on #19). The job-provider row on
+the board is the mechanisation.
+
+### 6 · A checker that cannot fail for part of a file
+
+**Trigger:** Writing or trusting a check that skips regions (fenced code, excluded folders, a
+`try` around a whole loop).
+**Do:** Make the skip itself a finding when it swallows more than intended; test the edge (an
+unclosed fence, a link above the root, a BOM).
+**Because:** `tools/check_docs.py` dropped everything after an unclosed fence, so links and status
+lines after a typo were unchecked and the file looked green; a `..` link resolved against whatever
+sat beside the checkout. Both found by the checker's own local review (#21) and fixed with tests.
+
+### 7 · A resident session that remembers
+
+**Trigger:** Running a check on a long-lived DCC worker rather than a fresh process.
+**Do:** Start every check from a new scene; release every file the check opened (history mirroring
+off at the end); never assume the process state is yours.
+**Because:** The v1 Maya check ran with the v2 sphere still in the scene, and the check left Script
+Editor history mirroring on, so the worker kept the committed log open and growing; git could not
+restore it (#19, #20).
+
+### 8 · A test degeneracy blamed on the shader
+
+**Trigger:** NaN or a wild value from a GPU test on a few rows.
+**Do:** Check the harness's random inputs for coincidences (a view equal to the light after a facing
+flip) before touching the shader; seed each vector family separately.
+**Because:** `test_legacy_v1_gpu.py` produced NaN where the half vector was zero length; the fix was
+a seed offset, not a shader change (journal, session 01).
+
+### 9 · A path parameter that arrives from outside
+
+**Trigger:** A job or environment parameter that becomes a directory or file name.
+**Do:** Refuse `..` and anything that resolves outside the intended root, before `mkdir`; test the
+climb.
+**Because:** `output_dir` split the job's `variant` into path components and would have written
+anywhere; the first guard only checked the resolved path and let a two-level climb land inside the
+root because the probe was too weak (#20). `tests/tools/test_maya_session.py` holds the cases.
+
+### 10 · A default assumed from another repository
+
+**Trigger:** `gh pr create`, a branch name, a path convention, a CI leg count, carried from the last
+repository worked in.
+**Do:** Read the repository's own value (`git symbolic-ref refs/remotes/origin/HEAD`) and write it
+into the skill that needs it.
+**Because:** Two PR creates failed against `main`; this repository's default branch is `master`.
+The `review-and-pr` skill now says so.
+
+### 11 · Idea velocity outrunning landing velocity
+
+**Trigger:** A day that adds more board rows than it strikes through; "next" unchanged for two
+sessions.
+**Do:** Say it out loud, then do the next landed increment before the next idea. The board exists so
+the ideas keep; it does not exist so they queue forever.
+**Because:** 2026-09-27 added nine Icebox rows and three design-first items while the standards pass
+stayed "next" from the previous morning. The owner asked for verdicts on ideas the same day; this
+entry is the verdict on the pattern.
+
+### 12 · An author's additions that skip the review
+
+**Trigger:** Adding a section to a reviewed document after its review pass, on the author's ask.
+**Do:** Run the pass again over the additions before calling the document done; the additions
+arrive with the most conviction and the least review.
+**Because:** The pitch's six days and scaffolding group, added after the first editorial pass,
+carried a promise the proposed week did not keep, a ledger this repository does not have, and
+sample numbers reading as measurements. The second pass caught all three (`../reviews/`).
+
+## How to add an entry
+
+When process fails again, append in the same PR as the fix: a trigger you would notice, the action
+it should cause, and the PR or commit that proves it. Mechanise the class when a check can, and
+link the check. Never rewrite an old entry; add a new one that supersedes it.

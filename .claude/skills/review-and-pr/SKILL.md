@@ -7,8 +7,8 @@ description: Open a HogShade pull request the way this repo expects, and assess 
 
 ## Before the PR
 
-1. Hygiene grep, nothing new may match outside `legacy/` and the roadmap's own clearance track:
-   `git grep -n -i -E "bluepoint|sony|bp_py|bp_color" -- ':!legacy'`.
+1. `uv run python tools/check_hygiene.py` is clean. The identifiers and the allowlist live in that
+   tool; a new match is a finding, an allowlisted one prints as allowed.
 2. Lint and tests: `uv run ruff format hogshade tests tools`, `uv run ruff check hogshade tests
    tools`, the full suite, and for shader changes the `shader-build` skill's four commands.
 3. Docs in the same PR: `Docs/plan/BOARD.md` (the landed row struck through with its PR number, any

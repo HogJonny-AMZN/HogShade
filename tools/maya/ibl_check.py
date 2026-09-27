@@ -28,6 +28,10 @@ from pathlib import Path
 import _session as s
 from maya import cmds
 
+_MODULE_NAME = "tools.maya.ibl_check"
+__version__ = "0.1.0"
+__updated__ = "2026-09-27"
+
 ENV = os.environ.get("HOGSHADE_ENV", "studio_small_09")
 SHADER = Path(os.environ.get("HOGSHADE_FX", str(s.ROOT / "hosts" / "maya_dx11" / "hogshade.fx")))
 COOKED = Path(os.environ.get("HOGSHADE_COOKED", str(s.ROOT / "content" / "ibl" / ENV / "cooked")))

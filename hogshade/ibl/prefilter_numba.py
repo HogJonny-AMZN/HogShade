@@ -9,7 +9,6 @@ to NumPy when it is absent. The maths is duplicated deliberately, line for line 
 
 from __future__ import annotations
 
-import logging as _logging
 import math
 
 import numpy as np
@@ -19,7 +18,6 @@ from numpy.typing import NDArray
 _MODULE_NAME = "hogshade.ibl.prefilter_numba"
 __version__ = "0.1.0"
 __updated__ = "2026-09-20"
-_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 
 def pack_pyramid(pyramid: list[NDArray]) -> tuple[NDArray, NDArray, NDArray, NDArray]:

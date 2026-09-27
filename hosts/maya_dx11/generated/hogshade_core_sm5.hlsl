@@ -230,7 +230,6 @@ struct legacy_v2_Terms {
 static const float HOGSHADE_PI = 3.1415927;
 static const float HOGSHADE_INV_PI = 0.31830987;
 static const float HOGSHADE_ROUGHNESS_BIAS = 0.005;
-static const float HOGSHADE_IRRADIANCE_OVER_PI = 1.0;
 static const float HOGSHADE_SH_A0_ = 3.1415927;
 static const float HOGSHADE_SH_A1_ = 2.0943952;
 static const float HOGSHADE_SH_A2_ = 0.7853982;

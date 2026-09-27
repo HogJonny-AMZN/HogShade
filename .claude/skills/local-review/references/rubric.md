@@ -19,7 +19,7 @@ do not score it.
 | Error handling | Specific exception types, context on re-raise across layers, empty and None paths; a check writes its log before its pictures so a crash leaves evidence |
 | Logging | Consistent `_LOGGER` use, appropriate levels, no stray `print()` outside a script's own entry point; no emoji |
 | Coding standards | 120 columns, absolute imports, type hints, module header, `pathlib` for paths with `str()` only at an API boundary, reST docstrings |
-| Core contract | *When `core/` is in scope*: the prefix rule, parameters not globals, NumPy twin and GPU test, mirrored constants, if-chain dispatch and single returns, generated artifacts current, kept quirks documented |
+| Core contract | *When `core/` is in scope*: the prefix rule, parameters not globals, NumPy twin and GPU test, mirrored constants, if-chain dispatch on the model ID, generated artifacts current, kept quirks documented |
 
 ## Baseline
 

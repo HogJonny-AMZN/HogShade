@@ -12,8 +12,7 @@ const HOGSHADE_INV_PI: f32 = 0.318309886183791;
 const HOGSHADE_ROUGHNESS_BIAS: f32 = 0.005;
 
 // The E1 cook: specular mips are linear in roughness, mip = roughness * (mip_count - 1);
-// irradiance cubes and SH9 store E / pi, so multiply by albedo directly.
-const HOGSHADE_IRRADIANCE_OVER_PI: f32 = 1.0;
+// irradiance cubes and SH9 store E / pi, so a model multiplies by albedo directly.
 
 // Spherical-harmonic cosine-lobe band weights for L2 (Ramamoorthi and Hanrahan), applied to
 // radiance coefficients before dividing by pi.
@@ -24,7 +23,7 @@ const HOGSHADE_SH_A2: f32 = 0.78539816339745;
 // Dielectric F0 assumed when a host cannot supply a specular colour (the deferred path).
 const HOGSHADE_DIELECTRIC_F0: f32 = 0.04;
 
-// Shading-model IDs: the byte the G-buffer carries and the switch in models.wgsl dispatches on.
+// Shading-model IDs: the byte the G-buffer carries and the if-chain in models.wgsl dispatches on.
 const HOGSHADE_MODEL_LAMBERT: u32 = 0u;
 const HOGSHADE_MODEL_LEGACY_V1: u32 = 1u;
 const HOGSHADE_MODEL_LEGACY_V2: u32 = 2u;
@@ -301,6 +300,8 @@ fn lighting_slots_empty() -> FixedSlots16 {
 
 // ---- environment.wgsl ----
 // HogShade core: image-based lighting from the E1 cook. Textures and samplers are parameters.
+// NumPy twins for the texture-free functions in hogshade/reference/environment.py; the GPU harness
+// compares them (tests/core/test_environment_gpu.py). The sampling functions are exercised by the hosts.
 //
 // Conventions (Docs/specs/e1-ibl-cook.md): the specular cube is GGX-prefiltered with roughness
 // linear in mip; the irradiance cube and the SH9 constants store E / pi; the BRDF LUT is indexed
@@ -509,6 +510,7 @@ fn gbuffer_reconstruct(s: SurfaceInputs, view_ws: vec3<f32>, position_ws: vec3<f
 // ---- models/lambert.wgsl ----
 // HogShade core, model 0: Lambert. The floor every host can run, and the placeholder that proves the
 // model interface before the legacy ports land. Diffuse only; the specular F0 is ignored.
+// NumPy twin in hogshade/reference/lambert.py; tests/core/test_lambert_gpu.py compares them.
 
 fn lambert_inputs(
     base_color: vec3<f32>,

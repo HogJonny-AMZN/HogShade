@@ -1,5 +1,7 @@
 # E1 plan: the IBL cook
 
+**Status:** Accepted. Done 2026-09-26; kept as the record of the tasks and their verification.
+
 Spec: [../specs/e1-ibl-cook.md](../specs/e1-ibl-cook.md). One PR. Tick a task only when its
 verification ran.
 

@@ -9,8 +9,6 @@ coefficients L_lm; reconstruction applies the Ramamoorthi and Hanrahan weights a
 
 from __future__ import annotations
 
-import logging as _logging
-
 import numpy as np
 from numpy.typing import NDArray
 
@@ -19,7 +17,6 @@ from hogshade.ibl.cubemap import equirect_texel_directions, equirect_texel_solid
 _MODULE_NAME = "hogshade.ibl.irradiance"
 __version__ = "0.1.0"
 __updated__ = "2026-09-20"
-_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 SH_A = (np.pi, 2.0 * np.pi / 3.0, np.pi / 4.0)  # cosine-lobe band weights, l = 0, 1, 2
 

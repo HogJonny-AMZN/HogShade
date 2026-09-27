@@ -52,8 +52,8 @@ The rubric is constant; the concrete standards come from these files.
 - Default branch: `git symbolic-ref refs/remotes/origin/HEAD` (this repo's is `master`).
 - `git diff master...HEAD`, plus `git diff` and `git diff --cached`.
 - Read the changed hunks and the functions they touch, enough surrounding code to judge them.
-- Run the hygiene grep and treat any new match outside `legacy/` as a hard finding:
-  `git grep -n -i -E "bluepoint|sony|bp_py|bp_color" -- ':!legacy'`.
+- Run `uv run python tools/check_hygiene.py` and treat any finding as hard (the identifiers and the
+  allowlist live in the tool).
 - If `core/` changed: `uv run python tools/build_shaders.py --check` must report the generated
   artifacts current; a stale artifact is a hard finding. Generated files under `hosts/*/generated/`
   are never reviewed for style, only for being current.
@@ -72,8 +72,9 @@ The core contract, each item a finding when missed:
 - Textures, samplers and uniforms arrive as function parameters; no bound globals in the core.
 - Every function has a NumPy twin in `hogshade/reference/` and a GPU test in `tests/core/` that
   compares them; constants used by both are mirrored in `hogshade/core_constants.py`.
-- Dispatch is an if-chain, never a `switch` on a texture-derived value; every function has a single
-  return (FXC rejects both).
+- Dispatch on the model ID is an if-chain, never a `switch` on a value derived from a uint texture while
+  texture parameters are in scope (FXC rejects that shape; `core/models.wgsl`'s header). A `switch` on a
+  uniform such as the debug mode, and early returns, are fine and the core uses both.
 - Names ending in a digit get `_` appended by naga; a host that references one must use the
   translated spelling.
 - Kept quirks of a legacy port are listed in the module header with the deviations; a quirk removed

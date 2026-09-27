@@ -1,5 +1,7 @@
 # Phase 2 plan: the WGSL core and its first two hosts
 
+**Status:** Accepted. In progress: the standards pass and the phase close remain.
+
 Spec: [../specs/phase-2-restructure.md](../specs/phase-2-restructure.md). Several PRs; the spike is its
 own. Tick a task only when its verification ran.
 

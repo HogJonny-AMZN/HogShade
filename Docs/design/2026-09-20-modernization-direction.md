@@ -1,5 +1,7 @@
 # HogShade: modernization direction for Maya-PBR-BRDF-VP2
 
+**Status:** Accepted (owner, 2026-09-20). The architecture and the decisions; the ADRs in `../decisions/` formalise the structural ones (2026-09-27).
+
 Date: 2026-09-20. Status: direction agreed with the owner; no code changed yet.
 This is the pre-plan design record. The phased plan with checkboxes follows once phase 1 lands.
 

@@ -30,6 +30,10 @@ import json
 import os
 from pathlib import Path
 
+_MODULE_NAME = "tools.bats.make_profile"
+__version__ = "0.1.0"
+__updated__ = "2026-09-27"
+
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 JO_ROOT = Path(os.environ.get("JOB_ORCHESTRATOR_ROOT", "D:/Depot/Job_Orchestrator"))

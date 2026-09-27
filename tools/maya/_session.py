@@ -19,6 +19,10 @@ from pathlib import Path
 
 from maya import cmds
 
+_MODULE_NAME = "tools.maya._session"
+__version__ = "0.1.0"
+__updated__ = "2026-09-27"
+
 ROOT = Path(os.environ.get("HOGSHADE_ROOT", os.getcwd()))
 VERIFICATION = Path(os.environ.get("HOGSHADE_VERIFICATION", str(ROOT / "verification")))
 MAYA_VERSION = "2026"
@@ -179,34 +183,34 @@ def capture_debug_modes(node: str, png: Path, out: Log, default_modes: str) -> N
     cmds.setAttr(f"{node}.g_DebugMode", 0)
 
 
-def quit_maya() -> None:
+def quit_maya(out: Log) -> None:
     """Quit now, and on the next idle tick as a fallback, so a standalone check never leaves an idle Maya."""
     cmds.evalDeferred("import maya.cmds as c; c.quit(force=True)", lowestPriority=True)
     try:
         cmds.quit(force=True)
     except Exception as e:  # noqa: BLE001 - the deferred quit is the fallback
-        print(f"direct quit refused, deferred quit pending: {e!r}")
+        out.append(f"direct quit refused, deferred quit pending: {e!r}")
 
 
-def _stop_history() -> None:
+def _stop_history(out: Log) -> None:
     """Stop mirroring the Script Editor: a resident worker otherwise keeps the committed log open and growing."""
     try:
         cmds.scriptEditorInfo(writeHistory=False)
     except Exception as e:  # noqa: BLE001 - never let the log teardown mask the result
-        print(f"history mirroring not stopped: {e!r}")
+        out.append(f"history mirroring not stopped: {e!r}")
 
 
 def finish(out: Log, ok: bool, quit_after: bool = True) -> None:
     out.append("RESULT: OK" if ok else "RESULT: FAILED")
     out.append(f"MAYA: {cmds.about(version=True)}")
-    _stop_history()
+    _stop_history(out)
     if quit_after:
-        quit_maya()
+        quit_maya(out)
 
 
 def fail(out: Log, quit_after: bool = True) -> None:
     out.append("RESULT: FAILED" + "\n" + traceback.format_exc())
     out.append(f"MAYA: {cmds.about(version=True)}")
-    _stop_history()
+    _stop_history(out)
     if quit_after:
-        quit_maya()
+        quit_maya(out)

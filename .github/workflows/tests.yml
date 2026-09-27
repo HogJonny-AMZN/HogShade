@@ -43,6 +43,9 @@ jobs:
       - name: Docs (links, status headers, the journal index)
         run: uv run tools/check_docs.py
 
+      - name: Hygiene (no studio identifier outside the allowlist)
+        run: uv run tools/check_hygiene.py
+
       - name: Build shaders (fails if committed artifacts are stale)
         run: uv run tools/build_shaders.py --check --require-compilers
 

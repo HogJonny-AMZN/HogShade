@@ -59,16 +59,9 @@ EXCLUDED_PARTS = {
     "verification",
 }
 
-#: Directories (repo-relative, POSIX) whose documents must carry a status header. The design, spec
-#: and plan folders join in the standards pass, once every file there has one.
-STATUS_REQUIRED_DIRS = (
-    "Docs/decisions",
-    "Docs/handoffs",
-    "Docs/journal",
-    "Docs/knowledge",
-    "Docs/plan",
-    "Docs/standards",
-)
+#: Directories (repo-relative, POSIX) whose documents must carry a status header: all of ``Docs/`` since
+#: the standards pass (2026-09-27). Journal session files are the exemption; they are dated entries.
+STATUS_REQUIRED_DIRS = ("Docs",)  # all of Docs/ since the standards pass; journal session files exempt
 
 #: The vocabulary (SpriteJammer ``documentation.md``): a reader must be able to tell a decision from a
 #: hypothesis, and a live document from a stale one.

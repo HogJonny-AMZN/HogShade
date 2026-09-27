@@ -1,5 +1,7 @@
 # Game shading and material features: the catalogue
 
+**Status:** Accepted (owner, 2026-09-20). The catalogue of features and where each lives; amended as phases land.
+
 Date: 2026-09-20. Companion to [2026-09-20-modernization-direction.md](2026-09-20-modernization-direction.md).
 
 OpenPBR defines how a surface responds to light. It says nothing about how the inputs to that

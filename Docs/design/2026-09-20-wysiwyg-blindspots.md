@@ -1,5 +1,7 @@
 # WYSIWYG across the pipeline: blind spots in the modernization direction
 
+**Status:** Accepted (owner, 2026-09-20). Its fixes are roadmap track E items.
+
 Date: 2026-09-20. Reviews [2026-09-20-modernization-direction.md](2026-09-20-modernization-direction.md)
 and [../ROADMAP.md](../ROADMAP.md) through a full-stack production lens: the same material must look
 the same in the look-dev DCC, the content tools, the offline renderer and the engine's editor and

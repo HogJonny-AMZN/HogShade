@@ -1,5 +1,7 @@
 # E1 spec: the IBL cook
 
+**Status:** Accepted. Delivered 2026-09-26.
+
 Date: 2026-09-20. Track E (parity and pipeline), first item. Design:
 [../design/2026-09-20-wysiwyg-blindspots.md](../design/2026-09-20-wysiwyg-blindspots.md) finding 2,
 and the roadmap's "no real-time host convolves its own". Plan: [../plans/e1-ibl-cook.md](../plans/e1-ibl-cook.md).
