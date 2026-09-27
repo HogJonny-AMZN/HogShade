@@ -219,7 +219,7 @@ machine and are recorded in `Docs/verification/`.
 - `hosts/wgpu/`: `lit_mesh.wgsl` (forward: inputs then evaluate), `gbuffer_fill.wgsl` and
   `deferred_light.wgsl` (the two halves), each a thin entry point over the stitched core, validated
   by naga. A wgpu-py test viewport on the `Spikes/wgpu_tile` pattern draws the shader ball with the
-  legacy v2 model under the studio IBL and writes `Docs/verification/wgpu/wgpu-v2-studio.png`.
+  legacy v2 model under the studio IBL and writes `Docs/verification/wgpu/shader-ball/<env>/forward.png`.
 - `hosts/maya_dx11/`: `hogshade.fx`, the shell: effect parameters and annotations (generated from
   the parameter schema in phase 3; hand-written for the legacy parameter set now), texture and
   sampler declarations, the 16 light slots bound through `Object = "Light N"`, techniques and passes,

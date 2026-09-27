@@ -15,7 +15,7 @@ separate force-push for the history rewrite. Tick a task only when its verificat
 - [x] 6. README with the getting-started guide and carried-forward credits.
 - [x] 7. `Docs/` split into roadmap, design, specs, plans with a `Docs/README.md` explaining the layers.
 - [x] 8. Scripted Maya 2026 GUI launch loads v2 through `dx11Shader`; log committed to
-      `Docs/verification/maya/maya-2026-v2-load.log` with `RESULT: OK`. First run found the viewport on
+      `Docs/verification/maya-2026/legacy-v2-load/check.log` with `RESULT: OK`. First run found the viewport on
       OpenGL Core Profile (no techniques); the launch sets `MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11`
       so the check does not depend on, or change, the user's preferences. **Verified 2026-09-20:**
       `TECHNIQUES: ['TessellationOFF']`, `RESULT: OK`; log committed; script at `tools/maya/load_check.py`.

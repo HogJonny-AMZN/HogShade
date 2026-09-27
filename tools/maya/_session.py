@@ -9,7 +9,7 @@ A check script is a module in this folder with a ``run()`` that the .mel launche
     python("import os, sys; sys.path.insert(0, os.environ.get('HOGSHADE_ROOT', os.getcwd()) + '/tools/maya'); import ibl_check")
 
 Environment every script honours: HOGSHADE_ROOT (repo root, default the working directory),
-HOGSHADE_VERIFICATION (default <root>/Docs/verification/maya).
+HOGSHADE_VERIFICATION (default <root>/Docs/verification).
 """
 
 import os
@@ -19,7 +19,7 @@ import traceback
 from maya import cmds
 
 ROOT = os.environ.get("HOGSHADE_ROOT", os.getcwd()).replace("\\", "/")
-VERIFICATION = os.environ.get("HOGSHADE_VERIFICATION", f"{ROOT}/Docs/verification/maya").replace("\\", "/")
+VERIFICATION = os.environ.get("HOGSHADE_VERIFICATION", f"{ROOT}/Docs/verification").replace("\\", "/")
 MAYA_VERSION = "2026"
 
 
@@ -39,10 +39,13 @@ class Log(list):
             f.write("\n".join(self) + "\n")
 
 
-def output_paths(tag: str, env: str = "") -> tuple:
-    """(log path, png path) under the verification folder: maya-<version>-<tag>[-<env>].{log,png}."""
-    stem = f"{VERIFICATION}/maya-{MAYA_VERSION}-{tag}" + (f"-{env}" if env else "")
-    return stem + ".log", stem + ".png"
+def output_dir(check: str, variant: str = "") -> str:
+    """One directory per capture: <verification>/maya-<version>/<check>[/<variant>]; files inside are named
+    by role only (check.log, main.png, debug-18.png, maya-history.log). Host, version, check and variant
+    are directory levels, never encoded into a file name."""
+    path = f"{VERIFICATION}/maya-{MAYA_VERSION}/{check}" + (f"/{variant}" if variant else "")
+    os.makedirs(path, exist_ok=True)
+    return path
 
 
 def load_dx11_shader(node_name: str, fx_path: str, out: Log) -> tuple:
@@ -50,7 +53,7 @@ def load_dx11_shader(node_name: str, fx_path: str, out: Log) -> tuple:
     if not cmds.pluginInfo("dx11Shader", q=True, loaded=True):
         cmds.loadPlugin("dx11Shader")
     # Maya reports effect compile errors only in the Script Editor; mirror its history to a file beside the log
-    history = out.path.replace(".log", "-maya-history.log")
+    history = os.path.join(os.path.dirname(out.path), "maya-history.log")
     cmds.scriptEditorInfo(historyFilename=history, writeHistory=True)
     out.append(f"HISTORY {history}")
     node = cmds.shadingNode("dx11Shader", asShader=True, name=node_name)
@@ -159,7 +162,7 @@ def capture_debug_modes(node: str, png: str, out: Log, default_modes: str) -> No
         return
     for mode in modes:
         cmds.setAttr(f"{node}.g_DebugMode", mode)
-        capture(png.replace(".png", f"-debug-{mode:02d}.png"), out)
+        capture(os.path.join(os.path.dirname(png), f"debug-{mode:02d}.png"), out)
     cmds.setAttr(f"{node}.g_DebugMode", 0)
 
 

@@ -11,11 +11,11 @@ Run inside a Maya GUI session (headless mayapy has no DirectX device):
 Creates a sphere, assigns hosts/maya_dx11/hogshade.fx (HOGSHADE_FX overrides, e.g. the legacy v2
 shader), points the environment slots at content/ibl/<env>/cooked/*.dds and the BRDF LUT at
 content/ibl/brdf_lut.dds, binds one directional light into slot 0, frames the sphere, playblasts
-the main view and a few debug views to Docs/verification/maya/, logs the technique list and the
-texture attributes, and quits. The log is the evidence; the PNGs are the picture.
+the main view and a few debug views to Docs/verification/maya-2026/<check>/<env>/ (check.log, main.png,
+debug-NN.png, maya-history.log), logs the technique list and the texture attributes, and quits. The log is the evidence; the PNGs are the picture.
 
 Environment: HOGSHADE_ENV (studio_small_09), HOGSHADE_FX, HOGSHADE_SET="attr=value,...",
-HOGSHADE_DEBUG_MODES="18,27,28", HOGSHADE_TAG (output file tag; default "hogshade-ibl").
+HOGSHADE_DEBUG_MODES="18,27,28", HOGSHADE_CHECK (output directory name; default "ibl-check").
 """
 
 import os
@@ -27,7 +27,8 @@ ENV = os.environ.get("HOGSHADE_ENV", "studio_small_09")
 SHADER = os.environ.get("HOGSHADE_FX", f"{s.ROOT}/hosts/maya_dx11/hogshade.fx")
 COOKED = os.environ.get("HOGSHADE_COOKED", f"{s.ROOT}/content/ibl/{ENV}/cooked").replace("\\", "/")
 LUT = f"{s.ROOT}/content/ibl/brdf_lut.dds"
-LOG, PNG = s.output_paths(os.environ.get("HOGSHADE_TAG", "hogshade-ibl"), ENV)
+OUT = s.output_dir(os.environ.get("HOGSHADE_CHECK", "ibl-check"), ENV)
+LOG, PNG = f"{OUT}/check.log", f"{OUT}/main.png"
 
 # the HogShade shell takes linear values and defaults every map to "unbound"; the legacy shader needs the
 # RGBM-era settings instead (envLightingExp exists only there). HOGSHADE_SET="attr=value,..." overrides.
@@ -49,7 +50,7 @@ DEFAULTS = {
 def run_check(quit_after: bool = True) -> dict:
     """The check. Returns a dict for a job caller; quits Maya afterwards when launched standalone."""
     out = s.Log(LOG, [f"shader {SHADER}", f"cooked {COOKED}"])
-    result = {"ok": False, "log": LOG, "png": PNG, "techniques": []}
+    result = {"ok": False, "dir": OUT, "log": LOG, "png": PNG, "techniques": []}
     try:
         sphere = cmds.polySphere(radius=1.0, subdivisionsAxis=64, subdivisionsHeight=64)[0]
         node, sg, techs = s.load_dx11_shader("hogshade_ibl", SHADER, out)

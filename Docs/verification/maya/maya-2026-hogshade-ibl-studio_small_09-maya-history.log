@@ -1,0 +1,14 @@
+currentTime 1 ;
+currentTime 1 ;
+currentTime 1 ;
+currentTime 1 ;
+HOGSHADE_RESULT {"ok": true, "log": "D:/Depot/HogShade/Docs/verification/maya/maya-2026-hogshade-ibl-studio_small_09.log", "png": "D:/Depot/HogShade/Docs/verification/maya/maya-2026-hogshade-ibl-studio_small_09.png", "techniques": ["Main"]}
+// 09/26/2026, :11:30:35 PM :: [INFO][job_orchestrator.dcc_workers.maya.maya_rpc_server] >> [OK] Job 8d7730e3... completed in 32.90s :(maya_rpc_server.py:557)
+// Warning: file: C:/Program Files/Autodesk/Maya2026/scripts/others/saveChanges.mel line 40: Panel size cannot accommodate all requested Heads Up Display elements.
+file -f -new;
+// untitled
+// Warning: Arnold renderer not loaded.
+// The MtoA plug-in needed for this scene is not loaded.
+// Make sure Autoload is on in the Plug-in Manager.
+// See this article for more detail.
+// https://www.autodesk.com/maya-arnold-not-available-error

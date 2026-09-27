@@ -48,10 +48,10 @@ verification ran.
       landed first, the `.dds` files and `brdf_lut.dds` on 2026-09-26 with the EXRs.
 - [x] 11. Maya 2026: load `studio_small_09/cooked/*.dds` into the v2 shader's environment slots on a
       sphere; screenshot to `Docs/verification/`. **Closed 2026-09-26 by phase 2 task 17:** the HogShade
-      shell renders both terms and the specular reflection (`Docs/verification/maya/maya-2026-hogshade-ibl-*.png`).
+      shell renders both terms and the specular reflection (`Docs/verification/maya-2026/ibl-check/studio_small_09/`).
       **Partial 2026-09-20 (legacy shader):** Both DDS files decode in Maya
       (256 and 32 reported by the file nodes) and the diffuse environment term visibly lights a white
-      dielectric ball (`Docs/verification/maya/maya-2026-ibl-studio_small_09-diffuse-term.png`, debug view 27, exposure 1,
+      dielectric ball (`Docs/verification/maya-2026/legacy-v2-ibl/studio_small_09/diffuse-term.png`, debug view 27, exposure 1,
       gamma off). The final composite and the specular term render black, and the cause is in the
       legacy shader, not the data: the same 32-cube file that lights the diffuse slot is black in the
       specular slot across DX10 and legacy headers, with and without mips (both `TextureCube`

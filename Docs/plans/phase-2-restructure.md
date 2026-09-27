@@ -58,7 +58,7 @@ own. Tick a task only when its verification ran.
       GGX D, height-correlated Smith, Schlick, F82-tint, Lambert, Burley and the GGX composite match
       the NumPy references (2e-5 relative on the grid for alpha >= 0.1; GGX D below that is limited
       by float32 cancellation at the peak and is held to 1e-2, with the reason in the test). The GPU
-      run is recorded in `Docs/verification/core/gpu-core-tests.log` (machine, adapter, per-test result).
+      run is recorded in `Docs/verification/core/gpu-tests.log` (machine, adapter, per-test result).
 - [x] 10. `core/lighting.wgsl` test: 16 slots equal 16 single calls. `core/gbuffer.wgsl` tests:
       `SurfaceInputs` round trip within the layout's quantisation, and forward-versus-deferred parity
       (evaluate on `ShadingInputs` built directly, against evaluate on encode, decode and
@@ -85,7 +85,7 @@ own. Tick a task only when its verification ran.
       Verified 2026-09-25: modes 0 to 32 through `legacy_v2_debug` are finite and equal the reference
       on 128 random inputs each; the twelve texel-and-UV modes (`legacy_v2_debug_is_inputs_mode`)
       are also computed exactly by `legacy_v2_debug_inputs` for forward hosts and match the
-      reference. `Docs/verification/core/gpu-core-tests.log` refreshed: 69 core tests on the RTX 5090
+      reference. `Docs/verification/core/gpu-tests.log` refreshed: 69 core tests on the RTX 5090
       (the host is named BIGHOG-4090RTX after its previous card; the log's adapter line is the
       truth). Copilot on PR D: the lookup coordinates moved into the model (`models_env_lookup`,
       tested); FXC on the CI runner's DX12 adapter rejected two multi-return switch cases in
@@ -104,13 +104,13 @@ own. Tick a task only when its verification ran.
       selector comes from the uint G-buffer texture in a shader that also passes textures into
       functions; the dispatcher is an if-chain now and both backends render the pass.
 - [x] 14. `tools/wgpu/viewport.py`: shader ball (derkreature, OBJ; the plan first said glTF), legacy v2 model, studio IBL from
-      `content/ibl`, one directional light; writes `Docs/verification/wgpu/wgpu-v2-studio.png`. Verified:
+      `content/ibl`, one directional light; writes `Docs/verification/wgpu/shader-ball/<env>/forward.png`. Verified:
       the PNG shows a lit ball with a specular reflection of the studio. Done 2026-09-26: the ball is
       the OBJ, not glTF (that repository ships OBJ and FBX; `content/shaderball/`, Unlicense, LFS),
       read by `hogshade.wgpu_host.load_obj`. `hogshade.wgpu_host.Renderer` draws both paths offscreen
       and reads them back; the tool writes the forward and deferred PNGs and prints their difference.
-      Verified: `wgpu-v2-studio.png` (grey dielectric, roughness 0.2) shows the studio softbox in the
-      cavity and on the rim; `Docs/verification/wgpu/wgpu-v2-studio-metal.png` (metal, roughness 0.15) mirrors the studio.
+      Verified: `wgpu/shader-ball/studio_small_09/forward.png` (grey dielectric, roughness 0.2) shows the studio softbox in the
+      cavity and on the rim; `wgpu/shader-ball/studio_small_09/metal/forward.png` (metal, roughness 0.15) mirrors the studio.
       Forward versus deferred over the ball, 1024 px: dielectric mean 0.005 and max 0.41 scene-linear
       (silhouette pixels); metal mean 0.06 with a max of 134 at the hottest highlight pixel, where
       the fp16 normal moves v2's unbounded grazing specular. `tests/host/test_wgpu_host.py` renders
@@ -147,9 +147,9 @@ own. Tick a task only when its verification ran.
       launcher stays for anyone without BATS. `tools/maya/_session.py` is shared by both paths.
       **Passed 2026-09-26** as the job `hogshade.jobs.maya_ibl_check` on the `hogshade_maya_gui`
       worker (PR #18): `TECHNIQUES: ['Main']` (effect load 14.4 s), both cubes decoded (256 and 32),
-      the LUT decoded (256), `RESULT: OK`; `Docs/verification/maya/maya-2026-hogshade-ibl-studio_small_09.png`
+      the LUT decoded (256), `RESULT: OK`; `Docs/verification/maya-2026/ibl-check/studio_small_09/main.png`
       shows the lit grey dielectric with the key-light highlight and the studio reflection, and
-      `-debug-28.png` (the specular environment term) mirrors the studio in the ball. The compile
+      `debug-28.png` (the specular environment term) mirrors the studio in the ball. The compile
       failure of the first standalone runs was the string parameters carrying vertex semantics,
       removed in PR #15; nothing else changed in the shell. E1 task 11 is closed by this.
 - [ ] 18. Legacy v1 port (`core/models/legacy_v1.wgsl`) with its own reference and tests; selectable

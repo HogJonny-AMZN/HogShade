@@ -3,7 +3,7 @@ HogShade: render the shader ball with the legacy v2 model under an E1 environmen
 and write the verification PNGs (phase 2 plan, task 14).
 Package: tools/wgpu/viewport
 
-    uv run tools/wgpu/viewport.py                      # Docs/verification/wgpu/wgpu-v2-studio.png and -deferred.png
+    uv run tools/wgpu/viewport.py                      # Docs/verification/wgpu/shader-ball/studio_small_09/{forward,deferred}.png
     uv run tools/wgpu/viewport.py --debug-mode 18      # the v2 specular accumulator
     uv run tools/wgpu/viewport.py --environment citrus_orchard_road_puresky --roughness 0.2 --metalness 1
 
@@ -29,7 +29,13 @@ from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--out", type=Path, default=ROOT / "Docs" / "verification" / "wgpu" / "wgpu-v2-studio.png")
+    ap.add_argument(
+        "--out-dir",
+        type=Path,
+        default=None,
+        help="capture directory; default Docs/verification/wgpu/shader-ball/<env>[/<variant>]",
+    )
+    ap.add_argument("--variant", default="", help="sub-directory for a material variant, e.g. metal")
     ap.add_argument("--environment", default="studio_small_09")
     ap.add_argument("--size", type=int, default=1024, help="square output, multiple of 32")
     ap.add_argument("--roughness", type=float, default=0.2)
@@ -58,9 +64,12 @@ def main(argv: list[str] | None = None) -> int:
     frames = renderer.render(scene)
     elapsed = time.perf_counter() - t0
 
-    out = Path(args.out)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    deferred_path = out.with_name(out.stem + "-deferred" + out.suffix)
+    out_dir = args.out_dir or ROOT / "Docs" / "verification" / "wgpu" / "shader-ball" / args.environment
+    if args.variant:
+        out_dir = out_dir / args.variant
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / "forward.png"
+    deferred_path = out_dir / "deferred.png"
     write_png_rgb8(out, preview_srgb8(frames.forward, args.exposure_ev))
     write_png_rgb8(deferred_path, preview_srgb8(frames.deferred, args.exposure_ev))
     mean_diff, max_diff = frames.difference()

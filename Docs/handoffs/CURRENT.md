@@ -10,7 +10,7 @@ A new session reads this, then `Docs/design/2026-09-26-decision-log-and-working-
 
 **PR F is complete.** The Maya gate (plan task 17) passed on 2026-09-26 as a BATS job on the
 `hogshade_maya_gui` worker: `Main` technique listed, cubes and LUT decoded, pictures under
-`Docs/verification/maya/`. Next in the agreed order: the legacy v1 port (plan task 18), then the
+`Docs/verification/maya-2026/ibl-check/studio_small_09/`. Next in the agreed order: the legacy v1 port (plan task 18), then the
 standards pass, then the phase 2 close. The MCP path was validated the same day with a scratch
 stdio client: twenty tools, correct per-type counts.
 
@@ -39,7 +39,7 @@ ColorSpace` annotations, the fourteen-second compile against Maya's compile time
    (DirectX 11), `hogshade_python` and `hogshade_blender`, plus the tray.
 3. Check the pool: `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools\bats\submit.py --pool`.
 4. Run the gate: `... submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check`. Results
-   land in `Docs/verification/maya/` (log, PNGs, `-maya-history.log`).
+   land in `Docs/verification/maya-2026/ibl-check/<env>/` (`check.log`, `main.png`, `debug-NN.png`, `maya-history.log`).
 5. An agent session in this repo gets the BATS MCP server from `.mcp.json` (approve it when Claude
    Code asks); the `bats_*` tools do what `submit.py` does.
 
