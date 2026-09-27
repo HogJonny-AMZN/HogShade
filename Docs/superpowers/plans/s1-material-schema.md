@@ -17,9 +17,10 @@ lands with it.
       meta-check finds nothing; a fixture with a missing field and one with an unknown field
       each produce the named finding.
 - [ ] 3. The four schema files at version 1, with the parameter lists the spec fixes: the standard
-      (OpenPBR names plus `alpha_mode` and the four `surface` opt-ins), legacy v2 and v1 as the
-      Maya shell names them, lambert. Verify: task 2's test over the real files; a test that the
-      standard's parameter names are exactly the spec's list.
+      (OpenPBR names plus `alpha_mode` and the four `surface` opt-ins), legacy v2 and v1 typed as
+      the spec's tables list them, lambert. Verify: task 2's test over the real files; a test that
+      the standard's parameter names are exactly the spec's list; a test that each legacy type's
+      set equals the union of its model's `Material` and `Samples` fields plus the shell's flags.
 - [ ] 4. `document.py`: `load()` with the path rules (`PurePosixPath` normalisation, `..` and
       absolute rejected, escape of the root rejected), the version check, migrations applied.
       Verify: the good fixtures load raw; each broken path fixture raises `MaterialError` naming the
@@ -32,13 +33,14 @@ lands with it.
       over parent, defaults, `ext` merged per namespace key, `chain` recorded. Verify: the grandchild
       fixture resolves with every parameter and the expected winners; the cycle and cross-type
       fixtures raise.
-- [ ] 7. The three conversion tables and `convert.py` with the five transforms. Verify: the
+- [ ] 7. The three conversion tables and `convert.py` with the five transforms and their payloads
+      (`by`, `range`, `value`) and the `field` target. Verify: the
       coverage test (every source parameter in `map` or `dropped`, every `to` in the target); v2 to
       standard on a fixture yields the mapped values, the `Loss` list and a document that validates
       against the standard.
 - [ ] 8. `pyproject.toml` package data; `uv build`; a test that the wheel contains the seven files.
       Verify: the wheel listing in the PR.
-- [ ] 9. The human run: `mayapy -c "import hogshade.material as m; print(m.types())"` on Maya 2026
+- [ ] 9. The human run: `mayapy -c "import hogshade.material as m; print(m.types())"` (the `types()` contract) on Maya 2026
       lists the four types. Verify: the output pasted in the PR; if `mayapy` cannot import numpy,
       say so and record it as the first item of S2's environment work.
 - [ ] 10. Docs: `Docs/README.md`'s specs and plans table gains the S1 row; the board's Next row

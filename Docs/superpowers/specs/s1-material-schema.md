@@ -40,8 +40,10 @@ hogshade/material/
 tests/material/          # the tests, and fixtures/ with sample documents and a broken set
 ```
 
-`pyproject.toml` gains `[tool.setuptools.package-data] hogshade.material = ["schema/*.json", "schema/conversions/*.json"]`
-so a pip install carries the files; the code reads them through `importlib.resources`.
+`pyproject.toml` gains, under `[tool.setuptools.package-data]`, the quoted dotted key
+`"hogshade.material" = ["schema/*.json", "schema/conversions/*.json"]` (unquoted, TOML reads it as nested
+tables and setuptools ships nothing), so a pip install carries the files; the code reads them through
+`importlib.resources`, and task 8's wheel listing is the guard.
 
 ## The material-type schema file
 
@@ -55,12 +57,14 @@ so a pip install carries the files; the code reads them through `importlib.resou
     "base_color": {
       "type": "color3", "default": [0.8, 0.8, 0.8], "range": [0.0, 1.0], "group": "base",
       "widget": "color", "semantic": "base_color_linear", "colour_space": "srgb",
-      "overridable": true, "tier": 1, "doc": "Albedo for dielectrics, reflectance for metals."
+      "overridable": true, "tier": 1, "hosts": {},
+      "doc": "Albedo for dielectrics, reflectance for metals."
     },
     "specular_roughness": {
       "type": "float", "default": 0.5, "range": [0.0, 1.0], "group": "specular",
       "widget": "slider", "semantic": "roughness_perceptual", "colour_space": "raw",
-      "overridable": true, "tier": 1, "doc": "Perceptual roughness before any bias."
+      "overridable": true, "tier": 1, "hosts": {"osl": "a closure parameter, not a texture sample"},
+      "doc": "Perceptual roughness before any bias."
     }
   },
   "migrations": []
@@ -75,7 +79,11 @@ Rules of the file, checked by `schema.py`'s meta-check and a test on every shipp
   `default` factor.
 - Every parameter has every field the design lists (`type`, `default` where it applies, `range`
   for numbers with `soft: true` when a UI may exceed it, `group` from the file's `groups`,
-  `widget`, `semantic`, `overridable`, `tier`, `doc`); an unknown field is a finding.
+  `widget`, `semantic`, `overridable`, `tier`, `hosts`, `doc`); an unknown field is a finding.
+  `hosts` is a map of host name to a note, `{}` when no host maps the parameter differently, or
+  `{"<host>": "unsupported: <reason>"}` for a host that cannot carry it; the S2 generator and the
+  later bindings read it. A normal-map parameter carries `"strength": true`, which admits the
+  `strength` field in a document value (below).
 - A group that is an opt-in feature carries an `enabled` parameter of type `bool` whose name is
   `<group>_enabled`; `surface` opt-ins in version 1: `ambient_occlusion` (texture), `cavity`
   (texture), `specular_occlusion` (float and texture; question 8), `height` (texture, for the
@@ -90,11 +98,33 @@ Rules of the file, checked by `schema.py`'s meta-check and a test on every shipp
   non-OpenPBR parameter of the standard type, per the alpha decision. Emission is in nits
   (question 5).
 
-**The legacy types** carry the parameters the core's legacy models take today, named as the Maya
-shell names them without the prefix (`base_color`, `roughness`, `metalness`, `specular`,
-`specular_tint`, `ior`, `bump_intensity`, the maps and their use flags as textures, `rough_is_gloss`
-and the Disney lobes for v1), so the S2 generator reproduces the shell's material block from the
-file. `hogshade-lambert` carries `base_color`, `ambient_occlusion`, `emission_color`.
+**The legacy types** carry exactly the parameters the core's legacy models and the Maya shell take
+today (`core/models/legacy_v2.wgsl` and `legacy_v1.wgsl`, the `Material` and `Samples` structs;
+`hosts/maya_dx11/hogshade.fx`, the material, map, normal and parallax groups), typed as the shell
+types them, so the S2 generator reproduces the shell's material block from the file. The shell's
+`use<Map>` flags are not parameters: a `texture` parameter is in use when a document binds it, and
+the generator emits the flag from that. Host-only parameters (the display gamma, the Maya shadow
+group, the light slots) are not material and are not in any type.
+
+`hogshade-legacy-v2`, version 1:
+
+| Group | Parameters |
+| --- | --- |
+| `base` | `base_color` color3 (sRGB texture), `roughness` float [0, 1] (texture, green), `metalness` float [0, 1] (texture, green), `specular` float [0, 1] (texture, red), `specular_tint` float [0, 1], `ior` float [1, 3], `emission_color` color3 (sRGB texture), `emission_intensity` float [0, 100] soft |
+| `geometry` | `normal_map` texture (raw, `strength: true`), `bump_intensity` float [0, 4] (the strength the shell exposes; the schema keeps both so the generator round-trips), `normal_flip` vector3 of +1 or -1, `flip_backface_normals` bool, `opacity` float [0, 1], `has_alpha` bool, `use_cutout_alpha` bool, `opacity_mask_bias` float [0, 1], `has_vertex_alpha` bool |
+| `surface` | `ambient_occlusion_map` texture (raw, red), `cavity_map` texture (raw, red), `height_map` texture (raw, red), `use_vertex_color` bool, `use_vertex_ao` bool |
+| `parallax` (opt-in, `parallax_enabled` bool) | `height_scale` float [0.001, 1], `min_samples` int [1, 64], `max_samples` int [1, 128], `self_shadow` enum `none`, `simple`, `self_shadow_strength` float, `self_shadow_multiplier` float |
+
+`hogshade-legacy-v1`, version 1: `base` as v2's less `ior` and `emission_*`, plus the Disney lobes
+`subsurface`, `anisotropic`, `sheen`, `sheen_tint`, `clearcoat`, `clearcoat_gloss` (floats [0, 1]);
+`geometry` as v2's without `bump_intensity` and `opacity_mask_bias`; `surface` with
+`ambient_occlusion_map` and `use_vertex_ao`; the v1 flags `rough_is_gloss` bool and
+`use_specular_mask` bool; the maps v1 samples (`base_color`, `specular` rgba, `roughness`,
+`metalness`, `normal_map`, `ambient_occlusion_map`). `hogshade-lambert`: `base_color` color3,
+`ambient_occlusion_map` texture, `emission_color` color3. The full lists are the schema files; a
+test asserts each legacy type's parameter set equals the union of its model's `Material` and
+`Samples` fields plus the shell's material-block flags, so a field added to a struct without a
+schema entry fails.
 
 ## The material document
 
@@ -118,7 +148,9 @@ Rules, checked by `validate()`:
 - A `values` key is a parameter of the type; a value is `{factor}`, `{texture}` or both, and `blend`
   only with both, one of `multiply` (default), `lerp`, `overlay` where the parameter's `widget` is
   `color` or `slider`. `factor` matches the parameter's `type` and, unless the range is `soft`, its
-  `range`. A `texture` value on a parameter that has no `colour_space` is a finding.
+  `range`. A `texture` value on a parameter that has no `colour_space` is a finding. A parameter
+  whose schema entry has `strength: true` (normal maps) admits `strength`, a float at or above 0,
+  default 1.0, only with `texture`; on any other parameter `strength` is a finding.
 - `parent` and every `texture` are relative paths, normalised with `PurePosixPath`, rejected when
   absolute or when the joined path resolves outside the document's package root (the directory
   passed to `load`, default the document's own directory); `..` components are rejected outright.
@@ -130,6 +162,7 @@ Rules, checked by `validate()`:
 
 | Function | Contract |
 | --- | --- |
+| `types() -> list[str]` | The names of the shipped material types, from the package data; `type_of(name) -> MaterialType` returns one. |
 | `load(path, root=None) -> Document` | Parse the JSON, apply the path rules, check the version and migrate an older document through the type's list. The result is raw: `parent` is a normalised relative path, values are as written. Raises `MaterialError` on a malformed file, an unknown type, a newer version or an escaping path. |
 | `validate(doc_or_resolved) -> list[Finding]` | Raw: unknown keys, types, ranges, colour spaces, `blend`, overridable, paths. Resolved: completeness (every parameter has a value or a default) and the cross-parameter rules (`alpha_mode` `blend` with `geometry_opacity` textured is allowed; `mask` without an opacity source is a finding). Never raises; a `Finding` has `path`, `parameter`, `message`. |
 | `resolve(doc, root=None) -> Resolved` | Follow `parent` through `load` until a document has none; reject a cycle and a parent of another type; apply values child over parent, then the type's defaults; merge `ext` blocks child over parent per namespace key. `Resolved` carries `material_type`, `version`, `values` (every parameter, `{factor, texture, blend}` with `texture` `None` when unbound), `ext`, and `chain` (the documents' paths, child first). |
@@ -153,18 +186,31 @@ One JSON file per pair under `schema/conversions/`:
     {"from": "ior", "to": "specular_ior", "transform": "identity"},
     {"from": "normal_map", "to": "geometry_normal", "transform": "identity"},
     {"from": "ambient_occlusion_map", "to": "ambient_occlusion", "transform": "identity"},
-    {"from": "emissive_map", "to": "emission_color", "transform": "identity"}
+    {"from": "emission_color", "to": "emission_color", "transform": "identity"},
+    {"from": "emission_intensity", "to": "emission_luminance", "transform": "scale", "by": 100.0},
+    {"from": "bump_intensity", "to": "geometry_normal", "field": "strength", "transform": "clamp", "range": [0.0, 4.0]},
+    {"from": "opacity", "to": "geometry_opacity", "transform": "identity"},
+    {"from": "use_cutout_alpha", "to": "alpha_mode", "transform": "constant", "value": "mask"}
   ],
   "dropped": [
     {"from": "cavity_map", "reason": "the standard's cavity is a surface opt-in with its own semantics; v2 folded cavity into specular"},
-    {"from": "bump_intensity", "reason": "normal strength is the geometry_normal texture's strength in the standard"}
+    {"from": "specular_tint", "reason": "the standard has specular_color; a scalar tint has no lossless image"}
   ]
 }
 ```
 
+Transforms and their payloads, validated by the coverage test: `identity` and `invert` carry
+nothing; `scale` carries `by` (a number); `clamp` carries `range` (two numbers); `constant` carries
+`value` (of the target's type) and is the only transform whose `from` may be a `bool` or `enum`.
+An entry may carry `field` to target a sub-field of the value (`strength` on a normal map) instead
+of `factor`; the target parameter must admit that field. The `emission_intensity` scale of 100 is
+the example's placeholder for the v2 intensity to nits mapping, fixed by measurement in S3 when the
+wgpu binding renders both.
+
 A test asserts that every parameter of the source type appears exactly once, in `map` or in
-`dropped`, so a conversion table cannot silently forget a parameter, and that every `to` exists in
-the target type. The three tables shipped in S1 go from each legacy type to the standard; the
+`dropped`, so a conversion table cannot silently forget a parameter; that every `to` exists in the
+target type and every `field` is admitted by it; and that each entry's payload matches its
+transform. The three tables shipped in S1 go from each legacy type to the standard; the
 reverse direction is S2 or later, when a comparison view needs it.
 
 ## Tests (`tests/material/`)
