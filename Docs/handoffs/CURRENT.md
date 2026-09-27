@@ -27,7 +27,7 @@ ColorSpace` annotations, the fourteen-second compile against Maya's compile time
    checkout). One orchestrator per machine.
 2. `tools\bats\run_hogshade_orchestrator.bat` (needs `JOB_ORCHESTRATOR_ROOT`, default
    `D:\Depot\Job_Orchestrator`). It brings up `hogshade_maya` (headless), `hogshade_maya_gui`
-   (DirectX 11) and `hogshade_python`, plus the tray.
+   (DirectX 11), `hogshade_python` and `hogshade_blender`, plus the tray.
 3. Check the pool: `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools\bats\submit.py --pool`.
 4. Run the gate: `... submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check`. Results
    land in `Docs/verification/maya/` (log, PNGs, `-maya-history.log`).

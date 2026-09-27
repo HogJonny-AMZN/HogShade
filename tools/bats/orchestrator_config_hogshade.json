@@ -37,6 +37,12 @@
       "version": "2026",
       "executable": "C:\\Program Files\\Autodesk\\Maya2026\\bin\\maya.exe",
       "mayapy": "C:\\Program Files\\Autodesk\\Maya2026\\bin\\mayapy.exe"
+    },
+    "hogshade_blender": {
+      "version": "5.2",
+      "location": "C:\\Program Files\\Blender Foundation\\Blender 5.2",
+      "executable": "C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe",
+      "python": "C:\\Program Files\\Blender Foundation\\Blender 5.2\\5.2\\python\\bin\\python.exe"
     }
   },
   "package_paths": {
@@ -192,6 +198,43 @@
       "environment": {
         "HOGSHADE_ROOT": "D:/Depot/HogShade"
       }
+    },
+    "hogshade_blender": {
+      "display_name": "HogShade Blender (headless)",
+      "description": "HogShade: Blender 5.2 in the background for the Blender host, bakes and the required comparison path",
+      "enabled": true,
+      "capabilities": {
+        "supports_gui": false,
+        "supports_headless": true,
+        "supports_module_mode": true,
+        "supports_string_mode": true
+      },
+      "executable_paths": {
+        "headless": "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe"
+      },
+      "rpc_servers": {
+        "headless": "dcc_workers/blender/blender_rpc_server.py"
+      },
+      "launch_args": {
+        "headless": [
+          "--background",
+          "--python"
+        ]
+      },
+      "environment_profile": "blender_5_2",
+      "pool_sizes": {
+        "headless": 1
+      },
+      "boot_timeout": {
+        "headless": 30
+      },
+      "resources": [
+        "cpu",
+        "gpu",
+        "vram"
+      ],
+      "est_vram_mb": 6144,
+      "environment_json_path": "D:/Depot/HogShade/tools/bats/hogshade_blender_env.json"
     }
   }
 }

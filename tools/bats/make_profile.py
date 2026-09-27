@@ -11,9 +11,10 @@ HogShade's workers are its own named types, the pattern the orchestrator uses fo
 | `hogshade_maya` | one headless mayapy | cooks, scene builds, anything without a viewport |
 | `hogshade_maya_gui` | one maya.exe, DirectX 11 viewport | dx11Shader checks, playblasts, captures |
 | `hogshade_python` | one venv Python | the IBL cook and other NumPy jobs |
+| `hogshade_blender` | one headless Blender 5.2 | the Blender host, bakes and the required comparison path |
 
-Everything in HogShade that needs Maya runs through the two Maya types; a Blender pair joins the same
-way when that host lands. Both Maya types share `hogshade_maya_env.json`, derived from the canon Maya
+Everything in HogShade that needs Maya runs through the two Maya types and everything that needs
+Blender through `hogshade_blender`. Both Maya types share `hogshade_maya_env.json`, derived from the canon Maya
 environment with the HogShade root on PYTHONPATH (so MODULE-mode jobs import `hogshade.*`) and the
 viewport override. The profile keeps the canon's paths, scaling, GPU, monitoring and log settings
 verbatim so it follows the dev orchestrator as it moves. Re-run after pulling Job_Orchestrator; the
@@ -34,6 +35,8 @@ CANON = CONFIG_DIR / "orchestrator_config.json"
 MAYA_ENV = CONFIG_DIR / "maya_env.json"
 PROFILE_OUT = HERE / "orchestrator_config_hogshade.json"
 ENV_OUT = HERE / "hogshade_maya_env.json"
+BLENDER_ENV = CONFIG_DIR / "blender_env.json"
+BLENDER_ENV_OUT = HERE / "hogshade_blender_env.json"
 
 
 def _fwd(p: Path) -> str:
@@ -57,6 +60,20 @@ def build_maya_env(canon_env: dict) -> dict:
     return env
 
 
+def build_blender_env(canon_env: dict) -> dict:
+    env = json.loads(json.dumps(canon_env))
+    env["name"] = "HogShade Blender 5.2 worker environment"
+    env["description"] = (
+        "The canon Blender environment plus the HogShade root; Blender's embedded Python ignores PYTHONPATH, so the "
+        "worker bootstraps sys.path itself and HOGSHADE_ROOT is what a job reads; generated, never hand-edited"
+    )
+    env["environment"].setdefault("variables", {})["HOGSHADE_ROOT"] = _fwd(ROOT)
+    pp = env["environment"].setdefault("PYTHONPATH", {"prepend": [], "append": []})
+    if _fwd(ROOT) not in pp["prepend"]:
+        pp["prepend"].insert(0, _fwd(ROOT))
+    return env
+
+
 def build_profile(canon: dict) -> dict:
     profile = {k: v for k, v in canon.items() if k != "worker_types"}
     profile["_hogshade"] = {
@@ -69,6 +86,8 @@ def build_profile(canon: dict) -> dict:
     profile["dcc_paths"] = dict(canon["dcc_paths"])
     profile["dcc_paths"]["hogshade_maya"] = dict(maya_paths)
     profile["dcc_paths"]["hogshade_maya_gui"] = dict(maya_paths)
+    blender_paths = canon["dcc_paths"]["blender"]
+    profile["dcc_paths"]["hogshade_blender"] = dict(blender_paths)
 
     maya_template = json.loads(json.dumps(canon["worker_types"]["maya"]))
     maya_template["environment_json_path"] = _fwd(ENV_OUT)
@@ -96,7 +115,21 @@ def build_profile(canon: dict) -> dict:
     python["environment"] = dict(python.get("environment", {}))
     python["environment"]["HOGSHADE_ROOT"] = _fwd(ROOT)
 
-    profile["worker_types"] = {"hogshade_maya": headless, "hogshade_maya_gui": gui, "hogshade_python": python}
+    blender = json.loads(json.dumps(canon["worker_types"]["blender"]))
+    blender["display_name"] = "HogShade Blender (headless)"
+    blender["description"] = (
+        "HogShade: Blender 5.2 in the background for the Blender host, bakes and the required comparison path"
+    )
+    blender["executable_paths"] = {"headless": _fwd(Path(blender_paths["executable"]))}
+    blender["environment_json_path"] = _fwd(BLENDER_ENV_OUT)
+    blender["pool_sizes"] = {"headless": 1}
+
+    profile["worker_types"] = {
+        "hogshade_maya": headless,
+        "hogshade_maya_gui": gui,
+        "hogshade_python": python,
+        "hogshade_blender": blender,
+    }
     return profile
 
 
@@ -105,9 +138,13 @@ def main() -> int:
     ENV_OUT.write_text(
         json.dumps(build_maya_env(json.loads(MAYA_ENV.read_text(encoding="utf-8"))), indent=2) + "\n", encoding="utf-8"
     )
+    blender_env = build_blender_env(json.loads(BLENDER_ENV.read_text(encoding="utf-8")))
+    BLENDER_ENV_OUT.write_text(json.dumps(blender_env, indent=2) + "\n", encoding="utf-8")
     profile = build_profile(canon)
     PROFILE_OUT.write_text(json.dumps(profile, indent=2) + "\n", encoding="utf-8")
-    print(f"wrote {PROFILE_OUT.name} and {ENV_OUT.name} from {CONFIG_DIR}: workers {list(profile['worker_types'])}")
+    print(
+        f"wrote {PROFILE_OUT.name}, {ENV_OUT.name}, {BLENDER_ENV_OUT.name} from {CONFIG_DIR}: workers {list(profile['worker_types'])}"
+    )
     return 0
 
 

@@ -122,8 +122,8 @@ is a Job_Orchestrator-side task; this repo only keeps its scripts importable.
 Each project keeps its own orchestrator profile and launcher (HogShade now, LargeWorlds and
 SpriteJammer later, each covering its dependencies); one orchestrator runs at a time. HogShade's
 profile defines its own named worker types on the orchestrator's variant pattern: `hogshade_maya`
-(headless), `hogshade_maya_gui` (DirectX 11 viewport), `hogshade_python`; every HogShade job
-targets those, never the canon `maya`, and a Blender pair joins the same way. The developer track
+(headless), `hogshade_maya_gui` (DirectX 11 viewport), `hogshade_python`, `hogshade_blender`
+(headless Blender 5.2, added the same day); every HogShade job targets those, never a canon type. The developer track
 requires BATS; downstream users never do. The repo maintains the profile, the environment file, the
 launcher, the submit tool, the `.mcp.json` for an agent session, and `Docs/handoffs/CURRENT.md` so a
 new session continues without this one. Details: `Docs/knowledge/job-orchestrator.md`.
