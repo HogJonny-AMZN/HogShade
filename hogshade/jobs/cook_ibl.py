@@ -61,7 +61,7 @@ MANIFEST = {
         "<env_dir>/preview.png",
     ],
     "returns": "the deterministic manifest dict, plus 'conditioned' when a master was conditioned",
-    "spec": "Docs/specs/e1-ibl-cook.md",
+    "spec": "Docs/superpowers/specs/e1-ibl-cook.md",
 }
 
 

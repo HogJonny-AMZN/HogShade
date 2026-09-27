@@ -1,22 +1,22 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-09-27, afternoon: the phase 2 close is a PR (`docs/phase-2-close`); #25 merged.
+**Last updated:** 2026-09-27, evening: #26 merged and `v0.2.0` tagged; the standards pass's remainder is a PR (`docs/standards-remainder`).
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
-(`Docs/plans/phase-2-restructure.md`). `Docs/standards/definition-of-done.md` says what done means and
+(`Docs/superpowers/plans/phase-2-restructure.md`). `Docs/standards/definition-of-done.md` says what done means and
 how much to decide alone.
 
 ## In flight
 
-**Sit rep, 2026-09-27 afternoon.** #25 (the standards pass) merged after thirteen Copilot findings,
-twelve fixed and one refuted; `tools/check_hygiene.py` came out of that review. The phase 2 close is
-the open PR: VERSION `0.2.0`, the deviations list, the eye comparison recorded, the gate item by
-item in plan task 19. After it merges, the owner tags `v0.2.0` on master. Phase 3 is next in the
-order of operations but is blocked on G3 and G4 (the material-contract split and the comparison
-framework's design date); the standards pass's remainder (the decision-log split, the folder move)
-is unblocked and small.
+**Sit rep, 2026-09-27 evening.** Phase 2 is closed: #26 merged, `v0.2.0` tagged on the merge commit
+(the owner gave permission; gate item 5, the same mesh in both hosts, deferred to track E by the
+merge). The open PR is the standards pass's remainder: the decision log is decisions only now, its
+working knowledge lives in `Docs/knowledge/` (`toolchain.md`, `maya-scripting.md`), its repository
+state is the section at the end of this file, its open questions are the board's gates; specs and
+plans are under `Docs/superpowers/`. Phase 3 is next in the order of operations and is blocked on
+G3 and G4; nothing unblocked remains on the board's Next except what the owner picks from the Icebox.
 
 What the standards pass landed: `Docs/standards/python.md` and `wgsl.md`, `Docs/standards/failure-modes.md`
 (twelve entries from this week, five with checks), `.github/copilot-instructions.md`, `Docs/decisions/`
@@ -71,3 +71,18 @@ stdio client: twenty tools, correct per-type counts.
 
 Legacy pointer PR and issue on the hogjonny account; track A clearance; the orphaned 8K LFS object
 (support request, optional). See the decision log, section 4.
+
+## Repository and GitHub state (moved from the decision log, 2026-09-27; as of 2026-09-26 unless dated)
+
+- HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`
+  payloads and the shader ball are in.
+- One orphaned LFS object exists in GitHub's LFS store: the 8K studio master, pushed once by
+  mistake on the LFS branch and removed before merge. Only GitHub support can purge it; it counts
+  toward the LFS quota. CC0 content, no licence issue. Here only.
+- GitHub still reports the pre-rewrite repository size (about 129 MB) until its garbage collection
+  runs or support is asked.
+- Owner-only steps still open: merge the legacy pointer PR (`hogjonny/Maya-PBR-BRDF-VP2#2`) from
+  the legacy account, delete the `legacy-pointer` branch, close legacy issue #1, archive the legacy
+  repo. Track A clearance steps untouched.
+- The CI runner (`windows-latest`) has a DirectX 12 adapter, so the GPU tests run there through
+  FXC; LFS is not hydrated on CI (`lfs: false`), so asset-dependent tests skip there.

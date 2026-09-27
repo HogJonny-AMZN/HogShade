@@ -15,8 +15,8 @@ over from there (owner, 2026-09-26).
 | --- | --- | --- | --- | --- |
 | 0 | **Roadmap** | Tracks, phases, order, what waits on the owner | [../ROADMAP.md](../ROADMAP.md) | Amended as decisions land |
 | 1 | **Converse and lock a design** | Intent, acceptance criteria, decomposition, decisions locked, open questions | `Docs/design/<date>-<topic>.md` | **The owner locks it** |
-| 2 | **Spec** | One increment's exact deliverable, interfaces, acceptance gate, out of scope | `Docs/specs/` (brainstorming skill from the lock) | Owner approval |
-| 3 | **Plan** | Ordered tasks with checkboxes, each small enough to verify | `Docs/plans/` (writing-plans skill) | Owner review |
+| 2 | **Spec** | One increment's exact deliverable, interfaces, acceptance gate, out of scope | `Docs/superpowers/specs/` (brainstorming skill from the lock) | Owner approval |
+| 3 | **Plan** | Ordered tasks with checkboxes, each small enough to verify | `Docs/superpowers/plans/` (writing-plans skill) | Owner review |
 | 4 | **Build** | Code and tests, test-first; a NumPy twin and a GPU test for every core function | A branch `type/<slug>` | Tests green on CI, `build_shaders.py --check` |
 | 5 | **Review** | Copilot on every push; `/local-review diff` on a significant increment | The pull request | Findings fixed or declined with a reason |
 | 6 | **Close out** | Plan task ticked with its verification, spec amended, decision log, journal, handoff, knowledge files | Per [definition-of-done.md](definition-of-done.md) | `check_docs.py` green |

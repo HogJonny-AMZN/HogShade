@@ -17,7 +17,9 @@ __updated__ = "2026-09-20"
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="cook_ibl", description="HogShade IBL cook (Docs/specs/e1-ibl-cook.md)")
+    parser = argparse.ArgumentParser(
+        prog="cook_ibl", description="HogShade IBL cook (Docs/superpowers/specs/e1-ibl-cook.md)"
+    )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("condition", help="8K master -> 4096x2048 half-float source_4k.exr")

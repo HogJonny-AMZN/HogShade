@@ -1,7 +1,7 @@
 # The Board
 
 **Status:** Living. Updated at the end of every increment, as the definition of done says.
-**Updated:** 2026-09-27, the phase 2 close as a PR; #25 (the standards pass) and #24 merged the same afternoon.
+**Updated:** 2026-09-27, evening: #26 merged and `v0.2.0` tagged; the standards pass's remainder as a PR.
 
 [`../ROADMAP.md`](../ROADMAP.md) is the *roadmap*: the tracks, the phases, the order, what each is
 for. [`../handoffs/CURRENT.md`](../handoffs/CURRENT.md) is the *handoff*: where work is right now and
@@ -41,7 +41,8 @@ A gate is not a task. It is a question that blocks tasks, and the cost of guessi
 
 | Item | Cost | Notes |
 | --- | --- | --- |
-| **Phase 2 close** (`docs/phase-2-close`, PR open) | ½ d, done | The deviations list in the design doc, the eye comparison recorded, status rows, roadmap C2 ticked, README status, VERSION `0.2.0`; the plan's task 19 with the gate item by item. Merge when read; then tag `v0.2.0` on master (the owner's tag) |
+| **The standards pass, remainder** (`docs/standards-remainder`, PR open) | 1 d, done | The decision log's working knowledge into `Docs/knowledge/toolchain.md` and `maya-scripting.md`, its repository state into the handoff, its open questions to the gates; specs and plans under `Docs/superpowers/` with every link and reference fixed (design and handoffs stay at the top level, as in the sibling repos). Merge when read |
+| ~~**Phase 2 close**~~ | — | ✅ **Merged 2026-09-27 as [#26](https://github.com/HogJonny-AMZN/HogShade/pull/26)**, tagged `v0.2.0`; gate item 5 deferred to track E by the merge |
 | ~~**The standards pass**~~ | — | ✅ **Merged 2026-09-27 as [#25](https://github.com/HogJonny-AMZN/HogShade/pull/25).** Two standards pages, the ledger, Copilot's instructions, ADR-001 to 008, status on every document, the project review with its ten fixes, `tools/check_hygiene.py` from Copilot's review of it; thirteen findings answered |
 | ~~**PR H · the process port** (#20)~~ | — | ✅ **Merged 2026-09-27 as [#20](https://github.com/HogJonny-AMZN/HogShade/pull/20).** The journal, `Docs/standards/`, the PR template, `tools/check_docs.py` in CI, the `local-review` skill, the BATS case, this board; Copilot's two findings fixed |
 | ~~**PR I · the README as the case for the repo**~~ | — | ✅ **Merged 2026-09-27 as [#21](https://github.com/HogJonny-AMZN/HogShade/pull/21).** WYSIWYG as a tolerance, the measurable value of a portable look, physics beside game features, pros and cons; the pitch for the agent loop; the checker hardened after its first local review (unclosed fences, links above the root) |
@@ -58,7 +59,6 @@ is the first two rows, in that order.
 
 | Item | Cost | Notes |
 | --- | --- | --- |
-| **The standards pass, remainder** | ½ d + ½ d | The decision log split into topic files under `Docs/knowledge/` (standards never mixed with state), and the `Docs/superpowers/{design,specs,plans,handoff}` move with links fixed (`check_docs.py` catches the rest). Both were left out of the overnight PR so it stayed reviewable |
 | **Job providers and capability discovery** (owner note, 2026-09-27) | 1 d on the Job_Orchestrator dev checkout, ½ d here | Decision log, "Job providers and capability discovery". Here: `hogshade.jobs` discovers its jobs by scanning, a test fails on a job without a `MANIFEST` (the Maya job was unregistered for a day). There: a provider field in the profile, `bats_list_jobs` and `bats_describe_job`, a CLI flag. Cross-repo; the HogShade half can go first |
 | **The history-log fix, verified** | one job | `tools/maya/_session.py` now stops Script Editor mirroring at the end of a check (PR H); the next Maya job proves the committed log stops growing |
 

@@ -99,8 +99,10 @@ Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence 
       week), `.github/copilot-instructions.md`, the first eight ADRs with their index, a `**Status:**` line
       on every document under `Docs/` with `tools/check_docs.py` governing all of it, and the project
       review with its ten fixes applied (`Docs/reviews/2026-09-27-standards-pass-project-review.md`).
-      **Remaining:** the decision log split into topic files under `Docs/knowledge/`, and the
-      `Docs/superpowers/{design,specs,plans,handoff}` move; both on the board as the pass's remainder.
+      **Remainder landed the same evening** (the remainder PR): the decision log's working knowledge
+      into `Docs/knowledge/toolchain.md` and `maya-scripting.md`, its state into the handoff, its open
+      questions to the board's gates; specs and plans under `Docs/superpowers/`, with design and
+      handoffs kept at the top level as the sibling repositories have them.
 - [x] v3.0 salvage (2026-09-20): six of eleven includes compile against v2; all six are reformats.
       Nothing taken. Folder deleted; archive stays at
       `D:\Depot\Maya-PBR-BRDF-VP2_BAK\uncommitted-v3.0-2025-04`. Details in the direction spec.
@@ -457,13 +459,12 @@ the prefix rule; the model interface; the NumPy-twin rule; the G-buffer layout c
 specialisation, Proposed; the orchestrator as the developer track; LFS and hygiene), status lines
 everywhere, and the code review: `environment.wgsl` and `lambert.wgsl` gained their twins and GPU
 tests, headers and loggers were made consistent, the stale "switch" wording and an unused constant
-went, the Maya helpers log instead of print, `submit.py` builds its stub from a literal. Not done:
-the decision-log split and the folder move (the board's Next), and the `bp_python` path in the
-generated profile, which is the owner's call under the clearance gate.
+went, the Maya helpers log instead of print, `submit.py` builds its stub from a literal. The decision-log split and the folder move followed the same evening as the pass's remainder; the
+studio package path in the generated profile is the owner's call under the clearance gate.
 
 The pass also aligns the documentation layout with the owner's cross-repo convention (owner,
-2026-09-26): `Docs/superpowers/design/` (the pre-spec conversational decision lock), `specs/`,
-`plans/`, `handoff/` (dated context for a new or bloated session), which `Docs/{design,specs,plans}`
+2026-09-26): `Docs/superpowers/design/` (the pre-spec conversational decision lock), `superpowers/specs/`,
+`superpowers/plans/`, `handoff/` (dated context for a new or bloated session), which `Docs/{design,specs,plans}`
 and `Docs/handoffs/` become with links updated; and from the next spec on, the superpowers skills
 drive each step after the design lock: the pre-spec design stays hand-written (what was talked
 about and locked, decisions with reasons, open questions), `brainstorming` produces the spec from

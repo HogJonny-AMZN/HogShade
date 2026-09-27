@@ -4,7 +4,7 @@
 // stage, the transparency and shadow passes, the techniques. The shading maths lives in
 // generated/hogshade_core_sm5.hlsl, which tools/build_shaders.py produced from core/*.wgsl with
 // naga; it declares no bindings, so this shell declares the textures, samplers and lights and
-// passes them into the core (Docs/specs/phase-2-restructure.md, "Hosts in this phase").
+// passes them into the core (Docs/superpowers/specs/phase-2-restructure.md, "Hosts in this phase").
 //
 // The parameter set is the legacy v2 shader's (legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx), same names,
 // so scenes and the check tool carry over; the differences are the port's documented deviations

@@ -2,7 +2,7 @@
 HogShade: cube-map directions and the equirectangular mapping, fixed so every host agrees.
 Package: hogshade/ibl/cubemap
 
-The conventions here are the spec's (Docs/specs/e1-ibl-cook.md, "Cube from equirect"):
+The conventions here are the spec's (Docs/superpowers/specs/e1-ibl-cook.md, "Cube from equirect"):
 
 - Texel (x, y) on a face of size N: u = 2 (x + 0.5) / N - 1, v = 2 (y + 0.5) / N - 1, with y = 0
   the first stored row (the top of the face as Direct3D displays it).

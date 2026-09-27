@@ -45,7 +45,7 @@ with `envLightingExp` defaulting to 5 and then applies a 2.23 gamma. The cooked 
 fp16 with alpha 1, so set `envLightingExp` to 1 and `linearSpaceLighting` off. Bind a base colour,
 normal and masks map as well; unbound 2D maps sample black and the shader multiplies them in. The
 specular cube slot renders black in Maya 2026 even with data that works in the diffuse slot; see
-`Docs/plans/e1-ibl-cook.md` task 11. The phase 2 port removes all of this.
+`Docs/superpowers/plans/e1-ibl-cook.md` task 11. The phase 2 port removes all of this.
 
 ## Cooking
 

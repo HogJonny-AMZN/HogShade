@@ -5,7 +5,7 @@ wgpu and Maya captures share the lighting and the material but not the mesh (ite
 owner's merge of the close PR (#26) accepts that item as deferred to track E, where the calibration
 mesh (board, G5) and the comparison framework (G4) close it; a reversal reopens the phase.
 
-Date: 2026-09-20. Design: [../design/2026-09-20-modernization-direction.md](../design/2026-09-20-modernization-direction.md)
+Date: 2026-09-20. Design: [../design/2026-09-20-modernization-direction.md](../../design/2026-09-20-modernization-direction.md)
 ("Architecture", "Two rendering paths", "Why WGSL is the source"), roadmap track C2. Plan:
 [../plans/phase-2-restructure.md](../plans/phase-2-restructure.md).
 
