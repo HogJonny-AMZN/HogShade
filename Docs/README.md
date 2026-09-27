@@ -13,6 +13,9 @@ A fifth document is not a layer but a safety net: the decision log
 (`design/2026-09-26-decision-log-and-working-knowledge.md`) catches every direction or decision
 stated in conversation before it has a spec to live in, so the record never depends on a session.
 
+`AGENTS.md` at the repo root is the tool-neutral agent entry (`CLAUDE.md` imports it); `tools/bats/AGENTS.md`
+and `tools/bats/README.md` cover the orchestrator for agents and humans.
+
 Two more files are the session-independence layer: `handoffs/CURRENT.md` (where work is right now,
 how to run the developer track, what a new session must not do) and `knowledge/` (small topic files
 of the agent knowledge base; `knowledge/job-orchestrator.md` is the first).

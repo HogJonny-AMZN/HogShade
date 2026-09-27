@@ -23,8 +23,9 @@ ColorSpace` annotations, the fourteen-second compile against Maya's compile time
 
 ## How to run the developer track
 
-1. Stop any running orchestrator (its tray icon, or `launchers\kill_orchestrator.bat` in the dev
-   checkout). One orchestrator per machine.
+1. Stop any running orchestrator: its tray icon, or for a wedged one
+   `toolsats\kill_hogshade_orchestrator.bat` (human only; it ends every Maya and Houdini process
+   on the machine). One orchestrator per machine.
 2. `tools\bats\run_hogshade_orchestrator.bat` (needs `JOB_ORCHESTRATOR_ROOT`, default
    `D:\Depot\Job_Orchestrator`). It brings up `hogshade_maya` (headless), `hogshade_maya_gui`
    (DirectX 11), `hogshade_python` and `hogshade_blender`, plus the tray.
