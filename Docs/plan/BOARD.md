@@ -1,7 +1,7 @@
 # The Board
 
 **Status:** Living. Updated at the end of every increment, as the definition of done says.
-**Updated:** 2026-09-27, the phase 2 close as a PR; #25 (the standards pass) and #24 merged the same afternoon.
+**Updated:** 2026-09-27, evening: #26 merged and `v0.2.0` tagged; the standards pass's remainder as a PR.
 
 [`../ROADMAP.md`](../ROADMAP.md) is the *roadmap*: the tracks, the phases, the order, what each is
 for. [`../handoffs/CURRENT.md`](../handoffs/CURRENT.md) is the *handoff*: where work is right now and
@@ -31,7 +31,7 @@ A gate is not a task. It is a question that blocks tasks, and the cost of guessi
 | --- | --- | --- | --- |
 | **G1 · Track A, open-source clearance** | 🔴 **Open, owner-only.** The repo is private; `hog_color` in LargeWorlds derives from `bp_color`; the generated orchestrator profile carries a `bp_python` path from the dev checkout's canon config | Publishing anything; any public link from HogShade to LargeWorlds, Job_Orchestrator or BATS | The employer conversation in the roadmap's track A, in the order it states. Until then the hygiene grep is the rule, and the `bp_python` line is the owner's call: strip it in `make_profile.py`, or leave it while private |
 | **G2 · Which OCIO config seeds the repo** | 🟡 **Open.** Blender's 4.x config (CC0, ships AgX) with the ACES views added, or an ACES studio config with an AgX view added, or an own AgX view from the published transform | Track E colour management: scene-referred ACEScg captures, the AgX default view, the ACES alternative, the wgpu host's numeric twin of the view | The owner's pick; the roadmap's colour-management item holds the trade-off |
-| **G3 · The material contract and editor split** | 🟡 **Open, recommendation on record.** HogShade owns the parameter schema and the material document; LargeWorlds owns the editor; dependency one way (decision log, section 3) | Phase C3's parameter schema; the ADR the standards pass would write | Agree, amend or reverse |
+| ~~**G3 · The material contract and editor split**~~ | 🟢 **CLOSED 2026-09-27.** Owner: "let's not build the material editor here, but let's own the core generalized material schema / data." [ADR-009](../decisions/ADR-009-hogshade-owns-the-material-schema.md) | — | Done: HogShade owns the schema, the document, the mapping and the Python library; LargeWorlds owns the editor; dependency one way |
 | **G4 · When the comparison framework design is written** | 🟡 **Open.** The current plan says after the standards pass; the owner may pull it earlier | The pixel-identical screenshot diff of both legacy ports against the legacy effects (plan task 18's open half); the C3 comparison view; the bake comparisons | A date relative to the standards pass |
 | **G5 · Does the owner's edited shader ball replace the verbatim OBJ?** | 🟡 **Open.** The legacy scene carries UV sets and CPV values the verbatim OBJ lacks; the diff was meant to happen while Maya was open in PR F and did not | The calibration mesh in track E's calibration scene; the CPV mask and AO features in C4 need a mesh that carries them | A diff of `testFiles/v2.0/shaderBall_pbr_IBLenv.ma` against `content/shaderball/`, then a yes or no |
 
@@ -41,7 +41,8 @@ A gate is not a task. It is a question that blocks tasks, and the cost of guessi
 
 | Item | Cost | Notes |
 | --- | --- | --- |
-| **Phase 2 close** (`docs/phase-2-close`, PR open) | ½ d, done | The deviations list in the design doc, the eye comparison recorded, status rows, roadmap C2 ticked, README status, VERSION `0.2.0`; the plan's task 19 with the gate item by item. Merge when read; then tag `v0.2.0` on master (the owner's tag) |
+| **The standards pass, remainder** (`docs/standards-remainder`, PR open) | 1 d, done | The decision log's working knowledge into `Docs/knowledge/toolchain.md` and `maya-scripting.md`, its repository state into the handoff, its open questions to the gates; specs and plans under `Docs/superpowers/` with every link and reference fixed (design and handoffs stay at the top level, as in the sibling repos). Merge when read |
+| ~~**Phase 2 close**~~ | — | ✅ **Merged 2026-09-27 as [#26](https://github.com/HogJonny-AMZN/HogShade/pull/26)**, tagged `v0.2.0`; gate item 5 deferred to track E by the merge |
 | ~~**The standards pass**~~ | — | ✅ **Merged 2026-09-27 as [#25](https://github.com/HogJonny-AMZN/HogShade/pull/25).** Two standards pages, the ledger, Copilot's instructions, ADR-001 to 008, status on every document, the project review with its ten fixes, `tools/check_hygiene.py` from Copilot's review of it; thirteen findings answered |
 | ~~**PR H · the process port** (#20)~~ | — | ✅ **Merged 2026-09-27 as [#20](https://github.com/HogJonny-AMZN/HogShade/pull/20).** The journal, `Docs/standards/`, the PR template, `tools/check_docs.py` in CI, the `local-review` skill, the BATS case, this board; Copilot's two findings fixed |
 | ~~**PR I · the README as the case for the repo**~~ | — | ✅ **Merged 2026-09-27 as [#21](https://github.com/HogJonny-AMZN/HogShade/pull/21).** WYSIWYG as a tolerance, the measurable value of a portable look, physics beside game features, pros and cons; the pitch for the agent loop; the checker hardened after its first local review (unclosed fences, links above the root) |
@@ -58,7 +59,7 @@ is the first two rows, in that order.
 
 | Item | Cost | Notes |
 | --- | --- | --- |
-| **The standards pass, remainder** | ½ d + ½ d | The decision log split into topic files under `Docs/knowledge/` (standards never mixed with state), and the `Docs/superpowers/{design,specs,plans,handoff}` move with links fixed (`check_docs.py` catches the rest). Both were left out of the overnight PR so it stayed reviewable |
+| **The material schema, pre-spec design** (unblocked by G3, ADR-009) | ½ to 1 d of conversation and writing | A design doc under `Docs/design/`: the parameter definition (name, type, range, default, UI group, semantic, colour space), the OpenPBR-in-MaterialX document as the authored form, the glTF game-profile mapping, the extension-block rule, the Python library's shape, what a host UI generator consumes. The owner locks it; then a spec. C3's build still waits on G4 |
 | **Job providers and capability discovery** (owner note, 2026-09-27) | 1 d on the Job_Orchestrator dev checkout, ½ d here | Decision log, "Job providers and capability discovery". Here: `hogshade.jobs` discovers its jobs by scanning, a test fails on a job without a `MANIFEST` (the Maya job was unregistered for a day). There: a provider field in the profile, `bats_list_jobs` and `bats_describe_job`, a CLI flag. Cross-repo; the HogShade half can go first |
 | **The history-log fix, verified** | one job | `tools/maya/_session.py` now stops Script Editor mirroring at the end of a check (PR H); the next Maya job proves the committed log stops growing |
 
@@ -68,7 +69,7 @@ is the first two rows, in that order.
 
 | Item | Blocked on |
 | --- | --- |
-| **Phase C3 · OpenPBR model, MaterialX carrier, parameter schema** | **G3** for the schema's home; **G4** because the roadmap says E's calibration capture runs in `maya_dx11` before C3 opens; the standards pass and the close are done |
+| **Phase C3 · OpenPBR model, MaterialX carrier, parameter schema** | **G4** because the roadmap says E's calibration capture runs in `maya_dx11` before C3 opens; G3 closed 2026-09-27 (ADR-009), so the schema's pre-spec design is unblocked (Next) |
 | **The comparison framework** (roadmap, track E) | **G4** for its design date. Design first, then spec, then build; `tools/wgpu/viewport.py` is replaced, not extended |
 | **Colour management: ACEScg, AgX default, ACES alternative** (track E) | **G2** |
 | **The pixel-identical screenshot diff of v1 and v2 against the legacy effects** | The comparison framework |
@@ -87,6 +88,10 @@ forgotten. **An empty Icebox means ideas are going missing.**
 
 | Item | Cost | Why not now |
 | --- | --- | --- |
+| **Track F, pre-spec design: the material library and the repo as a getting-started shading solution** (owner, 2026-09-27) | ½ d of conversation and writing, after or with the schema design | Verdict: awesome as a scope decision, and it changes what "done" means for the repo, so it gets a design the owner locks before anything is built. Roadmap track F |
+| **The base material library, constants only** | 1 d once the schema is locked | Verdict: awesome; the schema's first consumer and its test data. Waits on the schema's design (Next) |
+| **The texture-based set, small, CC0 or generated here** | 1 to 2 d, with track E's texture conventions | Verdict: good, with provenance as a rule from the first texture; drives the cook with real content. After the base set |
+| **AI-driven material and texture generation, as gated research** (owner names Nano Banana Pro) | a design first; the validation harness 2 to 3 d; the generation job 1 d on the Python worker | Verdict: awesome as research, meh as a content source until gated. A generated normal is a picture of a normal, not a derivative of the height; the harness (re-derived normals, tileability, the registered-grid probes, colour space, cook, render) turns it into an experiment with a verdict. The model's terms for shipped assets are verified first. A textbook gated BATS workflow |
 | **Procedural test data: hydrate everything** (owner, 2026-09-26; registered grids 2026-09-27) | 1 to 2 d for the tool and the first set (Macbeth chart, grey card, ramps, UV grid with orientation marks, normal tiles with a known slope, height tile, alpha cutout, fallback primitives) | Track E; nothing consumes it until the comparison framework (G4) reads it. The IBL cook is the pattern |
 | **Bake comparisons: Blender required, Maya, Toolbag and Substance optional** (owner, 2026-09-26) | 2 to 3 d for the Blender path and the diff tool; ½ d per optional tool | Track E; needs the mesh set (G5) and the framework's report format (G4) |
 | **This repo's own renderer and viewer, structured like `hog_rendering`** (owner, 2026-09-26) | grows with the framework | `hogshade.wgpu_host` is the seed; it becomes a viewer when the comparison framework needs one |

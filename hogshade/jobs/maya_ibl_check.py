@@ -57,7 +57,7 @@ MANIFEST = {
         ".../maya-history.log",
     ],
     "returns": "dict: ok, dir, log, png, techniques",
-    "spec": "Docs/plans/phase-2-restructure.md task 17",
+    "spec": "Docs/superpowers/plans/phase-2-restructure.md task 17",
 }
 
 _ENV_KEYS = {

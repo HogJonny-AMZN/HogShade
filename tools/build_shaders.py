@@ -5,7 +5,7 @@ Package: tools/build_shaders
     uv run tools/build_shaders.py            # build everything, write hosts/*/generated/
     uv run tools/build_shaders.py --check    # build to a temp dir and fail if it differs from what is committed
 
-Steps (Docs/specs/phase-2-restructure.md, "Toolchain"):
+Steps (Docs/superpowers/specs/phase-2-restructure.md, "Toolchain"):
   1. read core/manifest.toml; concatenate the modules in order; enforce the naming rule
   2. naga validate the stitched core plus the validation entry point
   3. naga -> hosts/maya_dx11/generated/hogshade_core_sm5.hlsl   (shader model 5.0; fxc /T ps_5_0 compiles it)

@@ -2,7 +2,7 @@
 
 **Status:** Accepted (the standards pass, 2026-09-27; the rules the spec and the spike set, collected)
 **Last updated:** 2026-09-27
-**Read with:** [python.md](python.md), the ADRs in [../decisions/](../decisions/README.md), [../specs/phase-2-restructure.md](../specs/phase-2-restructure.md) "Module conventions" and "Interfaces"
+**Read with:** [python.md](python.md), the ADRs in [../decisions/](../decisions/README.md), [../specs/phase-2-restructure.md](../superpowers/specs/phase-2-restructure.md) "Module conventions" and "Interfaces"
 
 The core under `core/` is the one source of the shading maths. Everything under `hosts/*/generated/`
 and `hosts/hlsl/hogshade_core.hlsl` is built from it by `tools/build_shaders.py` and is never

@@ -38,6 +38,7 @@ cleanup that make the work publishable, and the employer conversation that decid
 | C | Shading core and hosts | The SpriteJammer tiers |
 | D | SpriteJammer PBR tiers | Nothing downstream; it is the consumer |
 | E | Parity and pipeline: colour, lights, textures, capture and diff | Every "looks the same" claim in C and D |
+| F | The material library and generation: a base set of constants-only materials, a small texture-based set, and AI-driven material and texture generation as gated research; the repo as a base shading solution and getting-started library for any of the owner's games (owner, 2026-09-27; design first) | The library needs the schema (ADR-009); generation needs the validation harness before any output is content |
 
 Tracks A and B are independent. C follows B. E starts with B and its capture tooling gates C3.
 D follows C5 but its G-buffer prep and the bake decision can start any time. The reasoning behind E
@@ -99,8 +100,10 @@ Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence 
       week), `.github/copilot-instructions.md`, the first eight ADRs with their index, a `**Status:**` line
       on every document under `Docs/` with `tools/check_docs.py` governing all of it, and the project
       review with its ten fixes applied (`Docs/reviews/2026-09-27-standards-pass-project-review.md`).
-      **Remaining:** the decision log split into topic files under `Docs/knowledge/`, and the
-      `Docs/superpowers/{design,specs,plans,handoff}` move; both on the board as the pass's remainder.
+      **Remainder landed the same evening** (the remainder PR): the decision log's working knowledge
+      into `Docs/knowledge/toolchain.md` and `maya-scripting.md`, its state into the handoff, its open
+      questions to the board's gates; specs and plans under `Docs/superpowers/`, with design and
+      handoffs kept at the top level as the sibling repositories have them.
 - [x] v3.0 salvage (2026-09-20): six of eleven includes compile against v2; all six are reformats.
       Nothing taken. Folder deleted; archive stays at
       `D:\Depot\Maya-PBR-BRDF-VP2_BAK\uncommitted-v3.0-2025-04`. Details in the direction spec.
@@ -437,6 +440,34 @@ The inputs and the proof. Without these, "same shader" produces different pictur
 4. Whether the horde ever needs tier 2, or tier 1 is the ceiling for anything at distance. The
    benchmark decides; the owner reads it.
 
+## Track F: the material library and generation (owner, 2026-09-27; design first)
+
+Owner: "we can also build a small material library here, one set of broad base materials that are
+constants and params only, another smaller set texture based; I would like to consider some AI
+driven material and texture generation tooling and workflows here ... great vein for research and
+learning. This could become a base shading solution and library (a getting started repo for any
+of my games)." The reframing is a scope decision and gets a pre-spec design before anything is
+built; the verdicts and the ordering are on the board.
+
+- [ ] **The base library, constants only.** A broad set of materials that use parameters alone
+      (metals, dielectrics, a few characteristic roughness and tint choices), authored as the
+      schema's documents. The schema's first consumer and its test data: every parameter
+      exercised by a real material, rendered in every host by the comparison framework. Ships
+      with the schema, not after it.
+- [ ] **The texture-based set, small.** Provenance is a rule from the first texture: CC0 sources
+      (Poly Haven, ambientCG) or generated in this repo, never a studio tree. Drives track E's
+      texture conventions and cook with real content.
+- [ ] **AI-driven generation as gated research.** A generator (the owner names Nano Banana Pro as a
+      model that emits albedo, height and normal channels) is a job on the Python worker, and its
+      output is never content until it passes a validation harness: normals re-derived from the
+      height and the disagreement measured, a wrap-around diff for tileability, the registered-grid
+      probes for normal-map sign and channel order, a schema check for colour space, then the cook,
+      then a render in every host. Generate four, validate, the owner picks one from the phone (the
+      gated workflow in the agent-loop design). The model's terms for generated assets in a shipped
+      game are verified before any generated texture is committed.
+- [ ] **The getting-started shape.** What a new game repo takes from here: the core, the schema and
+      library, the cooks, the checks; documented as one page once the library exists.
+
 ## The standards pass (owner, 2026-09-26)
 
 HogShade is a rewrite in a new direction. The legacy repo was never code-reviewed against the
@@ -457,14 +488,15 @@ the prefix rule; the model interface; the NumPy-twin rule; the G-buffer layout c
 specialisation, Proposed; the orchestrator as the developer track; LFS and hygiene), status lines
 everywhere, and the code review: `environment.wgsl` and `lambert.wgsl` gained their twins and GPU
 tests, headers and loggers were made consistent, the stale "switch" wording and an unused constant
-went, the Maya helpers log instead of print, `submit.py` builds its stub from a literal. Not done:
-the decision-log split and the folder move (the board's Next), and the `bp_python` path in the
-generated profile, which is the owner's call under the clearance gate.
+went, the Maya helpers log instead of print, `submit.py` builds its stub from a literal. The decision-log split and the folder move followed the same evening as the pass's remainder; the
+studio package path in the generated profile is the owner's call under the clearance gate.
 
 The pass also aligns the documentation layout with the owner's cross-repo convention (owner,
-2026-09-26): `Docs/superpowers/design/` (the pre-spec conversational decision lock), `specs/`,
-`plans/`, `handoff/` (dated context for a new or bloated session), which `Docs/{design,specs,plans}`
-and `Docs/handoffs/` become with links updated; and from the next spec on, the superpowers skills
+2026-09-26; landed 2026-09-27 in the pass's remainder): `Docs/superpowers/specs/` and
+`Docs/superpowers/plans/` hold the specs and plans, while `Docs/design/` (the pre-spec conversational
+decision lock) and `Docs/handoffs/` (the living handoff) stay at the top level as LargeWorlds and
+SpriteJammer keep them; the docs map records that deviation from the convention's first wording.
+From the next spec on, the superpowers skills
 drive each step after the design lock: the pre-spec design stays hand-written (what was talked
 about and locked, decisions with reasons, open questions), `brainstorming` produces the spec from
 it, `writing-plans` the plan,

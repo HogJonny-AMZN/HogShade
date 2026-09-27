@@ -36,7 +36,7 @@ the phase 2 standards pass; until then these pointers are the contract.)
 | The decisions, as ADRs | [Docs/decisions/README.md](Docs/decisions/README.md) |
 | How the process has failed here, as triggers | [Docs/standards/failure-modes.md](Docs/standards/failure-modes.md) |
 | Generated hosts and what to call in the core | [hosts/README.md](hosts/README.md), [hosts/hlsl/README.md](hosts/hlsl/README.md), [hosts/wgpu/README.md](hosts/wgpu/README.md) |
-| IBL content and the cook | [content/ibl/README.md](content/ibl/README.md), [Docs/specs/e1-ibl-cook.md](Docs/specs/e1-ibl-cook.md) |
+| IBL content and the cook | [content/ibl/README.md](content/ibl/README.md), [Docs/superpowers/specs/e1-ibl-cook.md](Docs/superpowers/specs/e1-ibl-cook.md) |
 
 ## Skills (procedures)
 

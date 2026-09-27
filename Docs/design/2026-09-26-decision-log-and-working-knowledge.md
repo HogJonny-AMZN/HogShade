@@ -1,7 +1,10 @@
 # Decision log and working knowledge
 
 **Status:** Living. Appended whenever a direction or decision is made in conversation and is not yet
-in a spec, plan or ADR. The conversation is not the record; this file and the documents it links
+in a spec, plan or ADR. Split on 2026-09-27 (the standards pass's remainder): the working knowledge
+moved to `../knowledge/` (`toolchain.md`, `maya-scripting.md`; the process lessons are the definition
+of done, the skills and the failure-modes ledger), the repository state to `../handoffs/CURRENT.md`,
+the open questions to the board's gates. This file is the decisions and directions only. The conversation is not the record; this file and the documents it links
 are. If a session is lost, a new one starts here, then `ROADMAP.md`, then the plan in flight.
 
 Written 2026-09-26 from the sessions of 2026-09-20 to 2026-09-26. Each entry says where the decision
@@ -37,7 +40,7 @@ Formalised: the standards-pass section of `ROADMAP.md`; the phase 2 plan.
 | v2 furnace returns 1 plus the specular albedo; recorded, not fixed | spec phase 2, "The test harness" |
 | GGX D tolerance split at alpha 0.1 | `tests/core/test_brdf_gpu.py`; plan task 9 |
 | ADR-002 G-buffer layout, octahedral normals, sRGB-aware quantisation | `core/gbuffer.wgsl`; `tests/core/test_gbuffer_gpu.py` |
-| E1 cook conventions (face convention, roughness linear in mip, E over pi, LUT) | `Docs/specs/e1-ibl-cook.md`; cooked manifests |
+| E1 cook conventions (face convention, roughness linear in mip, E over pi, LUT) | `Docs/superpowers/specs/e1-ibl-cook.md`; cooked manifests |
 | Cook resolution sweet spot: 4K source to 1024 cube for probes, 256 default, 2048 only for a hero sky | `Docs/research/benchmarks/`; E2 plan |
 | Maya 2026 only; no 3ds Max host; HogShade has its own versioning; CPV masks, CPV AO and the 33 debug views are first-class; never delete a shading path | design doc "Decisions" |
 | MikkTSpace is a requirement | `ROADMAP.md` track E |
@@ -66,7 +69,7 @@ Formalised: the standards-pass section of `ROADMAP.md`; the phase 2 plan.
 - **Visual proof before merging visual work (owner preference, from the sibling project):** offer a
   page of real rendered output alongside a PR that changes a picture. Here only.
 
-### Material data, contracts and editor: where they live (owner asked 2026-09-26; recommendation, soft)
+### Material data, contracts and editor: where they live (owner asked 2026-09-26; decided 2026-09-27, ADR-009)
 
 The question: does a base material data model and editor live here and get extended in LargeWorlds
 and again per game, or does this repo stay focused on shading? Recommendation, not yet decided:
@@ -91,7 +94,8 @@ and again per game, or does this repo stay focused on shading? Recommendation, n
 - **The grey zone**: HogShade's viewer and comparison tool get a minimal generic parameter panel
   generated from the schema; anything beyond (node graphs, asset browsing) belongs in LargeWorlds.
 
-Decided when phase 3 designs the schema; becomes an ADR in the standards pass if the owner agrees.
+Decided by the owner on 2026-09-27 as recommended ("let's not build the material editor here, but let's own
+the core generalized material schema / data"): `../decisions/ADR-009-hogshade-owns-the-material-schema.md`.
 
 ### Agent instructions as a knowledge base (owner, 2026-09-26; decided)
 
@@ -130,8 +134,11 @@ new session continues without this one. Details: `Docs/knowledge/job-orchestrato
 
 ### Docs convention and the superpowers skills (owner, 2026-09-26; decided, applied in the standards pass)
 
-`Docs/superpowers/{design,specs,plans,handoff}` is the cross-repo convention; HogShade's folders move
-there in the standards pass. The pre-spec design stays a hand-written lock of what was discussed
+`Docs/superpowers/{design,specs,plans,handoff}` is the cross-repo convention as first stated; HogShade's
+specs and plans moved there on 2026-09-27 (the standards pass's remainder). Design and handoffs
+stayed at the top level, because that is where LargeWorlds and SpriteJammer actually keep them and
+consistency with two existing repositories won over the convention's first wording; the docs map
+records the deviation. The pre-spec design stays a hand-written lock of what was discussed
 and decided; the superpowers skills take over from there (brainstorming writes the spec from the
 lock, writing-plans the plan, executing-plans with TDD the build, verification and code review
 before a PR) from the next spec on. A handoff
@@ -363,80 +370,32 @@ right, at least a couple of weeks". So Saturday's prerequisite exists at work to
 orchestrator's Unreal Editor worker type) and the long shot is only the home engine; Thursday's
 generative steps carry the owner's own floor of a couple of weeks. The pitch says both.
 
-## 4. Repository and GitHub state (as of 2026-09-26)
+### The material library, AI generation, and the repo as a getting-started shading solution (owner, 2026-09-27; soft, design first, with verdicts)
 
-- HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`
-  payloads and the shader ball are in.
-- One orphaned LFS object exists in GitHub's LFS store: the 8K studio master, pushed once by
-  mistake on the LFS branch and removed before merge. Only GitHub support can purge it; it counts
-  toward the LFS quota. CC0 content, no licence issue. Here only.
-- GitHub still reports the pre-rewrite repository size (about 129 MB) until its garbage collection
-  runs or support is asked.
-- Owner-only steps still open: merge the legacy pointer PR (`hogjonny/Maya-PBR-BRDF-VP2#2`) from
-  the legacy account, delete the `legacy-pointer` branch, close legacy issue #1, archive the legacy
-  repo. Track A clearance steps untouched.
-- The CI runner (`windows-latest`) has a DirectX 12 adapter, so the GPU tests run there through
-  FXC; LFS is not hydrated on CI (`lfs: false`), so asset-dependent tests skip there.
+Owner: "we can also build a small material library here, one set of broad base materials that are
+constants and params only, another smaller set texture based; I would like to consider some AI
+driven material and texture generation tooling and workflows here. I know Nano Banana Pro
+theoretically can make material texture channels including depth maps and normal maps. Great vein
+for research and learning. This could become a base shading solution and library (a getting started
+repo for any of my games)."
 
-## 5. Working knowledge (the lessons that cost time)
+Verdicts. The constants-only library: awesome, the schema's first consumer and its test data, ships
+with the schema. The texture set: good, small, provenance a rule from the first texture (CC0 or
+generated here). AI generation: awesome as research, meh as a source until gated; a generated
+normal is a picture of a normal, not a derivative of the height, colour space and tiling are luck,
+runs differ; the research question is validation, and the harness (normals re-derived from height
+and the disagreement measured, wrap-around diff, the registered-grid probes, a schema colour-space
+check, the cook, a render in every host) makes it an experiment with a verdict and a gated BATS
+workflow (generate four, validate, pick one from the phone). The reframing as a getting-started
+shading solution is a scope decision: roadmap track F, design first. The model's terms for
+generated assets in a shipped game are a fact to verify before any generated texture is committed.
 
-### Toolchain and shell
+## 4. What moved out of this file (2026-09-27)
 
-- naga-cli 30.0.1 and Rust 1.98.1 via winget; `$HOME/.cargo/bin` on PATH in git-bash (not
-  `$USERPROFILE`). `export MSYS_NO_PATHCONV=1` before fxc, dxc or naga, or git-bash rewrites `/T`
-  and `/E` into paths. With that exported, native git cannot read `/tmp/...` message files: write
-  commit messages to a real Windows path.
-- `gh pr create` must pass `-R HogJonny-AMZN/HogShade` (a habit from the fork days; harmless now).
-- naga: names ending in digits get a trailing underscore (`FixedSlots16_`); `meta` is reserved;
-  GLSL output needs a `.frag` extension; struct-field parsing in the build must tolerate
-  `array<LightSource, 16>`.
-- FXC (Maya's dx11Shader and wgpu's D3D12 backend): rejects a `switch` on a value read from a uint
-  texture in a shader that also passes textures into functions ("no storage type for block
-  output"); rejects some multi-return switch cases ("not all control paths return a value").
-  Single returns and if-chains compile. Check every new host shader on the D3D12 backend
-  (`WGPU_BACKEND_TYPE=D3D12`) before pushing.
-- `queue.write_texture` needs no 256-byte row alignment; buffer-to-texture copies and readback do.
-- Recreate `.venv` after moving the clone folder: uv's script launchers embed the absolute path.
-
-### Maya 2026 scripting (from E1 and the spike)
-
-- Maya's Python is 3.11: no nested same-quote f-strings; parse-check scripts with `mayapy` first.
-- Run checks with a scratch `MAYA_APP_DIR` and `MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11`; the
-  owner's viewport preference is OpenGL Core and is never changed.
-- Playblast with `offScreen=False`; the offscreen path does not draw the dx11 effect. Compare
-  frames on decoded BMP pixels over the non-background region; `MImage` pixel access runs out of
-  memory.
-- Exit code 127 after `quit` is normal; 139 at about twelve seconds is a startup crash, so wrap
-  launches in a retry loop, kill stray `maya.exe` and `mayapy` first, and never run two Maya
-  instances at once.
-- `dx11Shader` texture slots need a connected `file` node (`setAttr` with a string fails); lights
-  are bound explicitly with `cmds.dx11Shader(node, connectLight=("Light 0", light_transform))`
-  and read back with `lightConnectionStatus`; the `-e` flag is invalid on that command.
-- Legacy v2 findings (never re-chase): both cube parameters use the `environment` semantic; unbound
-  2D maps sample black, so an unbound cavity map blacks out specular; RGBM `.bgr` decode at
-  exposure 5 and gamma 2.23. All addressed by the port's deviations.
-
-### Process
-
-- Roadmap, pre-spec design, spec, plan, then work; a task is ticked when its verification ran.
-- Every PR is reviewed by Copilot; each finding is assessed, fixed when right, refuted with
-  evidence when wrong, and answered on its thread. The owner merges and deletes the branch. Claims
-  in a reply are made after the evidence exists, never before (a D3D12 claim on PR #13 went out
-  early and had to be corrected).
-- Hygiene before every push: no employer names, personal email, no studio files, Apache-compatible
-  dependencies. LargeWorlds, Job_Orchestrator, BATS and SpriteJammer are the owner's own projects
-  and may be named.
-- This repository's default branch is `master`; `gh pr create` needs `--base master`. Write a
-  commit-message file in its own command: a chained assertion that aborts before the file is written
-  leaves the next commit reading a file that does not exist (PR G, twice).
-
-## 6. Open questions for the owner
-
-- Whether the owner's shader-ball edits (UV sets, CPV) matter enough to replace the verbatim OBJ
-  as the calibration mesh. Decided by the diff in PR F.
-- Which OCIO config seeds the repo: Blender's 4.x config (CC0, ships AgX) with the ACES views
-  added, or an ACES studio config with an AgX view added.
-- When the comparison framework design is written: after the standards pass (current plan) or
-  pulled earlier.
-- Whether the orphaned 8K LFS object is worth a support request.
-- The material contract and editor split above (section 3): agree, amend, or reverse.
+| Was here | Now |
+| --- | --- |
+| Repository and GitHub state | [../handoffs/CURRENT.md](../handoffs/CURRENT.md), "Repository and GitHub state" |
+| Working knowledge: toolchain and shell | [../knowledge/toolchain.md](../knowledge/toolchain.md), "Lessons that cost time" |
+| Working knowledge: Maya 2026 scripting | [../knowledge/maya-scripting.md](../knowledge/maya-scripting.md) |
+| Working knowledge: process | [../standards/definition-of-done.md](../standards/definition-of-done.md), [../standards/failure-modes.md](../standards/failure-modes.md), the `review-and-pr` skill |
+| Open questions for the owner | [../plan/BOARD.md](../plan/BOARD.md), the gates G1 to G5 and the owner-only steps |

@@ -17,8 +17,8 @@ LargeWorlds' and SpriteJammer's.
 | [ADR-006](ADR-006-shader-specialisation-by-override-constants.md) | Shader specialisation by `override` constants over the uber core as the record | Proposed |
 | [ADR-007](ADR-007-the-orchestrator-is-the-developer-track.md) | Job_Orchestrator is the developer track and never a dependency | Accepted |
 | [ADR-008](ADR-008-lfs-and-hygiene.md) | LFS only for what cannot be generated; 8K masters never; the hygiene rule | Accepted |
+| [ADR-009](ADR-009-hogshade-owns-the-material-schema.md) | HogShade owns the material schema, document, mapping and library; the editor lives in LargeWorlds; dependency one way | Accepted |
 
 Decisions that are not yet ADRs live in the decision log
 (`../design/2026-09-26-decision-log-and-working-knowledge.md`); one becomes an ADR when the
-standards pass or a phase close formalises it. Candidates: the material contract split (board gate
-G3), the colour-management choice (G2), the comparison framework's design (G4).
+standards pass or a phase close formalises it. Candidates: the colour-management choice (G2), the comparison framework's design (G4).

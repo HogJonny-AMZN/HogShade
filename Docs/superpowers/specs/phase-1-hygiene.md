@@ -2,7 +2,7 @@
 
 **Status:** Accepted. In progress (owner steps).
 
-Date: 2026-09-20. Design: [../design/2026-09-20-modernization-direction.md](../design/2026-09-20-modernization-direction.md),
+Date: 2026-09-20. Design: [../design/2026-09-20-modernization-direction.md](../../design/2026-09-20-modernization-direction.md),
 roadmap track B. Plan: [../plans/phase-1-hygiene.md](../plans/phase-1-hygiene.md).
 
 ## Deliverable

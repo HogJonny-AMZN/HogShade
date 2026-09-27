@@ -2,7 +2,7 @@
 // NumPy twins for the texture-free functions in hogshade/reference/environment.py; the GPU harness
 // compares them (tests/core/test_environment_gpu.py). The sampling functions are exercised by the hosts.
 //
-// Conventions (Docs/specs/e1-ibl-cook.md): the specular cube is GGX-prefiltered with roughness
+// Conventions (Docs/superpowers/specs/e1-ibl-cook.md): the specular cube is GGX-prefiltered with roughness
 // linear in mip; the irradiance cube and the SH9 constants store E / pi; the BRDF LUT is indexed
 // by (NdotV, roughness) and returns (scale, bias) on F0. Nothing here tonemaps.
 
