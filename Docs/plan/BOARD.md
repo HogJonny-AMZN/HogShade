@@ -1,7 +1,7 @@
 # The Board
 
 **Status:** Living. Updated at the end of every increment, as the definition of done says.
-**Updated:** 2026-09-27 (created on PR H, the process port; the same day PR G, the v1 port, merged as #19).
+**Updated:** 2026-09-27, after #21 merged (created the same day on #20; #19, #20 and #21 all landed on 2026-09-27).
 
 [`../ROADMAP.md`](../ROADMAP.md) is the *roadmap*: the tracks, the phases, the order, what each is
 for. [`../handoffs/CURRENT.md`](../handoffs/CURRENT.md) is the *handoff*: where work is right now and
@@ -41,7 +41,8 @@ A gate is not a task. It is a question that blocks tasks, and the cost of guessi
 
 | Item | Cost | Notes |
 | --- | --- | --- |
-| **PR H · the process port** (`docs/journal-process-local-review`, #20) | ½ d | The journal, `Docs/standards/`, the PR template, `tools/check_docs.py` in CI, the `local-review` skill, the BATS case, this board. Stacked on #19, which merged; merge when read |
+| ~~**PR H · the process port** (#20)~~ | — | ✅ **Merged 2026-09-27 as [#20](https://github.com/HogJonny-AMZN/HogShade/pull/20).** The journal, `Docs/standards/`, the PR template, `tools/check_docs.py` in CI, the `local-review` skill, the BATS case, this board; Copilot's two findings fixed |
+| ~~**PR I · the README as the case for the repo**~~ | — | ✅ **Merged 2026-09-27 as [#21](https://github.com/HogJonny-AMZN/HogShade/pull/21).** WYSIWYG as a tolerance, the measurable value of a portable look, physics beside game features, pros and cons; the pitch for the agent loop; the checker hardened after its first local review (unclosed fences, links above the root) |
 | ~~**PR G · the legacy v1 port** (plan task 18)~~ | — | ✅ **Merged 2026-09-27 as [#19](https://github.com/HogJonny-AMZN/HogShade/pull/19).** One Disney BRDF, not three; selectable in both hosts; Copilot's two findings fixed in `569b5bf`. The pixel-identical diff against the legacy effect waits on G4 |
 | ~~**PR F · the Maya shell**~~ | — | ✅ Merged 2026-09-27 as #18 (the gate passed on the `hogshade_maya_gui` worker) after #15 to #17 (the orchestrator profile, workers, kill script, agent files) |
 | ~~**PRs A to E · spike, skeleton, GPU harness, BRDF toolbox, legacy v2 port, wgpu host**~~ | — | ✅ #9 to #14, 2026-09-20 to 26 |
