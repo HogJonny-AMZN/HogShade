@@ -16,7 +16,7 @@ The frame uniform is laid out in `hogshade.wgpu_host.FRAME_DTYPE`; the Python si
 struct must agree field for field, and the renderer asserts the byte size.
 
 `tools/wgpu/viewport.py` renders the shader ball through both paths and writes
-`Docs/verification/wgpu/wgpu-v2-studio.png` (forward) and `wgpu-v2-studio-deferred.png`, then prints the
+`verification/wgpu/shader-ball/<env>/forward.png` and `deferred.png`, then prints the
 difference between the two: the deferred picture differs only by the G-buffer's quantisation and by
 the specular F0 reconstruction, which is exact for the dielectric the tool renders (IOR 1.5, so v2's
 Cspec0 equals the reconstructed 0.04).
