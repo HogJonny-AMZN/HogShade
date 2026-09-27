@@ -35,7 +35,7 @@ What is possible, and what this repo is built to deliver:
 
 | Layer | What "the same" means | How it is proven |
 | --- | --- | --- |
-| The BRDF | Identical maths in every host, to floating-point tolerance | Every core function has a NumPy twin and a GPU test; every host imports the same generated file, never a re-implementation |
+| The BRDF | Identical maths in every host, to floating-point tolerance | Every core function has a NumPy twin and a GPU test; every generated host (Maya, HLSL, wgpu, GLSL) imports the same translated core, never a re-implementation. OSL is the one exception: closures are a second implementation, checked against the core's reference vectors rather than generated from it |
 | The inputs | The same colour pipeline, light units, texture conventions and tangent basis everywhere | One OCIO config (ACEScg working space, AgX default view, ACES alternative), a light-rig description in stated units, texture conventions written down, MikkTSpace as a requirement rather than a convention |
 | The picture | The difference between two hosts is measured, attributable and either accepted or fixed | A comparison framework: the same calibration scene captured in every host, scene-referred and display-referred, per-feature tolerances, a pass / needs-review / fail verdict, a report a human reads |
 

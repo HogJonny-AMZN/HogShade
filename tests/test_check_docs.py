@@ -124,6 +124,51 @@ def test_board_without_an_icebox_is_found(corpus: Path) -> None:
     assert [f.check for f in findings] == ["board"] and "Icebox" in findings[0].detail
 
 
+def test_unclosed_fence_is_reported_and_its_links_still_checked(corpus: Path) -> None:
+    _write(corpus, "Docs/handoffs/CURRENT.md", "**Status:** Living\n\n```\n[x](gone.md)\nafter\n")
+    findings = check_docs.run(corpus)
+    assert [f.check for f in findings] == ["fences", "links"]
+    assert "line 3" in findings[0].detail
+
+
+def test_link_climbing_above_the_root_is_broken(corpus: Path) -> None:
+    (corpus.parent / "beside.md").write_text("outside\n", encoding="utf-8")
+    _write(corpus, "Docs/handoffs/CURRENT.md", "**Status:** Living\n\n[out](../../beside.md)\n")
+    assert [f.check for f in check_docs.run(corpus)] == ["links"]
+
+
+def test_status_after_a_byte_order_mark(corpus: Path) -> None:
+    (corpus / "Docs/standards").mkdir(parents=True, exist_ok=True)
+    (corpus / "Docs/standards/x.md").write_bytes(b"\xef\xbb\xbf**Status:** Living\n")
+    assert check_docs.run(corpus) == []
+
+
+def test_superseded_by_in_parentheses(corpus: Path) -> None:
+    _write(corpus, "Docs/standards/x.md", "**Status:** Superseded (by y.md)\n")
+    assert check_docs.run(corpus) == []
+
+
+def test_index_rows_may_use_dot_slash_and_fragments_and_fences_do_not_count(corpus: Path) -> None:
+    _write(
+        corpus,
+        "Docs/journal/README.md",
+        "**Status:** Living\n\n| [S1](./2026-09-27-session-01.md#top) |\n\n```\n[ghost](2026-01-01-session-99.md)\n```\n",
+    )
+    assert check_docs.run(corpus) == []
+
+
+def test_external_schemes_are_not_paths(corpus: Path) -> None:
+    _write(corpus, "Docs/handoffs/CURRENT.md", "**Status:** Living\n\n[a](ftp://x/y.md) [b](mailto:x@y.z)\n")
+    assert check_docs.run(corpus) == []
+
+
+def test_main_reports_and_exits_nonzero_on_a_finding(corpus: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert check_docs.main([str(corpus)]) == 0
+    _write(corpus, "Docs/handoffs/CURRENT.md", "**Status:** Living\n\n[gone](../missing.md)\n")
+    assert check_docs.main([str(corpus)]) == 1
+    assert "broken link" in capsys.readouterr().out
+
+
 def test_the_corpus_itself_is_clean() -> None:
     findings = check_docs.run(ROOT)
     assert findings == [], "\n".join(str(f) for f in findings)
