@@ -258,6 +258,23 @@ notification is the zero-cost baseline and needs nothing. Recommendation: push f
 the owner wants SMS specifically. Not built; the board's Icebox row carries the cost and the open
 questions. A memory records the direction for the other repositories.
 
+### The case for the repo, stated for the README (owner, 2026-09-27; principles)
+
+Owner: the README must be "ultimately clear about the direction, needs, benefits and pros and cons
+of this repo"; "WYSIWYG everywhere is a goal (is it possible?)"; "portable look direction is more
+measurably valuable than I can state"; "rendering tech on the physics front doesn't always meet game
+needs; game-like features, especially common ones, are a boon; game-like hacks make the world work
+when you don't have path tracing correctness." Three principles now on the README: WYSIWYG is a
+tolerance, not a promise, and the repo's job is to make every difference attributable (the BRDF is a
+third; inputs and proof are the rest); the value of a portable look is stated as things to measure
+(parameters authored per material, look-dev decisions re-made, time to attribute a difference, hosts
+updated per change, regressions caught before a render, time to first picture in a new host, bake
+error per map), to be replaced with numbers when the comparison framework publishes them; and the
+three kinds of feature (physics, surface authoring, engine) with surface authoring named as the bulk
+of the user-facing value and the legacy models kept as legitimate non-conserving peers. The pros and
+cons table is honest about the toolchain, the FXC canary, the deferred limits, OSL as a second
+implementation, and the optional orchestrator.
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`
