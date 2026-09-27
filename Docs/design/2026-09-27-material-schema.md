@@ -63,7 +63,11 @@ OpenPBR's; each parameter carries:
 
 Opt-in features (triplanar, parallax, detail maps, layering, the legacy models' own lobes) are
 groups whose parameters carry an `enabled` toggle; a group off contributes nothing and a generator
-may hide it. The model selector is a parameter (`shading_model`, enum: `openpbr`, `legacy_v2`,
+may hide it. A flag in the schema declares a feature; what it selects is the adapter's business: an
+engine's Material Type maps it to a pipeline variant (O3DE's functors, SpriteJammer's `depth_offset`
+and `triplanar` flags), and on the shader side ADR-006's `override` constants are the same idea. The
+schema stays renderer-agnostic at the content boundary; the mapping to bind groups, variants and
+uniform layouts is each backend's adapter. The model selector is a parameter (`shading_model`, enum: `openpbr`, `legacy_v2`,
 `legacy_v1`, `lambert`), so the legacy models are opt-in groups of the one schema rather than
 separate types (question 2).
 
@@ -82,7 +86,7 @@ values that differ:
   "material_type_version": 1,
   "parent": "library/base/steel.material.json",
   "values": {
-    "base_color": {"factor": [0.18, 0.21, 0.24], "texture": "steel_basecolor.png"},
+    "base_color": {"factor": [0.18, 0.21, 0.24], "texture": "steel_basecolor.png", "blend": "multiply"},
     "specular_roughness": {"factor": 0.32},
     "geometry_normal": {"texture": "steel_normal.png", "strength": 1.0}
   },
@@ -91,6 +95,12 @@ values that differ:
   }
 }
 ```
+
+The value shape is the owner's O3DE-derived spelling, `{factor, texture, blend}`: `factor` alone is a
+constant, `texture` alone samples, both together combine as `blend` says (`multiply` the default,
+`lerp` and `overlay` where the schema allows it). Importers (glTF, FBX, a `.mtlx` surface) produce
+documents; a runtime never reads an imported scene's material data, and never reads source: it reads
+what a cook produced from the resolved document (O3DE's lesson, SpriteJammer's Cook).
 
 Rules: a value key is a schema parameter or the document fails validation; a parent chain resolves
 to exactly one schema version; `ext` blocks are namespaced and passed through unvalidated by
@@ -129,9 +139,11 @@ CI. The wgpu host's `Scene` and `host_Frame` are checked the same way against th
 
 ### 5. The library of materials (track F)
 
-Documents against the schema, in `content/materials/`: the constants-only base set first (metals,
-dielectrics, characteristic roughness and tint choices), then a small texture-based set with CC0 or
-generated textures only. Every document validates in CI; every export passes the glTF validator;
+Documents against the schema, in `content/materials/`: the constants-only base set first, written
+as the semantic parent baselines a library is built on (metal, painted metal, dielectric, skin,
+foliage, emissive, with characteristic roughness and tint choices), so an asset material carries
+only intentional deltas against one of them (O3DE's lesson); then a small texture-based set with CC0
+or generated textures only. Every document validates in CI; every export passes the glTF validator;
 the comparison framework renders the set in every host. The base set is the schema's test data and
 the getting-started kit's first content.
 

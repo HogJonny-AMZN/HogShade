@@ -63,6 +63,18 @@ stdio client: twenty tools, correct per-type counts.
 5. An agent session in this repo gets the BATS MCP server from `.mcp.json` (approve it when Claude
    Code asks); the `bats_*` tools do what `submit.py` does.
 
+## The sibling repositories, as of 2026-09-27 (owner)
+
+Owner: "I haven't caught SpriteJammer up to speed with LargeWorlds; I was getting LargeWorlds fully
+ported to wgpu first, so SpriteJammer itself is currently the most stale and the most in need of
+catching up to LargeWorlds and HogShade work." What moved under SpriteJammer that its docs do not
+know: LargeWorlds is wgpu-only (its ADR-012, 2026-09-25; the docs that call `hog_rendering`
+OpenGL are stale); HogShade owns the material schema and data (ADR-009) and has the schema's
+pre-spec design drafted, so SpriteJammer's MT1 keeps the Material Types, the Cook and the demo and
+takes the schema from here; the board, journal, DoD and checker conventions landed here from
+SpriteJammer's own pattern and are now the same shape in all three repos. Nothing in this repo
+waits on SpriteJammer; its catch-up is a session in that repo.
+
 ## Rules that apply to whoever picks this up
 
 - Never stop a process you did not start; use the orchestrator's workers through jobs. Two GUI
