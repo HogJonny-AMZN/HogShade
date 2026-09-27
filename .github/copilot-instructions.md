@@ -11,13 +11,14 @@ What a review here should check, in this order:
 1. **The core contract** (`Docs/standards/wgsl.md`): every name in a `core/` module carries its
    prefix; no bindings or entry points in the core; every core function has a NumPy twin under
    `hogshade/reference/` and a GPU test under `tests/core/`; constants mirrored in
-   `hogshade/core_constants.py`; if-chain dispatch and single returns; a legacy quirk kept on
-   purpose is listed in the module header, not removed silently.
+   `hogshade/core_constants.py`; dispatch on the model ID is an if-chain, never a `switch` on a
+   value derived from a uint texture (a `switch` on a uniform and early returns are fine); a legacy
+   quirk kept on purpose is listed in the module header, not removed silently.
 2. **Generated artifacts**: anything under `hosts/*/generated/` and `hosts/hlsl/hogshade_core.hlsl`
    is build output. A hand edit there is a finding; a stale artifact after a core change is a
    finding (`tools/build_shaders.py --check`).
-3. **Hygiene**: any new match for `bluepoint`, `sony`, `bp_py` or `bp_color` outside `legacy/` is a
-   hard finding. No AI attribution in commits or PR text.
+3. **Hygiene**: `uv run python tools/check_hygiene.py` must pass; the identifiers and the allowlist
+   live in that tool and nowhere else. No AI attribution in commits or PR text.
 4. **Claims after evidence**: a PR body or reply that says a test passed, CI is green or a picture
    was verified should point at the run, the log or the file under `verification/`.
 5. **Docs in the same PR**: the plan task ticked with a verification note, the spec amended if an

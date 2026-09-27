@@ -52,9 +52,8 @@ The rubric is constant; the concrete standards come from these files.
 - Default branch: `git symbolic-ref refs/remotes/origin/HEAD` (this repo's is `master`).
 - `git diff master...HEAD`, plus `git diff` and `git diff --cached`.
 - Read the changed hunks and the functions they touch, enough surrounding code to judge them.
-- Run the hygiene grep and treat any new match outside `legacy/` as a hard finding (the pattern quoted
-  in `.claude/skills/*/SKILL.md` matches itself and is exempt):
-  `git grep -n -i -E "bluepoint|sony|bp_py|bp_color" -- ':!legacy'`.
+- Run `uv run python tools/check_hygiene.py` and treat any finding as hard (the identifiers and the
+  allowlist live in the tool).
 - If `core/` changed: `uv run python tools/build_shaders.py --check` must report the generated
   artifacts current; a stale artifact is a hard finding. Generated files under `hosts/*/generated/`
   are never reviewed for style, only for being current.

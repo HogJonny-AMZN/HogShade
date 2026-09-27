@@ -24,11 +24,12 @@ fixes applied: NumPy twins and GPU tests for `environment.wgsl` and `lambert.wgs
 every tool, unused loggers dropped and the rule written, the stale "switch" wording and the unused
 `HOGSHADE_IRRADIANCE_OVER_PI` removed (artifacts regenerated), the FXC rule restated as what actually
 bites, the Maya helpers logging to their `Log`, `Path.open`, a dead parameter gone, shared reference
-helpers in `hogshade/reference/_common.py`, `submit.py`'s stub built from a literal. 149 tests green
-on the owner's GPU; `build_shaders.py --check --require-compilers` clean.
+helpers in `hogshade/reference/_common.py`, `submit.py`'s stub built from a literal. the suite green
+on the owner's GPU, the run log at `verification/core/gpu-tests.log` with its commit;
+`build_shaders.py --check --require-compilers` clean.
 
 Not done, on purpose, and on the board as the pass's remainder: the decision log split into topic
-files, and the `Docs/superpowers/` move. Not decided, the owner's: the `bp_python` path in the
+files, and the `Docs/superpowers/` move. Not decided, the owner's: the studio package path in the
 generated orchestrator profile (G1); the five gates.
 
 Next in the agreed order: the phase 2 close (deviations list, status rows, roadmap C2, VERSION

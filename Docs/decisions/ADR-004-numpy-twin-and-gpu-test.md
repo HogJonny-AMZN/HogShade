@@ -12,9 +12,13 @@ once, and the comparison framework that would catch it in pictures does not exis
 
 ## Decision
 
-Every function in `core/` has a twin in `hogshade/reference/` written in plain NumPy from the
-paper or the legacy source, and a test in `tests/core/` that runs the WGSL function through the GPU
-harness on random inputs and compares it to the twin within a stated tolerance. The twin is written
+Every function in `core/` that computes shading maths on numbers has a twin in `hogshade/reference/`
+written in plain NumPy from the paper or the legacy source, and a test in `tests/core/` that runs the
+WGSL function through the GPU harness on random inputs and compares it to the twin within a stated
+tolerance. Three kinds are excluded and exercised elsewhere: functions that sample textures (the
+harness binds none; the hosts and their pictures exercise them), struct builders such as
+`environment_default` and the `<model>_inputs` functions (checked through every test that uses them),
+and the debug selectors, which return intermediates whose own tests already cover them. The twin is written
 first when the function is new; for a legacy port, the twin is the legacy source translated
 line for line, quirks included, so the port is checked against the record and not against an
 improved idea of it. Constants shared by both are mirrored (ADR-002). The harness runs on the

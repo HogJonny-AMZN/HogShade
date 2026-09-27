@@ -32,16 +32,16 @@ import grpc
 from google.protobuf.json_format import MessageToDict
 from job_orchestrator.protos import job_pb2, orchestrator_pb2, orchestrator_pb2_grpc
 
+_MODULE_NAME = "tools.bats.submit"
+__version__ = "0.1.0"
+__updated__ = "2026-09-27"
+
 MODULE_STUB = """
 import sys, json
 root = r"{root}"
 if root not in sys.path:
     sys.path.insert(0, root)
 import importlib
-
-_MODULE_NAME = "tools.bats.submit"
-__version__ = "0.1.0"
-__updated__ = "2026-09-27"
 mod = importlib.import_module("{module}")
 params = json.loads({params_json!r})
 result = getattr(mod, "{entry}")(params)

@@ -11,7 +11,7 @@ LargeWorlds' and SpriteJammer's.
 | --- | --- | --- |
 | [ADR-001](ADR-001-wgsl-is-the-core-source.md) | WGSL is the core's source language, translated by naga; Slang the fallback | Accepted |
 | [ADR-002](ADR-002-resources-as-parameters-and-the-prefix-rule.md) | Resources are function parameters; every core name carries its module prefix; constants mirrored | Accepted |
-| [ADR-003](ADR-003-the-model-interface.md) | The five-function model interface, `EnvironmentSamples`, if-chain dispatch and single returns | Accepted |
+| [ADR-003](ADR-003-the-model-interface.md) | The five-function model interface, `EnvironmentSamples`, if-chain dispatch on the model ID (no `switch` on a texture-derived value) | Accepted |
 | [ADR-004](ADR-004-numpy-twin-and-gpu-test.md) | Every core function has a NumPy twin and a GPU test | Accepted |
 | [ADR-005](ADR-005-the-gbuffer-layout-contract.md) | The G-buffer encode and decode take the layout as a parameter; SpriteJammer's ADR-002 is the first | Accepted |
 | [ADR-006](ADR-006-shader-specialisation-by-override-constants.md) | Shader specialisation by `override` constants over the uber core as the record | Proposed |

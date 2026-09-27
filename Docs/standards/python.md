@@ -98,6 +98,6 @@ skips when they are not hydrated. A DCC-side helper is tested with the DCC modul
 
 ## Hygiene
 
-Before every push: `git grep -n -i -E "bluepoint|sony|bp_py|bp_color" -- ':!legacy'` finds no new
-match. Personal email on every commit, `-s` for the DCO, no AI attribution. Nothing copied from a
+Before every push: `uv run python tools/check_hygiene.py` is clean (the identifiers and the allowlist
+live in that tool; no document repeats them). Personal email on every commit, `-s` for the DCO, no AI attribution. Nothing copied from a
 studio tree; Apache-compatible dependencies only.

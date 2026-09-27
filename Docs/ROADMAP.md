@@ -92,7 +92,7 @@ Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence 
       standards, the doc process, the review discipline, toolchain gotchas, per-host lessons, repo
       state), each with a status line and a date. Decisions in ADRs, running context in the decision
       log and the roadmap, standards never mixed with state; the 2026-09-26 decision log is split
-      into those topic files in this pass. Files stay small; a file past a few hundred lines splits.
+      into those topic files in the pass's remainder (board, Next). Files stay small; a file past a few hundred lines splits.
       Started 2026-09-26 with a thin `AGENTS.md`, a `CLAUDE.md` that imports it, and
       `tools/bats/AGENTS.md`. **Landed 2026-09-27 (the standards-pass PR):** `Docs/standards/python.md`,
       `Docs/standards/wgsl.md`, `Docs/standards/failure-modes.md` (twelve entries from this repo's own

@@ -12,7 +12,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from hogshade.core_constants import SH_A0, SH_A1, SH_A2
-from hogshade.reference._common import _unit
 
 _MODULE_NAME = "hogshade.reference.environment"
 __version__ = "0.1.0"
@@ -48,8 +47,8 @@ def irradiance_sh9(sh9: NDArray, n_ws: NDArray, exposure: NDArray) -> NDArray:
 
 
 def hemisphere(sky: NDArray, ground: NDArray, n_ws: NDArray, up_ws: NDArray) -> NDArray:
-    """The v2 ambient dome: ground below, sky above, blended on the up component of the normal."""
-    t = np.clip((_unit(n_ws) * _unit(up_ws)).sum(-1) * 0.5 + 0.5, 0.0, 1.0)[:, None]
+    """The v2 ambient dome: ground below, sky above, blended on dot(n, up); as the shader, neither is normalised."""
+    t = np.clip((n_ws * up_ws).sum(-1) * 0.5 + 0.5, 0.0, 1.0)[:, None]
     return ground + (sky - ground) * t
 
 

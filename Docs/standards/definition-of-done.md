@@ -17,6 +17,7 @@ mechanised:
 
 ```bash
 uv run python tools/check_docs.py          # links, status headers, the journal index, the ADR index
+uv run python tools/check_hygiene.py       # no studio identifier outside the allowlist
 uv run pytest                              # the suite; tests/test_check_docs.py runs the checker on the corpus
 uv run python tools/build_shaders.py --check --require-compilers   # after any core change
 ```
@@ -25,7 +26,7 @@ uv run python tools/build_shaders.py --check --require-compilers   # after any c
 | --- | --- | --- |
 | 1 | Tests and lint pass on CI (`ruff format`, `ruff check`, `pytest`; one Windows leg, because the Maya shell needs fxc and dxc) | CI |
 | 2 | Generated hosts are current and compile on every compiler after a core change | `build_shaders.py --check --require-compilers`, in CI |
-| 3 | Hygiene: no employer names, personal email only, no studio files, Apache-compatible dependencies | The `review-and-pr` skill's grep, run before every push; judgment |
+| 3 | Hygiene: no employer names, personal email only, no studio files, Apache-compatible dependencies | `tools/check_hygiene.py` in CI and before every push; judgment for the rest |
 | 4 | Docs match reality: the plan task ticked with its verification, the spec amended if an interface changed, `Docs/README.md` status rows, the affected knowledge file | `check_docs.py` for links and status; judgment for content |
 | 5 | The decision log has every decision made in conversation, with where it is formalised | Judgment |
 | 6 | [`../journal/`](../journal/README.md) appended for this session | `check_docs.py` (`journal-index`), plus judgment on content |
