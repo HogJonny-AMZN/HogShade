@@ -21,6 +21,9 @@ Two more files are the session-independence layer: `handoffs/CURRENT.md` (where 
 how to run the developer track, what a new session must not do) and `knowledge/` (small topic files
 of the agent knowledge base; `knowledge/job-orchestrator.md` is the first).
 
+[reviews/](reviews/2026-09-27-pitch-editorial-plan.md) holds review artifacts written for a future reader: editorial
+plans with their findings, rejections and scorecards, and local code reviews when they are kept.
+
 Three more folders are the process, ported from SpriteJammer on 2026-09-27 with its reasoning:
 [journal/](journal/README.md) (the append-only narrative, one file per session: what happened, which
 beliefs changed, where BATS made the difference), [standards/](standards/definition-of-done.md) (the

@@ -1,0 +1,96 @@
+# Editorial plan: the pitch "BATS as the agent's body"
+
+**Status:** Accepted (the plan was applied the day it was written; kept as the record of what changed and what was rejected)
+**Piece:** [../design/2026-09-27-pitch-bats-as-the-agents-body.md](../design/2026-09-27-pitch-bats-as-the-agents-body.md)
+**Pipeline:** CO3DEX `EDITORIAL_PIPELINE.md` (structure, facts, voice, rhythm, reach, adversarial, scorecard, author review), applied 2026-09-27 at the owner's ask.
+**Audience, named before editing:** a memo for the owner's team and manager, people who know a DCC pipeline and have not followed this work. Not a blog post; not edited into one (standing rule 4). No corpus voice profile applies; the memo's register is the owner's plain formal, contractions rare.
+
+Resumable cold: every finding below carries its diagnosis and the rewrite that was applied or rejected.
+
+## Layer 1: structural findings, ranked by cost
+
+| # | Finding | Diagnosis | Action |
+| --- | --- | --- | --- |
+| 1 | **Ungrounded image.** The title says "body" and the lead never earns it; the brain-and-body frame first appears at the end of *What*. | A reader meets the metaphor cold and carries a question for 700 words. | The lead now grounds it in two sentences: the harness is the brain, what it lacks is a body, BATS is most of the body. Applied. |
+| 2 | **Competing theses.** Three sentences each claim the point: the body (lead), "reading and following up is the half nothing owns" (*Why*), "a Python worker can do anything Python can do" (*Around the corner*). | Each is good; together they dilute. | The body is the thesis. The other two stay as supporting lines inside their sections and the ask carries one portable test, not three. Applied. |
+| 3 | **Overloaded section, and a promise not kept.** *What* carried the four-part table, a bolted-on two-channel paragraph (a late addition), and the weekly review, which *How* step 5 repeats. *How* says "three pieces" then lists five steps and "four small pull requests". | Seams visible; the numbers disagree. | The two-channel paragraph shortened into one paragraph under the table; the weekly review left to *How* with a one-line pointer; *How* now says "the design lock, the three pieces, then the first consumer: five steps". Applied. |
+| 4 | **Buried best material.** The one story a manager will repeat (the gate that failed for a day by hand and passed on the first job) sits inside a table cell. | A table cell is where a story goes to be skimmed. | Told in two sentences before the table; the table keeps the numbers. Applied. |
+| 5 | **Missing steelman.** The memo argues against "a chat window", the weak alternative. The strong one is a self-hosted CI runner on the workstation, which has a schedule, secrets, notifiers and the machine. | A reader who knows CI will raise it first and stop reading if the memo has not. | A steelman paragraph at the end of *Why BATS*: the runner starts cold, so every job pays the Maya start-up the table measures, and it has no resident session, queue or manifest. Applied. |
+| 6 | **The ask does not ask.** "Agreement to run..." and a closing question. | A manager wants the decision, the cost, the person and the exit condition in the first sentence. | First sentence: one person, about a week, a go or no-go after the measured first run. Applied. |
+| 7 | **Internal vocabulary.** "the owner", "the board", "the journal", "the decision lock" read as jargon to the audience. | Curse of knowledge. | "the owner" became "you" or "we" where the reader is in the room; board and journal explained in passing as "the project's own documents". Applied. |
+| 8 | **Endings that fire twice.** *Around the corner* closes on a claim, then three more sections. | Acceptable for a memo whose sections are scanned; the memo's real close is the ask. | Not changed. Recorded as a deliberate trade. |
+
+## Layer 2: rejected proposals
+
+- **Cut *Around the corner* to five bullets.** Rejected: the owner asked for it to be "super forward looking" and to "make guesses"; the section is the differentiator for this audience. Each bullet lost a clause instead.
+- **Drop the brain-and-body metaphor for a plainer "the execution layer".** Rejected: the owner's own framing, and the one line a reader will repeat. Grounded instead (finding 1).
+- **Turn the four-row evidence table into prose.** Rejected: the table is the credibility; the story before it is the hook.
+
+## Layer 3: fact check
+
+Sources are this repository's own record; no external URL is load-bearing.
+
+| Claim | Where | Verdict | Source, or the fix |
+| --- | --- | --- | --- |
+| Maya's scripted launch costs about a minute of start-up | *Why BATS* table | Verified | Decision log, "Driving Maya during development"; `tools/README.md` |
+| "a startup crash one launch in three" | *Why BATS* table | **UNVERIFIED** | The record says "exit 127 or 139 in the first seconds" and "run it again"; no frequency was ever counted. Softened to "a start-up crash on some launches". |
+| Two GUI Mayas crash each other; a launcher bug left idle sessions; a retry loop killed a worker | *Why BATS* table | Verified | Decision log, "Rules learned the hard way"; journal session 01 |
+| The gate had failed for a day the other way and passed on the first job | *Why BATS* | Verified | Handoff of 2026-09-26 (gate open); PR #18 (passed as a job the same day) |
+| The v1 check was the same job with one parameter, 37 seconds | *Why BATS* table | Verified | `verification/maya-2026/ibl-check/legacy-v1/studio_small_09/maya-history.log`: "completed in 36.74s" |
+| One inheritance trap costs a restart | *Why BATS* table | Verified | Knowledge file, "How the orchestrator's configuration layers" |
+| The MCP exposes the same operations; twenty tools | *Why BATS* | Verified | Knowledge file, "Rules learned the hard way" (MCP validated 2026-09-26) |
+| Cloud routines clone repositories, run skills, open PRs, cannot reach a workstation, have no notification of their own | *What* | Verified, second-hand | SpriteJammer `docs/design/devblog.md`, "What the cloud can and cannot do", checked against the product docs 2026-09-13 |
+| A harness's remote-session feature connects a phone app to a live local session | *What* | Verified | The owner's own use of it; the harness's tool documentation |
+| Telegram: free bot token, one HTTPS call out, long polling in | *How* | Asserted from standing | General knowledge of the Bot API; not load-bearing for the decision (the bridge could be any channel) |
+| SMS needs sender registration | *How* | Asserted from standing, hedged in the text | US A2P rules; "verify before choosing" is in the decision log |
+| One person built and maintains BATS | *Risks* | Verified | The owner |
+
+## Layer 4: voice
+
+Tells checked against the pipeline's list: em dashes 0 before and after; no participle clauses doing fake depth (checked each "-ing"); register consistent formal, contractions absent throughout by choice for a memo; no "It is important to note" openers; one rule-of-three that is content ("a heartbeat, a way to run, a channel": the three pieces are three). "Durable, repeatable, discoverable" kept: the owner's three words. Reader put in the room: "your morning", "you".
+
+## Layer 5: rhythm
+
+Paragraph mass measured, not counted. Before: 24 paragraphs, mean 62 words, longest 118 (the two-channel paragraph), three consecutive over 80 in *What*. After: mean 58, longest 96, no run of three heavy paragraphs; the one-line verdicts sit after the heavy blocks (end of *Why*, end of *Why BATS*), not after light ones. Zero word changes in this layer.
+
+## Layer 6: reach
+
+SUCCESs, before and after (each score names its evidence):
+
+| Trait | Before | After | Evidence |
+| --- | --- | --- | --- |
+| Simple | 6 | 8 | One thesis (the body); the lead states it in four sentences |
+| Unexpected | 7 | 8 | "any Python worker can do anything Python can do"; "wake up to pull requests" |
+| Concrete | 7 | 8 | 37 seconds, a day, the exact Maya failures; the story before the table |
+| Credible | 6 | 8 | The honest rows, the steelman, the falsification condition |
+| Emotional | 5 | 6 | The gate story; the 3 a.m. job; still a memo |
+| Stories | 4 | 6 | One story told, in two sentences |
+| Total | 35 (strong) | 44 (strong) | |
+
+Portable test restated in the closer: "if a step needs time, a machine, a queue, or a memory that outlives a chat window, it needs a body." Trigger: every time someone opens a chat window to run something by hand.
+
+## Layer 7: adversarial
+
+- **Steelman:** a self-hosted CI runner on the workstation. Answered in *Why BATS* on the one axis the table measures (a resident session) and conceded on the rest (schedule, secrets, notifiers, which a runner has today).
+- **Falsification:** stated in *Risks*: a month of scheduled runs costing more babysitting than the manual path, or a report unread for a month, stops the schedule.
+- **Concession that costs something:** one person built and maintains BATS; the memo says so and limits lock-in to "jobs are scripts that also run by hand".
+- **Sequence honesty:** the conclusion (BATS as the body) came after the loop was split into four parts in conversation on 2026-09-27; the journal entry records the order. The memo does not claim the design preceded the evidence.
+
+## Layer 8: scorecard
+
+| Dimension | Before | After | Measurement |
+| --- | --- | --- | --- |
+| Opening hook | 6 | 8 | The metaphor grounded in the lead; the ask's decision in one sentence |
+| Structural clarity | 6 | 8 | Findings 3 and 4 applied; section numbers agree |
+| Thesis consistency | 5 | 8 | One thesis; two supporting lines subordinated |
+| Argument integrity | 5 | 8 | Steelman and falsification added |
+| Ending | 6 | 8 | The ask asks; the portable test closes |
+| Evidence texture | 7 | 8 | One unverified frequency softened; the rest cited to the record |
+| Em dash discipline | 10 | 10 | 0 and 0 |
+| Register consistency | 8 | 9 | "the owner" removed from a memo addressed to the owner's team |
+| Rhythm | 6 | 7 | Mean paragraph mass 62 to 58, longest 118 to 96 |
+| Length (trend, not scored) | 1,930 words | 1,720 words | Grew in every pass of the day until this one |
+
+## Layer 9: for the author
+
+Worth your attention: the steelman paragraph (it concedes that a CI runner covers schedule, secrets and notifiers), the falsification condition in *Risks*, the softened "one launch in three", and the ask's first sentence, which now commits one person for a week. Not worth it: the clause trims in *Around the corner*, recorded above as the alternative to cutting bullets.
