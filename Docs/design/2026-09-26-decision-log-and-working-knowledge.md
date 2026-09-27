@@ -189,6 +189,21 @@ difference"), with honest rows for the steps that needed no orchestrator. The fr
 of the record: the MCP is the agent's doorway to the same durable queue humans use, not a rival
 pipeline; an ad-hoc DCC MCP would rediscover the session every time and hold nothing.
 
+### Job providers and capability discovery in the orchestrator (owner, 2026-09-27; soft, a to-do on the dev checkout)
+
+Owner: the orchestrator "needs a better way to inspect and infer jobs and capabilities. Maybe each job
+provider needs to register a job source, paths, capabilities (metadata)"; the con is a burden per job
+that an agent may not read the instructions for, the pro is that an agent "isn't left guessing or
+searching". Evidence the same day: `hogshade.jobs.maya_ibl_check` carried a `MANIFEST` for a day and
+was invisible because `JOB_MODULES` was a second manual step (Copilot, PR #19). Recommendation:
+register *providers* (one line per project in its profile, `hogshade.jobs:manifest`), discover *jobs*
+(the provider scans its package; a test fails on a job without a manifest, so the list can never be
+forgotten), and let the orchestrator and its MCP enumerate from the providers (`bats_list_jobs`,
+`bats_describe_job`, a CLI flag), so an agent that never read the docs still finds the jobs through
+the tool it reaches for anyway. HogShade's `MANIFEST` shape is the candidate schema. Cost: about a
+day on the dev checkout, half a day here. Here only, plus the to-do list in
+`Docs/knowledge/job-orchestrator.md`.
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`

@@ -71,7 +71,12 @@ named profile `orchestrator_config_<name>.json` in the same folder), then deep-m
 
 To-dos on the dev checkout, so a project overlay needs no copying or folding: load a named profile
 by path; let a sidecar contribute `env_profiles` mappings and files; a kill script that ends only
-the processes the orchestrator spawned, by PID.
+the processes the orchestrator spawned, by PID; **job providers** (owner, 2026-09-27): a profile
+names its provider (`hogshade.jobs:manifest`), the provider discovers its jobs by scanning rather than
+by a hand-kept list, and the orchestrator, its CLI and the MCP (`bats_list_jobs`, `bats_describe_job`)
+enumerate capabilities from the providers, so an agent finds jobs through the tool instead of the
+docs. HogShade's side: auto-discovery in `hogshade.jobs` with a test that fails on a job without a
+`MANIFEST` (today `JOB_MODULES` is a list, and the Maya job was missing from it for a day).
 
 ## Jobs
 
