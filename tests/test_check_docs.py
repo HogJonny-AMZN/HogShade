@@ -31,6 +31,11 @@ def corpus(tmp_path: Path) -> Path:
         "# Journal\n\n**Status:** Living\n\n| [Session 01](2026-09-27-session-01.md) |\n",
     )
     _write(tmp_path, "Docs/journal/2026-09-27-session-01.md", "# Session 01\n")
+    _write(
+        tmp_path,
+        "Docs/plan/BOARD.md",
+        "# The Board\n\n**Status:** Living\n\n## Gates\n\n## Now\n\n## Next\n\n## Blocked\n\n## Icebox\n",
+    )
     return tmp_path
 
 
@@ -101,6 +106,17 @@ def test_unindexed_adr_is_found(corpus: Path) -> None:
     _write(corpus, "Docs/decisions/ADR-001-core-in-wgsl.md", "**Status:** Accepted\n")
     _write(corpus, "Docs/decisions/README.md", "# ADRs\n")
     assert [f.check for f in check_docs.run(corpus)] == ["adr-index"]
+
+
+def test_missing_board_is_found(corpus: Path) -> None:
+    (corpus / "Docs/plan/BOARD.md").unlink()
+    assert [f.check for f in check_docs.run(corpus)] == ["board"]
+
+
+def test_board_without_an_icebox_is_found(corpus: Path) -> None:
+    _write(corpus, "Docs/plan/BOARD.md", "**Status:** Living\n\n## Gates\n## Now\n## Next\n## Blocked\n")
+    findings = check_docs.run(corpus)
+    assert [f.check for f in findings] == ["board"] and "Icebox" in findings[0].detail
 
 
 def test_the_corpus_itself_is_clean() -> None:
