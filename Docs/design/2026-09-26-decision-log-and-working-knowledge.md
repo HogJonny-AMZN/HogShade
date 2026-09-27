@@ -315,7 +315,11 @@ belongs to the Job_Orchestrator dev checkout as much as here, and the board row 
 Owner, on reading this: "so BATS becomes my OpenClaw feature set!?" Yes, with the distinction that
 BATS is the body and the harness is the brain: OpenClaw was the whole agent, and what the owner
 kept wanting from it (heartbeat, execution on this machine, a channel) is what the orchestrator is
-three small pieces short of. Recorded as the framing for the design lock.
+three small pieces short of. Recorded as the framing for the design lock. Then: "that would be rad from the standpoint of I didn't think of it but it also makes sense
+(as long as my local machine is up)", and "it also cements BATS as radical". The machine-up caveat is
+the seam between the two lanes: the cloud routine covers repo-only work while the machine is off, and
+a scheduled job on the machine runs as soon as possible after a missed start, so a heartbeat missed
+asleep fires on wake rather than being lost. Direction agreed in principle; still design-first.
 
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
