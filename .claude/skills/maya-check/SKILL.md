@@ -17,18 +17,19 @@ worker exists.
 ```
 
 Parameters: `env`, `fx` (default `hosts/maya_dx11/hogshade.fx`; the legacy shader is
-`legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx`), `debug_modes`, `set` (`attr=value,...`), `tag`.
+`legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx`), `debug_modes`, `set` (`attr=value,...`), `check` (the
+output directory name).
 
 ## Read the result, in this order
 
-1. `Docs/verification/maya/maya-2026-<tag>-<env>.log`: `TECHNIQUES: [...]` is the first fact. An
+1. `verification/maya-2026/<check>/<env>/check.log`: `TECHNIQUES: [...]` is the first fact. An
    empty list means Maya's compiler rejected the effect even if fxc passed it.
-2. `...-maya-history.log`: the mirrored Script Editor history; dx11Shader prints its compile errors
+2. `maya-history.log` beside it: the mirrored Script Editor history; dx11Shader prints its compile errors
    there and nowhere else. Search for `error`, the effect's file name, `X3` codes.
 3. `CONNECTED ... loaded size (w, h)`: `(0, 0)` means Maya could not decode a texture.
 4. `LIGHT slot 0 <- ...`: the explicit light binding; "Unknown connectable light" means the effect
    has no light parameters (it did not compile).
-5. The PNGs: the main view, then `-debug-NN.png` per requested mode (18 specular accumulator, 27
+5. The PNGs: `main.png`, then `debug-NN.png` per requested mode (18 specular accumulator, 27
    diffuse environment, 28 specular environment).
 
 ## Iterate on the shell

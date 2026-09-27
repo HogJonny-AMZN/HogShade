@@ -120,7 +120,7 @@ The core is written in WGSL (owner, 2026-09-20). `naga` translates it for the DC
       `tools/build_shaders.py` stitching core modules and emitting HLSL and GLSL into
       `hosts/*/generated/`. No Rust toolchain is on the owner's machine today; adding one is a
       dependency decision to make consciously. Done 2026-09-20: Rust 1.98.1 and naga-cli 30.0.1
-      installed (`Docs/verification/toolchain.md`); CI installs and caches them.
+      installed (`Docs/knowledge/toolchain.md`); CI installs and caches them.
 - [x] `tests/compile/`: naga validates the core; fxc for dx11, glslangValidator for ogsfx, oslc for
       OSL. CI. Done for naga, fxc (SM 5) and dxc (SM 6) on 2026-09-20, with `--check` proving the
       committed artifacts are current; glslangValidator and oslc join when those hosts exist (C6).

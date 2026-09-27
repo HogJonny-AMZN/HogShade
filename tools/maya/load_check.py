@@ -7,8 +7,8 @@ Package: tools/maya/load_check
     maya.exe -script tools/maya/load_check.mel
 
 HOGSHADE_FX selects the effect (default hosts/maya_dx11/hogshade.fx; the legacy v2 shader is
-legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx). Writes Docs/verification/maya/maya-2026-<tag>-load.log with
-the technique list and RESULT: OK, or the traceback.
+legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx). Writes verification/maya-2026/<check>/check.log (default check
+name load-check) with the technique list and RESULT: OK, or the traceback.
 """
 
 import os
@@ -17,7 +17,7 @@ import _session as s
 from maya import cmds
 
 SHADER = os.environ.get("HOGSHADE_FX", f"{s.ROOT}/hosts/maya_dx11/hogshade.fx")
-LOG, _ = s.output_paths(os.environ.get("HOGSHADE_TAG", "hogshade") + "-load")
+LOG = f"{s.output_dir(os.environ.get('HOGSHADE_CHECK', 'load-check'))}/check.log"
 
 
 def run():

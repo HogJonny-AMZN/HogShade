@@ -47,7 +47,7 @@ tools\bats\run_hogshade_orchestrator.bat
 
 - One orchestrator per machine: stop any other one first (tray icon, or the kill switch).
 - The GUI Maya worker takes about two minutes to boot; the tray shows BOOTING then READY.
-- Results of a check land under `Docs/verification/<host>/` (log first, pictures second, and for
+- Results of a check land under `verification/<host>/` (log first, pictures second, and for
   Maya a mirrored Script Editor history where effect compile errors appear).
 - The launcher copies the profile into the orchestrator's config folder because named profiles
   load only from there. Loading a profile by path is a to-do on the dev checkout.
@@ -66,6 +66,6 @@ any open DCC first. It is for a human at the keyboard; an agent never runs it.
 | --- | --- | --- |
 | `submit.py --pool` cannot connect | no orchestrator running, or another one on the port | start the HogShade one, or stop the other first |
 | a worker sits at BOOTING then CRASHED | Maya startup crash (it happens), or a second GUI Maya on the machine | let the pool respawn it; close the other Maya |
-| a Maya job reports no techniques for an effect | Maya's compiler rejected it (fxc is more permissive) | read the `-maya-history.log` beside the check's log |
+| a Maya job reports no techniques for an effect | Maya's compiler rejected it (fxc is more permissive) | read `maya-history.log` beside the check's log |
 | a MODULE-mode job cannot import `hogshade` | worker started without the HogShade environment file | check the profile was copied and the orchestrator started with `--config hogshade` |
 | the profile looks stale after a Job_Orchestrator pull | canon changed | `uv run tools/bats/make_profile.py`, review, commit |

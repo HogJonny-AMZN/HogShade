@@ -33,7 +33,7 @@ dxc on every change. The IBL cook (`hogshade/ibl`) produces prefiltered cubes, i
 and the BRDF LUT for two Poly Haven environments; the manifests, SH9 and previews are in the tree
 and the EXR and DDS payloads are under Git LFS (PR #12, once the repository left the fork
 network). The wgpu host (`hosts/wgpu/`, `tools/wgpu/viewport.py`) renders the shader ball
-through the core, forward and deferred, and writes `Docs/verification/wgpu/wgpu-v2-studio.png`; the
+through the core, forward and deferred, and writes `verification/wgpu/shader-ball/<env>/forward.png`; the
 Maya shell is the next PR. Phase 1 (hygiene) is done except for the
 owner's GitHub steps. The legacy shaders compile clean under `fxc` (warnings only) and are the
 reference every port is diffed against.
@@ -46,7 +46,7 @@ reference every port is diffed against.
 
 ## Getting started: the legacy v2 shader in Maya
 
-Tested with Maya 2026 on Windows (`Docs/verification/`). Maya 2026 is the only supported version.
+Tested with Maya 2026 on Windows (`verification/`). Maya 2026 is the only supported version.
 
 1. **Put Viewport 2.0 on DirectX 11.** Windows > Settings/Preferences > Preferences > Display >
    Viewport 2.0 > Rendering engine: DirectX 11. Restart Maya if it asks. The `dx11Shader` plug-in
@@ -84,11 +84,11 @@ fxc /T fx_5_0 /D _MAYA_=1 /Fo out.fxo legacy\v2.0\V2_uv0bn-pbs_IBLenv.fx
 Headless `mayapy` can load the effect but cannot compile it (no DirectX device). The scripted GUI
 check in `tools/maya/load_check.py` launches Maya with the viewport forced to DirectX 11 for that
 session, loads the shader, logs the technique list and quits; the last run is in
-`Docs/verification/`. To run it:
+`verification/`. To run it:
 
 ```text
 set MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11
-set HOGSHADE_LOG_DIR=Docs/verification
+set HOGSHADE_LOG_DIR=verification
 maya.exe -script tools/maya/load_check.mel
 ```
 

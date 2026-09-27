@@ -2,8 +2,16 @@
 
 Scripts, not library code (`hogshade/` is the library). One folder per DCC or host, so the Maya,
 wgpu, Blender, Toolbag and Substance tooling never share a flat directory; repo-level tools that
-belong to no host stay at the top. Verification artifacts a tool writes go to the matching folder
-under `Docs/verification/` (`maya/`, `wgpu/`, `core/`), named `<host>-<version>-<what>.<ext>`.
+belong to no host stay at the top.
+
+## Verification artifacts
+
+One directory per capture, files named by their role only:
+`verification/<host>[-<version>]/<check>/<variant>/<role>.<ext>`, for example
+`maya-2026/ibl-check/studio_small_09/main.png` beside `check.log`, `debug-28.png` and
+`maya-history.log`, or `wgpu/shader-ball/studio_small_09/forward.png`. Host, version, check and
+variant are directory levels; a file name never repeats them and never chains them with dashes.
+The comparison framework (roadmap, track E) inherits this layout as its capture set.
 
 | Path | What | Runs in |
 | --- | --- | --- |

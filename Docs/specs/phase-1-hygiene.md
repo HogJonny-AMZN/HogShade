@@ -30,7 +30,7 @@ them.
 6. **Verification.** The two legacy entry shaders compile under
    `fxc /T fx_5_0 /D _MAYA_=1` with no errors. The v2 shader loads in Maya 2026 through
    `dx11Shader` with a non-empty technique list, proven by a scripted GUI launch whose log is
-   committed under `Docs/verification/`. Maya 2026 is the only supported version (owner,
+   committed under `verification/`. Maya 2026 is the only supported version (owner,
    2026-09-20); earlier versions are not tested and not claimed.
 7. **The archived v3 folder.** Salvage attempted and recorded in the design doc; nothing taken;
    folder removed from the tree. The archive stays outside the repo.
@@ -55,6 +55,6 @@ them.
 
 - `git clone` of HogShade is under 5 MB excluding LFS.
 - `fxc` compiles both legacy entry shaders, exit code 0.
-- `Docs/verification/maya/maya-2026-v2-load.log` shows `RESULT: OK` with at least one technique.
+- `verification/maya-2026/legacy-v2-load/check.log` shows `RESULT: OK` with at least one technique.
 - The README's steps, followed on a clean Maya 2026, produce a shaded sphere.
 - The pointer PR exists on the legacy repo.

@@ -2,7 +2,7 @@
 HogShade: the core stitches, validates, translates and compiles; the committed artifacts are current.
 Package: tests/compile/test_build
 
-Skips, with a reason, when naga is not installed (Docs/verification/toolchain.md). fxc and dxc are
+Skips, with a reason, when naga is not installed (Docs/knowledge/toolchain.md). fxc and dxc are
 optional inside the build: present on Windows with the SDK, absent elsewhere.
 """
 

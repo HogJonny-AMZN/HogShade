@@ -42,4 +42,4 @@ the change; CI fails on a stale artifact.
 ## Before claiming done
 
 Run the four commands above and quote the counts. A plan task is ticked only when its
-verification ran; record the run in `Docs/verification/<host>/` when the plan asks for it.
+verification ran; record the run in `verification/<host>/` when the plan asks for it.

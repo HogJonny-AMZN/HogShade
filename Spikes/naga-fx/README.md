@@ -34,7 +34,7 @@ Maya-annotated effect parameters? **Verdict, 2026-09-20: yes. WGSL stays the sou
 
 ## Costs accepted
 
-- A Rust toolchain for naga-cli (`Docs/verification/toolchain.md`). A 54-second release build.
+- A Rust toolchain for naga-cli (`Docs/knowledge/toolchain.md`). A 54-second release build.
 - Every core function that needs a resource takes it as a parameter. That is a design constraint,
   not a limitation: it is what keeps the core host-agnostic across Maya, wgpu, Blender's `gpu`
   module and a future GLSL host.

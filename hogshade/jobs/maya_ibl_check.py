@@ -32,7 +32,7 @@ MANIFEST = {
     "description": (
         "Load hosts/maya_dx11/hogshade.fx on a sphere in the resident GUI Maya, bind the cooked IBL cubes "
         "and the BRDF LUT from content/ibl, bind one directional light into slot 0, playblast the main view "
-        "and the requested debug views into Docs/verification/maya/, and write an incremental log with the "
+        "and the requested debug views into verification/maya-2026/<check>/<env>/, and write an incremental log with the "
         "technique list, the texture decode sizes and Maya's Script Editor history (where dx11Shader reports "
         "effect compile errors). Returns the log path, the PNG paths and whether the gate passed."
     ),
@@ -41,11 +41,20 @@ MANIFEST = {
         "fx": {"type": "path", "required": False, "description": "effect file; default hosts/maya_dx11/hogshade.fx"},
         "debug_modes": {"type": "str", "default": "18,27,28", "description": "g_DebugMode values to capture"},
         "set": {"type": "str", "required": False, "description": "attr=value,... overrides for the shader"},
-        "tag": {"type": "str", "default": "hogshade-ibl", "description": "output file tag"},
+        "check": {
+            "type": "str",
+            "default": "ibl-check",
+            "description": "output directory name under verification/maya-2026/",
+        },
     },
     "inputs": ["hosts/maya_dx11/hogshade.fx", "content/ibl/<env>/cooked/*.dds", "content/ibl/brdf_lut.dds"],
-    "outputs": ["Docs/verification/maya/maya-2026-<tag>-<env>.log", "...png", "...-maya-history.log"],
-    "returns": "dict: ok, log, png, techniques",
+    "outputs": [
+        "verification/maya-2026/<check>/<env>/check.log",
+        ".../main.png",
+        ".../debug-NN.png",
+        ".../maya-history.log",
+    ],
+    "returns": "dict: ok, dir, log, png, techniques",
     "spec": "Docs/plans/phase-2-restructure.md task 17",
 }
 
@@ -54,7 +63,7 @@ _ENV_KEYS = {
     "fx": "HOGSHADE_FX",
     "debug_modes": "HOGSHADE_DEBUG_MODES",
     "set": "HOGSHADE_SET",
-    "tag": "HOGSHADE_TAG",
+    "check": "HOGSHADE_CHECK",
 }
 
 

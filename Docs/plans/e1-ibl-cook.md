@@ -21,7 +21,7 @@ verification ran.
 - [x] 3. DDS writer: DX10 header, `R16G16B16A16_FLOAT`, cube, mips. Verified: `texconv`-free check by
       reading the header back with a 40-line parser, and Maya loads the file into a `dx11Shader`
       cube slot. **Verified 2026-09-20:** round-trip test; Maya 2026 loads `specular.dds` and
-      `irradiance.dds` through file nodes into the v2 shader's cube slots (`Docs/verification/`).
+      `irradiance.dds` through file nodes into the v2 shader's cube slots (`verification/`).
 - [x] 4. Equirect to cube with the face and latitude formulas fixed in the spec. Verified with
       asymmetric markers, not centre dots: a synthetic equirect with a distinct colour at each of
       +X, -X, +Y, -Y, +Z, -Z and a seventh marker off-centre on the +X face (at +u, -v) must land on
@@ -46,10 +46,12 @@ verification ran.
 - [x] 10. Cook both environments (studio 75 s, orchard 68 s); `preview.png` per environment. The `.dds`
       outputs are LFS and waited with the EXRs for the fork-network detach; manifests, SH9 and previews
       landed first, the `.dds` files and `brdf_lut.dds` on 2026-09-26 with the EXRs.
-- [ ] 11. Maya 2026: load `studio_small_09/cooked/*.dds` into the v2 shader's environment slots on a
-      sphere; screenshot to `Docs/verification/`. **Partial 2026-09-20.** Both DDS files decode in Maya
+- [x] 11. Maya 2026: load `studio_small_09/cooked/*.dds` into the v2 shader's environment slots on a
+      sphere; screenshot to `verification/`. **Closed 2026-09-26 by phase 2 task 17:** the HogShade
+      shell renders both terms and the specular reflection (`verification/maya-2026/ibl-check/studio_small_09/`).
+      **Partial 2026-09-20 (legacy shader):** Both DDS files decode in Maya
       (256 and 32 reported by the file nodes) and the diffuse environment term visibly lights a white
-      dielectric ball (`Docs/verification/maya/maya-2026-ibl-studio_small_09-diffuse-term.png`, debug view 27, exposure 1,
+      dielectric ball (`verification/maya-2026/legacy-v2-ibl/studio_small_09/diffuse-term.png`, debug view 27, exposure 1,
       gamma off). The final composite and the specular term render black, and the cause is in the
       legacy shader, not the data: the same 32-cube file that lights the diffuse slot is black in the
       specular slot across DX10 and legacy headers, with and without mips (both `TextureCube`
