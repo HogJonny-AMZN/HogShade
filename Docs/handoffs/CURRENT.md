@@ -10,7 +10,7 @@ how much to decide alone.
 
 ## In flight
 
-**PR G, the v1 port, is open as #19 (`feat/phase2-legacy-v1`).** **PR H**
+**PR G, the v1 port, merged as #19 on 2026-09-27.** **PR H**
 (`docs/journal-process-local-review`, stacked on G) adds the journal, the definition of done and
 workflow, the PR template, `tools/check_docs.py`, the `local-review` skill and the BATS case in the
 knowledge file; it also stops the Maya check leaving Script Editor history mirroring on. Next in the
