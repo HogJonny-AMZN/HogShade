@@ -69,6 +69,14 @@ worker job, and a messaging bridge. The brain stays the harness, which is the pa
 every quarter without our effort. BATS is the body: durable, repeatable, discoverable, and already
 ours.
 
+The channel has two halves, and one already exists. A coding harness's remote-session feature
+connects a phone app to a live session on the workstation, which covers the interactive case: a
+person on the phone, a session on the machine, a job submitted and walked away from. What that
+session cannot do is outlive itself, so the bridge covers the other half: a job finishing at 3 a.m.
+with no session open, and any worker that is not the harness at all. BATS sits under both as the
+part that persists, which is what makes "almost anything from the phone" a routing question rather
+than a new system.
+
 The first consumer is a weekly review: a Friday job reads the week's journal, board, pull requests
 and CI history, writes a report on what to streamline and which experiments did not prove out,
 opens it as a pull request, and sends one message with the three-line verdict. Each report opens

@@ -321,6 +321,15 @@ the seam between the two lanes: the cloud routine covers repo-only work while th
 a scheduled job on the machine runs as soon as possible after a missed start, so a heartbeat missed
 asleep fires on wake rather than being lost. Direction agreed in principle; still design-first.
 
+Owner, later the same day: "Claude remote is basically some part of this: something local on my
+machine I can interact with via my Claude phone app and walk away. BATS provides potentially the
+bridge there for almost anything!?" Yes: Remote Control gives the interactive channel (phone to a
+live session on this machine) and nothing durable; the session's cron dies with it and nothing runs
+with no session open. So the channel has two halves: Remote Control for the interactive case, the
+bridge for unattended jobs and for any worker that is not Claude (the agent-agnostic requirement).
+BATS persists under both. The design lock treats the bridge as required and Remote Control as the
+convenience it already is.
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`
