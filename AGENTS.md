@@ -20,6 +20,10 @@ the phase 2 standards pass; until then these pointers are the contract.)
    for the stages and which record owns what.
 5. The newest file in [Docs/journal/](Docs/journal/README.md) when resuming after a break: the
    narrative, and where BATS made the difference.
+6. [Docs/standards/python.md](Docs/standards/python.md) and [Docs/standards/wgsl.md](Docs/standards/wgsl.md)
+   before writing code; [Docs/decisions/README.md](Docs/decisions/README.md) before a structural change;
+   [Docs/standards/failure-modes.md](Docs/standards/failure-modes.md) when something goes wrong in the process,
+   and append to it in the same PR.
 
 ## Topic files
 
@@ -28,6 +32,9 @@ the phase 2 standards pass; until then these pointers are the contract.)
 | Job_Orchestrator (BATS): the developer track, worker types, jobs, rules | [Docs/knowledge/job-orchestrator.md](Docs/knowledge/job-orchestrator.md), [tools/bats/AGENTS.md](tools/bats/AGENTS.md) |
 | Tools layout per host | [tools/README.md](tools/README.md) |
 | The journal: why, cadence, entry format, the `→ BATS:` line | [Docs/journal/README.md](Docs/journal/README.md) |
+| Coding standards, Python and WGSL | [Docs/standards/python.md](Docs/standards/python.md), [Docs/standards/wgsl.md](Docs/standards/wgsl.md) |
+| The decisions, as ADRs | [Docs/decisions/README.md](Docs/decisions/README.md) |
+| How the process has failed here, as triggers | [Docs/standards/failure-modes.md](Docs/standards/failure-modes.md) |
 | Generated hosts and what to call in the core | [hosts/README.md](hosts/README.md), [hosts/hlsl/README.md](hosts/hlsl/README.md), [hosts/wgpu/README.md](hosts/wgpu/README.md) |
 | IBL content and the cook | [content/ibl/README.md](content/ibl/README.md), [Docs/specs/e1-ibl-cook.md](Docs/specs/e1-ibl-cook.md) |
 

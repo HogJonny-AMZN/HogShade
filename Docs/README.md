@@ -24,7 +24,11 @@ how to run the developer track, what a new session must not do) and `knowledge/`
 of the agent knowledge base; `knowledge/job-orchestrator.md` is the first).
 
 [reviews/](reviews/2026-09-27-pitch-editorial-plan.md) holds review artifacts written for a future reader: editorial
-plans with their findings, rejections and scorecards, and local code reviews when they are kept.
+plans with their findings, rejections and scorecards, and local code reviews when they are kept
+(the standards pass's project review is one). [decisions/](decisions/README.md) holds the ADRs,
+append-only, each with a *Revisit if*. [standards/](standards/definition-of-done.md) also carries
+[python.md](standards/python.md), [wgsl.md](standards/wgsl.md) and
+[failure-modes.md](standards/failure-modes.md); `.github/copilot-instructions.md` points Copilot at them.
 
 Three more folders are the process, ported from SpriteJammer on 2026-09-27 with its reasoning:
 [journal/](journal/README.md) (the append-only narrative, one file per session: what happened, which
@@ -40,7 +44,10 @@ link, a governed document without a status line, or a session missing from the j
 | Finishing an increment | `standards/definition-of-done.md`, the PR template, `journal/README.md` |
 | Deciding something the owner has not | The autonomy protocol in `standards/definition-of-done.md` |
 | Running anything in Maya or Blender | `knowledge/job-orchestrator.md`, then the `bats-job` and `maya-check` skills |
-| Touching the core | `specs/phase-2-restructure.md` "Interfaces", `core/manifest.toml`, the `shader-build` and `local-review` skills |
+| Touching the core | `standards/wgsl.md`, then `decisions/README.md` (ADR-002 to ADR-005), `specs/phase-2-restructure.md` "Interfaces", `core/manifest.toml`, the `shader-build` and `local-review` skills |
+| Writing any Python | `standards/python.md` |
+| Making a structural decision | `decisions/README.md`: read the ADRs, then add one |
+| Something went wrong in the process | `standards/failure-modes.md`: find the trigger, or add the entry in the same PR |
 
 Checkboxes in the roadmap track phases and owner gates. Checkboxes in a plan track tasks. A task
 is ticked when its verification ran, not when its code was written. "Done" for a phase means the
