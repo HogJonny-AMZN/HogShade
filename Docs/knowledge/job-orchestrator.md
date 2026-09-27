@@ -32,10 +32,13 @@ that are committed and never hand-edited:
 - `orchestrator_config_hogshade.json`: the canon's paths, scaling, GPU, monitoring and logging, and
   HogShade's worker types only: `hogshade_maya` (one headless mayapy), `hogshade_maya_gui` (one
   `maya.exe` with `MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11`, required by the dx11Shader host),
-  `hogshade_python` (one venv Python for the cooks). Named types, the orchestrator's pattern for
-  variants, so nothing in HogShade ever targets the canon `maya` type.
+  `hogshade_python` (one venv Python for the cooks), `hogshade_blender` (one headless Blender 5.2 on
+  its embedded Python 3.13, for the Blender host, bakes and the required comparison path). Named
+  types, the orchestrator's pattern for variants, so nothing in HogShade ever targets a canon type.
 - `hogshade_maya_env.json`: the canon Maya environment plus the HogShade root on `PYTHONPATH`, so a
   MODULE-mode job imports `hogshade.*` directly.
+- `hogshade_blender_env.json`: the canon Blender environment plus `HOGSHADE_ROOT`; Blender's embedded
+  Python ignores `PYTHONPATH`, so a Blender job puts the root on `sys.path` from that variable.
 
 `tools/bats/run_hogshade_orchestrator.bat` copies the profile into the orchestrator's config folder
 (it loads named profiles only from there; loading a profile by path is a to-do on the dev checkout)
