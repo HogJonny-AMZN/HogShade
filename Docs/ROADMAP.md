@@ -307,6 +307,22 @@ The inputs and the proof. Without these, "same shader" produces different pictur
       assets (`rocks.ma`, the Basic and IBLbaker texture sets) are candidates to pull over, done
       better, when a phase needs them. The base scene ships as a Maya scene, a Blender scene, and
       glTF and FBX exports of the same content, since those two are the common non-DCC formats.
+- [ ] **Bake comparisons (owner, 2026-09-26).** The other half of parity is the content pipeline:
+      a low and a medium mesh baked against a high mesh, with the texture outputs (tangent-space
+      normal, object-space normal, AO, curvature, height, position, material ID, and a base-colour
+      transfer) as the thing compared, the same mesh set in every tool. Mesh set: the fallback
+      primitives with a sculpted high variant, and the shader ball at three densities. Paths, in
+      order: **Blender** (free, the required path and the reference everyone can run, `blender -b`
+      with a bake script); **Maya** (the owner's production DCC, AAA-standard, not free, optional);
+      **Marmoset Toolbag** (the best game-like baking and rendering workflow in the owner's view,
+      optional, driven by its Python API); **Substance Painter and Designer** (AAA-standard
+      texturing workflow, optional, driven by their scripting). Every optional path is detected and
+      skipped when the tool is absent, never a failure. One diff tool reads all bakes with the
+      conventions written down (MikkTSpace tangents, OpenGL +Y normals, cage or ray distance, UDIM
+      or single tile, 16-bit where the tool allows it) and reports per-map error against the Blender
+      bake; tolerances are stated per map. Adjacent tools (Substance's material export, Toolbag's
+      viewport capture) dovetail into the host parity captures above so a material authored in one
+      renders in the others through the same glTF profile.
 - [ ] **This repo's own renderer, validation and comparison framework (owner, 2026-09-26).**
       `hogshade.wgpu_host` is the seed: it grows into a lightweight viewer app with the capture,
       diff and test tooling below. Where it does not reuse or vendor LargeWorlds' `hog_rendering`
