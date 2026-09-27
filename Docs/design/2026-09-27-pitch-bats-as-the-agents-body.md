@@ -16,41 +16,47 @@ not the machinery. It is a week that reads differently.
 
 ## A week with it
 
-Before the architecture, the days it changes. Every case keeps a person in the loop: the agent
-proposes and runs, the person reads and decides, and nothing merges or ships without a human.
+Before the architecture, the days it changes, in the order I want them rather than the order they
+arrive. Every case keeps a person in the loop: the agent proposes and runs, the person reads and
+decides, and nothing merges or ships without a human. Three of the six (Tuesday, Friday, Wednesday)
+come from the week of work proposed below. Monday needs a job catalogue the orchestrator is already
+due. The first two are a year further out and need pieces named under "Around the corner"; they are
+the reason to start.
 
 **Thursday, on the train.** You send "produce a character: <a paragraph describing it>". A workflow
 starts: concept images, a blockout, a textured model, a turntable rendered in the DCC or in the
 editor, each step a job. At every gate the result reaches your phone and waits. The generative step
-never decides alone: it proposes four, you pick one. You approve the concept, send the blockout back
-with one sentence, approve the rest, and the final turntable is waiting when you reach your desk.
-The machine can do each step; the judgement at each step is yours, and it should not need your chair.
+never decides alone: it proposes four, you pick one. If none of the four is right, the sentence you
+send back is the next job's brief and the workflow waits; a bad generator costs you a round, never a
+decision. You approve the concept, send the blockout back with one sentence, approve the rest, and
+the final turntable is waiting when you reach your desk. The machine can do each step; the judgement
+at each step is yours, and it should not need your chair.
 
 **Saturday, on holiday.** "Show me the witch's hut" returns an in-editor render of a named view.
-"Warm the light and move the cart left" starts a workflow: four proposals, your pick, the cook and
-bake, the editor loads and places the result, and the same view renders again onto your phone. The
-instruction channel is your phone's own markup on the picture plus a sentence, read by a vision
-model. Direction has always happened on a picture; this is the picture arriving where you are.
+"Warm the light and move the cart left" starts a workflow: four proposals, your pick, the texture
+cook and the bake, the editor loads and places the result, and the same view renders again onto your
+phone. The instruction channel is your phone's own markup on the picture plus a sentence, read by a
+vision model. Direction happens on a picture; this one arrives where you are.
 
-**Tuesday, away from the desk.** A shader change needs the Maya gate. "Run the IBL check on v1" from
-your phone; the resident worker runs it while you are out and the picture comes back. "Again with
-sheen at one" is a second job. The machine has the DCC, the GPU and the licence; you do not always
-have the desk. Verification stops waiting for you to sit down.
+**Tuesday, away from the desk.** A shader change needs the Maya gate. "Run the IBL check on the 2015
+model" from your phone; the resident worker runs it while you are out and the picture comes back.
+"Again with the sheen up" is a second job. The machine has the DCC, the GPU and the licence; you do
+not always have the desk. Verification stops waiting for you to sit down.
 
-**Friday, 4 p.m.** Three lines and a link: CI got 40 seconds slower this week and the commit that did
-it; the Maya check was run by hand three times and is a one-line job now; the export experiment from
-August never proved out and is still described as current in two documents. Monday opens with that
-list. A review is the one task nobody books for themselves, and it has to read the week whole, which
-no single session sees from inside. The part that makes it more than a dashboard: every report opens
-with last week's items and whether you acted on them.
+**Friday, 4 p.m.** Three lines and a link, of this shape: CI got 40 seconds slower this week and the
+commit that did it; the Maya check was run by hand three times and is a one-line job now; the export
+experiment from August never proved out and is still described as current in two documents. Monday
+opens with that list. A review is the one task nobody books for themselves, and it has to read the
+week whole, which no single session sees from inside. Every report opens with last week's items and
+whether you acted on them, which is what makes it more than a dashboard.
 
 **Monday, a new person or a new agent.** "What can this pipeline do?" is a question the running
 orchestrator answers with its jobs, their parameters and what each produces. A week of reading and
 asking becomes one call.
 
 **Wednesday, 9 a.m.** A pull request is waiting that you did not write: the smallest ready item on
-the board, built overnight behind an allowlist, with its tests. Your morning is a review, not a blank
-editor. If it is wrong you say so and it is gone; nothing landed.
+the project's board, built overnight behind an allowlist, with its tests. Your morning is a review,
+not a blank editor. If it is wrong you say so and it is gone; nothing landed.
 
 Those six days are the whole case. The rest of this memo says why they are not possible today, what
 makes them possible, and what it costs to find out.
@@ -66,10 +72,8 @@ typing, a way to run that work where the DCCs and the GPUs are, and a channel th
 result and takes an answer back. Built per project, they are fragile scripts. Built once, they are
 infrastructure.
 
-The cost of not having them is paid in small pieces and never shows on a timesheet: a check that only
-runs when someone remembers, a Maya session launched by hand for every verification, a report nobody
-read because nothing told them it existed. Generation is cheap now. Reading and following up is the
-expensive half, and nothing owns it.
+The cost of not having them never shows on a timesheet; Tuesday and Friday above are what it looks
+like. Generation is cheap now. Reading and following up is the expensive half, and nothing owns it.
 
 ## Why BATS
 
@@ -116,9 +120,9 @@ has no heartbeat and no channel to a person. The split falls out cleanly:
 | Act | A skill committed in the repository | The coding harness in headless mode, run as a BATS job on a Python worker, behind a permission allowlist |
 | Report and nudge | A branch and a pull request | The same, plus a message to the person with the verdict and the link, and their reply coming back as a submitted job |
 
-So BATS is three small pieces short of the whole loop: a scheduled-job type, the harness as a worker
-job, and a messaging bridge. The brain stays the harness. BATS is the body: durable, repeatable,
-discoverable, and already ours.
+So BATS has the middle of those three pieces and is three small additions short of the other two: a
+scheduled-job type, the harness as a worker job, and a messaging bridge. The brain stays the
+harness. BATS is the body: durable, repeatable, discoverable, and already ours.
 
 The channel already has one half. A harness's remote-session feature puts a live session on the
 workstation into your phone: you submit a job and walk away. That session ends when you close it, so
@@ -154,9 +158,9 @@ six days above are the ones that already earned their place; these are the ones 
   edges, and a gate is a message out and a reply in. Once jobs carry typed inputs and outputs, a
   workflow is data the orchestrator runs, pauses at each gate, and resumes on your word from
   anywhere. This is the piece the two best days above are waiting on.
-- **Look-dev by optimisation.** An agent adjusts material parameters toward a reference photograph by
-  measuring a perceptual metric on each render, iterating through the resident Maya session. A
-  closed loop with the DCC inside it, which is exactly what a cloud agent lacks.
+- **Look-dev by optimisation.** An agent adjusts material parameters toward a reference photograph
+  by measuring a perceptual metric on each render, iterating through the resident Maya session. A
+  closed loop with the DCC inside it, which a cloud agent cannot have.
 - **A local model as a worker type.** A GPU worker hosting a vision or language model becomes a job
   type: read the markup on a Saturday render, caption every capture, judge a diff, triage a log, at
   no API cost and with private data never leaving the machine. The harness keeps the hard reasoning;
@@ -180,22 +184,22 @@ six days above are the ones that already earned their place; these are the ones 
 
 **Infrastructure the days stand on**
 
-None of these is a headline. Each is a piece the headlines need, and the record keeps them as such.
+None of these is a headline. Each is a piece the headlines need, and the record keeps them.
 
 - **The phone as a console.** "Status" returns the pool; "render the ball in v1 with sheen at one"
   returns the picture. The routing every gated workflow reuses.
 - **Wake up to pull requests.** The nightly job that builds the smallest ready item behind the
   allowlist is the same worker job the Thursday workflow runs, exercised on the safest work first.
-- **Replay and diff two agent runs.** Every agent action is a job with inputs, a manifest and a
-  log; two runs of the same task can be diffed. The property that makes a gated workflow auditable.
-- **The failure-modes ledger writes itself.** A failed job gets a diagnosis job, a proposed ledger
-  entry and a fix as a pull request. How the body learns from its own runs.
-- **Synthetic datasets with ground truth.** The debug views already expose every intermediate
-  channel; a worker renders thousands of labelled views overnight. Training data for the local
+- **Replay and diff two agent runs.** Every agent action is a job with inputs, a manifest and a log;
+  two runs of the same task can be diffed. The property that makes a gated workflow auditable.
+- **A failure-modes ledger that writes itself.** A failed job gets a diagnosis job, a proposed
+  ledger entry and a fix as a pull request. How the body learns from its own runs.
+- **Synthetic datasets with ground truth.** The debug views already expose the intermediate
+  channels; a worker renders thousands of labelled views overnight. Training data for the local
   vision model above, from the same shader the game ships.
 - **A home compute grid.** Workers on every machine in the house, the target-spec one included, so
-  benchmarks run nightly on the hardware the game is budgeted against. The queue does not care
-  which box answers.
+  benchmarks run nightly on the hardware the game is budgeted against. The queue does not care which
+  box answers.
 
 Each of these is a guess about value, and most need the design lock's answers before they are safe.
 The claim is narrower than the list: none of them is possible without a durable body, and all of them
@@ -233,19 +237,19 @@ pull requests on the orchestrator.
 
 ## Risks, and what this does not do
 
-- **Unattended execution on a workstation is a different risk class from a cloud routine writing to a
-  branch.** The allowlist, the branch-and-PR-only rule and the refusal log are the whole answer, and
-  they are the gate on step 4. Until they exist, no agent runs unattended on a machine with production
-  access.
-- **The workstation has to be up.** A missed heartbeat fires on wake, and repository-only work has the
-  cloud lane, so an off machine costs a delay, not a lost run.
+- **Unattended execution on a workstation is a different risk class from a cloud routine writing to
+  a branch.** The allowlist, the branch-and-PR-only rule and the refusal log are the whole answer,
+  and they are the gate on step 4. Until they exist, no agent runs unattended on a machine with
+  production access.
+- **The workstation has to be up.** A missed heartbeat fires on wake, and repository-only work has
+  the cloud lane, so an off machine costs a delay, not a lost run.
 - **Cost per run is unknown until measured.** Step 5's first run is measured before a schedule is
   committed to.
 - **A report nobody reads is the failure mode this exists to end.** The message carries the verdict,
-  not "report ready", and every report opens with last week's items.
-- **One person built and maintains BATS.** The jobs are scripts that also run by hand from a committed
-  file, so nothing built here is locked to it; but the orchestrator itself has one maintainer, and
-  this experiment adds three features to it.
+  not "report ready", and the first run measures whether the report was read.
+- **One person built and maintains BATS.** The jobs are scripts that also run by hand from a
+  committed file, so nothing built here is locked to it; but the orchestrator itself has one
+  maintainer, and this experiment adds three features to it.
 
 What would end it: if a month of scheduled runs costs more babysitting than the manual path it
 replaced, or the weekly report goes unread for a month, the schedule stops and the pieces stay as
@@ -258,6 +262,6 @@ One person, about a week, and a go or no-go after the measured first run: that i
 commitment. The result either way is a written answer to a question every pipeline team is about to
 face: where does an agent live when it is not in a chat window?
 
-The test to carry out of this memo is short. If a step needs time, a machine, a queue, or a memory
-that outlives a chat window, it needs a body. Today that body is rebuilt by hand, per project, or not
-at all.
+The test to carry out of this memo is short. If a step needs time (Friday), a machine (Tuesday), a
+queue (Thursday), or a memory that outlives a chat window, it needs a body. Today that body is
+rebuilt by hand, per project, or not at all.

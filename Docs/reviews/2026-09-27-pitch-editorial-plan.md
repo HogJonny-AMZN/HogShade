@@ -128,6 +128,66 @@ group, "Infrastructure the days stand on", each one saying which headline it ser
 being asked to fund a year of the plausible ones, and because scaffolding removed from the record is
 scaffolding rebuilt later.
 
+## Second pass: the pipeline re-run over the author's additions
+
+Everything added after finding 8 (the six days, the scaffolding group, the new bullets) had not been
+through layers 1 to 7. A fresh-eyes editing session ran them, read-only, and reported; this section
+records what it found and what was applied.
+
+**Structure.** Seven findings, in cost order. (1) A promise not kept: the two lead days need a
+workflow engine and the editor as a worker, which the week does not buy, and the memo said so 900
+words later; the week's intro now states which days the week buys, which need the catalogue already
+due, and which are a year out and the reason to start. (2) *Why* paragraph 3 restated Tuesday and
+Friday, and "three pieces" named two different triads; the paragraph now points at the days and
+*What* says BATS has the middle piece and is three additions short of the other two. (3) The
+follow-through loop appeared three times; the Risks bullet now says the first run measures whether
+the report was read. (4) Day order read as a calendar; the intro names it as the order of desire.
+(5) Jargon regressions in the days: "the board", "v1", "the cook and bake"; replaced. (6) The closer
+named no day; it names three now. (7) The ending fires once; unchanged.
+
+**Facts.** Friday's three numbers were illustrative and read as reportage: "of this shape" added. "The
+failure-modes ledger writes itself" assumed a ledger HogShade does not have: "a ledger that". "Every
+intermediate channel" unproven: "the intermediate channels". Tuesday's "sheen at one" named a
+parameter the job does not take: "the sheen up". Monday's answer is intent, not possible today; the
+intro's "already due" carries that.
+
+**Voice.** Em dashes 0, contractions 0. Four tells fixed (a lazy extreme plus pull-quote in Saturday,
+a here's-what setup in Friday, an adverb in the year list, a filler in the scaffolding intro). Kept
+on purpose: "it should not need your chair" and "a review, not a blank editor" (the days' verdicts);
+second person inside scenes and third person in argument, stated as the rule; twenty-one bold labels
+as a memo's scanning device, the one formatting fingerprint.
+
+**Rhythm.** Mean prose paragraph 54 words, longest 105, no run over 120; the days descend in mass by
+design. Zero breaks.
+
+**Reach.** SUCCESs 47 (was 44): Simple 8, Unexpected 8, Concrete 9, Credible 7, Emotional 7, Stories
+8. Title kept; no subtitle.
+
+**Adversarial.** The next objection a pipeline lead raises: the lead days need a workflow engine, the
+editor as a worker and a generator that produces a usable blockout, none of which the week buys; and
+"if all four proposals are bad, is Thursday four rejections on a phone?" Answered now where the days
+appear (the intro) and in Thursday: a bad generator costs a round, never a decision.
+
+**Scorecard**, before → after → now → applied:
+
+| Dimension | History | Measurement |
+| --- | --- | --- |
+| Opening hook | 6 → 8 → 8 → 8 | Lead unchanged; the days prove its claim |
+| Structural clarity | 6 → 8 → 7 → 8 | Duplicates removed; horizons and order stated in the intro |
+| Thesis consistency | 5 → 8 → 8 → 8 | One thesis |
+| Argument integrity | 5 → 8 → 7 → 8 | The week-versus-year objection answered where raised |
+| Ending | 6 → 8 → 8 → 8 | Fires once; the closer names three days |
+| Evidence texture | 7 → 8 → 7 → 8 | Friday marked illustrative; the ledger and "every" corrected |
+| Em dash discipline | 10 → 10 → 10 → 10 | 0 |
+| Register consistency | 8 → 9 → 8 → 8 | The rule stated: "you" in scenes, third person in argument |
+| Formatting tells | — → — → 7 → 7 | Bold labels kept as a deliberate trade |
+| Rhythm | 6 → 7 → 7 → 7 | Mean 54, longest 105 |
+| Emotional pulse | 5 → 6 → 7 → 7 | Two days with a place and a time |
+| Length (trend) | 1,930 → 1,720 → 2,330 → about 2,300 prose words | The rewrites removed about 45 and added about 90 |
+
+Rejected this pass: a subtitle (a blog move); breaking Thursday's last sentence out (orphans the
+day's verdict); one voice throughout (the mix is the device).
+
 ## Layer 9, first pass: for the author
 
 Worth your attention: the steelman paragraph (it concedes that a CI runner covers schedule, secrets and notifiers), the falsification condition in *Risks*, the softened "one launch in three", and the ask's first sentence, which now commits one person for a week. Not worth it: the clause trims in *Around the corner*, recorded above as the alternative to cutting bullets.
