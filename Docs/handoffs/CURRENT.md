@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-09-27, PR H (the journal and the process around it; `local-review`; the BATS case).
+**Last updated:** 2026-09-27, after #21 merged (nothing in flight; next is the standards pass).
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -10,19 +10,19 @@ how much to decide alone.
 
 ## In flight
 
-**PR G, the v1 port, merged as #19 on 2026-09-27.** **PR H**
-(`docs/journal-process-local-review`, stacked on G) adds the journal, the definition of done and
-workflow, the PR template, `tools/check_docs.py`, the `local-review` skill and the BATS case in the
-knowledge file; it also stops the Maya check leaving Script Editor history mirroring on. Next in the
-agreed order: the standards pass, then the phase 2 close at 0.2.0.
+**Nothing in flight.** Merged 2026-09-27: #19 (the v1 port), #20 (the journal, the definition of
+done and workflow, the PR template, `tools/check_docs.py` in CI, the `local-review` skill, the board,
+the BATS case), #21 (the README as the case for the repo, the pitch for the agent loop, the checker
+hardened after its own local review). Next in the agreed order: the standards pass (board, Next),
+then the phase 2 close at 0.2.0. The agent loop and the weekly review are Icebox rows awaiting a
+design lock, not work.
 
 Owner asks recorded this session and not yet built: none open. Standing: journal continuously; a
 `→ BATS:` line wherever the orchestrator made the difference; `pathlib` everywhere.
 
 **PR F is complete.** The Maya gate (plan task 17) passed on 2026-09-26 as a BATS job on the
 `hogshade_maya_gui` worker: `Main` technique listed, cubes and LUT decoded, pictures under
-`verification/maya-2026/ibl-check/studio_small_09/`. Next in the agreed order: the legacy v1 port (plan task 18), then the
-standards pass, then the phase 2 close. The MCP path was validated the same day with a scratch
+`verification/maya-2026/ibl-check/studio_small_09/`; the v1 port followed as #19. The MCP path was validated the same day with a scratch
 stdio client: twenty tools, correct per-type counts.
 
 ## How to run the developer track
