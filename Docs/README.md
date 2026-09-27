@@ -50,6 +50,9 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
   the module, tier, rendering-path half and hosts that carry it.
 - [design/2026-09-20-wysiwyg-blindspots.md](design/2026-09-20-wysiwyg-blindspots.md): what it takes for
   the same material to look the same in every host, and the gaps the first direction had.
+- [design/2026-09-27-pitch-bats-as-the-agents-body.md](design/2026-09-27-pitch-bats-as-the-agents-body.md):
+  the pitch for the agent loop on the orchestrator (why, why BATS, what, how, risks, the ask), written
+  for the owner's team; Proposed until sent.
 - [design/2026-09-26-decision-log-and-working-knowledge.md](design/2026-09-26-decision-log-and-working-knowledge.md):
   the living log of directions and decisions made in conversation, the order of operations, the
   repository state, and the lessons that cost time. A new session starts here. Appended, never

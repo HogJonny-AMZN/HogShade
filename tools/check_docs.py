@@ -16,6 +16,11 @@ Checks:
 - **adr-index**: every ``Docs/decisions/ADR-*.md`` has a row in ``Docs/decisions/README.md`` (none yet)
 - **board**: ``Docs/plan/BOARD.md`` exists and keeps its five sections (Gates, Now, Next, Blocked, Icebox),
   so the tracker cannot be deleted or quietly collapsed into a list
+- **fences**: a fenced code block that never closes; without this the links and status checks would be
+  silently vacuous for the rest of that file (local review, 2026-09-27)
+
+A link may not climb above the repository root: what lies beside the checkout differs per machine, so
+such a link would pass here and fail on CI, or the reverse.
 
 Run standalone (exit code 1 on findings)::
 
@@ -27,13 +32,13 @@ CI runs it as a step; ``tests/test_check_docs.py`` runs each check on fixtures a
 import logging as _logging
 import re
 import sys
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
 _MODULE_NAME = "tools.check_docs"
 __version__ = "0.1.0"
-__updated__ = "2026-09-27"
+__updated__ = "2026-09-27"  # local review: unclosed fences, links above the root, BOM, index rows
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 #: Repository root, derived from this file's location.
@@ -84,6 +89,12 @@ _FENCE_OPEN_RE = re.compile(r"^[ \t]{0,3}(`{3,}|~{3,})")
 _STATUS_RE = re.compile(r"^\*\*Status:\*\*\s*(\S+)", re.MULTILINE)
 _ADR_FILE_RE = re.compile(r"^ADR-(\d{3})-")
 _SESSION_FILE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-session-\d{2}\.md$")
+_SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")  # any URL scheme, not a path
+
+
+def _read(path: Path) -> str:
+    """A document's text; a UTF-8 byte-order mark is not part of its first line."""
+    return path.read_text(encoding="utf-8-sig", errors="replace")
 
 
 @dataclass(frozen=True)
@@ -98,37 +109,54 @@ class Finding:
         return f"[{self.check}] {self.location}: {self.detail}"
 
 
-def strip_fences(text: str) -> str:
+def split_fences(text: str) -> tuple[str, int | None]:
     """
-    The prose of a markdown document: fenced code blocks removed. Line-oriented, as CommonMark reads
-    them: a fence opens with three or more backticks or tildes and closes with a fence of the same
-    character at least as long; a fence of the other character inside stays code.
+    The prose of a markdown document with fenced code blocks removed, and the line number of a fence
+    that never closed (``None`` when every fence closes). Line-oriented, as CommonMark reads them: a
+    fence opens with three or more backticks or tildes and closes with a fence of the same character at
+    least as long; a fence of the other character inside stays code. An unclosed fence's lines are kept
+    as prose, so the checks stay live for the rest of the file and the caller can report the fence.
     """
     out: list[str] = []
-    fence_char, fence_len = None, 0
-    for line in text.splitlines():
+    held: list[str] = []
+    fence_char, fence_len, opened_at = None, 0, None
+    for number, line in enumerate(text.splitlines(), start=1):
         m = _FENCE_OPEN_RE.match(line)
         if fence_char is None:
             if m:
-                fence_char, fence_len = m.group(1)[0], len(m.group(1))
+                fence_char, fence_len, opened_at = m.group(1)[0], len(m.group(1)), number
+                held = []
                 continue
             out.append(line)
         elif m and m.group(1)[0] == fence_char and len(m.group(1)) >= fence_len and not line.strip().strip(fence_char):
             fence_char = None
-    return "\n".join(out)
+        else:
+            held.append(line)
+    if fence_char is not None:
+        out.extend(held)
+        return "\n".join(out), opened_at
+    return "\n".join(out), None
 
 
-def _exists_exact(base: Path, target: str) -> bool:
+def strip_fences(text: str) -> str:
+    """The prose of a markdown document, fenced code blocks removed; see ``split_fences``."""
+    return split_fences(text)[0]
+
+
+def _exists_exact(base: Path, target: str, root: Path) -> bool:
     """
-    ``target``, relative to ``base``, names a file with exactly this spelling. On a case-insensitive
-    file system ``exists()`` says yes to ``docs/`` when the directory is ``Docs/``; CI on Linux says
-    no. Each component is checked against its parent's listing.
+    ``target``, relative to ``base``, names a file with exactly this spelling, inside ``root``. On a
+    case-insensitive file system ``exists()`` says yes to ``docs/`` when the directory is ``Docs/``; CI
+    on Linux says no. Each component is checked against its parent's listing. A ``..`` that would leave
+    the root is a broken link: what lies beside the checkout differs per machine.
     """
     current = base
     for part in target.replace("\\", "/").split("/"):
         if part in ("", "."):
             continue
         if part == "..":
+            if current == root:
+                return False
             current = current.parent
             continue
         try:
@@ -162,12 +190,14 @@ def check_links(files: Iterable[Path], root: Path = REPO_ROOT) -> list[Finding]:
     """Every relative markdown link resolves to an existing file; fenced code is not prose."""
     findings: list[Finding] = []
     for path in files:
-        prose = strip_fences(path.read_text(encoding="utf-8", errors="replace"))
+        prose, unclosed = split_fences(_read(path))
+        if unclosed is not None:
+            findings.append(Finding("fences", _rel(path, root), f"fence opened at line {unclosed} never closes"))
         for match in _LINK_RE.finditer(prose):
             target = match.group(1).strip().strip("<>").split("#")[0].strip()
-            if not target or target.startswith(("http://", "https://", "mailto:")):
+            if not target or _SCHEME_RE.match(target):
                 continue
-            if not _exists_exact(path.parent, target):
+            if not _exists_exact(path.parent, target, root):
                 findings.append(Finding("links", _rel(path, root), f"broken link -> {target}"))
     return findings
 
@@ -185,7 +215,7 @@ def check_status_headers(files: Iterable[Path], root: Path = REPO_ROOT) -> list[
         rel = _rel(path, root)
         if not _governed(rel):
             continue
-        head = "\n".join(strip_fences(path.read_text(encoding="utf-8", errors="replace")).splitlines()[:12])
+        head = "\n".join(strip_fences(_read(path)).splitlines()[:12])
         match = _STATUS_RE.search(head)
         if match is None:
             findings.append(Finding("status", rel, "no `**Status:**` line in the first 12 lines"))
@@ -195,12 +225,12 @@ def check_status_headers(files: Iterable[Path], root: Path = REPO_ROOT) -> list[
             findings.append(Finding("status", rel, f"status {word!r} is not one of {'|'.join(STATUS_WORDS)}"))
             continue
         line = head[match.start() :].splitlines()[0]
-        if word == "Superseded" and " by " not in line:
+        if word == "Superseded" and not re.search(r"\bby\b", line):
             findings.append(Finding("status", rel, "Superseded, but the line does not say by what"))
     return findings
 
 
-def _check_index(files: list[Path], root: Path, index_rel: str, name_re: re.Pattern, check: str) -> list[Finding]:
+def _check_index(files: list[Path], root: Path, index_rel: str, name_re: re.Pattern[str], check: str) -> list[Finding]:
     """Every file matching ``name_re`` beside the index is linked from it, and every linked one exists."""
     index_path = root / index_rel
     members = {p.name for p in files if name_re.match(p.name) and p.parent == index_path.parent}
@@ -208,13 +238,16 @@ def _check_index(files: list[Path], root: Path, index_rel: str, name_re: re.Patt
         return []
     if not index_path.exists():
         return [Finding(check, index_rel, "missing; every entry needs a row here")]
-    text = index_path.read_text(encoding="utf-8", errors="replace")
-    findings = [
-        Finding(check, index_rel, f"no row links {name}") for name in sorted(members) if f"({name})" not in text
+    linked = set()
+    for match in _LINK_RE.finditer(strip_fences(_read(index_path))):
+        target = match.group(1).strip().strip("<>").split("#")[0].strip()
+        target = target.removeprefix("./")
+        if "/" not in target and name_re.match(target):
+            linked.add(target)
+    findings = [Finding(check, index_rel, f"no row links {name}") for name in sorted(members - linked)]
+    findings += [
+        Finding(check, index_rel, f"row links {name}, which does not exist") for name in sorted(linked - members)
     ]
-    for linked in re.findall(r"\(([^)/#]+\.md)\)", text):
-        if name_re.match(linked) and linked not in members:
-            findings.append(Finding(check, index_rel, f"row links {linked}, which does not exist"))
     return findings
 
 
@@ -237,20 +270,22 @@ def check_board(files: Iterable[Path], root: Path = REPO_ROOT) -> list[Finding]:
     return [Finding("board", BOARD, f"no {name!r} section") for name in BOARD_SECTIONS if name not in text]
 
 
-CHECKS = (check_links, check_status_headers, check_journal_index, check_adr_index, check_board)
+Check = Callable[[Iterable[Path], Path], list[Finding]]
+CHECKS: tuple[Check, ...] = (check_links, check_status_headers, check_journal_index, check_adr_index, check_board)
 
 
-def run(root: Path = REPO_ROOT, checks: Sequence = CHECKS) -> list[Finding]:
+def run(root: Path = REPO_ROOT, checks: Sequence[Check] = CHECKS) -> list[Finding]:
     """Run every check over the corpus under ``root``."""
     files = markdown_files(root)
     findings: list[Finding] = []
     for check in checks:
-        findings.extend(check(files, root))
+        found = check(files, root)
+        _LOGGER.debug("%s: %d finding(s)", check.__name__, len(found))
+        findings.extend(found)
     return findings
 
 
 def main(argv: list[str] | None = None) -> int:
-    _logging.basicConfig(level=_logging.INFO, format="%(message)s")
     root = Path(argv[0]).resolve() if argv else REPO_ROOT
     files = markdown_files(root)
     findings = run(root)

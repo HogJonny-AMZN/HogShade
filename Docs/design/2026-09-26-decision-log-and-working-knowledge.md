@@ -258,6 +258,78 @@ notification is the zero-cost baseline and needs nothing. Recommendation: push f
 the owner wants SMS specifically. Not built; the board's Icebox row carries the cost and the open
 questions. A memory records the direction for the other repositories.
 
+### The case for the repo, stated for the README (owner, 2026-09-27; principles)
+
+Owner: the README must be "ultimately clear about the direction, needs, benefits and pros and cons
+of this repo"; "WYSIWYG everywhere is a goal (is it possible?)"; "portable look direction is more
+measurably valuable than I can state"; "rendering tech on the physics front doesn't always meet game
+needs; game-like features, especially common ones, are a boon; game-like hacks make the world work
+when you don't have path tracing correctness." Three principles now on the README: WYSIWYG is a
+tolerance, not a promise, and the repo's job is to make every difference attributable (the BRDF is a
+third; inputs and proof are the rest); the value of a portable look is stated as things to measure
+(parameters authored per material, look-dev decisions re-made, time to attribute a difference, hosts
+updated per change, regressions caught before a render, time to first picture in a new host, bake
+error per map), to be replaced with numbers when the comparison framework publishes them; and the
+three kinds of feature (physics, surface authoring, engine) with surface authoring named as the bulk
+of the user-facing value and the legacy models kept as legitimate non-conserving peers. The pros and
+cons table is honest about the toolchain, the FXC canary, the deferred limits, OSL as a second
+implementation, and the optional orchestrator.
+
+### The agent loop as research: heartbeat, execute, communicate (owner, 2026-09-27; soft, design first)
+
+Owner: "my desires and expectations ... if Claude or a harness doesn't provide the framework, how do
+we build that as research? OpenClaw I stopped using because almost everything it does I can just do
+with AI harnesses these days, but I could have it run a heartbeat, execute things, telegram and
+communicate with me."
+
+Assessment. What the harness provides today: cloud routines (a schedule, private repositories
+cloned, repo skills, a branch and a pull request; webhook triggers on GitHub events), a session-only
+local cron that dies with the session, a terminal or phone push only while a session is attached, and
+no SMS or Telegram. What it cannot do: reach this machine, so nothing that needs Maya or the GPU. What
+the owner already owns: the orchestrator, which is "execute on my machine" with resident workers, a
+queue, a manifest per job and an MCP. So the loop splits into four parts and no single substrate has
+all four:
+
+| Part | Repo-only work | Machine-bound work (Maya, GPU, bakes) |
+| --- | --- | --- |
+| Trigger (heartbeat) | A cloud routine, or a GitHub Actions `schedule:` running the Claude Code action | A scheduled-job type in the orchestrator, or Windows Task Scheduler submitting one |
+| Context | The repo's docs: journal, board, handoff, decision log, knowledge files | The same, plus the orchestrator's own state |
+| Act | A repo skill | Headless Claude Code (`claude -p "/skill"`) run as an orchestrator job on a Python worker, with a permission allowlist |
+| Report and nudge | A branch and a pull request; a Telegram bot message with the verdict and the link | The same; the Telegram bridge is one job that any job can call |
+
+Telegram rather than SMS: free, a bot token, one HTTPS call out, long polling in, and it is two-way:
+"run the review" or "status" arrive as messages and become submitted jobs. That is what OpenClaw
+gave, rebuilt as three small orchestrator pieces (a Telegram bridge job, a `claude -p` worker job, a
+scheduled-job type) on infrastructure that already exists, with the agent as a worker and the same
+definition of done (branch and PR, never merge). GitHub Actions on a cron with the Claude Code action
+is the industry-standard equivalent for repo-only work and worth measuring against the routine: it
+takes any secret and any notifier but needs an API key in the repository and pays per run.
+
+Research questions, in order: unattended permissions (an allowlist per job, never the skip flag,
+measured by what a run tried to do and was refused); cost and duration per run; the blast radius (a
+run writes to a branch and a report, nothing else, enforced by the worker's environment); and the
+follow-through loop, whether the owner reads and acts, which is the measurement the whole thing is
+for. The weekly review is the first consumer; the design lock comes before either is built. This
+belongs to the Job_Orchestrator dev checkout as much as here, and the board row says so.
+
+Owner, on reading this: "so BATS becomes my OpenClaw feature set!?" Yes, with the distinction that
+BATS is the body and the harness is the brain: OpenClaw was the whole agent, and what the owner
+kept wanting from it (heartbeat, execution on this machine, a channel) is what the orchestrator is
+three small pieces short of. Recorded as the framing for the design lock. Then: "that would be rad from the standpoint of I didn't think of it but it also makes sense
+(as long as my local machine is up)", and "it also cements BATS as radical". The machine-up caveat is
+the seam between the two lanes: the cloud routine covers repo-only work while the machine is off, and
+a scheduled job on the machine runs as soon as possible after a missed start, so a heartbeat missed
+asleep fires on wake rather than being lost. Direction agreed in principle; still design-first.
+
+Owner, later the same day: "Claude remote is basically some part of this: something local on my
+machine I can interact with via my Claude phone app and walk away. BATS provides potentially the
+bridge there for almost anything!?" Yes: Remote Control gives the interactive channel (phone to a
+live session on this machine) and nothing durable; the session's cron dies with it and nothing runs
+with no session open. So the channel has two halves: Remote Control for the interactive case, the
+bridge for unattended jobs and for any worker that is not Claude (the agent-agnostic requirement).
+BATS persists under both. The design lock treats the bridge as required and Remote Control as the
+convenience it already is.
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`
