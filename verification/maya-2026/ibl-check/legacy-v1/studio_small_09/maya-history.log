@@ -14,3 +14,15 @@ HOGSHADE_RESULT {"ok": true, "dir": "D:\\Depot\\HogShade\\verification\\maya-202
 // 09/27/2026, :12:02:33 AM :: [INFO][job_orchestrator.orchestrator.config] >> Loaded 2 package path(s) for hook dependencies :(config.py:671)
 2026-09-27 00:02:33 :: [INFO][hogshade.jobs.maya_ibl_check] >> maya_ibl_check job: fx=D:\Depot\HogShade\hosts\maya_dx11\hogshade.fx env=studio_small_09 :(maya_ibl_check.py:90)
 // 09/27/2026, :12:02:33 AM :: [INFO][hogshade.jobs.maya_ibl_check] >> maya_ibl_check job: fx=D:\Depot\HogShade\hosts\maya_dx11\hogshade.fx env=studio_small_09 :(maya_ibl_check.py:90)
+currentTime 1 ;
+currentTime 1 ;
+currentTime 1 ;
+HOGSHADE_RESULT {"ok": true, "dir": "D:\\Depot\\HogShade\\verification\\maya-2026\\ibl-check\\legacy-v1\\studio_small_09", "log": "D:\\Depot\\HogShade\\verification\\maya-2026\\ibl-check\\legacy-v1\\studio_small_09\\check.log", "png": "D:\\Depot\\HogShade\\verification\\maya-2026\\ibl-check\\legacy-v1\\studio_small_09\\main.png", "techniques": ["Main"]}
+// Warning: Arnold renderer not loaded.
+// The MtoA plug-in needed for this scene is not loaded.
+// Make sure Autoload is on in the Plug-in Manager.
+// See this article for more detail.
+// https://www.autodesk.com/maya-arnold-not-available-error
+// 09/27/2026, :12:03:10 AM :: [INFO][job_orchestrator.dcc_workers.maya.maya_rpc_server] >> [OK] Job 157bdaa4... completed in 36.74s :(maya_rpc_server.py:557)
+select -r pSphere1 ;
+select -cl  ;
