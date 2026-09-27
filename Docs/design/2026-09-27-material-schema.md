@@ -42,7 +42,8 @@ Five things, each a file or a package, each owning one concern.
 
 ### 1. The schema: a versioned definition of the standard material
 
-One JSON file in the repo, `schema/hogshade-standard.material-type.json` (name open, question 1),
+One JSON file, `hogshade/material/schema/hogshade-standard.material-type.json` as package data (question 7;
+the file name is question 1),
 versioned, listing every parameter of HogShade's standard material. The parameter names are
 OpenPBR's; each parameter carries:
 
@@ -104,16 +105,23 @@ what a cook produced from the resolved document (O3DE's lesson, SpriteJammer's C
 
 Rules: a value key is a schema parameter or the document fails validation; a parent chain resolves
 to exactly one schema version; `ext` blocks are namespaced and passed through unvalidated by
-HogShade (an engine validates its own); texture paths are relative to the document; nothing is
-inferred from a file name.
+HogShade (an engine validates its own); texture and `parent` paths are relative to the document, normalised on load, and rejected when
+absolute or when they resolve outside the document's package root (the same rule as the Maya
+check's output directory, `../standards/failure-modes.md` entry 9); nothing is inferred from a file
+name.
 
 ### 3. The exports: MaterialX and the glTF game profile
 
 - **MaterialX.** A resolved document exports to a `.mtlx` with an `open_pbr_surface` node whose
   inputs are the resolved values and image nodes with the declared colour spaces. This is the
-  authoring interchange (Maya LookdevX, USD, Blender via USD) and the source the generated OSL and
-  GLSL cross-checks come from. Import is the reverse for the OpenPBR subset; a graph the schema
-  cannot express imports as a Prime reference, not as values (SpriteJammer's vocabulary).
+  interchange (Maya LookdevX, USD, Blender via USD) and the source the generated OSL and GLSL
+  cross-checks come from. Import is the reverse for the OpenPBR subset; a graph the schema cannot
+  express imports as a Prime reference, not as values (SpriteJammer's vocabulary).
+  **Source of truth (question 10).** The direction doc's "Interchange" decision (2026-09-20) says the
+  authored material is the `.mtlx` document. The owner's later decisions (2026-09-13 in SpriteJammer,
+  ADR-009 here) make the O3DE-shaped JSON the authored record and MaterialX the authoring format of a
+  Prime and the interchange, not the record and not the runtime. This design follows the later
+  decisions; the direction doc's line is amended when this design is locked, not before.
 - **glTF.** The game profile: a conversion table in the repo says which parameter becomes which
   glTF core or KHR extension field (`specular`, `ior`, `clearcoat`, `sheen`, `iridescence`,
   `transmission`, `emissive_strength`, `texture_transform`) and what is lost; the exporter emits
@@ -126,10 +134,10 @@ framework:
 
 | Function | Does |
 | --- | --- |
-| `load(path) -> Document` | parse, migrate to the current schema version, resolve the parent chain |
-| `validate(doc) -> list[Finding]` | every value against the schema; colour spaces; ranges; unknown keys |
-| `resolve(doc) -> Resolved` | the full parameter set with defaults applied and `ext` carried |
-| `bind(resolved, host) -> Binding` | a host's uniform block values and texture slots in that host's names (Maya parameter names, the wgpu `host_Frame` fields, a Blender node input map) |
+| `load(path) -> Document` | parse and migrate to the current schema version; the result is raw: its `parent` is a normalised path, not yet followed |
+| `validate(doc_or_resolved) -> list[Finding]` | a raw document: unknown keys, types, ranges, colour spaces, path rules; a resolved one: completeness and cross-parameter rules as well |
+| `resolve(doc) -> Resolved` | the one place the parent chain is followed (each parent through `load`, cycles and escapes rejected): the full parameter set with defaults applied and `ext` blocks merged child over parent |
+| `bind(resolved, host) -> Binding` | the material-owned values and texture slots in that host's names, and nothing per-frame: for Maya the material parameters and map slots; for the wgpu host the material fields the frame carries today (`base_color`, `material`, `model`, `params_a`, `params_b`) and the texture slots, which the host merges into its own per-frame block (view, camera, lights, environment stay the host's); for Blender a node input map. A host that grows a separate material uniform block binds that block whole |
 | `export_mtlx(resolved, path)`, `export_gltf_material(resolved) -> dict` | the two exports |
 | `generate(host) -> str` | the host's UI from the schema: the Maya annotations block, the Blender panel source, the docs table |
 
@@ -143,7 +151,9 @@ Documents against the schema, in `content/materials/`: the constants-only base s
 as the semantic parent baselines a library is built on (metal, painted metal, dielectric, skin,
 foliage, emissive, with characteristic roughness and tint choices), so an asset material carries
 only intentional deltas against one of them (O3DE's lesson); then a small texture-based set with CC0
-or generated textures only. Every document validates in CI; every export passes the glTF validator;
+textures only. Generated textures enter the library through track F's validation harness and
+nowhere else, and not before it exists (the quality bar: generated output is research input until
+validated, registered and consistent to a Megascans-grade library). Every document validates in CI; every export passes the glTF validator;
 the comparison framework renders the set in every host. The base set is the schema's test data and
 the getting-started kit's first content.
 
@@ -167,6 +177,7 @@ the getting-started kit's first content.
 | 6 | Migration mechanics | A list of `{from, to, ops}` in the schema, applied on load; the first schema version is 1 and the first migration is written when the second version is |
 | 8 | Specular occlusion: in the core schema's `surface` group as an opt-in (HogShade's catalogue, C4), or only in an engine's `ext` block (SpriteJammer's decision makes it a Material Type property stored in GB2's spare byte) | Both are true at different layers: the parameter is a shader feature every host evaluates and belongs in `surface`; where an engine stores it (a G-buffer byte) is that engine's `ext` block and its own ADR. The schema names the parameter; the engine names the storage |
 | 9 | The MaterialX Python wheel (5.5 MB of C++ that Maya's and Blender's Pythons may not carry) as a dependency of `hogshade.material` | An optional extra (`hogshade[materialx]`) behind an ADR at S5; load, validate, resolve, bind and the glTF export never import it, so the library stays importable in every DCC |
+| 10 | Source of truth: the O3DE-shaped JSON document as the authored record with `.mtlx` as the Prime's authoring format and the interchange (the 2026-09-13 and ADR-009 line), or the `.mtlx` as the authored material (the direction doc's 2026-09-20 line) | The JSON record; amend the direction doc's "Interchange" row when this is locked |
 | 7 | Where the schema file lives: `schema/` at the root, or under `hogshade/` as package data | `hogshade/material/schema/` as package data, so a pip install of the library carries it |
 
 ## Cross-repo: who consumes what
