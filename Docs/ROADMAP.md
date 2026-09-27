@@ -278,9 +278,21 @@ tier that costs a second draw.
 
 The inputs and the proof. Without these, "same shader" produces different pictures.
 
-- [ ] One OCIO config in the repo; Maya and Blender point at it; the engine implements the same view
-      transform and proves it numerically against OCIO on a test ramp (`hog_color` has AgX and ACES).
-      Texture colour space declared per texture in the material, never inferred from a filename.
+- [ ] **Colour management: scene-referred ACEScg, display through OCIO (owner, 2026-09-26).** The
+      rendering and the camera are HDR end to end. Every host renders scene-referred, in ACEScg
+      (the owner's preference; the working space is declared once, not assumed), and comparisons
+      happen at two endpoints, both required: the raw scene-referred frame, and the display-referred
+      frame after one view transform. One OCIO config in the repo (an ACES 1.3 or 2.0 studio config
+      with ACEScg as the working space); Maya and Blender point at it; the wgpu host and the engine
+      implement the same view transform numerically and prove it against OCIO on a test ramp and on
+      the Macbeth chart (`hog_color` has AgX and ACES; the choice of view is one setting shared by
+      every capture). Captures are written as scene-referred EXR (ACEScg, with the colour space in
+      the metadata) plus the display PNG, so a diff between wgpu native and Maya, or any other pair,
+      is raw-to-raw first and display-to-display second, and a difference is attributable to shading
+      or to display, never both. Texture colour space declared per texture in the material, never
+      inferred from a filename; the IBL cook, the procedural test data and the G-buffer albedo all
+      state theirs. The wgpu viewport's current Reinhard-plus-sRGB preview is a placeholder until this
+      lands and is labelled as such.
 - [ ] Light-rig description: HDR file, rotation in a stated axis convention, exposure in EV, punctual
       lights in one unit with a documented conversion per host.
 - [x] IBL prefilter and BRDF LUT baked by one tool in this repo, shipped as content, run as a BATS job.
