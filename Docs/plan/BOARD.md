@@ -1,7 +1,7 @@
 # The Board
 
 **Status:** Living. Updated at the end of every increment, as the definition of done says.
-**Updated:** 2026-09-27, late: the standards pass in flight as a PR run overnight; #19 to #23 landed the same day.
+**Updated:** 2026-09-27, the phase 2 close as a PR; #25 (the standards pass) and #24 merged the same afternoon.
 
 [`../ROADMAP.md`](../ROADMAP.md) is the *roadmap*: the tracks, the phases, the order, what each is
 for. [`../handoffs/CURRENT.md`](../handoffs/CURRENT.md) is the *handoff*: where work is right now and
@@ -41,7 +41,8 @@ A gate is not a task. It is a question that blocks tasks, and the cost of guessi
 
 | Item | Cost | Notes |
 | --- | --- | --- |
-| **The standards pass** (`docs/standards-pass`, PR open) | 2 d, done | Two standards pages, the ledger, Copilot's instructions, ADR-001 to 008 with the index, status on every document, the project review with its ten fixes applied (two new twins and GPU tests among them); 149 tests green, artifacts regenerated and current. Merge when read; then the phase 2 close |
+| **Phase 2 close** (`docs/phase-2-close`, PR open) | ½ d, done | The deviations list in the design doc, the eye comparison recorded, status rows, roadmap C2 ticked, README status, VERSION `0.2.0`; the plan's task 19 with the gate item by item. Merge when read; then tag `v0.2.0` on master (the owner's tag) |
+| ~~**The standards pass**~~ | — | ✅ **Merged 2026-09-27 as [#25](https://github.com/HogJonny-AMZN/HogShade/pull/25).** Two standards pages, the ledger, Copilot's instructions, ADR-001 to 008, status on every document, the project review with its ten fixes, `tools/check_hygiene.py` from Copilot's review of it; thirteen findings answered |
 | ~~**PR H · the process port** (#20)~~ | — | ✅ **Merged 2026-09-27 as [#20](https://github.com/HogJonny-AMZN/HogShade/pull/20).** The journal, `Docs/standards/`, the PR template, `tools/check_docs.py` in CI, the `local-review` skill, the BATS case, this board; Copilot's two findings fixed |
 | ~~**PR I · the README as the case for the repo**~~ | — | ✅ **Merged 2026-09-27 as [#21](https://github.com/HogJonny-AMZN/HogShade/pull/21).** WYSIWYG as a tolerance, the measurable value of a portable look, physics beside game features, pros and cons; the pitch for the agent loop; the checker hardened after its first local review (unclosed fences, links above the root) |
 | ~~**PR G · the legacy v1 port** (plan task 18)~~ | — | ✅ **Merged 2026-09-27 as [#19](https://github.com/HogJonny-AMZN/HogShade/pull/19).** One Disney BRDF, not three; selectable in both hosts; Copilot's two findings fixed in `569b5bf`. The pixel-identical diff against the legacy effect waits on G4 |
@@ -58,7 +59,6 @@ is the first two rows, in that order.
 | Item | Cost | Notes |
 | --- | --- | --- |
 | **The standards pass, remainder** | ½ d + ½ d | The decision log split into topic files under `Docs/knowledge/` (standards never mixed with state), and the `Docs/superpowers/{design,specs,plans,handoff}` move with links fixed (`check_docs.py` catches the rest). Both were left out of the overnight PR so it stayed reviewable |
-| **Phase 2 close** | ½ d | The deviations list, the status rows, roadmap C2 ticked, VERSION `0.2.0`. After the standards pass |
 | **Job providers and capability discovery** (owner note, 2026-09-27) | 1 d on the Job_Orchestrator dev checkout, ½ d here | Decision log, "Job providers and capability discovery". Here: `hogshade.jobs` discovers its jobs by scanning, a test fails on a job without a `MANIFEST` (the Maya job was unregistered for a day). There: a provider field in the profile, `bats_list_jobs` and `bats_describe_job`, a CLI flag. Cross-repo; the HogShade half can go first |
 | **The history-log fix, verified** | one job | `tools/maya/_session.py` now stops Script Editor mirroring at the end of a check (PR H); the next Maya job proves the committed log stops growing |
 
@@ -68,7 +68,7 @@ is the first two rows, in that order.
 
 | Item | Blocked on |
 | --- | --- |
-| **Phase C3 · OpenPBR model, MaterialX carrier, parameter schema** | The standards pass and the phase 2 close (order of operations); **G3** for the schema's home; **G4** because the roadmap says E's calibration capture runs in `maya_dx11` before C3 opens |
+| **Phase C3 · OpenPBR model, MaterialX carrier, parameter schema** | **G3** for the schema's home; **G4** because the roadmap says E's calibration capture runs in `maya_dx11` before C3 opens; the standards pass and the close are done |
 | **The comparison framework** (roadmap, track E) | **G4** for its design date. Design first, then spec, then build; `tools/wgpu/viewport.py` is replaced, not extended |
 | **Colour management: ACEScg, AgX default, ACES alternative** (track E) | **G2** |
 | **The pixel-identical screenshot diff of v1 and v2 against the legacy effects** | The comparison framework |

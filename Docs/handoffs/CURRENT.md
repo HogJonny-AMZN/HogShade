@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-09-27, late (the standards pass is a PR run overnight; the phase 2 close is next).
+**Last updated:** 2026-09-27, afternoon: the phase 2 close is a PR (`docs/phase-2-close`); #25 merged.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -10,10 +10,13 @@ how much to decide alone.
 
 ## In flight
 
-**Sit rep, 2026-09-27 late.** The standards pass ran as one PR (`docs/standards-pass`) while the owner
-slept, per the owner's last instruction ("do the next increment of real HogShade work and then report
-back with a revised roadmap and sit rep"). Also open: #24, the pitch's horizon split (the owner said
-to forget the pitch for now; merge or leave).
+**Sit rep, 2026-09-27 afternoon.** #25 (the standards pass) merged after thirteen Copilot findings,
+twelve fixed and one refuted; `tools/check_hygiene.py` came out of that review. The phase 2 close is
+the open PR: VERSION `0.2.0`, the deviations list, the eye comparison recorded, the gate item by
+item in plan task 19. After it merges, the owner tags `v0.2.0` on master. Phase 3 is next in the
+order of operations but is blocked on G3 and G4 (the material-contract split and the comparison
+framework's design date); the standards pass's remainder (the decision-log split, the folder move)
+is unblocked and small.
 
 What the standards pass landed: `Docs/standards/python.md` and `wgsl.md`, `Docs/standards/failure-modes.md`
 (twelve entries from this week, five with checks), `.github/copilot-instructions.md`, `Docs/decisions/`

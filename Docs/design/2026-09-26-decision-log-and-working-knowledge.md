@@ -15,10 +15,10 @@ specified.
    the E1 cubes in ordinary texture slots, the IBL check tool re-run. The diff of the owner's edited
    shader ball against the verbatim OBJ happens here, because Maya is open.
 2. The legacy v1 port (`core/models/legacy_v1.wgsl`).
-3. The standards pass (`ROADMAP.md`, "The standards pass"): coding standards and agent context,
+3. (Done 2026-09-27, #25; remainder on the board.) The standards pass (`ROADMAP.md`, "The standards pass"): coding standards and agent context,
    review of `core/`, `hogshade/`, `hosts/`, `tools/`, ADRs for the structural decisions including
    shader specialisation.
-4. Phase 2 close: deviations list, status rows, roadmap C2, VERSION `0.2.0`.
+4. (Done 2026-09-27, the close PR.) Phase 2 close: deviations list, status rows, roadmap C2, VERSION `0.2.0`.
 5. Phase 3 (OpenPBR, MaterialX carrier, parameter schema). The comparison framework design lands
    before phase 3's comparison view is written.
 

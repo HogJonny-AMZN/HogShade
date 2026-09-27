@@ -1,6 +1,6 @@
 [project]
 name = "hogshade"
-version = "0.1.0.dev0"
+version = "0.2.0"
 description = "One polyglot PBR shading core for Maya, Blender, wgpu, OSL and MaterialX"
 readme = "README.md"
 license = { file = "LICENSE" }

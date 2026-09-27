@@ -121,17 +121,18 @@ a replacement for them.
 
 ## Status
 
-Phase 2, the restructure, nearly closed (2026-09-27). The WGSL core under `core/` holds the
+Phase 2, the restructure, closed on 2026-09-27 at `0.2.0`. The WGSL core under `core/` holds the
 interfaces, the BRDF toolbox, sixteen light slots, the ADR-002 G-buffer encode and decode, a Lambert
 model and both legacy models ported function by function, each with a NumPy twin and a GPU test.
 `tools/build_shaders.py` translates it with naga into the artifacts under `hosts/` (shader-model 5
 and 6 HLSL, GLSL, WGSL), validated by fxc and dxc on every change. Both legacy models render the
 shader ball in the wgpu host, forward and deferred, and in Maya 2026 through the `dx11Shader` shell
 with a Shading Model dropdown; the pictures are under `verification/`. The IBL cook produces the
-prefiltered cubes, irradiance, SH9 and the BRDF LUT, with payloads under Git LFS. Next: the
-standards pass, then the phase 2 close at `0.2.0`, then OpenPBR and the MaterialX carrier.
+prefiltered cubes, irradiance, SH9 and the BRDF LUT, with payloads under Git LFS. The standards
+pass is in (`Docs/standards/`, `Docs/decisions/`). Next: phase 3, OpenPBR and the MaterialX carrier,
+after the comparison framework's design (board, G4).
 
-**Version:** `0.1.0-dev` ([VERSION](VERSION)). HogShade has its own versioning; "v1" and "v2" in this
+**Version:** `0.2.0` ([VERSION](VERSION)), the phase 2 close. HogShade has its own versioning; "v1" and "v2" in this
 repo always mean the 2015 and 2017 legacy shaders under `legacy/`, never a HogShade release. `1.0.0`
 is the first release where the core renders the same material in Maya and wgpu within the
 comparison framework's tolerances.

@@ -116,7 +116,7 @@ Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence 
 
 Gate for every phase: the compile tests pass and the Maya 2026 screenshot diff is explained.
 
-### C2. Restructure
+### C2. Restructure (closed 2026-09-27, `0.2.0`)
 
 The core is written in WGSL (owner, 2026-09-20). `naga` translates it for the DCC hosts.
 
@@ -145,8 +145,9 @@ The core is written in WGSL (owner, 2026-09-20). `naga` translates it for the DC
       layout is the first. The engine's fill and light passes and its screen-space effects share it.
       Done 2026-09-21 (`core/gbuffer.wgsl`): octahedral normals, forward-versus-deferred parity within
       the attachments' quantisation.
-- [ ] `core/models/legacy_v1/` and `legacy_v2/`: verbatim ports. Pixel-identical to the baseline
-      screenshot on the shader ball. v2 ported 2026-09-25 (PR #10), numerically identical to its
+- [x] `core/models/legacy_v1/` and `legacy_v2/`: verbatim ports, compared by eye at the phase
+      close (2026-09-27); pixel identity to the baseline screenshot on the shader ball waits for track
+      E's comparison framework and the calibration mesh (board, G4 and G5). v2 ported 2026-09-25 (PR #10), numerically identical to its
       NumPy twin with six documented deviations; v1 ported 2026-09-27 (PR G): the record shows v1
       was one Disney BRDF (the Cook-Torrance and "game" includes never compiled), now selectable in
       both hosts. The pixel-identical screenshot diff against the legacy effects waits for the
