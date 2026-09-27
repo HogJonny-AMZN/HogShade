@@ -195,9 +195,7 @@
       "boot_timeout": {
         "headless": 10
       },
-      "environment": {
-        "HOGSHADE_ROOT": "D:/Depot/HogShade"
-      }
+      "environment_json_path": "D:/Depot/HogShade/tools/bats/hogshade_python_env.json"
     },
     "hogshade_blender": {
       "display_name": "HogShade Blender (headless)",
