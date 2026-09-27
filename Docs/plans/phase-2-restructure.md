@@ -1,6 +1,6 @@
 # Phase 2 plan: the WGSL core and its first two hosts
 
-**Status:** Accepted. Done 2026-09-27 (`0.2.0`); kept as the record of the tasks and their verification.
+**Status:** Accepted. Done 2026-09-27 (`0.2.0`), with the spec's acceptance item 5 deferred to track E by the owner at the close; kept as the record of the tasks and their verification.
 
 Spec: [../specs/phase-2-restructure.md](../specs/phase-2-restructure.md). Several PRs; the spike is its
 own. Tick a task only when its verification ran.

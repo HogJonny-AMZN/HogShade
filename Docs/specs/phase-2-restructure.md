@@ -1,6 +1,9 @@
 # Phase 2 spec: the WGSL core and its first two hosts
 
-**Status:** Accepted. Delivered 2026-09-27 at `0.2.0`; the acceptance gate's last two lines are met by the eye comparison and the deviations list in the design doc, with pixel identity left to track E.
+**Status:** Accepted. Delivered 2026-09-27 at `0.2.0` with one acceptance item not met as written: the
+wgpu and Maya captures share the lighting and the material but not the mesh (item 5 below). The
+owner's merge of the close PR (#26) accepts that item as deferred to track E, where the calibration
+mesh (board, G5) and the comparison framework (G4) close it; a reversal reopens the phase.
 
 Date: 2026-09-20. Design: [../design/2026-09-20-modernization-direction.md](../design/2026-09-20-modernization-direction.md)
 ("Architecture", "Two rendering paths", "Why WGSL is the source"), roadmap track C2. Plan:
@@ -254,4 +257,7 @@ machine and are recorded in `verification/`.
   specular reflection, from the E1 check tool, screenshot committed.
 - The wgpu viewport renders the same scene; the two screenshots are compared by eye in this phase
   and by the parity tooling from track E once it exists.
+  *Recorded at the close (2026-09-27): met for the lighting and the material, not for the mesh; the
+  Maya check draws a sphere because the shader ball in Maya waits on G5. Deferred to track E by the
+  owner's merge of #26, not rewritten.*
 - `Docs/design/…-modernization-direction.md` lists every deviation the port made.
