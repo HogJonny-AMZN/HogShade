@@ -282,11 +282,17 @@ The inputs and the proof. Without these, "same shader" produces different pictur
       rendering and the camera are HDR end to end. Every host renders scene-referred, in ACEScg
       (the owner's preference; the working space is declared once, not assumed), and comparisons
       happen at two endpoints, both required: the raw scene-referred frame, and the display-referred
-      frame after one view transform. One OCIO config in the repo (an ACES 1.3 or 2.0 studio config
-      with ACEScg as the working space); Maya and Blender point at it; the wgpu host and the engine
-      implement the same view transform numerically and prove it against OCIO on a test ramp and on
-      the Macbeth chart (`hog_color` has AgX and ACES; the choice of view is one setting shared by
-      every capture). Captures are written as scene-referred EXR (ACEScg, with the colour space in
+      frame after one view transform. **The default view transform is AgX** (owner: the most widely
+      adopted modern display transform; Blender's default since 4.0); **ACES stays a first-class
+      alternative** because the owner wants to keep following it as it evolves (the ACES 2.0 output
+      transforms). One OCIO config in the repo with ACEScg as the working space and both views
+      selectable, AgX first: start from an existing config that carries both (the Blender 4.x config
+      is CC0-licensed and ships AgX; the ACES studio configs ship the ACES views), or roll our own
+      AgX view from the published transform if no config carries both cleanly, and record where it
+      came from in `THIRD_PARTY_NOTICES.md`. Maya and Blender point at that config; the wgpu host and
+      the engine implement the same AgX and ACES views numerically and prove each against OCIO on a
+      test ramp and on the Macbeth chart (`hog_color` already has AgX and ACES implementations to
+      start from; the choice of view is one setting shared by every capture, never per host). Captures are written as scene-referred EXR (ACEScg, with the colour space in
       the metadata) plus the display PNG, so a diff between wgpu native and Maya, or any other pair,
       is raw-to-raw first and display-to-display second, and a difference is attributable to shading
       or to display, never both. Texture colour space declared per texture in the material, never
