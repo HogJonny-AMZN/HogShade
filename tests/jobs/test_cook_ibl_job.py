@@ -17,11 +17,15 @@ from hogshade.ibl.imageio import write_exr_rgb
 
 def test_library_manifest_lists_the_job() -> None:
     entries = jobs.manifest()
-    assert [e["name"] for e in entries] == ["hogshade.cook_ibl"]
+    assert [e["name"] for e in entries] == ["hogshade.cook_ibl", "hogshade.maya_ibl_check"]
     e = entries[0]
     assert e["module_path"] == "hogshade.jobs.cook_ibl" and e["entry_point"] == "main"
     assert e["worker_type"] == "python" and "env_dir" in e["parameters"]
     assert len(e["description"]) > 200  # written for an agent, not a one-liner
+    m = entries[1]  # importing its manifest must not import Maya (the registry runs anywhere)
+    assert m["module_path"] == "hogshade.jobs.maya_ibl_check" and m["entry_point"] == "main"
+    assert m["worker_type"] == "hogshade_maya_gui" and m["execution_mode"] == "GUI"
+    assert m["execute_on_main_thread"] is True and "variant" in m["parameters"]
 
 
 def test_job_runs_like_the_worker_calls_it(tmp_path: Path) -> None:

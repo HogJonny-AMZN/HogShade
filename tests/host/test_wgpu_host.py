@@ -19,6 +19,36 @@ def test_frame_layout_matches_the_wgsl_struct() -> None:
     common = (wgpu_host.HOSTS_WGPU / "common.wgsl").read_text(encoding="utf-8")
     for name in wgpu_host.FRAME_DTYPE.names:
         assert f"    {name}:" in common, name
+    # the same fields in the same order: a field inserted on one side only would shift every offset after it
+    struct = common.split("struct host_Frame {", 1)[1].split("}", 1)[0]
+    wgsl_order = [line.split(":", 1)[0].strip() for line in struct.strip().splitlines() if ":" in line]
+    assert wgsl_order == list(wgpu_host.FRAME_DTYPE.names)
+
+
+def test_frame_packs_the_model_and_the_disney_parameters() -> None:
+    scene = wgpu_host.Scene(
+        width=32,
+        height=32,
+        model="legacy-v1",
+        rough_is_gloss=True,
+        specular_tint=0.25,
+        subsurface=0.1,
+        anisotropic=0.2,
+        sheen=0.3,
+        sheen_tint=0.4,
+        clearcoat=0.5,
+        clearcoat_gloss=0.6,
+    )
+    frame = np.frombuffer(scene.frame_bytes(9), dtype=wgpu_host.FRAME_DTYPE)[0]
+    assert wgpu_host.MODELS["legacy-v1"] == 1  # HOGSHADE_MODEL_LEGACY_V1 in the core
+    np.testing.assert_array_equal(frame["model"], (1.0, 1.0, 0.0, 0.0))
+    np.testing.assert_allclose(frame["params_a"], (0.1, 0.25, 0.2, 0.3), rtol=1e-6)
+    np.testing.assert_allclose(frame["params_b"], (0.4, 0.5, 0.6, 0.0), rtol=1e-6)
+    assert frame["material"][2] == np.float32(0.25)  # specular tint rides in both places
+    default = np.frombuffer(wgpu_host.Scene(width=32, height=32).frame_bytes(9), dtype=wgpu_host.FRAME_DTYPE)[0]
+    np.testing.assert_array_equal(default["model"], (float(wgpu_host.MODELS["legacy-v2"]), 0.0, 0.0, 0.0))
+    np.testing.assert_array_equal(default["params_a"], 0.0)
+    np.testing.assert_array_equal(default["params_b"], 0.0)
 
 
 ASSETS_HYDRATED = all(
@@ -69,6 +99,15 @@ def test_forward_and_deferred_agree_on_a_lit_ball(renderer) -> None:
     # the depth-reconstructed position and view vector; silhouette pixels carry the largest error
     assert mean_diff < 0.02, mean_diff
     assert max_diff < 1.0, max_diff
+
+
+def test_legacy_v1_renders_and_differs_from_v2(renderer) -> None:
+    v2 = renderer.render(wgpu_host.Scene(width=96, height=96)).forward
+    v1 = renderer.render(wgpu_host.Scene(width=96, height=96, model="legacy-v1")).forward
+    assert np.isfinite(v1).all() and v1.max() > 0.05
+    assert np.abs(v1 - v2).max() > 0.01, "the selector reached the shader: v1 is not v2"
+    sheen = renderer.render(wgpu_host.Scene(width=96, height=96, model="legacy-v1", sheen=1.0)).forward
+    assert np.abs(sheen - v1).max() > 1e-3, "params_a reached the v1 lobes"
 
 
 def test_specular_view_is_nonzero_and_below_the_composite(renderer) -> None:
