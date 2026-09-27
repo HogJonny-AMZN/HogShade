@@ -20,8 +20,10 @@ Before the architecture, the days it changes, in the order I want them rather th
 arrive. Every case keeps a person in the loop: the agent proposes and runs, the person reads and
 decides, and nothing merges or ships without a human. Three of the six (Tuesday, Friday, Wednesday)
 come from the week of work proposed below. Monday needs a job catalogue the orchestrator is already
-due. The first two are a year further out and need pieces named under "Around the corner"; they are
-the reason to start.
+due. The first two need pieces named under "Around the corner": a first gated workflow on existing
+assets is a month past the three pieces, since a workflow is one job that calls jobs and waits at
+each gate; the generative steps and the editor as a worker are the year-out parts. They are the
+reason to start.
 
 **Thursday, on the train.** You send "produce a character: <a paragraph describing it>". A workflow
 starts: concept images, a blockout, a textured model, a turntable rendered in the DCC or in the

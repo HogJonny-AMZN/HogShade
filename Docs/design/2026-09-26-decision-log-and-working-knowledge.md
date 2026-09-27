@@ -349,6 +349,16 @@ worker with a command bus, which SpriteJammer's command-bus spike seeds and Larg
 have, so that long-shot row is the prerequisite. Recorded in the pitch's "Around the corner" and the
 board.
 
+### Horizons for the gated workflows (owner, 2026-09-27; estimate)
+
+Owner: "I surmise we could get this running in a month, not a year." Verdict: half right. A first
+gated workflow on existing assets is a month past the three pieces, because a workflow is one Python
+job that calls jobs and blocks on a bridge reply at each gate, and typed inputs and outputs can be
+manifest conventions before they are a schema. The generative 3D steps (Thursday's blockout and
+model) and the editor as a worker (Saturday) are the year-out parts: the first is unproven anywhere
+in this repo, the second needs a command bus LargeWorlds does not have (SpriteJammer's spike proved
+the shape). The pitch now says the split rather than "a year" for both days.
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`
