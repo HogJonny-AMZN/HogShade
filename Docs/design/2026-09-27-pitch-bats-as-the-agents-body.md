@@ -157,10 +157,11 @@ six days above are the ones that already earned their place; these are the ones 
 
 **Plausible within a year**
 
-- **Workflows with human gates as data.** The Thursday and Saturday workflows are lists of jobs with
-  edges, and a gate is a message out and a reply in. Once jobs carry typed inputs and outputs, a
-  workflow is data the orchestrator runs, pauses at each gate, and resumes on your word from
-  anywhere. This is the piece the two best days above are waiting on.
+- **Workflows with human gates as data.** The first gated workflow needs no engine: one job that
+  calls jobs and waits for a reply at each gate, a month past the three pieces, on existing assets.
+  What takes the year is the general form: once jobs carry typed inputs and outputs, a workflow is
+  data the orchestrator runs, pauses at each gate, and resumes on your word from anywhere, which is
+  what the full Thursday and Saturday, with their generative steps, are waiting on.
 - **Look-dev by optimisation.** An agent adjusts material parameters toward a reference photograph
   by measuring a perceptual metric on each render, iterating through the resident Maya session. A
   closed loop with the DCC inside it, which a cloud agent cannot have.
