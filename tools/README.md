@@ -13,6 +13,7 @@ under `Docs/verification/` (`maya/`, `wgpu/`, `core/`), named `<host>-<version>-
 | `maya/load_check.py`, `.mel` | an effect loads and lists techniques | Maya 2026 GUI |
 | `maya/ibl_check.py`, `.mel` | the cooked cubes light the HogShade shell; main view plus debug views | Maya 2026 GUI |
 | `wgpu/viewport.py` | the shader ball through the wgpu host, forward and deferred, to PNGs | uv, needs a GPU |
+| `bats/` | HogShade's Job_Orchestrator profile, launcher and submit tool (`bats/README.md`) | the dev orchestrator |
 
 ## Adding a host
 

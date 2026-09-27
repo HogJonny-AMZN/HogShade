@@ -46,8 +46,10 @@ DEFAULTS = {
 }
 
 
-def run():
+def run_check(quit_after: bool = True) -> dict:
+    """The check. Returns a dict for a job caller; quits Maya afterwards when launched standalone."""
     out = s.Log(LOG, [f"shader {SHADER}", f"cooked {COOKED}"])
+    result = {"ok": False, "log": LOG, "png": PNG, "techniques": []}
     try:
         sphere = cmds.polySphere(radius=1.0, subdivisionsAxis=64, subdivisionsHeight=64)[0]
         node, sg, techs = s.load_dx11_shader("hogshade_ibl", SHADER, out)
@@ -84,9 +86,17 @@ def run():
         # 18 specular accumulator, 27 diffuse environment, 28 specular environment (legacy_v2 debug modes)
         s.capture_debug_modes(node, PNG, out, "18,27,28")
         out.append(f"CUBES decoded: {sorted(decoded)}; LUT decoded: {lut_ok}")
-        s.finish(out, bool(techs) and os.path.exists(PNG) and len(decoded) == 2 and lut_ok)
+        result["techniques"] = list(techs or [])
+        result["ok"] = bool(techs) and os.path.exists(PNG) and len(decoded) == 2 and lut_ok
+        s.finish(out, result["ok"], quit_after)
     except Exception:  # noqa: BLE001 - log whatever Maya throws
-        s.fail(out)
+        s.fail(out, quit_after)
+    return result
 
 
-cmds.evalDeferred(run, lowestPriority=True)
+def run() -> None:
+    run_check(quit_after=True)
+
+
+if os.environ.get("HOGSHADE_AS_JOB", "") != "1":
+    cmds.evalDeferred(run, lowestPriority=True)

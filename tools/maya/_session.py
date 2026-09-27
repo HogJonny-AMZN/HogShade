@@ -163,13 +163,24 @@ def capture_debug_modes(node: str, png: str, out: Log, default_modes: str) -> No
     cmds.setAttr(f"{node}.g_DebugMode", 0)
 
 
-def finish(out: Log, ok: bool) -> None:
+def finish(out: Log, ok: bool, quit_after: bool = True) -> None:
     out.append("RESULT: OK" if ok else "RESULT: FAILED")
     out.append(f"MAYA: {cmds.about(version=True)}")
-    cmds.evalDeferred("import maya.cmds as c; c.quit(force=True)", lowestPriority=True)
+    if quit_after:
+        quit_maya()
 
 
-def fail(out: Log) -> None:
-    out.append("RESULT: FAILED\n" + traceback.format_exc())
+def fail(out: Log, quit_after: bool = True) -> None:
+    out.append("RESULT: FAILED" + chr(10) + traceback.format_exc())
     out.append(f"MAYA: {cmds.about(version=True)}")
+    if quit_after:
+        quit_maya()
+
+
+def quit_maya() -> None:
+    """Quit now, and on the next idle tick as a fallback, so a standalone check never leaves an idle Maya."""
     cmds.evalDeferred("import maya.cmds as c; c.quit(force=True)", lowestPriority=True)
+    try:
+        cmds.quit(force=True)
+    except Exception as e:  # noqa: BLE001 - the deferred quit is the fallback
+        print(f"direct quit refused, deferred quit pending: {e!r}")

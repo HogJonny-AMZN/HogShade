@@ -1,0 +1,197 @@
+{
+  "dcc_paths": {
+    "maya": {
+      "version": "2026",
+      "executable": "C:\\Program Files\\Autodesk\\Maya2026\\bin\\maya.exe",
+      "mayapy": "C:\\Program Files\\Autodesk\\Maya2026\\bin\\mayapy.exe"
+    },
+    "houdini": {
+      "version": "21.0.512",
+      "executable": "C:\\Program Files\\Side Effects Software\\Houdini 21.0.512\\bin\\houdini.exe",
+      "hython": "C:\\Program Files\\Side Effects Software\\Houdini 21.0.512\\bin\\hython.exe"
+    },
+    "houdini_22": {
+      "version": "22.0.368",
+      "location": "C:\\Program Files\\Side Effects Software\\Houdini 22.0.368",
+      "executable": "C:\\Program Files\\Side Effects Software\\Houdini 22.0.368\\bin\\houdini.exe",
+      "hython": "C:\\Program Files\\Side Effects Software\\Houdini 22.0.368\\bin\\hython.exe",
+      "python": "C:\\Program Files\\Side Effects Software\\Houdini 22.0.368\\python313\\python.exe"
+    },
+    "blender": {
+      "version": "5.2",
+      "location": "C:\\Program Files\\Blender Foundation\\Blender 5.2",
+      "executable": "C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe",
+      "python": "C:\\Program Files\\Blender Foundation\\Blender 5.2\\5.2\\python\\bin\\python.exe"
+    },
+    "substance_designer": {
+      "version": "14.0",
+      "location": "C:\\Program Files\\Adobe\\Adobe Substance 3D Designer",
+      "executable": "C:\\Program Files\\Adobe\\Adobe Substance 3D Designer\\Adobe Substance 3D Designer.exe"
+    },
+    "hogshade_maya": {
+      "version": "2026",
+      "executable": "C:\\Program Files\\Autodesk\\Maya2026\\bin\\maya.exe",
+      "mayapy": "C:\\Program Files\\Autodesk\\Maya2026\\bin\\mayapy.exe"
+    },
+    "hogshade_maya_gui": {
+      "version": "2026",
+      "executable": "C:\\Program Files\\Autodesk\\Maya2026\\bin\\maya.exe",
+      "mayapy": "C:\\Program Files\\Autodesk\\Maya2026\\bin\\mayapy.exe"
+    }
+  },
+  "package_paths": {
+    "_comment": "External package paths for pre-launch hook sys.path requirements",
+    "bp_python": "d:/dev/CP14/Build/ArtTools/bp_python/bp-packages"
+  },
+  "scaling": {
+    "enable_auto_scaling": false,
+    "max_instances_per_type": 5,
+    "min_idle_instances": 1,
+    "queue_stall_threshold_seconds": 30,
+    "scale_down_floor": "base",
+    "autoscale_interval_seconds": 10.0,
+    "scale_cooldown_seconds": 30.0,
+    "scale_down_idle_seconds": 60.0,
+    "max_host_mem_percent": 85.0,
+    "max_host_cpu_percent": 90.0,
+    "max_host_gpu_percent": 90.0
+  },
+  "gpu": {
+    "enable_vram_admission": false,
+    "system_reserve_mb": 4096
+  },
+  "orchestrator": {
+    "host": "0.0.0.0",
+    "port": 50051,
+    "log_level": "INFO",
+    "worker_poll_interval_seconds": 2,
+    "boot_summary_delay_seconds": 30
+  },
+  "environment": {
+    "enable_isolation": true
+  },
+  "log_retention": {
+    "enabled": true,
+    "max_age_days": 5,
+    "max_logs_per_instance": 3,
+    "max_total_size_mb": 200,
+    "preserve_crashed": false
+  },
+  "monitoring": {
+    "pool_status_stream_interval": 2.0,
+    "ui_poll_interval_normal": 2.0,
+    "ui_poll_interval_shutdown": 0.5,
+    "ghost_retention_seconds": 30.0,
+    "metrics_sample_interval": 5.0,
+    "metrics_rolling_window": 12.0
+  },
+  "_hogshade": {
+    "generated_by": "tools/bats/make_profile.py",
+    "from": "D:/Depot/Job_Orchestrator/job_orchestrator/config/orchestrator_config.json",
+    "note": "HogShade development profile: canon settings, HogShade's own worker types. Regenerate, never hand-edit."
+  },
+  "worker_types": {
+    "hogshade_maya": {
+      "display_name": "HogShade Maya (headless)",
+      "description": "HogShade: mayapy for cooks, scene builds and checks that need no viewport",
+      "capabilities": {
+        "supports_gui": true,
+        "supports_headless": true,
+        "supports_module_mode": true,
+        "supports_string_mode": true
+      },
+      "executable_paths": {
+        "headless": "C:/Program Files/Autodesk/Maya2026/bin/mayapy.exe",
+        "gui": "C:/Program Files/Autodesk/Maya2026/bin/maya.exe"
+      },
+      "rpc_servers": {
+        "headless": "dcc_workers/maya/maya_rpc_server.py",
+        "gui": "dcc_workers/maya/maya_gui_server.py"
+      },
+      "bootstrap_scripts": {
+        "headless": "dcc_workers/maya/maya_standalone_init.py"
+      },
+      "environment_profile": "maya_2026",
+      "pool_sizes": {
+        "headless": 1,
+        "gui": 0
+      },
+      "validation": {
+        "enabled": true,
+        "rules": [
+          "no_pymel",
+          "no_mel"
+        ]
+      },
+      "boot_timeout": {
+        "headless": 60,
+        "gui": 120
+      },
+      "environment_json_path": "D:/Depot/HogShade/tools/bats/hogshade_maya_env.json"
+    },
+    "hogshade_maya_gui": {
+      "display_name": "HogShade Maya (GUI, DirectX 11)",
+      "description": "HogShade: maya.exe with the DirectX 11 viewport for dx11Shader checks, playblasts and captures",
+      "capabilities": {
+        "supports_gui": true,
+        "supports_headless": true,
+        "supports_module_mode": true,
+        "supports_string_mode": true
+      },
+      "executable_paths": {
+        "headless": "C:/Program Files/Autodesk/Maya2026/bin/mayapy.exe",
+        "gui": "C:/Program Files/Autodesk/Maya2026/bin/maya.exe"
+      },
+      "rpc_servers": {
+        "headless": "dcc_workers/maya/maya_rpc_server.py",
+        "gui": "dcc_workers/maya/maya_gui_server.py"
+      },
+      "bootstrap_scripts": {
+        "headless": "dcc_workers/maya/maya_standalone_init.py"
+      },
+      "environment_profile": "maya_2026",
+      "pool_sizes": {
+        "headless": 0,
+        "gui": 1
+      },
+      "validation": {
+        "enabled": true,
+        "rules": [
+          "no_pymel",
+          "no_mel"
+        ]
+      },
+      "boot_timeout": {
+        "headless": 60,
+        "gui": 120
+      },
+      "environment_json_path": "D:/Depot/HogShade/tools/bats/hogshade_maya_env.json"
+    },
+    "hogshade_python": {
+      "display_name": "HogShade Python",
+      "description": "HogShade: the IBL cook and other NumPy jobs on the orchestrator venv",
+      "capabilities": {
+        "supports_gui": false,
+        "supports_headless": true,
+        "supports_module_mode": true,
+        "supports_string_mode": true
+      },
+      "executable_paths": {
+        "headless": "${WORKSPACE_ROOT}/.venv/Scripts/python.exe"
+      },
+      "rpc_servers": {
+        "headless": "dcc_workers/python/python_rpc_server.py"
+      },
+      "environment_profile": "python_workspace_venv",
+      "pool_sizes": {
+        "headless": 1
+      },
+      "boot_timeout": {
+        "headless": 10
+      },
+      "environment": {
+        "HOGSHADE_ROOT": "D:/Depot/HogShade"
+      }
+    }
+  }
+}

@@ -117,6 +117,17 @@ anyone with Maya can run them with no other tool; BATS or an MCP is an optional 
 imports the same modules into a live session. The repo takes no dependency on either. Wiring it up
 is a Job_Orchestrator-side task; this repo only keeps its scripts importable.
 
+### Job_Orchestrator: per-project profile, HogShade's own worker types (owner, 2026-09-26; decided)
+
+Each project keeps its own orchestrator profile and launcher (HogShade now, LargeWorlds and
+SpriteJammer later, each covering its dependencies); one orchestrator runs at a time. HogShade's
+profile defines its own named worker types on the orchestrator's variant pattern: `hogshade_maya`
+(headless), `hogshade_maya_gui` (DirectX 11 viewport), `hogshade_python`; every HogShade job
+targets those, never the canon `maya`, and a Blender pair joins the same way. The developer track
+requires BATS; downstream users never do. The repo maintains the profile, the environment file, the
+launcher, the submit tool, the `.mcp.json` for an agent session, and `Docs/handoffs/CURRENT.md` so a
+new session continues without this one. Details: `Docs/knowledge/job-orchestrator.md`.
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`

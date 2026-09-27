@@ -13,6 +13,10 @@ A fifth document is not a layer but a safety net: the decision log
 (`design/2026-09-26-decision-log-and-working-knowledge.md`) catches every direction or decision
 stated in conversation before it has a spec to live in, so the record never depends on a session.
 
+Two more files are the session-independence layer: `handoffs/CURRENT.md` (where work is right now,
+how to run the developer track, what a new session must not do) and `knowledge/` (small topic files
+of the agent knowledge base; `knowledge/job-orchestrator.md` is the first).
+
 Checkboxes in the roadmap track phases and owner gates. Checkboxes in a plan track tasks. A task
 is ticked when its verification ran, not when its code was written. "Done" for a phase means the
 spec's acceptance gate passed and the roadmap, the README and any affected design doc were updated.
