@@ -153,7 +153,22 @@ the getting-started kit's first content.
 | 4 | Is HogShade's standard material SpriteJammer's `standard` Material Type | Yes: a SpriteJammer Material Type is this schema plus its `ext.spritejammer` block; a second engine adds its own block, never a second schema |
 | 5 | Emission units | OpenPBR's `emission_luminance` in nits, converted per host in the binding, so the light-rig units (track E) and emission agree |
 | 6 | Migration mechanics | A list of `{from, to, ops}` in the schema, applied on load; the first schema version is 1 and the first migration is written when the second version is |
+| 8 | Specular occlusion: in the core schema's `surface` group as an opt-in (HogShade's catalogue, C4), or only in an engine's `ext` block (SpriteJammer's decision makes it a Material Type property stored in GB2's spare byte) | Both are true at different layers: the parameter is a shader feature every host evaluates and belongs in `surface`; where an engine stores it (a G-buffer byte) is that engine's `ext` block and its own ADR. The schema names the parameter; the engine names the storage |
+| 9 | The MaterialX Python wheel (5.5 MB of C++ that Maya's and Blender's Pythons may not carry) as a dependency of `hogshade.material` | An optional extra (`hogshade[materialx]`) behind an ADR at S5; load, validate, resolve, bind and the glTF export never import it, so the library stays importable in every DCC |
 | 7 | Where the schema file lives: `schema/` at the root, or under `hogshade/` as package data | `hogshade/material/schema/` as package data, so a pip install of the library carries it |
+
+## Cross-repo: who consumes what
+
+| Repo | Owns | Takes from here |
+| --- | --- | --- |
+| HogShade | the schema, the document format, the exports, `hogshade.material`, the library of materials, the WGSL core | |
+| SpriteJammer | its Material Types (the `standard` type is this schema plus `ext.spritejammer`), the Cook that flattens a parent chain into a uniform block and texture-array layers, its deferred renderer, the vocabulary (Type, Prime, Material, Instance) | the schema and the library, through LargeWorlds or directly; its own ADR says which |
+| LargeWorlds | the material editor, engine-side assets and Material Instances; nothing built yet | `hogshade.material` as a package and the core WGSL vendored. How it consumes a package is LargeWorlds' gate G1 (vendor, live dependency or publish), the same question SpriteJammer holds as its ADR-027 |
+
+The cook shape SpriteJammer's research settled (flatten the chain, textures to array layers, one
+uniform block laid out against a numpy dtype with a test that the WGSL struct agrees) is what
+`bind()` produces for that host; a dtype and struct mismatch is silent, so the layout test is part of
+the binding, as it already is for the wgpu host's `host_Frame`.
 
 ## Increments, proposed (each its own spec and plan after the lock)
 

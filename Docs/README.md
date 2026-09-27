@@ -71,7 +71,7 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
 - [design/2026-09-27-material-schema.md](design/2026-09-27-material-schema.md): the material
   schema's pre-spec design, Exploring until the owner locks it: the versioned parameter definition,
   the O3DE-shaped document, the MaterialX and glTF exports, the `hogshade.material` library and its
-  generators, the library of materials, seven open questions, six increments.
+  generators, the library of materials, a cross-repo table, nine open questions, six increments.
 - [design/2026-09-27-pitch-bats-as-the-agents-body.md](design/2026-09-27-pitch-bats-as-the-agents-body.md):
   the pitch for the agent loop on the orchestrator (why, why BATS, what, how, risks, the ask), written
   for the owner's team; Proposed until sent.
