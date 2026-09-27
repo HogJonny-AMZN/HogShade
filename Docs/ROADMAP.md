@@ -423,6 +423,22 @@ port, before the phase 2 close and VERSION 0.2.0), because phase 3 (OpenPBR, Mat
 parameter schema) builds on every one of those decisions and is the last cheap moment to change
 them.
 
+One ADR in that pass is the **shader specialisation model** (owner asked 2026-09-26; the perf
+outlook). The core is an uber-shader with runtime branches, which is right for the research
+reference and wrong for the engine. The decision to write down: the uber core stays the record;
+hosts specialise it at build time along a small, named set of static axes and nothing else
+generates variants. Static: rendering path (forward, G-buffer fill, deferred light, shadow: one
+pipeline each), shading model or tier in forward (per draw; the G-buffer ID stays per pixel in
+deferred), alpha mode, and the expensive surface features (parallax, layering, triplanar). Dynamic
+uniform branches: the cheap toggles (CPV, flips, channel selects). Debug views compile out of
+release techniques. The mechanism is WGSL `override` constants set at pipeline creation, carried
+by naga into HLSL and mapped to techniques in the Maya shell; `tools/build_shaders.py` emits the
+named permutations for the SpriteJammer tiers only. No preprocessor forest. Deferred divergence
+between models is measured in the S3 harness (track D, "measure first") before any tile or stencil
+classification is built. FXC is the canary: compile time and internal errors in the Maya host
+appear before frame-time problems do (the if-chain dispatcher was the first), so Maya release
+techniques compile without the debug modes and with the light loop bounded by the bound count.
+
 ## What is deliberately not on this roadmap
 
 - Refraction or real subsurface in the viewport shader.
