@@ -178,6 +178,25 @@ six days above are the ones that already earned their place; these are the ones 
   proven on a home orchestrator runs unchanged on a studio one, so experiments happen where the risk
   is small and results land where they are needed.
 
+**Infrastructure the days stand on**
+
+None of these is a headline. Each is a piece the headlines need, and the record keeps them as such.
+
+- **The phone as a console.** "Status" returns the pool; "render the ball in v1 with sheen at one"
+  returns the picture. The routing every gated workflow reuses.
+- **Wake up to pull requests.** The nightly job that builds the smallest ready item behind the
+  allowlist is the same worker job the Thursday workflow runs, exercised on the safest work first.
+- **Replay and diff two agent runs.** Every agent action is a job with inputs, a manifest and a
+  log; two runs of the same task can be diffed. The property that makes a gated workflow auditable.
+- **The failure-modes ledger writes itself.** A failed job gets a diagnosis job, a proposed ledger
+  entry and a fix as a pull request. How the body learns from its own runs.
+- **Synthetic datasets with ground truth.** The debug views already expose every intermediate
+  channel; a worker renders thousands of labelled views overnight. Training data for the local
+  vision model above, from the same shader the game ships.
+- **A home compute grid.** Workers on every machine in the house, the target-spec one included, so
+  benchmarks run nightly on the hardware the game is budgeted against. The queue does not care
+  which box answers.
+
 Each of these is a guess about value, and most need the design lock's answers before they are safe.
 The claim is narrower than the list: none of them is possible without a durable body, and all of them
 are ordinary Python once there is one.

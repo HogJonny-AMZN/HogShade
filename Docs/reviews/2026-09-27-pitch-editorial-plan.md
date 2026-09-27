@@ -121,8 +121,12 @@ and the Wednesday pull request last. The forward-looking list lost the bullets t
 show ("the phone as a console", "wake up to pull requests"), the small ones ("the failure-modes
 ledger writes itself", "synthetic datasets", "a home compute grid"), merged "replay and diff" into
 "agents as jobs", and gained the two the Saturday day depends on ("workflows with human gates as
-data", "in-context annotation"). Word count 2,240 to 2,160. Rejected: cutting the section to three
-bullets, because the audience is being asked to fund a year of the plausible ones.
+data", "in-context annotation"). Then the owner corrected the heuristic: "meh is still context, is infrastructure towards a goal."
+So the rule is that verdicts order, they do not delete. The six cut bullets came back as a labelled
+group, "Infrastructure the days stand on", each one saying which headline it serves. Word count
+2,240 to 2,160 to 2,330. Rejected: cutting the section to three bullets, because the audience is
+being asked to fund a year of the plausible ones, and because scaffolding removed from the record is
+scaffolding rebuilt later.
 
 ## Layer 9, first pass: for the author
 
