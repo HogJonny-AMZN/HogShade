@@ -9,6 +9,10 @@ Four layers, in the order they are written. Nothing is built from a layer that d
 | Spec | [specs/](specs/) | For one phase: the exact deliverable, its interfaces, its acceptance gate, what is out of scope | Before the phase's plan |
 | Plan | [plans/](plans/) | For one phase: the ordered tasks with checkboxes, each small enough to verify | Before the phase's work starts |
 
+A fifth document is not a layer but a safety net: the decision log
+(`design/2026-09-26-decision-log-and-working-knowledge.md`) catches every direction or decision
+stated in conversation before it has a spec to live in, so the record never depends on a session.
+
 Checkboxes in the roadmap track phases and owner gates. Checkboxes in a plan track tasks. A task
 is ticked when its verification ran, not when its code was written. "Done" for a phase means the
 spec's acceptance gate passed and the roadmap, the README and any affected design doc were updated.
@@ -22,6 +26,10 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
   the module, tier, rendering-path half and hosts that carry it.
 - [design/2026-09-20-wysiwyg-blindspots.md](design/2026-09-20-wysiwyg-blindspots.md): what it takes for
   the same material to look the same in every host, and the gaps the first direction had.
+- [design/2026-09-26-decision-log-and-working-knowledge.md](design/2026-09-26-decision-log-and-working-knowledge.md):
+  the living log of directions and decisions made in conversation, the order of operations, the
+  repository state, and the lessons that cost time. A new session starts here. Appended, never
+  rewritten; when an entry is formalised in a spec, plan or ADR, the entry says where.
 
 ## Specs and plans
 
