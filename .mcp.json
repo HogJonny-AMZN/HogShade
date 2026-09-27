@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "bats": {
+      "type": "stdio",
+      "command": "${JOB_ORCHESTRATOR_ROOT:-D:/Depot/Job_Orchestrator}/.venv/Scripts/python.exe",
+      "args": ["-m", "mcp_server.server"],
+      "cwd": "${JOB_ORCHESTRATOR_ROOT:-D:/Depot/Job_Orchestrator}",
+      "env": {
+        "HOGSHADE_ROOT": "${HOGSHADE_ROOT:-D:/Depot/HogShade}",
+        "JOB_ORCHESTRATOR_ROOT": "${JOB_ORCHESTRATOR_ROOT:-D:/Depot/Job_Orchestrator}"
+      }
+    }
+  }
+}

@@ -1,0 +1,3 @@
+// HogShade: launch tools/maya/ibl_check.py inside a Maya GUI session. See that file for the environment variables.
+// The launcher itself logs and quits on any import error, so a broken script never leaves Maya open.
+python("import os, sys, traceback\nroot = os.environ.get('HOGSHADE_ROOT', os.getcwd())\nsys.path.insert(0, os.path.join(root, 'tools', 'maya'))\ntry:\n    import ibl_check\nexcept Exception:\n    os.makedirs(os.path.join(root, 'Docs', 'verification', 'maya'), exist_ok=True)\n    open(os.path.join(root, 'Docs', 'verification', 'maya', 'launcher-error.log'), 'w').write(traceback.format_exc())\n    import maya.cmds as c\n    c.evalDeferred('import maya.cmds as c; c.quit(force=True)', lowestPriority=True)\n");

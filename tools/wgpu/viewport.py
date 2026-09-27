@@ -1,11 +1,11 @@
 """
 HogShade: render the shader ball with the legacy v2 model under an E1 environment through the wgpu host, offscreen,
 and write the verification PNGs (phase 2 plan, task 14).
-Package: tools/wgpu_viewport
+Package: tools/wgpu/viewport
 
-    uv run tools/wgpu_viewport.py                      # Docs/verification/wgpu-v2-studio.png and -deferred.png
-    uv run tools/wgpu_viewport.py --debug-mode 18      # the v2 specular accumulator
-    uv run tools/wgpu_viewport.py --environment citrus_orchard_road_puresky --roughness 0.2 --metalness 1
+    uv run tools/wgpu/viewport.py                      # Docs/verification/wgpu/wgpu-v2-studio.png and -deferred.png
+    uv run tools/wgpu/viewport.py --debug-mode 18      # the v2 specular accumulator
+    uv run tools/wgpu/viewport.py --environment citrus_orchard_road_puresky --roughness 0.2 --metalness 1
 
 Both paths render every time; the tool prints the mean and max difference between them over the
 pixels the ball covers, which is the deferred path's quantisation cost in scene-linear units.
@@ -20,7 +20,7 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from hogshade.ibl.imageio import preview_srgb8, write_png_rgb8
@@ -29,7 +29,7 @@ from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--out", type=Path, default=ROOT / "Docs" / "verification" / "wgpu-v2-studio.png")
+    ap.add_argument("--out", type=Path, default=ROOT / "Docs" / "verification" / "wgpu" / "wgpu-v2-studio.png")
     ap.add_argument("--environment", default="studio_small_09")
     ap.add_argument("--size", type=int, default=1024, help="square output, multiple of 32")
     ap.add_argument("--roughness", type=float, default=0.2)

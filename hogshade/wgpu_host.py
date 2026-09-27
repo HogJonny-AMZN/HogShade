@@ -5,7 +5,7 @@ Package: hogshade/wgpu_host
 
 The pass shaders live in hosts/wgpu/ and are stitched here in front of the committed core artifact
 (hosts/wgpu/generated/hogshade_core.wgsl). Nothing in this module needs a window: the target is a
-texture and the result is read back. tools/wgpu_viewport.py is the command line over it.
+texture and the result is read back. tools/wgpu/viewport.py is the command line over it.
 """
 
 from __future__ import annotations

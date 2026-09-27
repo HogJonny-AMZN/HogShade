@@ -55,6 +55,6 @@ them.
 
 - `git clone` of HogShade is under 5 MB excluding LFS.
 - `fxc` compiles both legacy entry shaders, exit code 0.
-- `Docs/verification/maya-2026-v2-load.log` shows `RESULT: OK` with at least one technique.
+- `Docs/verification/maya/maya-2026-v2-load.log` shows `RESULT: OK` with at least one technique.
 - The README's steps, followed on a clean Maya 2026, produce a shaded sphere.
 - The pointer PR exists on the legacy repo.

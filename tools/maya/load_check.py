@@ -1,0 +1,34 @@
+"""
+HogShade: Maya 2026 check that a dx11Shader effect loads and exposes techniques (phase 1 plan, task 8).
+Package: tools/maya/load_check
+
+    set MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11
+    set HOGSHADE_ROOT=D:/Depot/HogShade
+    maya.exe -script tools/maya/load_check.mel
+
+HOGSHADE_FX selects the effect (default hosts/maya_dx11/hogshade.fx; the legacy v2 shader is
+legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx). Writes Docs/verification/maya/maya-2026-<tag>-load.log with
+the technique list and RESULT: OK, or the traceback.
+"""
+
+import os
+
+import _session as s
+from maya import cmds
+
+SHADER = os.environ.get("HOGSHADE_FX", f"{s.ROOT}/hosts/maya_dx11/hogshade.fx")
+LOG, _ = s.output_paths(os.environ.get("HOGSHADE_TAG", "hogshade") + "-load")
+
+
+def run():
+    out = s.Log(LOG, [f"shader {SHADER}"])
+    try:
+        out.append("ENGINE: {!r}".format(cmds.optionVar(q="vp2RenderingEngine")))
+        node, _sg, techs = s.load_dx11_shader("hogshade_load", SHADER, out)
+        out.append("TECHNIQUE: {!r}".format(cmds.getAttr(node + ".technique")))
+        s.finish(out, bool(techs))
+    except Exception:  # noqa: BLE001 - the point of this script is to log whatever Maya throws
+        s.fail(out)
+
+
+cmds.evalDeferred(run, lowestPriority=True)

@@ -84,3 +84,21 @@ def test_wgpu_host_passes_validate(name: str) -> None:
     src.write_text(stitch_pass(name), encoding="utf-8")
     result = subprocess.run([bs.find_tool("naga"), str(src)], capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr or result.stdout
+
+
+@pytest.mark.skipif(bs.find_tool("fxc") is None, reason="fxc not installed (Windows SDK)")
+def test_maya_shell_compiles_with_fxc() -> None:
+    """hosts/maya_dx11/hogshade.fx compiles as an fx_5_0 effect the way Maya's dx11Shader builds it (plan task 16)."""
+    import subprocess
+
+    shell = ROOT / "hosts" / "maya_dx11" / "hogshade.fx"
+    out = Path(tempfile.mkdtemp(prefix="hogshade_fx_")) / "hogshade.fxo"
+    result = subprocess.run(
+        [bs.find_tool("fxc"), "/nologo", "/T", "fx_5_0", "/D", "_MAYA_=1", "/Fo", str(out), str(shell)],
+        capture_output=True,
+        text=True,
+        check=False,
+        cwd=str(shell.parent),
+    )
+    assert result.returncode == 0, result.stderr or result.stdout
+    assert out.exists() and out.stat().st_size > 0
