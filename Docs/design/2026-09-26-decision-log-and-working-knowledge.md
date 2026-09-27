@@ -330,6 +330,25 @@ bridge for unattended jobs and for any worker that is not Claude (the agent-agno
 BATS persists under both. The design lock treats the bridge as required and Remote Control as the
 convenience it already is.
 
+### Scene direction from a phone (owner, 2026-09-27; soft, design first, with a verdict)
+
+Owner: "show me a view of the witch's hut, and it returns an in-editor rendering; then 'I want such
+and such changes to this view' and the workflow triggers, the gen-AI happens, the bake and cook, then
+editor loading and positioning, the object is placed, a render happens, and it's posted to your phone
+on vacation. Next gen: a web app with grease pencil and annotation tools for this context in view."
+Also: "tell me when my ideas are awesome or push back when meh."
+
+Verdict, given both ways. Awesome: the loop, because a view (camera plus scene state) is the unit a
+round trip can preserve, and direction happens on a picture, not a spec; and annotation as the
+instruction channel, which is how art direction has always worked. Meh as the first step: a web app;
+the phone's own markup on the render plus a sentence, read by a vision-model job, is zero UI and the
+right MVP; in-context grease pencil is the generation after. Pushed back: "the gen-AI happens" hides
+the least deterministic step, so it is a choose-between-N gate (it proposes four, the owner picks
+from the phone), never an oracle; and "editor loading and positioning" needs the editor to be a
+worker with a command bus, which SpriteJammer's command-bus spike seeds and LargeWorlds does not
+have, so that long-shot row is the prerequisite. Recorded in the pitch's "Around the corner" and the
+board.
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`

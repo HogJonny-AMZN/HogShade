@@ -112,6 +112,18 @@ before reaching the machine. Added as the first day, and workflows moved from th
 "plausible within a year" as the shape the Thursday case takes. Word count 1,720 to 2,240; the
 growth is the author's requested content, and it displaces nothing.
 
+Then the owner's standing rule, "tell me when my ideas are awesome or push back when meh", applied
+to the document itself: **the awesome cases lead, the good ones stay with their value named, the meh
+ones go.** The week section now opens with the two gated workflows (the character on Thursday, scene
+direction on Saturday, which had been a bullet), then the Tuesday gate, Friday with its follow-through
+loop named as the part that makes it more than a dashboard, Monday's question to the orchestrator,
+and the Wednesday pull request last. The forward-looking list lost the bullets the days already
+show ("the phone as a console", "wake up to pull requests"), the small ones ("the failure-modes
+ledger writes itself", "synthetic datasets", "a home compute grid"), merged "replay and diff" into
+"agents as jobs", and gained the two the Saturday day depends on ("workflows with human gates as
+data", "in-context annotation"). Word count 2,240 to 2,160. Rejected: cutting the section to three
+bullets, because the audience is being asked to fund a year of the plausible ones.
+
 ## Layer 9, first pass: for the author
 
 Worth your attention: the steelman paragraph (it concedes that a CI runner covers schedule, secrets and notifiers), the falsification condition in *Risks*, the softened "one launch in three", and the ask's first sentence, which now commits one person for a week. Not worth it: the clause trims in *Around the corner*, recorded above as the alternative to cutting bullets.
