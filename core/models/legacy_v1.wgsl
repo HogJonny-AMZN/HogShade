@@ -23,7 +23,12 @@
 //   - ambient, environment diffuse and environment specular are multiplied by AO; the direct
 //     light is not;
 //   - the Disney roughness alpha is roughness squared, no bias; the clearcoat alpha is
-//     mix(0.1, 0.001, clearcoat_gloss); the Disney G uses alpha_g = (alpha / 2 + 1 / 2)^2.
+//     mix(0.1, 0.001, clearcoat_gloss); the Disney G uses alpha_g = (alpha / 2 + 1 / 2)^2;
+//   - the anisotropic axes are ax = alpha^2 / aspect, ay = alpha^2 * aspect, with alpha already
+//     roughness squared: v1 squared the explorer's squared roughness, so the specular lobe is
+//     roughness to the fourth and its highlights are far sharper than Disney's (thousands in
+//     scene-linear at roughness 0.2; the deferred path, with no tangent frame, cannot reproduce
+//     them).
 //
 // Deviations from v1 (each also in Docs/design/2026-09-20-modernization-direction.md):
 //   1. Environment: E1 linear cubes and LUT replace RGBM 8-bit cubes; the eight-mip constant, the

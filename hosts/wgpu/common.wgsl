@@ -18,6 +18,9 @@ struct host_Frame {
     ground: vec4<f32>,          // rgb: hemisphere ground, linear
     up_ws: vec4<f32>,           // xyz: the hemisphere up axis
     viewport: vec4<f32>,        // width, height, 0, 0
+    model: vec4<f32>,           // x: HOGSHADE_MODEL_* as a float; y: legacy v1 rough-is-gloss flag; z, w: unused
+    params_a: vec4<f32>,        // legacy v1: subsurface, specular_tint, anisotropic, sheen
+    params_b: vec4<f32>,        // legacy v1: sheen_tint, clearcoat, clearcoat_gloss, unused
     sh9: array<vec4<f32>, 9>,   // radiance coefficients; env.use_sh9 is off in this host, cubes rule
 }
 
@@ -84,6 +87,73 @@ fn host_geometry(position_ws: vec3<f32>, normal_ws: vec3<f32>, front_face: bool)
     g.vertex_ao = vec3<f32>(1.0);
     g.front_face = select(0u, 1u, front_face);
     return g;
+}
+
+// The legacy v1 material of this host: the same scalar parameters, plus the Disney lobes from params_a/b.
+fn host_material_v1() -> legacy_v1_Material {
+    var m: legacy_v1_Material;
+    m.base_color = host_frame.base_color.rgb;
+    m.metalness = host_frame.material.x;
+    m.subsurface = host_frame.params_a.x;
+    m.specular = host_frame.material.y;
+    m.roughness = host_frame.base_color.a;
+    m.specular_tint = host_frame.params_a.y;
+    m.anisotropic = host_frame.params_a.z;
+    m.sheen = host_frame.params_a.w;
+    m.sheen_tint = host_frame.params_b.x;
+    m.clearcoat = host_frame.params_b.y;
+    m.clearcoat_gloss = host_frame.params_b.z;
+    m.use_vertex_color_ao = 0u;
+    m.has_alpha = 0u;
+    m.use_vertex_alpha = 0u;
+    m.use_cutout_alpha = 0u;
+    m.flip_backface_normals = 0u;
+    m.rough_is_gloss = u32(host_frame.model.y);
+    m.use_specular_mask = 0u;
+    m.normal_flip = vec3<f32>(1.0);
+    return m;
+}
+
+fn host_samples_v1() -> legacy_v1_Samples {
+    var s: legacy_v1_Samples;
+    s.base_color = vec4<f32>(1.0);
+    s.specular = vec4<f32>(1.0);
+    s.roughness = 1.0;
+    s.metalness = 1.0;
+    s.ao = vec3<f32>(1.0);
+    s.normal_ts = vec3<f32>(0.0, 0.0, 1.0);
+    s.use_base_map = 0u;
+    s.use_specular_map = 0u;
+    s.use_roughness_map = 0u;
+    s.use_metalness_map = 0u;
+    s.use_normal_map = 0u;
+    return s;
+}
+
+fn host_geometry_v1(position_ws: vec3<f32>, normal_ws: vec3<f32>, front_face: bool) -> legacy_v1_Geometry {
+    let g2 = host_geometry(position_ws, normal_ws, front_face);
+    var g: legacy_v1_Geometry;
+    g.normal_ws = g2.normal_ws;
+    g.tangent_ws = g2.tangent_ws;
+    g.binormal_ws = g2.binormal_ws;
+    g.view_ws = g2.view_ws;
+    g.position_ws = g2.position_ws;
+    g.vertex_color = g2.vertex_color;
+    g.front_face = g2.front_face;
+    return g;
+}
+
+// The material half for whichever model the frame selects (a uniform branch).
+fn host_inputs(position_ws: vec3<f32>, normal_ws: vec3<f32>, front_face: bool) -> ShadingInputs {
+    let model = u32(host_frame.model.x);
+    if (model == HOGSHADE_MODEL_LEGACY_V1) {
+        return legacy_v1_inputs(host_material_v1(), host_samples_v1(), host_geometry_v1(position_ws, normal_ws, front_face));
+    }
+    if (model == HOGSHADE_MODEL_LAMBERT) {
+        let g = host_geometry(position_ws, normal_ws, front_face);
+        return lambert_inputs(host_frame.base_color.rgb, 1.0, vec3<f32>(0.0), g.normal_ws, g.view_ws, position_ws);
+    }
+    return legacy_v2_inputs(host_material(), host_samples(), host_geometry(position_ws, normal_ws, front_face));
 }
 
 fn host_environment_ibl() -> EnvironmentIBL {

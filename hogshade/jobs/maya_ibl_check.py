@@ -46,6 +46,7 @@ MANIFEST = {
             "default": "ibl-check",
             "description": "output directory name under verification/maya-2026/",
         },
+        "variant": {"type": "str", "default": "<env>", "description": "sub-directory, e.g. legacy-v1/studio_small_09"},
     },
     "inputs": ["hosts/maya_dx11/hogshade.fx", "content/ibl/<env>/cooked/*.dds", "content/ibl/brdf_lut.dds"],
     "outputs": [
@@ -64,6 +65,7 @@ _ENV_KEYS = {
     "debug_modes": "HOGSHADE_DEBUG_MODES",
     "set": "HOGSHADE_SET",
     "check": "HOGSHADE_CHECK",
+    "variant": "HOGSHADE_VARIANT",
 }
 
 
@@ -75,9 +77,9 @@ def main(parameters: dict) -> dict:
         value = parameters.get(key)
         if value:
             os.environ[var] = str(value)
-    tools_maya = str(ROOT / "tools" / "maya")
-    if tools_maya not in sys.path:
-        sys.path.insert(0, tools_maya)
+    tools_maya = ROOT / "tools" / "maya"
+    if str(tools_maya) not in sys.path:
+        sys.path.insert(0, str(tools_maya))
     import importlib
 
     for name in ("_session", "ibl_check"):

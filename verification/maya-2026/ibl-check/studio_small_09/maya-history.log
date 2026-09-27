@@ -12,3 +12,20 @@ file -f -new;
 // Make sure Autoload is on in the Plug-in Manager.
 // See this article for more detail.
 // https://www.autodesk.com/maya-arnold-not-available-error
+currentTime 1 ;
+currentTime 1 ;
+currentTime 1 ;
+currentTime 1 ;
+HOGSHADE_RESULT {"ok": true, "dir": "D:\\Depot\\HogShade\\verification\\maya-2026\\ibl-check\\studio_small_09", "log": "D:\\Depot\\HogShade\\verification\\maya-2026\\ibl-check\\studio_small_09\\check.log", "png": "D:\\Depot\\HogShade\\verification\\maya-2026\\ibl-check\\studio_small_09\\main.png", "techniques": ["Main"]}
+// 09/27/2026, :12:01:58 AM :: [INFO][job_orchestrator.dcc_workers.maya.maya_rpc_server] >> [OK] Job 45c6bdb3... completed in 45.03s :(maya_rpc_server.py:557)
+// 09/27/2026, :12:02:00 AM :: [INFO][job_orchestrator.dcc_workers.maya.maya_rpc_server] >> Received job: 9d61744c... :(maya_rpc_server.py:153)
+// 09/27/2026, :12:02:00 AM :: [INFO][job_orchestrator.dcc_workers.maya.maya_rpc_server] >>   Type: hogshade_maya_gui, Priority: 5, Execution mode: 1 :(maya_rpc_server.py:154)
+// 09/27/2026, :12:02:00 AM :: [INFO][job_orchestrator.dcc_workers.maya.maya_rpc_server] >> Executing job 9d61744c... (log: job_9d61744c_20260927_000200.log) :(maya_rpc_server.py:213)
+// 09/27/2026, :12:02:00 AM :: [INFO][job_orchestrator.orchestrator.config] >> Loading configuration from D:\Depot\Job_Orchestrator\job_orchestrator\config\orchestrator_config.json :(config.py:634)
+// 09/27/2026, :12:02:00 AM :: [INFO][job_orchestrator.orchestrator.config] >> Found local sidecar config: D:\Depot\Job_Orchestrator\job_orchestrator\config\orchestrator_config.local.json :(config.py:508)
+// 09/27/2026, :12:02:00 AM :: [INFO][job_orchestrator.orchestrator.config] >> Merging 1 sidecar config(s): ['orchestrator_config.local.json'] :(config.py:643)
+// 09/27/2026, :12:02:00 AM :: [INFO][job_orchestrator.orchestrator.config] >> Merged sidecar: orchestrator_config.local.json :(config.py:653)
+// 09/27/2026, :12:02:00 AM :: [INFO][job_orchestrator.orchestrator.config] >> Loading DCC paths from unified config: D:\Depot\Job_Orchestrator\job_orchestrator\config\orchestrator_config.json :(config.py:659)
+// 09/27/2026, :12:02:00 AM :: [INFO][job_orchestrator.orchestrator.config] >> Loaded 2 package path(s) for hook dependencies :(config.py:671)
+2026-09-27 00:02:00 :: [INFO][hogshade.jobs.maya_ibl_check] >> maya_ibl_check job: fx=D:\Depot\HogShade\hosts\maya_dx11\hogshade.fx env=studio_small_09 :(maya_ibl_check.py:90)
+// 09/27/2026, :12:02:00 AM :: [INFO][hogshade.jobs.maya_ibl_check] >> maya_ibl_check job: fx=D:\Depot\HogShade\hosts\maya_dx11\hogshade.fx env=studio_small_09 :(maya_ibl_check.py:90)

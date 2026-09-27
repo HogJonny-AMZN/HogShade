@@ -31,7 +31,7 @@ fn vs_main(v: host_VertexIn) -> host_VertexOut {
 
 @fragment
 fn fs_main(v: host_VertexOut, @builtin(front_facing) front_face: bool) -> host_GBufferOut {
-    let i = legacy_v2_inputs(host_material(), host_samples(), host_geometry(v.position_ws, v.normal_ws, front_face));
+    let i = host_inputs(v.position_ws, v.normal_ws, front_face);
     var layout_meta: GBufferLayoutAdr002;
     layout_meta.layer = 0u;
     layout_meta.channel_mask = 255u;
