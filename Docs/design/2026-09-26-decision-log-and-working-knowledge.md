@@ -61,7 +61,7 @@ Formalised: the standards-pass section of `ROADMAP.md`; the phase 2 plan.
   standard. All optional, detected, skipped when absent; Blender is the required path. Roadmap.
 - **E2 leftovers:** BC6H output when a 1024 cube ships; a numba mip-0 resample when 2048 cooks are
   routine. E2 plan notes; here as a reminder they are deliberate deferrals, not gaps.
-- **The comparison output that exists is a placeholder (owner).** `tools/wgpu_viewport.py` and
+- **The comparison output that exists is a placeholder (owner).** `tools/wgpu/viewport.py` and
   `tests/host/test_wgpu_host.py` are replaced by the designed framework, not extended. Roadmap.
 - **Visual proof before merging visual work (owner preference, from the sibling project):** offer a
   page of real rendered output alongside a PR that changes a picture. Here only.
@@ -92,6 +92,30 @@ and again per game, or does this repo stay focused on shading? Recommendation, n
   generated from the schema; anything beyond (node graphs, asset browsing) belongs in LargeWorlds.
 
 Decided when phase 3 designs the schema; becomes an ADR in the standards pass if the owner agrees.
+
+### Agent instructions as a knowledge base (owner, 2026-09-26; decided)
+
+Agent instructions and context live in a modular, AI-agnostic knowledge base of small topic files,
+with an `AGENTS.md` entry point, a thin `CLAUDE.md` importing it, and a Copilot pointer; decisions
+in ADRs, context in this log and the roadmap, standards separate from state. This file is the
+first casualty by design: the standards pass splits it into topic files. Formalised in the
+roadmap's coding-standards item (track B).
+
+### Tools and verification layout (2026-09-26; decided during PR F)
+
+`tools/<host>/` per DCC or host (`maya/` with `_session.py` shared by every Maya check, `wgpu/`,
+later `blender/`, `toolbag/`, `substance/`); repo-level tools at the top; `Docs/verification/<host>/`
+mirrors it. `tools/README.md` is the rule. Started now rather than after forty artifacts.
+
+### Driving Maya during development: BATS or a Maya MCP as a convenience, never a dependency (owner, 2026-09-26; soft)
+
+Launching a fresh `maya.exe -script` per check costs a minute of startup, is flaky (Maya's startup
+crash, exit 127 or 139 in the first seconds), and a launcher bug leaves an idle Maya open. The owner's
+BATS bridge (Job_Orchestrator) or a Maya MCP server can hold one session open and run the checks on
+demand. Rule: the check scripts stay standalone modules with a `run()` and a `.mel` launcher, so
+anyone with Maya can run them with no other tool; BATS or an MCP is an optional developer path that
+imports the same modules into a live session. The repo takes no dependency on either. Wiring it up
+is a Job_Orchestrator-side task; this repo only keeps its scripts importable.
 
 ## 4. Repository and GitHub state (as of 2026-09-26)
 

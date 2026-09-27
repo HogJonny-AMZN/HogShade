@@ -32,8 +32,8 @@ generated artifacts under `hosts/` (shader-model 5 and 6 HLSL, GLSL, WGSL), vali
 dxc on every change. The IBL cook (`hogshade/ibl`) produces prefiltered cubes, irradiance, SH9
 and the BRDF LUT for two Poly Haven environments; the manifests, SH9 and previews are in the tree
 and the EXR and DDS payloads are under Git LFS (PR #12, once the repository left the fork
-network). The wgpu host (`hosts/wgpu/`, `tools/wgpu_viewport.py`) renders the shader ball
-through the core, forward and deferred, and writes `Docs/verification/wgpu-v2-studio.png`; the
+network). The wgpu host (`hosts/wgpu/`, `tools/wgpu/viewport.py`) renders the shader ball
+through the core, forward and deferred, and writes `Docs/verification/wgpu/wgpu-v2-studio.png`; the
 Maya shell is the next PR. Phase 1 (hygiene) is done except for the
 owner's GitHub steps. The legacy shaders compile clean under `fxc` (warnings only) and are the
 reference every port is diffed against.
@@ -82,14 +82,14 @@ fxc /T fx_5_0 /D _MAYA_=1 /Fo out.fxo legacy\v2.0\V2_uv0bn-pbs_IBLenv.fx
 ```
 
 Headless `mayapy` can load the effect but cannot compile it (no DirectX device). The scripted GUI
-check in `tools/maya_load_check.py` launches Maya with the viewport forced to DirectX 11 for that
+check in `tools/maya/load_check.py` launches Maya with the viewport forced to DirectX 11 for that
 session, loads the shader, logs the technique list and quits; the last run is in
 `Docs/verification/`. To run it:
 
 ```text
 set MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11
 set HOGSHADE_LOG_DIR=Docs/verification
-maya.exe -script tools/maya_load_check.mel
+maya.exe -script tools/maya/load_check.mel
 ```
 
 ## Licence

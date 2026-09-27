@@ -80,7 +80,15 @@ Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence 
       textures and samplers as function parameters, the module-prefix rule, NumPy twin per core
       function, GPU tests on the owner's machine and the CI adapter), the build and check commands,
       the Maya scripting lessons, the LFS and hygiene rules, and what a PR must carry before it is
-      done. Not a copy of the LargeWorlds file: only what applies here.
+      done. Not a copy of the LargeWorlds file: only what applies here. **Shape (owner, 2026-09-26):
+      a modular, AI-agnostic knowledge base, not one large file.** An `AGENTS.md` entry point that any
+      agent reads (the map and the non-negotiable rules), a thin `CLAUDE.md` that imports it and adds
+      only Claude-specific notes, a `.github/copilot-instructions.md` that points at the same files,
+      and small topic files under `Docs/` (one concern each: Python standards, WGSL and host
+      standards, the doc process, the review discipline, toolchain gotchas, per-host lessons, repo
+      state), each with a status line and a date. Decisions in ADRs, running context in the decision
+      log and the roadmap, standards never mixed with state; the 2026-09-26 decision log is split
+      into those topic files in this pass. Files stay small; a file past a few hundred lines splits.
 - [x] v3.0 salvage (2026-09-20): six of eleven includes compile against v2; all six are reformats.
       Nothing taken. Folder deleted; archive stays at
       `D:\Depot\Maya-PBR-BRDF-VP2_BAK\uncommitted-v3.0-2025-04`. Details in the direction spec.
@@ -386,7 +394,7 @@ The inputs and the proof. Without these, "same shader" produces different pictur
       so a reader learns one page; (6) scale: hundreds of captures per run across hosts, features
       and debug views, driven from a table, runnable on the owner's machine and in CI where a GPU
       exists, with the GPU-less runner checking the report schema and the reference data only.
-      `tests/host/test_wgpu_host.py` and `tools/wgpu_viewport.py` are replaced by this, not extended.
+      `tests/host/test_wgpu_host.py` and `tools/wgpu/viewport.py` are replaced by this, not extended.
 - [ ] Capture script per host: `mayapy` batch, `blender -b`, the engine's offscreen path. One diff
       tool with tolerance and background mask, producing a proof page. Lands before C3.
 - [ ] Pin naga and wgpu-py; CI on Maya 2026 where licensing allows, Blender

@@ -15,10 +15,10 @@ separate force-push for the history rewrite. Tick a task only when its verificat
 - [x] 6. README with the getting-started guide and carried-forward credits.
 - [x] 7. `Docs/` split into roadmap, design, specs, plans with a `Docs/README.md` explaining the layers.
 - [x] 8. Scripted Maya 2026 GUI launch loads v2 through `dx11Shader`; log committed to
-      `Docs/verification/maya-2026-v2-load.log` with `RESULT: OK`. First run found the viewport on
+      `Docs/verification/maya/maya-2026-v2-load.log` with `RESULT: OK`. First run found the viewport on
       OpenGL Core Profile (no techniques); the launch sets `MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11`
       so the check does not depend on, or change, the user's preferences. **Verified 2026-09-20:**
-      `TECHNIQUES: ['TessellationOFF']`, `RESULT: OK`; log committed; script at `tools/maya_load_check.py`.
+      `TECHNIQUES: ['TessellationOFF']`, `RESULT: OK`; log committed; script at `tools/maya/load_check.py`.
 - [x] 9. `chore/hygiene` merged as PR #2 (31f65e1) after Copilot review, 2026-09-20.
 - [ ] 10. Pointer PR to `hogjonny/Maya-PBR-BRDF-VP2`: README top points at HogShade (#2 there, open). Owner merges.
 - [x] 11. History rewrite done 2026-09-20 on a fresh clone after PR #2 merged: 55 commits to 48,

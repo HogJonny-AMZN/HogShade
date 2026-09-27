@@ -19,7 +19,7 @@ own. Tick a task only when its verification ran.
       parameter-passing form produces plain `Texture2D`/`SamplerState` parameters (spike README).
 - [x] 3. Maya 2026 loads `ggx.fx` on a sphere through `dx11Shader`, with a file node bound to the
       texture parameter and a scene light bound to the light slot, and draws the textured ball with
-      a specular highlight; screenshot. Verified: `tools/maya_load_check.py` style log with
+      a specular highlight; screenshot. Verified: `tools/maya/load_check.py` style log with
       techniques and the decoded texture size, and the PNG. Verified 2026-09-20: techniques `['Main']`,
       texture 256x256 decoded, two frames differ with the light rotated (`verification/`).
 - [x] 4. Verdict written into the spec's "spike" section: WGSL stays, or the core moves to Slang.
@@ -58,7 +58,7 @@ own. Tick a task only when its verification ran.
       GGX D, height-correlated Smith, Schlick, F82-tint, Lambert, Burley and the GGX composite match
       the NumPy references (2e-5 relative on the grid for alpha >= 0.1; GGX D below that is limited
       by float32 cancellation at the peak and is held to 1e-2, with the reason in the test). The GPU
-      run is recorded in `Docs/verification/gpu-core-tests.log` (machine, adapter, per-test result).
+      run is recorded in `Docs/verification/core/gpu-core-tests.log` (machine, adapter, per-test result).
 - [x] 10. `core/lighting.wgsl` test: 16 slots equal 16 single calls. `core/gbuffer.wgsl` tests:
       `SurfaceInputs` round trip within the layout's quantisation, and forward-versus-deferred parity
       (evaluate on `ShadingInputs` built directly, against evaluate on encode, decode and
@@ -85,7 +85,7 @@ own. Tick a task only when its verification ran.
       Verified 2026-09-25: modes 0 to 32 through `legacy_v2_debug` are finite and equal the reference
       on 128 random inputs each; the twelve texel-and-UV modes (`legacy_v2_debug_is_inputs_mode`)
       are also computed exactly by `legacy_v2_debug_inputs` for forward hosts and match the
-      reference. `Docs/verification/gpu-core-tests.log` refreshed: 69 core tests on the RTX 5090
+      reference. `Docs/verification/core/gpu-core-tests.log` refreshed: 69 core tests on the RTX 5090
       (the host is named BIGHOG-4090RTX after its previous card; the log's adapter line is the
       truth). Copilot on PR D: the lookup coordinates moved into the model (`models_env_lookup`,
       tested); FXC on the CI runner's DX12 adapter rejected two multi-return switch cases in
@@ -103,14 +103,14 @@ own. Tick a task only when its verification ran.
       for block output", bisected to `switch (i.surface.model)` in `core/models.wgsl` when the
       selector comes from the uint G-buffer texture in a shader that also passes textures into
       functions; the dispatcher is an if-chain now and both backends render the pass.
-- [x] 14. `tools/wgpu_viewport.py`: shader ball (derkreature, OBJ; the plan first said glTF), legacy v2 model, studio IBL from
-      `content/ibl`, one directional light; writes `Docs/verification/wgpu-v2-studio.png`. Verified:
+- [x] 14. `tools/wgpu/viewport.py`: shader ball (derkreature, OBJ; the plan first said glTF), legacy v2 model, studio IBL from
+      `content/ibl`, one directional light; writes `Docs/verification/wgpu/wgpu-v2-studio.png`. Verified:
       the PNG shows a lit ball with a specular reflection of the studio. Done 2026-09-26: the ball is
       the OBJ, not glTF (that repository ships OBJ and FBX; `content/shaderball/`, Unlicense, LFS),
       read by `hogshade.wgpu_host.load_obj`. `hogshade.wgpu_host.Renderer` draws both paths offscreen
       and reads them back; the tool writes the forward and deferred PNGs and prints their difference.
       Verified: `wgpu-v2-studio.png` (grey dielectric, roughness 0.2) shows the studio softbox in the
-      cavity and on the rim; `wgpu-v2-studio-metal.png` (metal, roughness 0.15) mirrors the studio.
+      cavity and on the rim; `Docs/verification/wgpu/wgpu-v2-studio-metal.png` (metal, roughness 0.15) mirrors the studio.
       Forward versus deferred over the ball, 1024 px: dielectric mean 0.005 and max 0.41 scene-linear
       (silhouette pixels); metal mean 0.06 with a max of 134 at the hottest highlight pixel, where
       the fp16 normal moves v2's unbounded grazing specular. `tests/host/test_wgpu_host.py` renders
@@ -118,14 +118,33 @@ own. Tick a task only when its verification ran.
 
 ## PR F: the Maya host and the modern HLSL
 
-- [ ] 15. `hosts/hlsl/hogshade_core.hlsl`: naga's SM 6 output, formatted, dxc-validated, README of
+- [x] 15. `hosts/hlsl/hogshade_core.hlsl`: naga's SM 6 output, formatted, dxc-validated, README of
       bindings; `hosts/maya_dx11/generated/hogshade_core_sm5.hlsl`: the SM 5 output of the same
-      build, fxc-validated.
-- [ ] 16. `hosts/maya_dx11/hogshade.fx`: parameters and annotations for the legacy v2 parameter set,
+      build, fxc-validated. Done 2026-09-26: both artifacts have been generated and validated by
+      every build since PR B; `hosts/hlsl/README.md` documents that there is no binding layout
+      (every resource is a function parameter), the functions a consumer calls, naga's renamed
+      identifiers, and points at the Maya shell as the worked example.
+- [x] 16. `hosts/maya_dx11/hogshade.fx`: parameters and annotations for the legacy v2 parameter set,
       16 light slots, textures and samplers with unbound flags, techniques, POM kept in the shell
-      (marked), a call into `hogshade_core_sm5.hlsl`. fxc in `tests/compile/`.
-- [ ] 17. `tools/maya_ibl_check.py` pointed at `hogshade.fx`: lit ball, specular visible, both cube
+      (marked), a call into `hogshade_core_sm5.hlsl`. fxc in `tests/compile/`. Done 2026-09-26: the
+      shell keeps v2's parameter names; per-map "use" flags stand in for v2's sample-black test;
+      the cube slots are plain (no `environment` semantic); sixteen `Object = "Light N"` slots come
+      from one macro each with a per-slot shadow-map lookup, filled into `FixedSlots16_` with Maya's
+      light types mapped (ambient off, decay ignored in favour of a per-slot range); the specular
+      cube's mip count is read with `GetDimensions`; v2's parallax offset and simple self shadow are
+      in the shell marked as such (the "stencil" self-shadow variant is not carried); no in-shader
+      tone mapping, the output is scene-linear pre-multiplied. `tests/compile/` compiles it with
+      `fxc /T fx_5_0 /D _MAYA_=1`: 14 seconds, the FXC canary's first reading. One naga rename bit:
+      `specular_f0` is `specular_f0_` in the generated HLSL.
+- [ ] 17. `tools/maya/ibl_check.py` pointed at `hogshade.fx`: lit ball, specular visible, both cube
       slots decoded; screenshot and log committed. This replaces E1's partial task 11.
+      **In progress 2026-09-26.** The shell compiles under fxc but Maya's dx11Shader lists no
+      techniques for it, so Maya's own compile error is the next thing to read; the session helper
+      now mirrors the Script Editor history to a file beside the log for that. Standalone
+      `maya.exe -script` runs proved fragile (startup crashes, an idle instance left behind by a
+      launcher bug, and a retry loop that killed a Maya the owner's orchestrator had started), so
+      the check moves to a Job_Orchestrator (BATS) job on a resident Maya GUI worker; the `.mel`
+      launcher stays for anyone without BATS. `tools/maya/_session.py` is shared by both paths.
 - [ ] 18. Legacy v1 port (`core/models/legacy_v1.wgsl`) with its own reference and tests; selectable
       in both hosts.
 
