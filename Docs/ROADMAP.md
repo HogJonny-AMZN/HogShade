@@ -365,6 +365,28 @@ The inputs and the proof. Without these, "same shader" produces different pictur
       modules, it is written and structured the way they are (`RenderContext`, a pass per file with
       `initialize`, `resize`, `render`, `cleanup`, a viewport that owns the device, module headers,
       the same test layout), so the two codebases read as one family.
+- [ ] **Comparison framework: designed, not improvised (owner, 2026-09-26).** What exists (PR E)
+      is a proof: two PNGs and a printed mean and max. The owner's judgement is that it is neither
+      robust nor scalable, and it is not to grow by accretion: a pre-spec design document comes
+      first (`Docs/design/`), then a spec, then the build. What the design must cover: (1) test-
+      generated artifacts as the unit of comparison, each capture a set: scene-referred EXR, display
+      PNG, the scene description that produced it (mesh, material, rig, view, host, version hashes),
+      and a manifest; (2) exactness is not always possible, so closeness is measured by heuristics
+      chosen per feature and stated in the manifest, not one global tolerance: absolute and relative
+      error in scene-linear, PSNR, SSIM, and a perceptual metric built for rendering comparison
+      (NVIDIA FLIP, or an equivalent) on the display-referred frame, with masks (coverage, silhouette
+      exclusion, per-patch regions on the Macbeth chart, per-ramp bins on the roughness ramps);
+      (3) a verdict model with three outcomes, pass, needs-review and fail, where needs-review
+      writes the diff artifacts (heatmap, side-by-side, per-region table) for a human and records
+      the verdict in an accepted-differences file, the pattern LargeWorlds uses for its noise oracle
+      vectors; (4) baselines: reference captures stored with their hashes, regenerated on purpose
+      by a command and never by a test, so a shader change shows up as a diff against a known
+      picture; (5) one report format (JSON plus an HTML page of thumbnails and numbers) that the
+      host parity captures, the bake comparisons and the deferred-versus-forward check all write,
+      so a reader learns one page; (6) scale: hundreds of captures per run across hosts, features
+      and debug views, driven from a table, runnable on the owner's machine and in CI where a GPU
+      exists, with the GPU-less runner checking the report schema and the reference data only.
+      `tests/host/test_wgpu_host.py` and `tools/wgpu_viewport.py` are replaced by this, not extended.
 - [ ] Capture script per host: `mayapy` batch, `blender -b`, the engine's offscreen path. One diff
       tool with tolerance and background mask, producing a proof page. Lands before C3.
 - [ ] Pin naga and wgpu-py; CI on Maya 2026 where licensing allows, Blender
