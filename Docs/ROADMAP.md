@@ -89,6 +89,8 @@ Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence 
       state), each with a status line and a date. Decisions in ADRs, running context in the decision
       log and the roadmap, standards never mixed with state; the 2026-09-26 decision log is split
       into those topic files in this pass. Files stay small; a file past a few hundred lines splits.
+      Started 2026-09-26 with a thin `AGENTS.md`, a `CLAUDE.md` that imports it, and
+      `tools/bats/AGENTS.md`; the pass fills in the standards and the remaining topic files.
 - [x] v3.0 salvage (2026-09-20): six of eleven includes compile against v2; all six are reformats.
       Nothing taken. Folder deleted; archive stays at
       `D:\Depot\Maya-PBR-BRDF-VP2_BAK\uncommitted-v3.0-2025-04`. Details in the direction spec.
