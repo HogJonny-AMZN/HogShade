@@ -38,6 +38,7 @@ cleanup that make the work publishable, and the employer conversation that decid
 | C | Shading core and hosts | The SpriteJammer tiers |
 | D | SpriteJammer PBR tiers | Nothing downstream; it is the consumer |
 | E | Parity and pipeline: colour, lights, textures, capture and diff | Every "looks the same" claim in C and D |
+| F | The material library and generation: a base set of constants-only materials, a small texture-based set, and AI-driven material and texture generation as gated research; the repo as a base shading solution and getting-started library for any of the owner's games (owner, 2026-09-27; design first) | The library needs the schema (ADR-009); generation needs the validation harness before any output is content |
 
 Tracks A and B are independent. C follows B. E starts with B and its capture tooling gates C3.
 D follows C5 but its G-buffer prep and the bake decision can start any time. The reasoning behind E
@@ -438,6 +439,34 @@ The inputs and the proof. Without these, "same shader" produces different pictur
 3. Which HDR environment ships under LFS.
 4. Whether the horde ever needs tier 2, or tier 1 is the ceiling for anything at distance. The
    benchmark decides; the owner reads it.
+
+## Track F: the material library and generation (owner, 2026-09-27; design first)
+
+Owner: "we can also build a small material library here, one set of broad base materials that are
+constants and params only, another smaller set texture based; I would like to consider some AI
+driven material and texture generation tooling and workflows here ... great vein for research and
+learning. This could become a base shading solution and library (a getting started repo for any
+of my games)." The reframing is a scope decision and gets a pre-spec design before anything is
+built; the verdicts and the ordering are on the board.
+
+- [ ] **The base library, constants only.** A broad set of materials that use parameters alone
+      (metals, dielectrics, a few characteristic roughness and tint choices), authored as the
+      schema's documents. The schema's first consumer and its test data: every parameter
+      exercised by a real material, rendered in every host by the comparison framework. Ships
+      with the schema, not after it.
+- [ ] **The texture-based set, small.** Provenance is a rule from the first texture: CC0 sources
+      (Poly Haven, ambientCG) or generated in this repo, never a studio tree. Drives track E's
+      texture conventions and cook with real content.
+- [ ] **AI-driven generation as gated research.** A generator (the owner names Nano Banana Pro as a
+      model that emits albedo, height and normal channels) is a job on the Python worker, and its
+      output is never content until it passes a validation harness: normals re-derived from the
+      height and the disagreement measured, a wrap-around diff for tileability, the registered-grid
+      probes for normal-map sign and channel order, a schema check for colour space, then the cook,
+      then a render in every host. Generate four, validate, the owner picks one from the phone (the
+      gated workflow in the agent-loop design). The model's terms for generated assets in a shipped
+      game are verified before any generated texture is committed.
+- [ ] **The getting-started shape.** What a new game repo takes from here: the core, the schema and
+      library, the cooks, the checks; documented as one page once the library exists.
 
 ## The standards pass (owner, 2026-09-26)
 

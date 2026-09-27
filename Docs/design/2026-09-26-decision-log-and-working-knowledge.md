@@ -370,6 +370,26 @@ right, at least a couple of weeks". So Saturday's prerequisite exists at work to
 orchestrator's Unreal Editor worker type) and the long shot is only the home engine; Thursday's
 generative steps carry the owner's own floor of a couple of weeks. The pitch says both.
 
+### The material library, AI generation, and the repo as a getting-started shading solution (owner, 2026-09-27; soft, design first, with verdicts)
+
+Owner: "we can also build a small material library here, one set of broad base materials that are
+constants and params only, another smaller set texture based; I would like to consider some AI
+driven material and texture generation tooling and workflows here. I know Nano Banana Pro
+theoretically can make material texture channels including depth maps and normal maps. Great vein
+for research and learning. This could become a base shading solution and library (a getting started
+repo for any of my games)."
+
+Verdicts. The constants-only library: awesome, the schema's first consumer and its test data, ships
+with the schema. The texture set: good, small, provenance a rule from the first texture (CC0 or
+generated here). AI generation: awesome as research, meh as a source until gated; a generated
+normal is a picture of a normal, not a derivative of the height, colour space and tiling are luck,
+runs differ; the research question is validation, and the harness (normals re-derived from height
+and the disagreement measured, wrap-around diff, the registered-grid probes, a schema colour-space
+check, the cook, a render in every host) makes it an experiment with a verdict and a gated BATS
+workflow (generate four, validate, pick one from the phone). The reframing as a getting-started
+shading solution is a scope decision: roadmap track F, design first. The model's terms for
+generated assets in a shipped game are a fact to verify before any generated texture is committed.
+
 ## 4. What moved out of this file (2026-09-27)
 
 | Was here | Now |
