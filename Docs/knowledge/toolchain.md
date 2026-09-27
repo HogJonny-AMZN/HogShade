@@ -1,5 +1,7 @@
 # Toolchain versions (phase 2, task 1)
 
+**Status:** Living. Recorded versions; amended when a tool is upgraded.
+
 Recorded 2026-09-20 on BIGHOG-4090RTX, Windows 11.
 
 | Tool | Version | Installed by |

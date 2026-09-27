@@ -1,6 +1,6 @@
 # Job_Orchestrator (BATS) in HogShade
 
-**Status:** Living. Topic file of the HogShade knowledge base; small on purpose. Updated 2026-09-26.
+**Status:** Living. Topic file of the HogShade knowledge base; small on purpose. Updated 2026-09-27.
 
 ## What it is, and which one
 
@@ -71,7 +71,12 @@ named profile `orchestrator_config_<name>.json` in the same folder), then deep-m
 
 To-dos on the dev checkout, so a project overlay needs no copying or folding: load a named profile
 by path; let a sidecar contribute `env_profiles` mappings and files; a kill script that ends only
-the processes the orchestrator spawned, by PID.
+the processes the orchestrator spawned, by PID; **job providers** (owner, 2026-09-27): a profile
+names its provider (`hogshade.jobs:manifest`), the provider discovers its jobs by scanning rather than
+by a hand-kept list, and the orchestrator, its CLI and the MCP (`bats_list_jobs`, `bats_describe_job`)
+enumerate capabilities from the providers, so an agent finds jobs through the tool instead of the
+docs. HogShade's side: auto-discovery in `hogshade.jobs` with a test that fails on a job without a
+`MANIFEST` (today `JOB_MODULES` is a list, and the Maya job was missing from it for a day).
 
 ## Jobs
 
@@ -92,6 +97,24 @@ the protos): `--module hogshade.jobs.maya_ibl_check --gui --main-thread`, `--scr
 inline probe, `--pool` for what is running. Until a worker runs on the HogShade environment file,
 `--module` wraps the import in a stub that puts the HogShade root on `sys.path` first.
 
+## Where it made the difference (the case for BATS, kept current)
+
+Owner, 2026-09-27: *"BATS is repeatable, durable, reduces discovery and churn over time. It's a new
+paradigm, it's an agentic pipeline, it just makes sense ... so let's make it clear as we go where
+it's made the most sense and an impact."* This section is that record. Each row is a real instance;
+the journal carries the narrative under a `→ BATS:` line
+([Docs/journal/README.md](../journal/README.md)). Rows where the orchestrator was *not* needed are
+listed too, because the case is only credible if it is honest.
+
+| When | Without the orchestrator | Through it | Why it mattered |
+| --- | --- | --- | --- |
+| 2026-09-26, PR F, the Maya gate | `maya.exe -script` per attempt: a minute of startup, exit 139 one launch in three, a launcher bug left idle Mayas, two GUI Mayas crashed each other, a retry loop killed a worker | One job on the resident `hogshade_maya_gui` worker (DirectX 11 forced by the profile), the technique list and the mirrored Script Editor history back in the result | The gate had failed for a day on the standalone path; it passed the first time the check ran where the session was already up and correctly configured |
+| 2026-09-27, PR G, the v1 Maya check | A second standalone campaign with the same hazards | The same job with one parameter (`variant`), 37 s | Repeatable: a check is a parameter set, not a procedure; the pictures land in the layout the comparison framework will read |
+| 2026-09-26, the profile and environment files | Every session rediscovers worker types, the environment layering and the base-profile inheritance trap | `make_profile.py` generates the committed profile; a new session reads this file and submits | Discovery once. The trap that cost a restart is encoded in the generator, not remembered |
+| 2026-09-26, the MCP validation | An agent drives a DCC through an ad-hoc MCP that holds no queue, no manifest and no history | The `bats_*` tools are a doorway to the same queue the humans use; a job's `MANIFEST` is written for an agent to read | The MCP is the agent's entry, not a rival pipeline; what it submits is durable and inspectable afterwards |
+| The E1 cook | The CLI under uv, which still exists and is the documented path | `hogshade.jobs.cook_ibl` on `hogshade_python` | Convenience only so far; it earns its place when cooks fan out across environments |
+| The wgpu viewport, the GPU tests, the shader build | In-process under uv | Not routed through the orchestrator | Honest row: nothing gained; a job is never the only way to run something |
+
 ## Rules learned the hard way
 
 - **Never kill a process you did not start.** The orchestrator's workers are its; a job is the way
@@ -99,7 +122,10 @@ inline probe, `--pool` for what is running. Until a worker runs on the HogShade 
 - **One orchestrator, one Maya GUI at a time.** Two GUI Mayas crash each other; a standalone
   `maya.exe -script` launch beside a running GUI worker is the same collision.
 - **Maya's own errors are in its Script Editor**, not on stdout: the session helper mirrors the
-  history to a file beside the log so a job result carries the effect compile error.
+  history to a file beside the log so a job result carries the effect compile error, and turns the
+  mirroring off at the end of the check: a resident worker otherwise keeps appending to the committed
+  file and holds it open (git could not restore it on 2026-09-27).
+- **A resident worker keeps the previous check's scene.** Every check starts with `cmds.file(new=True)`.
 - `JobRequest` fields: `dcc_type` (the worker type), `execution_mode` (`HEADLESS` or `GUI`),
   `script` or `module_path` plus `entry_point`, `parameters` (strings), `execute_on_main_thread`
   (viewport work), `job_name`, `tags`. Statuses stream as enums; `JobStatus.Name()` gives the text.

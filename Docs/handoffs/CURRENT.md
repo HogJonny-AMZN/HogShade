@@ -1,36 +1,29 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-09-27, PR G (the legacy v1 port; both legacy models render in both hosts).
+**Last updated:** 2026-09-27, PR H (the journal and the process around it; `local-review`; the BATS case).
 
-A new session reads this, then `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then
-`Docs/ROADMAP.md`, then the plan in flight (`Docs/plans/phase-2-restructure.md`).
+A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
+`Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
+(`Docs/plans/phase-2-restructure.md`). `Docs/standards/definition-of-done.md` says what done means and
+how much to decide alone.
 
 ## In flight
 
-**PR G, the v1 port, is on its branch (`feat/phase2-legacy-v1`).** Next in the agreed order: the
-standards pass, then the phase 2 close at 0.2.0.
+**PR G, the v1 port, merged as #19 on 2026-09-27.** **PR H**
+(`docs/journal-process-local-review`, stacked on G) adds the journal, the definition of done and
+workflow, the PR template, `tools/check_docs.py`, the `local-review` skill and the BATS case in the
+knowledge file; it also stops the Maya check leaving Script Editor history mirroring on. Next in the
+agreed order: the standards pass, then the phase 2 close at 0.2.0.
+
+Owner asks recorded this session and not yet built: none open. Standing: journal continuously; a
+`→ BATS:` line wherever the orchestrator made the difference; `pathlib` everywhere.
 
 **PR F is complete.** The Maya gate (plan task 17) passed on 2026-09-26 as a BATS job on the
 `hogshade_maya_gui` worker: `Main` technique listed, cubes and LUT decoded, pictures under
 `verification/maya-2026/ibl-check/studio_small_09/`. Next in the agreed order: the legacy v1 port (plan task 18), then the
 standards pass, then the phase 2 close. The MCP path was validated the same day with a scratch
 stdio client: twenty tools, correct per-type counts.
-
-## Previous state (kept until the v1 port starts)
-
-Phase 2 PR F: the Maya `dx11Shader` shell over the generated shader-model 5 core. Done and committed
-on the branch: `hosts/maya_dx11/hogshade.fx` (compiles under fxc in 14 s, `tests/compile`),
-`hosts/hlsl/README.md`, tools reorganised per host (`tools/maya/`, `tools/wgpu/`, `tools/bats/`),
-`verification/{maya,wgpu,core}/`, the Job_Orchestrator profile, launcher, submit tool and the
-`hogshade.jobs.maya_ibl_check` job, this repo's `.mcp.json`, `Docs/knowledge/job-orchestrator.md`.
-
-**Open: plan task 17, the Maya gate.** Maya's dx11Shader lists no techniques for the shell although
-fxc accepts it. The next step is to run the check as a job on the `hogshade_maya_gui` worker and
-read Maya's compile error from the mirrored Script Editor history the job writes beside its log.
-Suspects already removed: string parameters carrying vertex semantics. Untested suspects: the
-`#include "generated/..."` subfolder path (the spike used a same-folder include), the `string
-ColorSpace` annotations, the fourteen-second compile against Maya's compile timeout.
 
 ## How to run the developer track
 

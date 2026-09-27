@@ -51,6 +51,11 @@ def output_dir(check: str, variant: str = "") -> Path:
     path = VERIFICATION / f"maya-{MAYA_VERSION}" / check
     if variant:
         path = path.joinpath(*variant.replace("\\", "/").split("/"))
+    root = VERIFICATION.resolve()
+    resolved = path.resolve()
+    # check and variant arrive as job parameters: no ".." component, and the result stays under the root
+    if ".." in path.parts or root not in resolved.parents:
+        raise ValueError(f"output directory escapes {root}: check={check!r} variant={variant!r}")
     path.mkdir(parents=True, exist_ok=True)
     return path
 
@@ -183,9 +188,18 @@ def quit_maya() -> None:
         print(f"direct quit refused, deferred quit pending: {e!r}")
 
 
+def _stop_history() -> None:
+    """Stop mirroring the Script Editor: a resident worker otherwise keeps the committed log open and growing."""
+    try:
+        cmds.scriptEditorInfo(writeHistory=False)
+    except Exception as e:  # noqa: BLE001 - never let the log teardown mask the result
+        print(f"history mirroring not stopped: {e!r}")
+
+
 def finish(out: Log, ok: bool, quit_after: bool = True) -> None:
     out.append("RESULT: OK" if ok else "RESULT: FAILED")
     out.append(f"MAYA: {cmds.about(version=True)}")
+    _stop_history()
     if quit_after:
         quit_maya()
 
@@ -193,5 +207,6 @@ def finish(out: Log, ok: bool, quit_after: bool = True) -> None:
 def fail(out: Log, quit_after: bool = True) -> None:
     out.append("RESULT: FAILED" + "\n" + traceback.format_exc())
     out.append(f"MAYA: {cmds.about(version=True)}")
+    _stop_history()
     if quit_after:
         quit_maya()

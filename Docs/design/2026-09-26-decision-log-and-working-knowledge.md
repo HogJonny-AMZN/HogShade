@@ -157,6 +157,107 @@ reading; a resident Maya worker keeps the previous check's scene, so every check
 scene; registered grids and the debug views are the per-host orientation and channel probes
 (roadmap, procedural test data).
 
+### The journal, and the process around it (owner, 2026-09-27; decided)
+
+Per-session, per-task journalling of learnings, ported from SpriteJammer *with its process*, which the
+owner asked for explicitly: "parse SpriteJammer and its readme, claude and instructions on the why
+journalling, process, how and etc.; that's important to replicate and not just building the journal."
+What landed: `Docs/journal/` (README with cadence, entry format and the session index; one file per
+session, append-only), `Docs/standards/definition-of-done.md` (the DoD table, the autonomy protocol
+with two-way doors recorded in the PR's *Decisions* table and one-way doors asked, eight per PR as the
+split threshold, when `local-review` runs, a growth ladder), `Docs/standards/workflow.md` (the stages
+and who owns which record), `.github/pull_request_template.md`, `tools/check_docs.py` with its test
+(links, status, journal index, ADR index) and a CI step. Left out on purpose: SpriteJammer's
+`PENDING-REVIEW.md` (its PR table replaced it there too), the failure-modes ledger and the board,
+until this repo has enough of its own failures and state to fill them (standards pass). This log
+stays the index of decisions; the journal is the narrative behind them.
+
+### `local-review` skill, adapted (owner, 2026-09-27; decided)
+
+SpriteJammer's repo-agnostic reviewer ported to `.claude/skills/local-review/` with a `core` mode for
+a WGSL module against the core contract, the hygiene grep and a stale generated artifact as hard
+findings, and `master` as the default branch. Runs on significant increments before a merge is
+asked for; the rule is in the definition of done.
+
+### The case for BATS, made visible as it happens (owner, 2026-09-27; decided)
+
+"BATS is repeatable, durable, reduces discovery and churn over time. It's a new paradigm, it's an
+agentic pipeline, it just makes sense ... let's make it clear as we go where it's made the most sense
+and an impact." Two records: a `→ BATS:` trailing line on any journal entry where the orchestrator
+made the difference, and a running table in `Docs/knowledge/job-orchestrator.md` ("Where it made the
+difference"), with honest rows for the steps that needed no orchestrator. The framing that came out
+of the record: the MCP is the agent's doorway to the same durable queue humans use, not a rival
+pipeline; an ad-hoc DCC MCP would rediscover the session every time and hold nothing.
+
+### Job providers and capability discovery in the orchestrator (owner, 2026-09-27; soft, a to-do on the dev checkout)
+
+Owner: the orchestrator "needs a better way to inspect and infer jobs and capabilities. Maybe each job
+provider needs to register a job source, paths, capabilities (metadata)"; the con is a burden per job
+that an agent may not read the instructions for, the pro is that an agent "isn't left guessing or
+searching". Evidence the same day: `hogshade.jobs.maya_ibl_check` carried a `MANIFEST` for a day and
+was invisible because `JOB_MODULES` was a second manual step (Copilot, PR #19). Recommendation:
+register *providers* (one line per project in its profile, `hogshade.jobs:manifest`), discover *jobs*
+(the provider scans its package; a test fails on a job without a manifest, so the list can never be
+forgotten), and let the orchestrator and its MCP enumerate from the providers (`bats_list_jobs`,
+`bats_describe_job`, a CLI flag), so an agent that never read the docs still finds the jobs through
+the tool it reaches for anyway. HogShade's `MANIFEST` shape is the candidate schema. Cost: about a
+day on the dev checkout, half a day here. Owner's follow-up: "shouldn't the AI just be able to ask
+the running orchestrator about workers, workflows, jobs/tasks and capabilities?" Yes; that is the
+point. Today the running orchestrator answers about workers (types, state, submit, poll, results)
+and nothing about jobs, because it holds a queue and a pool, not a catalogue. Providers are how it
+learns the catalogue, once, at start; the agent then asks the orchestrator. Two further layers the
+question implies: workers describing themselves at boot (DCC and version, plugins, viewport device,
+GPU) behind a `bats_describe_worker`, and workflows as catalogued lists of job references with
+edges, which do not exist yet and need their own design. Here only, plus the to-do list in
+`Docs/knowledge/job-orchestrator.md`.
+
+### The board (owner, 2026-09-27; decided)
+
+"We should employ the same kind of ideas about evolving roadmap, board, icebox, etc. here."
+`Docs/plan/BOARD.md`, on the LargeWorlds shape: gates first (G1 clearance, G2 the OCIO config, G3 the
+material contract split, G4 the comparison-design date, G5 the shader-ball mesh), then Now, Next,
+Blocked on whom, and an Icebox seeded from this log's section 3, the roadmap's unscheduled track E
+items, section 6's open questions and the orchestrator to-dos. The roadmap stays the map of tracks and
+phases; this log stays the index of decisions; the board is the tracker. Section 3 of this log stops
+growing: a new idea goes to the Icebox with a cost, and a decision that schedules one is recorded here
+with a pointer to its row.
+
+### The weekly review routine (owner, 2026-09-27; soft, design first)
+
+Owner: "something like a cloud cron job that runs on Fridays and does a deep dive on the journal and
+other context, to deliver a report on CI, improvements, things to streamline, etc.; it needs to both
+follow industry standards and known quantities, but also think outside of the box, anticipate and look
+around corners and think about agentic context engineering and agentic development practices
+(including accessing the projections, and being clear about experiments and maybes that don't prove out
+and need to be redacted, reversed and displaced later)." And: "what would be really cool is if it could
+text SMS me when this report is done so I actually review and look at it; generation is a thing,
+reading and following up is a very different problem."
+
+Assessment. The substrate exists and SpriteJammer already designed its twin: the Sunday devblog
+routine (`docs/design/devblog.md`, locked 2026-09-13) runs a repo skill from a cloud routine, clones
+private repositories, writes to a branch and opens a pull request, and found that routines have no
+notification of their own. The weekly review is that design's review-side counterpart: a
+`weekly-review` skill runnable locally or by a Friday routine, reading the journal, board, handoff,
+decision log, merged and open PRs, Copilot threads and CI run history, and writing
+`Docs/reviews/<date>-weekly-review.md` on a `claude/` branch with a pull request. The report's contract:
+every claim cites a file and heading, a commit, a PR or a run id; it proposes and never edits the
+board; sections for CI health, process compliance against the DoD, streamlining candidates (a manual
+step the journal repeats becomes a skill or a job), agentic context engineering (what agents got wrong
+and which instruction would have prevented it, the size and staleness of the knowledge files),
+projections against the roadmap, a verdict table for experiments and maybes (proved, unproven,
+redact or reverse or displace, with the document that holds the belief), and an explicitly labelled
+speculative section for around-the-corner thinking. The follow-through loop is the part that answers
+the second message: each report opens with last week's items and whether they were acted on, and
+the nudge carries the three-line verdict and the PR link, not "report ready".
+
+The nudge. SMS proper means Twilio from inside the routine with a secret in the cloud environment
+and, in the US, A2P 10DLC or toll-free registration even for personal use (as of the assistant's
+knowledge; verify before choosing). A push channel does the same job with one HTTP POST and one
+secret: ntfy (free, open source) or Pushover (one-time fee). GitHub Mobile's review-request
+notification is the zero-cost baseline and needs nothing. Recommendation: push first, SMS only if
+the owner wants SMS specifically. Not built; the board's Icebox row carries the cost and the open
+questions. A memory records the direction for the other repositories.
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`
@@ -220,6 +321,9 @@ scene; registered grids and the debug views are the per-host orientation and cha
 - Hygiene before every push: no employer names, personal email, no studio files, Apache-compatible
   dependencies. LargeWorlds, Job_Orchestrator, BATS and SpriteJammer are the owner's own projects
   and may be named.
+- This repository's default branch is `master`; `gh pr create` needs `--base master`. Write a
+  commit-message file in its own command: a chained assertion that aborts before the file is written
+  leaves the next commit reading a file that does not exist (PR G, twice).
 
 ## 6. Open questions for the owner
 

@@ -50,7 +50,7 @@ MANIFEST = {
     },
     "inputs": ["hosts/maya_dx11/hogshade.fx", "content/ibl/<env>/cooked/*.dds", "content/ibl/brdf_lut.dds"],
     "outputs": [
-        "verification/maya-2026/<check>/<env>/check.log",
+        "verification/maya-2026/<check>/<variant>/check.log",  # variant defaults to <env>
         ".../main.png",
         ".../debug-NN.png",
         ".../maya-history.log",
