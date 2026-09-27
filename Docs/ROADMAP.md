@@ -307,6 +307,19 @@ The inputs and the proof. Without these, "same shader" produces different pictur
       assets (`rocks.ma`, the Basic and IBLbaker texture sets) are candidates to pull over, done
       better, when a phase needs them. The base scene ships as a Maya scene, a Blender scene, and
       glTF and FBX exports of the same content, since those two are the common non-DCC formats.
+- [ ] **Procedural test data: hydrate everything (owner, 2026-09-26).** Every core test asset
+      that can be generated is generated, by a tool in this repo from NumPy, with a manifest of
+      what it wrote and the constants it used, on the pattern of the IBL cook; a fresh clone runs
+      one command and has the whole set. Git LFS is only for what cannot be generated (the HDR
+      sources, the shader ball). The set: a Macbeth ColorChecker from the published reference values
+      (Lab or xyY under D50 or D65, stated), written as scene-linear EXR and as sRGB-encoded 8-bit
+      PNG, both with the exact patch values in the manifest so a host capture can be diffed patch by
+      patch; an 18 percent grey card; grey and colour ramps; roughness and metalness ramps; a UV test
+      grid with numbered tiles; checkerboards; normal-map test tiles (flat, bumps, a known slope
+      whose decoded angle is in the manifest); a height tile for parallax; an alpha cutout; the
+      fallback primitive meshes above. Colour conversions come from one place (the sRGB and
+      colour-space functions in `hogshade.reference`, shared with the G-buffer tests) so the
+      generated data and the shader agree by construction.
 - [ ] **Bake comparisons (owner, 2026-09-26).** The other half of parity is the content pipeline:
       a low and a medium mesh baked against a high mesh, with the texture outputs (tangent-space
       normal, object-space normal, AO, curvature, height, position, material ID, and a base-colour
