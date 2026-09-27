@@ -16,6 +16,8 @@ Checks:
 - **adr-index**: every ``Docs/decisions/ADR-*.md`` has a row in ``Docs/decisions/README.md`` (none yet)
 - **board**: ``Docs/plan/BOARD.md`` exists and keeps its five sections (Gates, Now, Next, Blocked, Icebox),
   so the tracker cannot be deleted or quietly collapsed into a list
+- **vocabulary**: a term the glossary has retired (a struck-through row, ``~~**Term**~~``) is not used as
+  current anywhere else in the corpus; SpriteJammer boarded this check, this repo built it
 - **fences**: a fenced code block that never closes; without this the links and status checks would be
   silently vacuous for the rest of that file (local review, 2026-09-27)
 
@@ -74,6 +76,8 @@ ADR_INDEX = "Docs/decisions/README.md"
 JOURNAL_INDEX = "Docs/journal/README.md"
 BOARD = "Docs/plan/BOARD.md"
 BOARD_SECTIONS = ("## Gates", "## Now", "## Next", "## Blocked", "## Icebox")
+GLOSSARY = "Docs/glossary.md"
+_RETIRED_RE = re.compile(r"^\| ~~\*\*([^*]+)\*\*~~ \|", re.MULTILINE)
 
 #: An inline link: the destination is ``<...>`` or a run without whitespace or ``)``; an optional title
 #: (``"..."`` or ``'...'``) may follow. Titles are not paths.
@@ -264,7 +268,53 @@ def check_board(files: Iterable[Path], root: Path = REPO_ROOT) -> list[Finding]:
 
 
 Check = Callable[[Iterable[Path], Path], list[Finding]]
-CHECKS: tuple[Check, ...] = (check_links, check_status_headers, check_journal_index, check_adr_index, check_board)
+
+
+def retired_terms(root: Path = REPO_ROOT) -> list[str]:
+    """The glossary's struck-through terms, lowercase."""
+    path = root / GLOSSARY
+    if not path.exists():
+        return []
+    return [m.group(1).strip().lower() for m in _RETIRED_RE.finditer(strip_fences(_read(path)))]
+
+
+def check_vocabulary(files: Iterable[Path], root: Path = REPO_ROOT) -> list[Finding]:
+    """A retired term is not used as current outside the glossary; a line that says it is retired is allowed."""
+    terms = retired_terms(root)
+    if not terms:
+        return []
+    patterns = [
+        (t, re.compile(r"(?<![\w-])" + re.escape(t).replace(r"\ ", r"[\s-]+") + r"(?![\w-])", re.IGNORECASE))
+        for t in terms
+    ]
+    findings: list[Finding] = []
+    for path in files:
+        rel = _rel(path, root)
+        if rel == GLOSSARY:
+            continue
+        for number, line in enumerate(strip_fences(_read(path)).splitlines(), start=1):
+            if "retired" in line.lower() or "do not say" in line.lower() or "never " in line.lower():
+                continue
+            for term, pat in patterns:
+                if pat.search(line):
+                    findings.append(
+                        Finding(
+                            "vocabulary",
+                            f"{rel}:{number}",
+                            f"retired term {term!r}; the glossary says what replaced it",
+                        )
+                    )
+    return findings
+
+
+CHECKS: tuple[Check, ...] = (
+    check_links,
+    check_status_headers,
+    check_journal_index,
+    check_adr_index,
+    check_board,
+    check_vocabulary,
+)
 
 
 def run(root: Path = REPO_ROOT, checks: Sequence[Check] = CHECKS) -> list[Finding]:

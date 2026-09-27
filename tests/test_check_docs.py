@@ -169,6 +169,27 @@ def test_main_reports_and_exits_nonzero_on_a_finding(corpus: Path, capsys: pytes
     assert "broken link" in capsys.readouterr().out
 
 
+def test_retired_term_used_as_current_is_found(corpus: Path) -> None:
+    _write(
+        corpus,
+        "Docs/glossary.md",
+        "**Status:** Living\n\n| Term | Meaning |\n| --- | --- |\n| ~~**Master material**~~ | **RETIRED.** A Material Prime. |\n",
+    )
+    _write(corpus, "Docs/handoffs/CURRENT.md", "**Status:** Living\n\nBuild the master material first.\n")
+    findings = check_docs.run(corpus)
+    assert [f.check for f in findings] == ["vocabulary"] and "master material" in findings[0].detail
+
+
+def test_retired_term_mentioned_as_retired_or_in_a_fence_is_allowed(corpus: Path) -> None:
+    _write(corpus, "Docs/glossary.md", "**Status:** Living\n\n| ~~**Master material**~~ | **RETIRED.** |\n")
+    _write(
+        corpus,
+        "Docs/handoffs/CURRENT.md",
+        "**Status:** Living\n\nDo not say master material (retired).\n\n```\nmaster material\n```\n",
+    )
+    assert check_docs.run(corpus) == []
+
+
 def test_the_corpus_itself_is_clean() -> None:
     findings = check_docs.run(ROOT)
     assert findings == [], "\n".join(str(f) for f in findings)

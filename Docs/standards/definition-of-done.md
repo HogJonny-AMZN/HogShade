@@ -44,7 +44,8 @@ uv run python tools/build_shaders.py --check --require-compilers   # after any c
 | `links` | A renamed file leaves every link to it dangling; a link whose case differs from the file passes on Windows and fails on Linux CI |
 | `status` | Without a status header a reader cannot tell a decision from a hypothesis or a live document from a stale one |
 | `journal-index` | A session file linked from nowhere is a session that did not happen for the next reader |
-| `adr-index` | An unindexed ADR is invisible to anyone browsing decisions (no ADRs yet; the standards pass writes the first) |
+| `adr-index` | An unindexed ADR is invisible to anyone browsing decisions |
+| `vocabulary` | A retired term used as if current: two names for one concept means an agent retrieves it by neither; the glossary's struck-through rows are the list |
 
 ## The autonomy protocol
 

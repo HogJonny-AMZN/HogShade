@@ -29,6 +29,10 @@ Two more files are the session-independence layer: `handoffs/CURRENT.md` (where 
 how to run the developer track, what a new session must not do) and `knowledge/` (small topic files
 of the agent knowledge base; `knowledge/job-orchestrator.md` is the first).
 
+[glossary.md](glossary.md) is the canonical vocabulary, shared with SpriteJammer where the concept is
+shared; `tools/check_docs.py` fails on a retired term used as current (the check SpriteJammer boarded
+as W1 and this repo built first).
+
 [reviews/](reviews/2026-09-27-pitch-editorial-plan.md) holds review artifacts written for a future reader: editorial
 plans with their findings, rejections and scorecards, and local code reviews when they are kept
 (the standards pass's project review is one). [decisions/](decisions/README.md) holds the ADRs,
@@ -46,6 +50,7 @@ link, a governed document without a status line, or a session missing from the j
 | If you are... | Read |
 | --- | --- |
 | Starting any session | `handoffs/CURRENT.md`, then `plan/BOARD.md` (gates first), then the decision log, then the newest journal file |
+| New to the project, or naming anything | [glossary.md](glossary.md): one word per concept; use these words and no synonyms; add a concept's word there before using it |
 | An idea was said out loud | `plan/BOARD.md`, Icebox, with a cost and a reason; it is not a work order |
 | Finishing an increment | `standards/definition-of-done.md`, the PR template, `journal/README.md` |
 | Deciding something the owner has not | The autonomy protocol in `standards/definition-of-done.md` |
@@ -69,9 +74,9 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
 - [design/2026-09-20-wysiwyg-blindspots.md](design/2026-09-20-wysiwyg-blindspots.md): what it takes for
   the same material to look the same in every host, and the gaps the first direction had.
 - [design/2026-09-27-material-schema.md](design/2026-09-27-material-schema.md): the material
-  schema's pre-spec design, Exploring until the owner locks it: the versioned parameter definition,
+  schema's pre-spec design, locked by the owner on 2026-09-27: the versioned parameter definition,
   the O3DE-shaped document, the MaterialX and glTF exports, the `hogshade.material` library and its
-  generators, the library of materials, a cross-repo table, ten open questions, six increments.
+  generators, the library of materials, a cross-repo table, the ten questions answered in the owner's words, six increments.
 - [design/2026-09-27-pitch-bats-as-the-agents-body.md](design/2026-09-27-pitch-bats-as-the-agents-body.md):
   the pitch for the agent loop on the orchestrator (why, why BATS, what, how, risks, the ask), written
   for the owner's team; Proposed until sent.

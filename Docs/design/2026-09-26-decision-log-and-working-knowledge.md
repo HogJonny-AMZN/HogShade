@@ -399,6 +399,31 @@ like Quixel Megascans, it's just a shortcut or a toy. One way to stand above the
 accuracy, the highest quality assets and rendering." Recorded as the quality bar on track F: the
 validation harness is the deliverable and any generator is a plug-in evaluated against it.
 
+### The material record is JSON; MaterialX authors Primes and is the interchange (owner, 2026-09-27; locked)
+
+Owner: "do we need our own material schema / data storage, a material asset or a material instance?
+Yes. Should that be MaterialX? I don't know; MaterialX seems like the approach to author a base
+material like ours (or a derivative of it)." Answered and locked as question 10 of the schema design:
+MaterialX is where a base material or a derivative, a Material Prime, is authored, and it is the
+interchange every resolved material exports to and imports from; it has no parent-child delta, no
+per-project migrations, no engine-validated extension blocks, and reading it needs a 5.5 MB C++
+library, so it is not the record. The record of an asset is the O3DE-shaped JSON document against
+the schema; an instance is the engine's in-memory overrides and never a file. The direction doc's
+2026-09-20 "Interchange" row, written before the Prime noun existed, is amended in place with the
+date. The other nine questions of the design remain open; the design stays Exploring.
+
+### The schema design locked (owner, 2026-09-27)
+
+All ten questions answered; the design's table keeps the owner's words. The calls that shape S1:
+the legacy models are separate material types sharing the document format, with conversion tables
+as the comparison route ("separate and legacy, but then what's the best route to compare???", and
+the answer is convert, not share); texture packing is out of the schema ("a cook and runtime loader
+question, not material authoring; they are optimizations"); HogShade's standard is the base
+standard for every downstream project; emission in nits; the version mechanism from the first file
+with nothing brought forward; specular occlusion in the surface group as a game and taste choice;
+MaterialX an optional extra (measured: Maya's Python lacks it, Blender's ships 1.39.4); the schema
+as package data; the three truths of question 10. Formalised in the design; ADR-009 stands.
+
 ## 4. What moved out of this file (2026-09-27)
 
 | Was here | Now |
