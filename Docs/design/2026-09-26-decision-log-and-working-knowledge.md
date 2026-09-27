@@ -128,6 +128,14 @@ requires BATS; downstream users never do. The repo maintains the profile, the en
 launcher, the submit tool, the `.mcp.json` for an agent session, and `Docs/handoffs/CURRENT.md` so a
 new session continues without this one. Details: `Docs/knowledge/job-orchestrator.md`.
 
+### Docs convention and the superpowers skills (owner, 2026-09-26; decided, applied in the standards pass)
+
+`Docs/superpowers/{design,specs,plans,handoff}` is the cross-repo convention; HogShade's folders move
+there in the standards pass. The superpowers skills (brainstorming, writing-plans, executing-plans,
+TDD, verification, code review) drive each step of the doc process from the next spec on. A handoff
+file is written whenever a session is interrupted or grows long; `Docs/handoffs/CURRENT.md` is the
+first.
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`

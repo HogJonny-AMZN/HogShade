@@ -431,6 +431,14 @@ port, before the phase 2 close and VERSION 0.2.0), because phase 3 (OpenPBR, Mat
 parameter schema) builds on every one of those decisions and is the last cheap moment to change
 them.
 
+The pass also aligns the documentation layout with the owner's cross-repo convention (owner,
+2026-09-26): `Docs/superpowers/design/` (the pre-spec conversational decision lock), `specs/`,
+`plans/`, `handoff/` (dated context for a new or bloated session), which `Docs/{design,specs,plans}`
+and `Docs/handoffs/` become with links updated; and from the next spec on, the superpowers skills
+drive each step (`brainstorming` for the design lock, `writing-plans` for the plan,
+`executing-plans` with `test-driven-development` for the build, `verification-before-completion`
+and `requesting-code-review` before a PR).
+
 One ADR in that pass is the **shader specialisation model** (owner asked 2026-09-26; the perf
 outlook). The core is an uber-shader with runtime branches, which is right for the research
 reference and wrong for the engine. The decision to write down: the uber core stays the record;
