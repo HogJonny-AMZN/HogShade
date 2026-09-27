@@ -465,6 +465,14 @@ built; the verdicts and the ordering are on the board.
       then a render in every host. Generate four, validate, the owner picks one from the phone (the
       gated workflow in the agent-loop design). The model's terms for generated assets in a shipped
       game are verified before any generated texture is committed.
+- [ ] **The quality bar (owner, 2026-09-27).** "If gen-AI is considered slop until its output is
+      validated, registered and as consistent as a high-quality texture library like Quixel
+      Megascans, it's just a shortcut or a toy. One way to stand above the slop is intent and
+      accuracy: the highest quality assets and rendering." So: generated channels are lossy and not
+      coherent across channels, the opposite of what a dialled-in bake gives, and they stay research
+      inputs until the harness proves them consistent to that bar. Other generators (the Ubisoft PBR
+      material model and its ComfyUI extension) are candidates to evaluate under the same harness
+      with the same skepticism; the harness is the deliverable, the generator is a plug-in.
 - [ ] **The getting-started shape.** What a new game repo takes from here: the core, the schema and
       library, the cooks, the checks; documented as one page once the library exists.
 
