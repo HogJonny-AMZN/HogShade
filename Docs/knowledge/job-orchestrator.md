@@ -47,6 +47,28 @@ and starts the orchestrator and tray with `--config hogshade`.
 dev checkout's own kill script, which also ends every Maya and Houdini process on the machine by
 name. A human runs it after saving work; an agent never does.
 
+## How the orchestrator's configuration layers, and where HogShade plugs in
+
+The layering is deliberate; use it, never bypass it. Config: canon `orchestrator_config.json` (or a
+named profile `orchestrator_config_<name>.json` in the same folder), then deep-merged sidecars
+`.local.json` < `.studio.json` < `.mcp.json`. Environment, per worker: `env_profiles.json` maps a
+**worker type name and mode** (`maya_gui`, `python_headless`) to a profile, and a profile chains a
+`base_profile` (`base_env.json`: the orchestrator root and package on `PYTHONPATH`, the
+`JOB_ORCHESTRATOR_*` variables). Two consequences that cost a restart on 2026-09-26:
+
+- A **renamed worker type has no profile mapping** and boots with a clean environment. The
+  supported path for a named variant is `environment_json_path`, the mechanism the studio
+  `bp_mayapy` type uses (its file is written by a pre-launch hook). HogShade generates its files.
+- A **direct environment file gets no profile inheritance**, so it must fold `base_env.json` in
+  itself or the worker cannot import `job_orchestrator` (the GUI Maya then never registers and sits
+  at BOOTING; the Python worker exits). `make_profile.py` merges base, then the DCC environment,
+  then HogShade's additions, in that order, so `${JOB_ORCHESTRATOR_ROOT}` is defined before the
+  path lists that use it are expanded.
+
+To-dos on the dev checkout, so a project overlay needs no copying or folding: load a named profile
+by path; let a sidecar contribute `env_profiles` mappings and files; a kill script that ends only
+the processes the orchestrator spawned, by PID.
+
 ## Jobs
 
 HogShade jobs live in `hogshade/jobs/`, MODULE mode, each with a `MANIFEST` dict (name, worker type,
