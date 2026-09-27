@@ -399,6 +399,19 @@ like Quixel Megascans, it's just a shortcut or a toy. One way to stand above the
 accuracy, the highest quality assets and rendering." Recorded as the quality bar on track F: the
 validation harness is the deliverable and any generator is a plug-in evaluated against it.
 
+### The material record is JSON; MaterialX authors Primes and is the interchange (owner, 2026-09-27; locked)
+
+Owner: "do we need our own material schema / data storage, a material asset or a material instance?
+Yes. Should that be MaterialX? I don't know; MaterialX seems like the approach to author a base
+material like ours (or a derivative of it)." Answered and locked as question 10 of the schema design:
+MaterialX is where a base material or a derivative, a Material Prime, is authored, and it is the
+interchange every resolved material exports to and imports from; it has no parent-child delta, no
+per-project migrations, no engine-validated extension blocks, and reading it needs a 5.5 MB C++
+library, so it is not the record. The record of an asset is the O3DE-shaped JSON document against
+the schema; an instance is the engine's in-memory overrides and never a file. The direction doc's
+2026-09-20 "Interchange" row, written before the Prime noun existed, is amended in place with the
+date. The other nine questions of the design remain open; the design stays Exploring.
+
 ## 4. What moved out of this file (2026-09-27)
 
 | Was here | Now |

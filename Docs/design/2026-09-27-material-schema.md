@@ -120,8 +120,9 @@ name.
   **Source of truth (question 10).** The direction doc's "Interchange" decision (2026-09-20) says the
   authored material is the `.mtlx` document. The owner's later decisions (2026-09-13 in SpriteJammer,
   ADR-009 here) make the O3DE-shaped JSON the authored record and MaterialX the authoring format of a
-  Prime and the interchange, not the record and not the runtime. This design follows the later
-  decisions; the direction doc's line is amended when this design is locked, not before.
+  Prime and the interchange, not the record and not the runtime. The owner locked this on 2026-09-27: MaterialX authors the base material or a derivative (the Prime);
+  the JSON document is the record of an asset; an instance is the engine's in-memory overrides and never a
+  file. The direction doc's row is amended accordingly. The other nine questions stay open.
 - **glTF.** The game profile: a conversion table in the repo says which parameter becomes which
   glTF core or KHR extension field (`specular`, `ior`, `clearcoat`, `sheen`, `iridescence`,
   `transmission`, `emissive_strength`, `texture_transform`) and what is lost; the exporter emits
@@ -177,7 +178,7 @@ the getting-started kit's first content.
 | 6 | Migration mechanics | A list of `{from, to, ops}` in the schema, applied on load; the first schema version is 1 and the first migration is written when the second version is |
 | 8 | Specular occlusion: in the core schema's `surface` group as an opt-in (HogShade's catalogue, C4), or only in an engine's `ext` block (SpriteJammer's decision makes it a Material Type property stored in GB2's spare byte) | Both are true at different layers: the parameter is a shader feature every host evaluates and belongs in `surface`; where an engine stores it (a G-buffer byte) is that engine's `ext` block and its own ADR. The schema names the parameter; the engine names the storage |
 | 9 | The MaterialX Python wheel (5.5 MB of C++ that Maya's and Blender's Pythons may not carry) as a dependency of `hogshade.material` | An optional extra (`hogshade[materialx]`) behind an ADR at S5; load, validate, resolve, bind and the glTF export never import it, so the library stays importable in every DCC |
-| 10 | Source of truth: the O3DE-shaped JSON document as the authored record with `.mtlx` as the Prime's authoring format and the interchange (the 2026-09-13 and ADR-009 line), or the `.mtlx` as the authored material (the direction doc's 2026-09-20 line) | The JSON record; amend the direction doc's "Interchange" row when this is locked |
+| 10 | Source of truth: the O3DE-shaped JSON document as the authored record with `.mtlx` as the Prime's authoring format and the interchange, or the `.mtlx` as the authored material | **Locked by the owner, 2026-09-27:** the JSON record; MaterialX authors a base material or a derivative (a Prime) and is the interchange. The direction doc's "Interchange" row is amended |
 | 7 | Where the schema file lives: `schema/` at the root, or under `hogshade/` as package data | `hogshade/material/schema/` as package data, so a pip install of the library carries it |
 
 ## Cross-repo: who consumes what
