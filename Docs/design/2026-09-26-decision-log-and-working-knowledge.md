@@ -66,6 +66,33 @@ Formalised: the standards-pass section of `ROADMAP.md`; the phase 2 plan.
 - **Visual proof before merging visual work (owner preference, from the sibling project):** offer a
   page of real rendered output alongside a PR that changes a picture. Here only.
 
+### Material data, contracts and editor: where they live (owner asked 2026-09-26; recommendation, soft)
+
+The question: does a base material data model and editor live here and get extended in LargeWorlds
+and again per game, or does this repo stay focused on shading? Recommendation, not yet decided:
+
+- **HogShade owns the material contract** because the contract is the shader's API: the parameter
+  schema (name, type, range, default, UI group, semantic), the OpenPBR-in-MaterialX document as the
+  authored form, the glTF game-profile mapping, the texture conventions, and a Python library that
+  loads, validates and converts a material document and produces a host's uniform and texture
+  binding set. Every host UI (Maya's shell, the engine editor, the viewer) is generated from that
+  one schema; parity depends on it being defined once.
+- **LargeWorlds owns the editor**: Qt widgets, node graphs, asset browser, live link, engine-side
+  material assets and instances, packing, streaming. It consumes the schema. A game extends the
+  LargeWorlds editor and asset types, never HogShade.
+- **Dependency direction is one way**: LargeWorlds depends on HogShade (pip package for the Python
+  library, vendored copy of the core WGSL); HogShade never imports LargeWorlds and never depends on
+  PySide6, so it stays importable inside Maya and Blender. This mirrors LargeWorlds' rule that its
+  library packages carry no graphics stack.
+- **Extension without forking**: the schema carries namespaced extension blocks; HogShade validates
+  the core block and passes unknown namespaces through; LargeWorlds adds engine fields (layer, light
+  channels, tier caps, streaming hints) in its namespace; a game adds its own. Three layers, one
+  document format.
+- **The grey zone**: HogShade's viewer and comparison tool get a minimal generic parameter panel
+  generated from the schema; anything beyond (node graphs, asset browsing) belongs in LargeWorlds.
+
+Decided when phase 3 designs the schema; becomes an ADR in the standards pass if the owner agrees.
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`
@@ -139,3 +166,4 @@ Formalised: the standards-pass section of `ROADMAP.md`; the phase 2 plan.
 - When the comparison framework design is written: after the standards pass (current plan) or
   pulled earlier.
 - Whether the orphaned 8K LFS object is worth a support request.
+- The material contract and editor split above (section 3): agree, amend, or reverse.
