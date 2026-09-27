@@ -390,6 +390,15 @@ workflow (generate four, validate, pick one from the phone). The reframing as a 
 shading solution is a scope decision: roadmap track F, design first. The model's terms for
 generated assets in a shipped game are a fact to verify before any generated texture is committed.
 
+Owner, on the verdict: "agreed, meh on AI material channels and data: lossy, not coherent, the
+opposite of quality, which is what the best dialled-in baking actually gives you. Still useful as
+research and experimentation. Then there are other solutions like the Ubisoft PBR model and ComfyUI
+extension, worth looking at, but I have the same skepticism there. If gen-AI is considered slop
+until its output is validated, registered and as consistent as, say, a high-quality texture library
+like Quixel Megascans, it's just a shortcut or a toy. One way to stand above the slop is intent and
+accuracy, the highest quality assets and rendering." Recorded as the quality bar on track F: the
+validation harness is the deliverable and any generator is a plug-in evaluated against it.
+
 ## 4. What moved out of this file (2026-09-27)
 
 | Was here | Now |

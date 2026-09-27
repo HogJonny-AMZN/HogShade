@@ -17,7 +17,9 @@ working knowledge lives in `Docs/knowledge/` (`toolchain.md`, `maya-scripting.md
 state is the section at the end of this file, its open questions are the board's gates; specs and
 plans are under `Docs/superpowers/`. Phase 3 is next in the order of operations and is blocked on
 G4 only: the owner closed G3 the same evening (ADR-009, HogShade owns the material schema and
-data, the editor lives in LargeWorlds), so the schema's pre-spec design is the unblocked Next row.
+data, the editor lives in LargeWorlds), so the schema's pre-spec design is the unblocked Next row; it is drafted
+(`Docs/design/2026-09-27-material-schema.md`, Exploring) and waits for the owner's answers to its
+ten questions and the word *Locked*.
 
 What the standards pass landed: `Docs/standards/python.md` and `wgsl.md`, `Docs/standards/failure-modes.md`
 (twelve entries from this week, five with checks), `.github/copilot-instructions.md`, `Docs/decisions/`
@@ -60,6 +62,18 @@ stdio client: twenty tools, correct per-type counts.
    land in `verification/maya-2026/ibl-check/<env>/` (`check.log`, `main.png`, `debug-NN.png`, `maya-history.log`).
 5. An agent session in this repo gets the BATS MCP server from `.mcp.json` (approve it when Claude
    Code asks); the `bats_*` tools do what `submit.py` does.
+
+## The sibling repositories, as of 2026-09-27 (owner)
+
+Owner: "I haven't caught SpriteJammer up to speed with LargeWorlds; I was getting LargeWorlds fully
+ported to wgpu first, so SpriteJammer itself is currently the most stale and the most in need of
+catching up to LargeWorlds and HogShade work." What moved under SpriteJammer that its docs do not
+know: LargeWorlds is wgpu-only (its ADR-012, 2026-09-25; the docs that call `hog_rendering`
+OpenGL are stale); HogShade owns the material schema and data (ADR-009) and has the schema's
+pre-spec design drafted, so SpriteJammer's MT1 keeps the Material Types, the Cook and the demo and
+takes the schema from here; the board, journal, DoD and checker conventions landed here from
+SpriteJammer's own pattern and are now the same shape in all three repos. Nothing in this repo
+waits on SpriteJammer; its catch-up is a session in that repo.
 
 ## Rules that apply to whoever picks this up
 
