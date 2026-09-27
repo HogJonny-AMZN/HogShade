@@ -22,8 +22,7 @@ Owner asks recorded this session and not yet built: none open. Standing: journal
 
 **PR F is complete.** The Maya gate (plan task 17) passed on 2026-09-26 as a BATS job on the
 `hogshade_maya_gui` worker: `Main` technique listed, cubes and LUT decoded, pictures under
-`verification/maya-2026/ibl-check/studio_small_09/`. Next in the agreed order: the legacy v1 port (plan task 18), then the
-standards pass, then the phase 2 close. The MCP path was validated the same day with a scratch
+`verification/maya-2026/ibl-check/studio_small_09/`; the v1 port followed as #19. The MCP path was validated the same day with a scratch
 stdio client: twenty tools, correct per-type counts.
 
 ## How to run the developer track
