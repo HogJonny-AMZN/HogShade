@@ -1,15 +1,23 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-09-27, PR G (the legacy v1 port; both legacy models render in both hosts).
+**Last updated:** 2026-09-27, PR H (the journal and the process around it; `local-review`; the BATS case).
 
 A new session reads this, then `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then
-`Docs/ROADMAP.md`, then the plan in flight (`Docs/plans/phase-2-restructure.md`).
+the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
+(`Docs/plans/phase-2-restructure.md`). `Docs/standards/definition-of-done.md` says what done means and
+how much to decide alone.
 
 ## In flight
 
-**PR G, the v1 port, is on its branch (`feat/phase2-legacy-v1`).** Next in the agreed order: the
-standards pass, then the phase 2 close at 0.2.0.
+**PR G, the v1 port, is open as #19 (`feat/phase2-legacy-v1`).** **PR H**
+(`docs/journal-process-local-review`, stacked on G) adds the journal, the definition of done and
+workflow, the PR template, `tools/check_docs.py`, the `local-review` skill and the BATS case in the
+knowledge file; it also stops the Maya check leaving Script Editor history mirroring on. Next in the
+agreed order: the standards pass, then the phase 2 close at 0.2.0.
+
+Owner asks recorded this session and not yet built: none open. Standing: journal continuously; a
+`→ BATS:` line wherever the orchestrator made the difference; `pathlib` everywhere.
 
 **PR F is complete.** The Maya gate (plan task 17) passed on 2026-09-26 as a BATS job on the
 `hogshade_maya_gui` worker: `Main` technique listed, cubes and LUT decoded, pictures under

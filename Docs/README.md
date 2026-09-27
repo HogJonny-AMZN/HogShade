@@ -20,6 +20,21 @@ Two more files are the session-independence layer: `handoffs/CURRENT.md` (where 
 how to run the developer track, what a new session must not do) and `knowledge/` (small topic files
 of the agent knowledge base; `knowledge/job-orchestrator.md` is the first).
 
+Three more folders are the process, ported from SpriteJammer on 2026-09-27 with its reasoning:
+[journal/](journal/README.md) (the append-only narrative, one file per session: what happened, which
+beliefs changed, where BATS made the difference), [standards/](standards/definition-of-done.md) (the
+definition of done with the autonomy protocol, and [standards/workflow.md](standards/workflow.md) for
+the stages and which record owns what), and `tools/check_docs.py`, which fails the build on a broken
+link, a governed document without a status line, or a session missing from the journal index.
+
+| If you are... | Read |
+| --- | --- |
+| Starting any session | `handoffs/CURRENT.md`, then the decision log, then the newest journal file |
+| Finishing an increment | `standards/definition-of-done.md`, the PR template, `journal/README.md` |
+| Deciding something the owner has not | The autonomy protocol in `standards/definition-of-done.md` |
+| Running anything in Maya or Blender | `knowledge/job-orchestrator.md`, then the `bats-job` and `maya-check` skills |
+| Touching the core | `specs/phase-2-restructure.md` "Interfaces", `core/manifest.toml`, the `shader-build` and `local-review` skills |
+
 Checkboxes in the roadmap track phases and owner gates. Checkboxes in a plan track tasks. A task
 is ticked when its verification ran, not when its code was written. "Done" for a phase means the
 spec's acceptance gate passed and the roadmap, the README and any affected design doc were updated.

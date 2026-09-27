@@ -11,6 +11,12 @@ the phase 2 standards pass; until then these pointers are the contract.)
    every decision and lesson to date, with where each is formalised.
 3. [Docs/README.md](Docs/README.md): the document layers (roadmap, design, spec, plan) and the
    current specs and plans; [Docs/ROADMAP.md](Docs/ROADMAP.md) for what comes next.
+4. [Docs/standards/definition-of-done.md](Docs/standards/definition-of-done.md): what "done" means,
+   the autonomy protocol (two-way doors decided and recorded in the PR's *Decisions* table, one-way
+   doors asked), and when `local-review` runs; [Docs/standards/workflow.md](Docs/standards/workflow.md)
+   for the stages and which record owns what.
+5. The newest file in [Docs/journal/](Docs/journal/README.md) when resuming after a break: the
+   narrative, and where BATS made the difference.
 
 ## Topic files
 
@@ -18,6 +24,7 @@ the phase 2 standards pass; until then these pointers are the contract.)
 | --- | --- |
 | Job_Orchestrator (BATS): the developer track, worker types, jobs, rules | [Docs/knowledge/job-orchestrator.md](Docs/knowledge/job-orchestrator.md), [tools/bats/AGENTS.md](tools/bats/AGENTS.md) |
 | Tools layout per host | [tools/README.md](tools/README.md) |
+| The journal: why, cadence, entry format, the `→ BATS:` line | [Docs/journal/README.md](Docs/journal/README.md) |
 | Generated hosts and what to call in the core | [hosts/README.md](hosts/README.md), [hosts/hlsl/README.md](hosts/hlsl/README.md), [hosts/wgpu/README.md](hosts/wgpu/README.md) |
 | IBL content and the cook | [content/ibl/README.md](content/ibl/README.md), [Docs/specs/e1-ibl-cook.md](Docs/specs/e1-ibl-cook.md) |
 
@@ -26,8 +33,9 @@ the phase 2 standards pass; until then these pointers are the contract.)
 Plain-markdown procedures under `.claude/skills/<name>/SKILL.md`, Claude's layout, readable by any
 agent: `bats-job` (submit and read jobs), `maya-check` (a Maya check through the resident worker
 and how to read its result), `shader-build` (change the core, rebuild, verify on every compiler),
-`review-and-pr` (the PR checklist and how to assess a Copilot review). Follow the matching one
-before improvising; add one when a procedure has been done twice.
+`review-and-pr` (the PR checklist and how to assess a Copilot review), `local-review` (a fresh-eyes
+review against this repo's standards and a rubric; `core` mode for a WGSL module). Follow the
+matching one before improvising; add one when a procedure has been done twice.
 
 ## Non-negotiable rules
 
@@ -41,3 +49,11 @@ before improvising; add one when a procedure has been done twice.
 - Every PR is reviewed by Copilot; assess each finding, fix or refute with evidence, reply on the
   thread; the owner merges. Claims in a reply come after the evidence exists.
 - Record decisions and lessons in the decision log or a topic file in the same PR as the work.
+- **Journal continuously**, not retrospectively: every meaningful exchange, every step that changed
+  or taught something, whenever a belief changes, and whenever the orchestrator made the difference
+  (a `→ BATS:` line). One file per session under `Docs/journal/`; `tools/check_docs.py` fails when a
+  session is missing from the index.
+- Two-way doors: decide, record in the PR's *Decisions* table, continue; more than eight means split
+  the PR. One-way doors: stop and ask. The owner's merge is the review.
+- Update `Docs/handoffs/CURRENT.md` when a decision changes, work is interrupted, or the owner states
+  a preference worth carrying forward.
