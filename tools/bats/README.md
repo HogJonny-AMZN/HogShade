@@ -11,6 +11,7 @@ list: [Docs/knowledge/job-orchestrator.md](../../Docs/knowledge/job-orchestrator
 | `hogshade_blender_env.json` | generated: the Blender 5.2 worker environment with `HOGSHADE_ROOT` |
 | `run_hogshade_orchestrator.bat` | copies the profile into the orchestrator's config folder and starts orchestrator plus tray with `--config hogshade` |
 | `submit.py` | submit a job and wait; `--pool` shows what is running |
+| `kill_hogshade_orchestrator.bat` | emergency shutdown of a wedged orchestrator through its own kill script; ends every Maya and Houdini process on the machine, so a human runs it, never an agent |
 
 ```bat
 set JOB_ORCHESTRATOR_ROOT=D:\Depot\Job_Orchestrator

@@ -43,6 +43,9 @@ that are committed and never hand-edited:
 `tools/bats/run_hogshade_orchestrator.bat` copies the profile into the orchestrator's config folder
 (it loads named profiles only from there; loading a profile by path is a to-do on the dev checkout)
 and starts the orchestrator and tray with `--config hogshade`.
+`tools/bats/kill_hogshade_orchestrator.bat` is the fallback for a wedged orchestrator: it runs the
+dev checkout's own kill script, which also ends every Maya and Houdini process on the machine by
+name. A human runs it after saving work; an agent never does.
 
 ## Jobs
 
