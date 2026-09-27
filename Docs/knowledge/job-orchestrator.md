@@ -26,8 +26,9 @@ HogShade development needs. LargeWorlds and SpriteJammer get their own later, co
 dependencies. Only one orchestrator runs at a time on a machine (one port), so stop one before
 starting another.
 
-`tools/bats/make_profile.py` derives, from the dev checkout's canon config, two generated files
-that are committed and never hand-edited:
+`tools/bats/make_profile.py` derives, from the dev checkout's canon config, four generated files
+that are committed and never hand-edited: the profile and one environment file per DCC, each
+folding in the canon base environment (see the layering section below):
 
 - `orchestrator_config_hogshade.json`: the canon's paths, scaling, GPU, monitoring and logging, and
   HogShade's worker types only: `hogshade_maya` (one headless mayapy), `hogshade_maya_gui` (one
@@ -35,10 +36,13 @@ that are committed and never hand-edited:
   `hogshade_python` (one venv Python for the cooks), `hogshade_blender` (one headless Blender 5.2 on
   its embedded Python 3.13, for the Blender host, bakes and the required comparison path). Named
   types, the orchestrator's pattern for variants, so nothing in HogShade ever targets a canon type.
-- `hogshade_maya_env.json`: the canon Maya environment plus the HogShade root on `PYTHONPATH`, so a
-  MODULE-mode job imports `hogshade.*` directly.
-- `hogshade_blender_env.json`: the canon Blender environment plus `HOGSHADE_ROOT`; Blender's embedded
-  Python ignores `PYTHONPATH`, so a Blender job puts the root on `sys.path` from that variable.
+- `hogshade_maya_env.json`: base plus the canon Maya environment plus the HogShade root on
+  `PYTHONPATH` (so a MODULE-mode job imports `hogshade.*` directly) and the DirectX 11 viewport
+  override; shared by `hogshade_maya` and `hogshade_maya_gui`.
+- `hogshade_python_env.json`: base plus the canon Python worker environment plus the HogShade root.
+- `hogshade_blender_env.json`: base plus the canon Blender environment plus `HOGSHADE_ROOT`;
+  Blender's embedded Python ignores `PYTHONPATH`, so a Blender job puts the root on `sys.path` from
+  that variable.
 
 `tools/bats/run_hogshade_orchestrator.bat` copies the profile into the orchestrator's config folder
 (it loads named profiles only from there; loading a profile by path is a to-do on the dev checkout)
