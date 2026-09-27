@@ -7,7 +7,7 @@ belong to no host stay at the top.
 ## Verification artifacts
 
 One directory per capture, files named by their role only:
-`Docs/verification/<host>[-<version>]/<check>/<variant>/<role>.<ext>`, for example
+`verification/<host>[-<version>]/<check>/<variant>/<role>.<ext>`, for example
 `maya-2026/ibl-check/studio_small_09/main.png` beside `check.log`, `debug-28.png` and
 `maya-history.log`, or `wgpu/shader-ball/studio_small_09/forward.png`. Host, version, check and
 variant are directory levels; a file name never repeats them and never chains them with dashes.

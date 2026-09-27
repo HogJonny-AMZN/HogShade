@@ -55,7 +55,7 @@ desktop.ini
 
 # Logs and scratch (verification logs are committed on purpose)
 *.log
-!Docs/verification/**/*.log
+!verification/**/*.log
 !Spikes/**/fxc.log
 !Spikes/**/verification/*.log
 logs/

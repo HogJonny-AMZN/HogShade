@@ -32,7 +32,7 @@ MANIFEST = {
     "description": (
         "Load hosts/maya_dx11/hogshade.fx on a sphere in the resident GUI Maya, bind the cooked IBL cubes "
         "and the BRDF LUT from content/ibl, bind one directional light into slot 0, playblast the main view "
-        "and the requested debug views into Docs/verification/maya-2026/<check>/<env>/, and write an incremental log with the "
+        "and the requested debug views into verification/maya-2026/<check>/<env>/, and write an incremental log with the "
         "technique list, the texture decode sizes and Maya's Script Editor history (where dx11Shader reports "
         "effect compile errors). Returns the log path, the PNG paths and whether the gate passed."
     ),
@@ -44,12 +44,12 @@ MANIFEST = {
         "check": {
             "type": "str",
             "default": "ibl-check",
-            "description": "output directory name under Docs/verification/maya-2026/",
+            "description": "output directory name under verification/maya-2026/",
         },
     },
     "inputs": ["hosts/maya_dx11/hogshade.fx", "content/ibl/<env>/cooked/*.dds", "content/ibl/brdf_lut.dds"],
     "outputs": [
-        "Docs/verification/maya-2026/<check>/<env>/check.log",
+        "verification/maya-2026/<check>/<env>/check.log",
         ".../main.png",
         ".../debug-NN.png",
         ".../maya-history.log",

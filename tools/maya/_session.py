@@ -9,7 +9,7 @@ A check script is a module in this folder with a ``run()`` that the .mel launche
     python("import os, sys; sys.path.insert(0, os.environ.get('HOGSHADE_ROOT', os.getcwd()) + '/tools/maya'); import ibl_check")
 
 Environment every script honours: HOGSHADE_ROOT (repo root, default the working directory),
-HOGSHADE_VERIFICATION (default <root>/Docs/verification).
+HOGSHADE_VERIFICATION (default <root>/verification).
 """
 
 import os
@@ -19,7 +19,7 @@ import traceback
 from maya import cmds
 
 ROOT = os.environ.get("HOGSHADE_ROOT", os.getcwd()).replace("\\", "/")
-VERIFICATION = os.environ.get("HOGSHADE_VERIFICATION", f"{ROOT}/Docs/verification").replace("\\", "/")
+VERIFICATION = os.environ.get("HOGSHADE_VERIFICATION", f"{ROOT}/verification").replace("\\", "/")
 MAYA_VERSION = "2026"
 
 

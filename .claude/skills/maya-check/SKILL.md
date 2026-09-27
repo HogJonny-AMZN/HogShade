@@ -22,7 +22,7 @@ output directory name).
 
 ## Read the result, in this order
 
-1. `Docs/verification/maya-2026/<check>/<env>/check.log`: `TECHNIQUES: [...]` is the first fact. An
+1. `verification/maya-2026/<check>/<env>/check.log`: `TECHNIQUES: [...]` is the first fact. An
    empty list means Maya's compiler rejected the effect even if fxc passed it.
 2. `maya-history.log` beside it: the mirrored Script Editor history; dx11Shader prints its compile errors
    there and nowhere else. Search for `error`, the effect's file name, `X3` codes.

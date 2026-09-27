@@ -11,7 +11,7 @@ Run inside a Maya GUI session (headless mayapy has no DirectX device):
 Creates a sphere, assigns hosts/maya_dx11/hogshade.fx (HOGSHADE_FX overrides, e.g. the legacy v2
 shader), points the environment slots at content/ibl/<env>/cooked/*.dds and the BRDF LUT at
 content/ibl/brdf_lut.dds, binds one directional light into slot 0, frames the sphere, playblasts
-the main view and a few debug views to Docs/verification/maya-2026/<check>/<env>/ (check.log, main.png,
+the main view and a few debug views to verification/maya-2026/<check>/<env>/ (check.log, main.png,
 debug-NN.png, maya-history.log), logs the technique list and the texture attributes, and quits. The log is the evidence; the PNGs are the picture.
 
 Environment: HOGSHADE_ENV (studio_small_09), HOGSHADE_FX, HOGSHADE_SET="attr=value,...",

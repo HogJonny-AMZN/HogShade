@@ -104,7 +104,7 @@ roadmap's coding-standards item (track B).
 ### Tools and verification layout (2026-09-26; decided during PR F)
 
 `tools/<host>/` per DCC or host (`maya/` with `_session.py` shared by every Maya check, `wgpu/`,
-later `blender/`, `toolbag/`, `substance/`); repo-level tools at the top; `Docs/verification/<host>/`
+later `blender/`, `toolbag/`, `substance/`); repo-level tools at the top; `verification/<host>/`
 mirrors it. `tools/README.md` is the rule. Started now rather than after forty artifacts.
 
 ### Driving Maya during development: BATS or a Maya MCP as a convenience, never a dependency (owner, 2026-09-26; soft)
@@ -141,7 +141,7 @@ first.
 ### Verification artifact layout (owner, 2026-09-26; decided)
 
 One directory per capture, files named by role only:
-`Docs/verification/<host>[-<version>]/<check>/<variant>/<role>.<ext>` (`maya-2026/ibl-check/studio_small_09/main.png`
+`verification/<host>[-<version>]/<check>/<variant>/<role>.<ext>` (`maya-2026/ibl-check/studio_small_09/main.png`
 beside `check.log`, `debug-28.png`, `maya-history.log`; `wgpu/shader-ball/studio_small_09/forward.png`).
 A file name never repeats the host, version, check or variant and never chains them with dashes; the
 owner stopped that pattern the first time it appeared because agents copy existing patterns. The

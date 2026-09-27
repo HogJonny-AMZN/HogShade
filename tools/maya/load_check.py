@@ -7,7 +7,7 @@ Package: tools/maya/load_check
     maya.exe -script tools/maya/load_check.mel
 
 HOGSHADE_FX selects the effect (default hosts/maya_dx11/hogshade.fx; the legacy v2 shader is
-legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx). Writes Docs/verification/maya-2026/<check>/check.log (default check
+legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx). Writes verification/maya-2026/<check>/check.log (default check
 name load-check) with the technique list and RESULT: OK, or the traceback.
 """
 

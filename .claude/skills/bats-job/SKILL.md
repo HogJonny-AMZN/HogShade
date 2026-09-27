@@ -29,7 +29,7 @@ CRASHED, the pool respawns it, do nothing). HogShade's types: `hogshade_maya`,
 `--gui` targets `hogshade_maya_gui`; without it, `hogshade_maya`; `--worker` overrides. Viewport
 work (playblast, captures) needs `--gui --main-thread`. The tool streams status and prints the
 `JobResult` as JSON: read `status`, `log`, `errorMessage`, then the files the job wrote (Maya checks:
-`Docs/verification/maya-2026/<check>/<env>/`: `check.log`, `main.png`, `debug-NN.png`, and
+`verification/maya-2026/<check>/<env>/`: `check.log`, `main.png`, `debug-NN.png`, and
 `maya-history.log` with effect compile errors).
 
 If the session has the `bats` MCP server, `bats_get_pool_status`, `bats_submit_job` and

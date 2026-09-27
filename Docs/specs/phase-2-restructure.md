@@ -212,14 +212,14 @@ each core function, small and readable, the same role E1's NumPy path plays for 
 
 The harness is skipped, not failed, when no GPU adapter is available; CI on a headless runner
 therefore checks compile and the Python references only, and the GPU tests run on the owner's
-machine and are recorded in `Docs/verification/`.
+machine and are recorded in `verification/`.
 
 ## Hosts in this phase
 
 - `hosts/wgpu/`: `lit_mesh.wgsl` (forward: inputs then evaluate), `gbuffer_fill.wgsl` and
   `deferred_light.wgsl` (the two halves), each a thin entry point over the stitched core, validated
   by naga. A wgpu-py test viewport on the `Spikes/wgpu_tile` pattern draws the shader ball with the
-  legacy v2 model under the studio IBL and writes `Docs/verification/wgpu/shader-ball/<env>/forward.png`.
+  legacy v2 model under the studio IBL and writes `verification/wgpu/shader-ball/<env>/forward.png`.
 - `hosts/maya_dx11/`: `hogshade.fx`, the shell: effect parameters and annotations (generated from
   the parameter schema in phase 3; hand-written for the legacy parameter set now), texture and
   sampler declarations, the 16 light slots bound through `Object = "Light N"`, techniques and passes,
@@ -243,7 +243,7 @@ machine and are recorded in `Docs/verification/`.
 - The spike's verdict is recorded in the plan with the evidence (fxc log, Maya screenshot).
 - `tests/compile/` passes: naga validates every core module and every host; fxc compiles the Maya
   shell; dxc compiles `hosts/hlsl/`. CI runs it.
-- `tests/core/` passes on the owner's GPU; the run is recorded under `Docs/verification/`.
+- `tests/core/` passes on the owner's GPU; the run is recorded under `verification/`.
 - Maya 2026 renders the ported v2 model on the shader ball under the studio IBL with a visible
   specular reflection, from the E1 check tool, screenshot committed.
 - The wgpu viewport renders the same scene; the two screenshots are compared by eye in this phase

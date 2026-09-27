@@ -13,7 +13,7 @@ and [Docs/knowledge/job-orchestrator.md](../../Docs/knowledge/job-orchestrator.m
 - Write new jobs under `hogshade/jobs/` as MODULE-mode modules with a `MANIFEST` and a
   `main(parameters) -> dict`, thin over code that also runs without the orchestrator.
 - Regenerate the profile with `make_profile.py` after the dev checkout changes, and commit the diff.
-- Read results and logs under `Docs/verification/<host>/`.
+- Read results and logs under `verification/<host>/`.
 
 ## What you must not do
 

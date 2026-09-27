@@ -47,7 +47,7 @@ tools\bats\run_hogshade_orchestrator.bat
 
 - One orchestrator per machine: stop any other one first (tray icon, or the kill switch).
 - The GUI Maya worker takes about two minutes to boot; the tray shows BOOTING then READY.
-- Results of a check land under `Docs/verification/<host>/` (log first, pictures second, and for
+- Results of a check land under `verification/<host>/` (log first, pictures second, and for
   Maya a mirrored Script Editor history where effect compile errors appear).
 - The launcher copies the profile into the orchestrator's config folder because named profiles
   load only from there. Loading a profile by path is a to-do on the dev checkout.

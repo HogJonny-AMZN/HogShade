@@ -6,7 +6,7 @@ own. Tick a task only when its verification ran.
 ## PR A: the spike
 
 - [x] 1. Toolchain: Rust via `winget install Rustlang.Rustup`, then `cargo install naga-cli`; record
-      versions in `Docs/verification/toolchain.md`. Verified 2026-09-20: naga 30.0.1, Rust 1.98.1.
+      versions in `Docs/knowledge/toolchain.md`. Verified 2026-09-20: naga 30.0.1, Rust 1.98.1.
 - [x] 2. `Spikes/naga-fx/`: `ggx.wgsl` (GGX D, Smith visibility, Schlick Fresnel, one function that
       combines them, plus a function that samples a `texture_2d` through a `sampler` for the base
       colour and reads one light from a uniform struct), `naga --shader-model 50 ggx.wgsl ggx.hlsl`,
@@ -54,11 +54,11 @@ own. Tick a task only when its verification ran.
       core in front of a per-test compute kernel and runs one thread per test vector.
 - [x] 9. `core/brdf.wgsl`: GGX D, height-correlated Smith visibility, Schlick and F82-tint Fresnel,
       Lambert and Burley diffuse; `hogshade/reference/brdf.py` NumPy twins. Verified: compute-shader
-      comparison on a grid within 1e-5; run recorded in `Docs/verification/`. Verified 2026-09-21:
+      comparison on a grid within 1e-5; run recorded in `verification/`. Verified 2026-09-21:
       GGX D, height-correlated Smith, Schlick, F82-tint, Lambert, Burley and the GGX composite match
       the NumPy references (2e-5 relative on the grid for alpha >= 0.1; GGX D below that is limited
       by float32 cancellation at the peak and is held to 1e-2, with the reason in the test). The GPU
-      run is recorded in `Docs/verification/core/gpu-tests.log` (machine, adapter, per-test result).
+      run is recorded in `verification/core/gpu-tests.log` (machine, adapter, per-test result).
 - [x] 10. `core/lighting.wgsl` test: 16 slots equal 16 single calls. `core/gbuffer.wgsl` tests:
       `SurfaceInputs` round trip within the layout's quantisation, and forward-versus-deferred parity
       (evaluate on `ShadingInputs` built directly, against evaluate on encode, decode and
@@ -85,7 +85,7 @@ own. Tick a task only when its verification ran.
       Verified 2026-09-25: modes 0 to 32 through `legacy_v2_debug` are finite and equal the reference
       on 128 random inputs each; the twelve texel-and-UV modes (`legacy_v2_debug_is_inputs_mode`)
       are also computed exactly by `legacy_v2_debug_inputs` for forward hosts and match the
-      reference. `Docs/verification/core/gpu-tests.log` refreshed: 69 core tests on the RTX 5090
+      reference. `verification/core/gpu-tests.log` refreshed: 69 core tests on the RTX 5090
       (the host is named BIGHOG-4090RTX after its previous card; the log's adapter line is the
       truth). Copilot on PR D: the lookup coordinates moved into the model (`models_env_lookup`,
       tested); FXC on the CI runner's DX12 adapter rejected two multi-return switch cases in
@@ -104,7 +104,7 @@ own. Tick a task only when its verification ran.
       selector comes from the uint G-buffer texture in a shader that also passes textures into
       functions; the dispatcher is an if-chain now and both backends render the pass.
 - [x] 14. `tools/wgpu/viewport.py`: shader ball (derkreature, OBJ; the plan first said glTF), legacy v2 model, studio IBL from
-      `content/ibl`, one directional light; writes `Docs/verification/wgpu/shader-ball/<env>/forward.png`. Verified:
+      `content/ibl`, one directional light; writes `verification/wgpu/shader-ball/<env>/forward.png`. Verified:
       the PNG shows a lit ball with a specular reflection of the studio. Done 2026-09-26: the ball is
       the OBJ, not glTF (that repository ships OBJ and FBX; `content/shaderball/`, Unlicense, LFS),
       read by `hogshade.wgpu_host.load_obj`. `hogshade.wgpu_host.Renderer` draws both paths offscreen
@@ -147,7 +147,7 @@ own. Tick a task only when its verification ran.
       launcher stays for anyone without BATS. `tools/maya/_session.py` is shared by both paths.
       **Passed 2026-09-26** as the job `hogshade.jobs.maya_ibl_check` on the `hogshade_maya_gui`
       worker (PR #18): `TECHNIQUES: ['Main']` (effect load 14.4 s), both cubes decoded (256 and 32),
-      the LUT decoded (256), `RESULT: OK`; `Docs/verification/maya-2026/ibl-check/studio_small_09/main.png`
+      the LUT decoded (256), `RESULT: OK`; `verification/maya-2026/ibl-check/studio_small_09/main.png`
       shows the lit grey dielectric with the key-light highlight and the studio reflection, and
       `debug-28.png` (the specular environment term) mirrors the studio in the ball. The compile
       failure of the first standalone runs was the string parameters carrying vertex semantics,

@@ -123,7 +123,7 @@ def build(out_dir: Path, require_compilers: bool = False) -> dict[str, str]:
     """Build every artifact under out_dir (mirroring hosts/); return {artifact: sha256}."""
     naga = find_tool("naga")
     if not naga:
-        raise BuildError("naga not found: cargo install naga-cli (Docs/verification/toolchain.md)")
+        raise BuildError("naga not found: cargo install naga-cli (Docs/knowledge/toolchain.md)")
     manifest = load_manifest()
     entry = manifest["validate"]["entry_point"]
     core_only = stitch(manifest, with_validate=False)

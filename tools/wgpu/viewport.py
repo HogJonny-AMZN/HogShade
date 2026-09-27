@@ -3,7 +3,7 @@ HogShade: render the shader ball with the legacy v2 model under an E1 environmen
 and write the verification PNGs (phase 2 plan, task 14).
 Package: tools/wgpu/viewport
 
-    uv run tools/wgpu/viewport.py                      # Docs/verification/wgpu/shader-ball/studio_small_09/{forward,deferred}.png
+    uv run tools/wgpu/viewport.py                      # verification/wgpu/shader-ball/studio_small_09/{forward,deferred}.png
     uv run tools/wgpu/viewport.py --debug-mode 18      # the v2 specular accumulator
     uv run tools/wgpu/viewport.py --environment citrus_orchard_road_puresky --roughness 0.2 --metalness 1
 
@@ -33,7 +33,7 @@ def main(argv: list[str] | None = None) -> int:
         "--out-dir",
         type=Path,
         default=None,
-        help="capture directory; default Docs/verification/wgpu/shader-ball/<env>[/<variant>]",
+        help="capture directory; default verification/wgpu/shader-ball/<env>[/<variant>]",
     )
     ap.add_argument("--variant", default="", help="sub-directory for a material variant, e.g. metal")
     ap.add_argument("--environment", default="studio_small_09")
