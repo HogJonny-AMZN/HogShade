@@ -29,6 +29,10 @@ Two more files are the session-independence layer: `handoffs/CURRENT.md` (where 
 how to run the developer track, what a new session must not do) and `knowledge/` (small topic files
 of the agent knowledge base; `knowledge/job-orchestrator.md` is the first).
 
+[glossary.md](glossary.md) is the canonical vocabulary, shared with SpriteJammer where the concept is
+shared; `tools/check_docs.py` fails on a retired term used as current (the check SpriteJammer boarded
+as W1 and this repo built first).
+
 [reviews/](reviews/2026-09-27-pitch-editorial-plan.md) holds review artifacts written for a future reader: editorial
 plans with their findings, rejections and scorecards, and local code reviews when they are kept
 (the standards pass's project review is one). [decisions/](decisions/README.md) holds the ADRs,
@@ -46,6 +50,7 @@ link, a governed document without a status line, or a session missing from the j
 | If you are... | Read |
 | --- | --- |
 | Starting any session | `handoffs/CURRENT.md`, then `plan/BOARD.md` (gates first), then the decision log, then the newest journal file |
+| New to the project, or naming anything | [glossary.md](glossary.md): one word per concept; use these words and no synonyms; add a concept's word there before using it |
 | An idea was said out loud | `plan/BOARD.md`, Icebox, with a cost and a reason; it is not a work order |
 | Finishing an increment | `standards/definition-of-done.md`, the PR template, `journal/README.md` |
 | Deciding something the owner has not | The autonomy protocol in `standards/definition-of-done.md` |

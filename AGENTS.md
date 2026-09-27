@@ -20,7 +20,9 @@ the phase 2 standards pass; until then these pointers are the contract.)
    for the stages and which record owns what.
 5. The newest file in [Docs/journal/](Docs/journal/README.md) when resuming after a break: the
    narrative, and where BATS made the difference.
-6. [Docs/standards/python.md](Docs/standards/python.md) and [Docs/standards/wgsl.md](Docs/standards/wgsl.md)
+6. [Docs/glossary.md](Docs/glossary.md): the canonical vocabulary. Use these exact words, no synonyms; a
+   retired term fails `tools/check_docs.py`.
+7. [Docs/standards/python.md](Docs/standards/python.md) and [Docs/standards/wgsl.md](Docs/standards/wgsl.md)
    before writing code; [Docs/decisions/README.md](Docs/decisions/README.md) before a structural change;
    [Docs/standards/failure-modes.md](Docs/standards/failure-modes.md) when something goes wrong in the process,
    and append to it in the same PR.
@@ -32,6 +34,7 @@ the phase 2 standards pass; until then these pointers are the contract.)
 | Job_Orchestrator (BATS): the developer track, worker types, jobs, rules | [Docs/knowledge/job-orchestrator.md](Docs/knowledge/job-orchestrator.md), [tools/bats/AGENTS.md](tools/bats/AGENTS.md) |
 | Tools layout per host | [tools/README.md](tools/README.md) |
 | The journal: why, cadence, entry format, the `→ BATS:` line | [Docs/journal/README.md](Docs/journal/README.md) |
+| The vocabulary, one word per concept, retired terms struck through | [Docs/glossary.md](Docs/glossary.md) |
 | Coding standards, Python and WGSL | [Docs/standards/python.md](Docs/standards/python.md), [Docs/standards/wgsl.md](Docs/standards/wgsl.md) |
 | The decisions, as ADRs | [Docs/decisions/README.md](Docs/decisions/README.md) |
 | How the process has failed here, as triggers | [Docs/standards/failure-modes.md](Docs/standards/failure-modes.md) |
@@ -59,6 +62,10 @@ matching one before improvising; add one when a procedure has been done twice.
 - Every PR is reviewed by Copilot; assess each finding, fix or refute with evidence, reply on the
   thread; the owner merges. Claims in a reply come after the evidence exists.
 - Record decisions and lessons in the decision log or a topic file in the same PR as the work.
+- **Use the glossary vocabulary.** *Material Prime*, never master material; *Material Type* is the
+  contract and *Material* the deltas record; *cook* is not *check*; *twin* is the NumPy reference.
+  Synonym drift is the most damaging thing that can happen to a corpus agents load as context: a
+  concept with two names is retrieved by neither. A new concept gets its word in the glossary first.
 - **A mentioned feature is not a work order.** It goes on the board's Icebox with a cost and a reason,
   in the same session it was said; it is built when the owner says so, when it blocks work in flight,
   or when it is smaller than the conversation about it.

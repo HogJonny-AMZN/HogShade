@@ -24,7 +24,10 @@ What a review here should check, in this order:
 5. **Docs in the same PR**: the plan task ticked with a verification note, the spec amended if an
    interface changed, the board row struck or added, the journal appended, the handoff current.
    `tools/check_docs.py` must pass.
-6. **Python standards**: module header with `_MODULE_NAME`, absolute imports, complete type hints,
+6. **Synonym drift**: the vocabulary is `Docs/glossary.md`. *Material Prime*, never master material;
+   *Material Type* is the contract and *Material* the deltas; *cook* is not *check*. A new word for an
+   existing concept is a finding.
+7. **Python standards**: module header with `_MODULE_NAME`, absolute imports, complete type hints,
    `pathlib`, specific exceptions, no `print()` outside a script's entry point or a DCC-side script.
 
 A job under `hogshade/jobs/` must also run without the orchestrator; the manifest's `outputs`

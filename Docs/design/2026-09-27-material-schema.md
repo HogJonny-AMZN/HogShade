@@ -28,7 +28,7 @@ are opt-ins"; versioning from the first file.
 | --- | --- |
 | HogShade owns the schema, the document, the mapping and a Python library; no editor here; dependency one way; namespaced extension blocks | ADR-009 |
 | OpenPBR parameter names, deviations documented | direction doc, "Parameter model" |
-| The authored interchange is a MaterialX `.mtlx` document (OpenPBR is defined in MaterialX) | direction doc, "Interchange"; blind spot 4 |
+| A MaterialX `.mtlx` document is where a Material Prime is authored and is the interchange (OpenPBR is defined in MaterialX); the record of an asset is the JSON document (question 10, locked) | direction doc, "Interchange", as amended 2026-09-27; blind spot 4 |
 | Game profile = OpenPBR restricted to what glTF 2.0 and its KHR extensions carry, with a conversion table; outside glTF is forward-only | direction doc, "Game profile"; blind spot 3 |
 | Every host's material UI is generated from the schema, never hand-edited; a test asserts it | direction doc, "Material UI"; blind spot 5 |
 | One alpha-mode enum, glTF's OPAQUE, MASK, BLEND; MASK the game default | direction doc, "Alpha"; blind spot 9 |
