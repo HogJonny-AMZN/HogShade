@@ -289,8 +289,13 @@ The inputs and the proof. Without these, "same shader" produces different pictur
 - [ ] Texture conventions written down: OpenGL +Y normals, ORM packing, sRGB only for base colour and
       emissive, linear-space mips, BC5 normals and BC7 colour. Authoring set (one map per parameter)
       and runtime set (packed, compressed) with one cook tool, run as a BATS job.
-- [ ] MikkTSpace everywhere: the engine importer generates tangents when the file has none; the Maya
-      host reads supplied tangents; the calibration scene ships them.
+- [ ] **MikkTSpace is a requirement, not a convention (owner, 2026-09-26).** Maya now generates
+      MikkTSpace tangents by default, Blender, glTF, Substance and Toolbag already did, so every
+      host, bake path and exporter in this repo requires it and nothing supports another basis: the
+      engine importer generates MikkTSpace tangents when a file has none, the Maya host reads the
+      supplied ones, the calibration scene and the procedural meshes ship them, the bake diff
+      assumes them. A mesh with tangents from another basis is a validation failure with a message,
+      never a silent mismatch. One rule removes a whole class of parity bugs.
 - [ ] Calibration scene: metal and dielectric roughness ramps, 18 percent grey card, colour checker,
       normal-map test tile, triplanar cube, one alpha cutout. Same camera, rig and HDR in every host.
       The mesh is derkreature/ShaderBall (Unlicense, public domain; the same ball the 2015 shader was
