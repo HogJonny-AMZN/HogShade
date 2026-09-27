@@ -12,23 +12,33 @@ name load-check) with the technique list and RESULT: OK, or the traceback.
 """
 
 import os
+from pathlib import Path
 
 import _session as s
 from maya import cmds
 
-SHADER = os.environ.get("HOGSHADE_FX", f"{s.ROOT}/hosts/maya_dx11/hogshade.fx")
-LOG = f"{s.output_dir(os.environ.get('HOGSHADE_CHECK', 'load-check'))}/check.log"
+SHADER = Path(os.environ.get("HOGSHADE_FX", str(s.ROOT / "hosts" / "maya_dx11" / "hogshade.fx")))
+LOG = s.output_dir(os.environ.get("HOGSHADE_CHECK", "load-check")) / "check.log"
 
 
-def run():
+def run_check(quit_after: bool = True) -> dict:
     out = s.Log(LOG, [f"shader {SHADER}"])
+    result = {"ok": False, "log": str(LOG), "techniques": []}
     try:
         out.append("ENGINE: {!r}".format(cmds.optionVar(q="vp2RenderingEngine")))
         node, _sg, techs = s.load_dx11_shader("hogshade_load", SHADER, out)
         out.append("TECHNIQUE: {!r}".format(cmds.getAttr(node + ".technique")))
-        s.finish(out, bool(techs))
+        result["techniques"] = list(techs or [])
+        result["ok"] = bool(techs)
+        s.finish(out, result["ok"], quit_after)
     except Exception:  # noqa: BLE001 - the point of this script is to log whatever Maya throws
-        s.fail(out)
+        s.fail(out, quit_after)
+    return result
 
 
-cmds.evalDeferred(run, lowestPriority=True)
+def run() -> None:
+    run_check(quit_after=True)
+
+
+if os.environ.get("HOGSHADE_AS_JOB", "") != "1":
+    cmds.evalDeferred(run, lowestPriority=True)

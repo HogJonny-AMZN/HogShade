@@ -137,8 +137,10 @@ The core is written in WGSL (owner, 2026-09-20). `naga` translates it for the DC
       the attachments' quantisation.
 - [ ] `core/models/legacy_v1/` and `legacy_v2/`: verbatim ports. Pixel-identical to the baseline
       screenshot on the shader ball. v2 ported 2026-09-25 (PR #10), numerically identical to its
-      NumPy twin with six documented deviations; v1 and the Maya screenshot diff wait for the Maya
-      shell (phase 2 PRs E and F).
+      NumPy twin with six documented deviations; v1 ported 2026-09-27 (PR G): the record shows v1
+      was one Disney BRDF (the Cook-Torrance and "game" includes never compiled), now selectable in
+      both hosts. The pixel-identical screenshot diff against the legacy effects waits for the
+      comparison framework (track E).
 - [x] `core/brdf/`: the toolbox factored out of the ports (NDFs, visibility, Fresnel, diffuse). Done
       2026-09-21 and 25 (`core/brdf.wgsl`): GGX D, height-correlated Smith, Hable visibility,
       Schlick and F82 Fresnel, Lambert and Burley, each with a NumPy reference and a GPU test.
@@ -350,7 +352,11 @@ The inputs and the proof. Without these, "same shader" produces different pictur
       patch; an 18 percent grey card; grey and colour ramps; roughness and metalness ramps; a UV test
       grid with numbered tiles; checkerboards; normal-map test tiles (flat, bumps, a known slope
       whose decoded angle is in the manifest); a height tile for parallax; an alpha cutout; the
-      fallback primitive meshes above. Colour conversions come from one place (the sRGB and
+      fallback primitive meshes above. **Registered grids (owner, 2026-09-27):** the UV grid,
+      normal tiles and a registration chart carry orientation marks (an arrow for +Y, corner labels,
+      channel swatches) so a capture proves per host that the up axis, the UV origin, the normal
+      map sign and the channel order are right; the models' debug views (v2's 33, v1's 8) are the
+      probes that expose each channel for that comparison. Colour conversions come from one place (the sRGB and
       colour-space functions in `hogshade.reference`, shared with the G-buffer tests) so the
       generated data and the shader agree by construction.
 - [ ] **Bake comparisons (owner, 2026-09-26).** The other half of parity is the content pipeline:

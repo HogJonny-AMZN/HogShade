@@ -36,7 +36,7 @@ def test_ggx_d_smith_v_schlick_burley(gpu) -> None:
     let alpha = hs_in[base + 4u];
     let rough = hs_in[base + 5u];
     let f0 = vec3<f32>(hs_in[base + 6u], hs_in[base + 7u], hs_in[base + 8u]);
-    let o = i * 12u;
+    let o = i * 16u;
     hs_out[o + 0u] = brdf_ggx_d(n_dot_h, alpha);
     hs_out[o + 1u] = brdf_smith_v_height_correlated(n_dot_v, n_dot_l, alpha);
     let f = brdf_fresnel_schlick(f0, v_dot_h);
@@ -47,8 +47,12 @@ def test_ggx_d_smith_v_schlick_burley(gpu) -> None:
     hs_out[o + 8u] = lam.x; hs_out[o + 9u] = lam.y;
     hs_out[o + 10u] = brdf_g1_schlick_ggx(n_dot_v, alpha * 0.5);
     hs_out[o + 11u] = brdf_vis_hable(n_dot_l, n_dot_v, alpha);
+    hs_out[o + 12u] = brdf_schlick_weight(v_dot_h);
+    hs_out[o + 13u] = brdf_gtr1(n_dot_h, rough * 0.1 + 0.001);
+    hs_out[o + 14u] = brdf_gtr2_aniso(n_dot_h, v_dot_h * 0.5, n_dot_l * 0.5, alpha * 0.7 + 0.001, alpha * 1.3 + 0.001);
+    hs_out[o + 15u] = brdf_smith_g_ggx_disney(n_dot_v, (alpha * 0.5 + 0.5) * (alpha * 0.5 + 0.5));
     """
-    out = gpu.run(kernel(body, 9), inputs, 12, len(g))
+    out = gpu.run(kernel(body, 9), inputs, 16, len(g))
     nh, nv, nl, vh, alpha, rough = g.T
     # GGX D: d = n_dot_h^2 (a2 - 1) + 1 cancels in float32 as a2 -> 0 (alpha 0.0025 at n_dot_h 1 leaves three
     # digits), so the tight tolerance applies where alpha >= 0.1 and a loose one everywhere else
@@ -62,6 +66,15 @@ def test_ggx_d_smith_v_schlick_burley(gpu) -> None:
     np.testing.assert_allclose(out[:, 8:10], ref.lambert(f0)[:, :2], rtol=1e-6)
     np.testing.assert_allclose(out[:, 10], ref.g1_schlick_ggx(nv, alpha * 0.5), rtol=2e-5, atol=1e-6)
     np.testing.assert_allclose(out[:, 11], ref.vis_hable(nl, nv, alpha), rtol=2e-5, atol=1e-6)
+    np.testing.assert_allclose(out[:, 12], ref.schlick_weight(vh), rtol=2e-5, atol=1e-6)
+    np.testing.assert_allclose(out[:, 13], ref.gtr1(nh, rough * 0.1 + 0.001), rtol=5e-4, atol=1e-6)
+    np.testing.assert_allclose(
+        out[:, 14],
+        ref.gtr2_aniso(nh, vh * 0.5, nl * 0.5, alpha * 0.7 + 0.001, alpha * 1.3 + 0.001),
+        rtol=2e-4,
+        atol=1e-6,
+    )
+    np.testing.assert_allclose(out[:, 15], ref.smith_g_ggx_disney(nv, (alpha * 0.5 + 0.5) ** 2), rtol=2e-5, atol=1e-6)
 
 
 def test_fresnel_f82(gpu) -> None:

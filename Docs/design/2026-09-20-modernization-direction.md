@@ -165,6 +165,21 @@ from the core; the `_3DSMAX_` branches are dropped, since Max is served by OSL.
 Legacy source stays in the tree unchanged under `legacy/v1.0` and `legacy/v2.0` as the reference the
 ports are checked against. They are not built; they are what "verbatim" means.
 
+### Legacy v1 port: what it was and what deviates (PR G, 2026-09-27)
+
+`core/models/legacy_v1.wgsl` is `mayaVP2_pbrBRDF.fx` with `bigdBRDF.fxh` and `functions_structs.fxh`.
+The record corrected a belief in this document: v1 shipped **one** model, the Disney principled
+BRDF, not three. The Cook-Torrance and "game" includes were never included by the effect and could
+not have compiled; they are not ported (the "game" GGX is the v2 lobe already in the toolbox).
+Kept verbatim: the float specular accumulator (red channel only), the negated n.v split-sum lookup
+(always the LUT's u = 0 column), anisotropic axes from alpha squared (roughness to the fourth), the
+ambient dome as Disney diffuse along the normal, AO on the dome and environment but not on the
+direct light, the Disney G and clearcoat constants. Deviations: E1 linear cubes and LUT for RGBM;
+any light slot and kind through `lighting.wgsl` (v1 used slot 0 as a point light with a power-law
+decay); host-supplied map defaults; vertex AO on the red channel; display gamma and the filmic tone
+map left to the host; the dead includes dropped. Interface additions: a tangent frame and two
+model-parameter vectors on `ShadingInputs`, forward-only.
+
 ### Legacy v2 port: what was kept and what deviates (PR D, 2026-09-25)
 
 `core/models/legacy_v2.wgsl` is `V2_uv0bn-pbs_IBLenv.fx` plus `pbr.sif`, function by function, on

@@ -27,6 +27,10 @@ struct ShadingInputs {
     cavity: f32,                // forward only: specular occlusion detail; deferred folds it into surface.ao
     opacity: f32,               // forward only; 1.0 after MASK in deferred
     specular_weight: f32,       // forward only: the material's specular amount (v2 materialSpecular, OpenPBR specular_weight); 1.0 in deferred
+    tangent_ws: vec3<f32>,      // forward only: unit tangent for anisotropic lobes (v1, OpenPBR); deferred builds an arbitrary frame
+    binormal_ws: vec3<f32>,     // forward only: unit binormal, handedness applied
+    model_params_a: vec4<f32>,  // forward only: model-specific lobe parameters, meaning documented per model; zero in deferred
+    model_params_b: vec4<f32>,  //   legacy v1: a = (subsurface, specular_tint, anisotropic, sheen), b = (sheen_tint, clearcoat, clearcoat_gloss, 0)
 }
 
 struct ShadingResult {

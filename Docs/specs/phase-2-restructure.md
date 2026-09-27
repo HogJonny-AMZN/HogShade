@@ -130,7 +130,11 @@ returns from `<model>_env_lookup` (v2: `abs(n.v) + 1e-4` and its biased roughnes
 models never touch a texture and the GPU tests need none). The per-light function receives it because the v2 model scales
 its direct specular by the LUT (PR D, 2026-09-25; the first draft passed only `irradiance_over_pi`).
 `ShadingInputs` also carries `specular_weight`, the material's specular amount (v2 `materialSpecular`,
-OpenPBR `specular_weight`), forward-only and one after reconstruction.
+OpenPBR `specular_weight`), forward-only and one after reconstruction; and, since the v1 port
+(2026-09-27), a tangent frame (`tangent_ws`, `binormal_ws`) for anisotropic lobes and two
+`model_params` vectors whose meaning each model documents (v1: the Disney lobes). All forward-only:
+the deferred reconstruction builds an arbitrary frame and zeros the parameters, so anisotropy and
+the extra lobes are forward features until the G-buffer grows a tangent channel.
 `core/models.wgsl` holds the `switch` on `surface.model` for
 each, plus `models_evaluate_slots` (the loop over `FixedSlots16`) and `models_shade` (direct plus
 environment plus emissive, with the debug slot). WGSL has no function pointers, so an engine loops

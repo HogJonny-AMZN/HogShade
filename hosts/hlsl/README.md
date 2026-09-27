@@ -21,6 +21,7 @@ a DX12 root signature and a Unity pass alike.
 | Need | Function | Notes |
 | --- | --- | --- |
 | Build the material half for the legacy v2 model | `legacy_v2_inputs(legacy_v2_Material, legacy_v2_Samples, legacy_v2_Geometry) -> ShadingInputs` | fill the three structs from your parameters, texel values (or the unbound defaults in the struct comments) and vertex data |
+| Build the material half for the legacy v1 model | `legacy_v1_inputs(legacy_v1_Material, legacy_v1_Samples, legacy_v1_Geometry) -> ShadingInputs` | the Disney lobes ride in `model_params_a/b`; the tangent frame is required for anisotropy |
 | Lookup coordinates for the environment | `models_env_lookup(ShadingInputs) -> float2` | (n.v, roughness) the model wants for the LUT and prefiltered mip |
 | Sample the E1 environment | `environment_sample(TextureCube<float4> specular, TextureCube<float4> irradiance, Texture2D<float4> lut, SamplerState cube, SamplerState lut, EnvironmentIBL, float3 n, float3 v, float2 lookup) -> EnvironmentSamples` | `environment_default(mip_count)` builds the constants; set `.exposure` |
 | Hemisphere dome (v2) | `environment_hemisphere(sky, ground, n, up) -> float3` | assign to `EnvironmentSamples.hemisphere` and set `.hemisphere_mode` |

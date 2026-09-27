@@ -44,6 +44,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--debug-mode", type=int, default=0, help="v2 g_DebugMode 0..32")
     ap.add_argument("--exposure-ev", type=float, default=0.0, help="display exposure for the PNG only")
     ap.add_argument("--hemisphere-mode", type=int, default=0, help="0 off, 1 add, 2 multiply")
+    ap.add_argument("--model", default="legacy-v2", choices=("lambert", "legacy-v1", "legacy-v2"))
+    for name in ("subsurface", "specular-tint", "anisotropic", "sheen", "sheen-tint", "clearcoat", "clearcoat-gloss"):
+        ap.add_argument(f"--{name}", type=float, default=0.0, help="legacy v1 Disney lobe")
     args = ap.parse_args(argv)
 
     t0 = time.perf_counter()
@@ -60,11 +63,19 @@ def main(argv: list[str] | None = None) -> int:
         debug_mode=args.debug_mode,
         hemisphere_mode=args.hemisphere_mode,
         environment=args.environment,
+        model=args.model,
+        subsurface=args.subsurface,
+        specular_tint=args.specular_tint,
+        anisotropic=args.anisotropic,
+        sheen=args.sheen,
+        sheen_tint=args.sheen_tint,
+        clearcoat=args.clearcoat,
+        clearcoat_gloss=args.clearcoat_gloss,
     )
     frames = renderer.render(scene)
     elapsed = time.perf_counter() - t0
 
-    out_dir = args.out_dir or ROOT / "Docs" / "verification" / "wgpu" / "shader-ball" / args.environment
+    out_dir = args.out_dir or ROOT / "verification" / "wgpu" / "shader-ball" / args.environment
     if args.variant:
         out_dir = out_dir / args.variant
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -75,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
     mean_diff, max_diff = frames.difference()
     covered = frames.covered
     lit = frames.forward[covered]
-    print(f"adapter: {info.get('device')} ({info.get('backend_type')}), GB3 {renderer.gb3_format}")
+    print(f"adapter: {info.get('device')} ({info.get('backend_type')}), GB3 {renderer.gb3_format}, model {args.model}")
     print(f"mesh: {len(mesh.vertices)} vertices, {len(mesh.indices) // 3} triangles; environment {args.environment}")
     print(
         f"ball covers {int(covered.sum())} of {covered.size} pixels; mean linear radiance {lit.mean():.4f}, max {lit.max():.4f}"

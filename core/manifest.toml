@@ -35,6 +35,10 @@ file = "models/lambert.wgsl"
 prefix = "lambert_"
 
 [[module]]
+file = "models/legacy_v1.wgsl"
+prefix = "legacy_v1_"
+
+[[module]]
 file = "models/legacy_v2.wgsl"
 prefix = "legacy_v2_"
 

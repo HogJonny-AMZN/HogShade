@@ -165,6 +165,10 @@ fn legacy_v2_inputs(m: legacy_v2_Material, s: legacy_v2_Samples, g: legacy_v2_Ge
     i.cavity = s.cavity;
     i.opacity = opacity;
     i.specular_weight = m.specular * s.specular_amount;  // deviation 4
+    i.tangent_ws = normalize(g.tangent_ws);
+    i.binormal_ws = normalize(g.binormal_ws);
+    i.model_params_a = vec4<f32>(0.0);
+    i.model_params_b = vec4<f32>(0.0);
     return i;
 }
 

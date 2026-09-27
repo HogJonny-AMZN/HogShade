@@ -47,10 +47,14 @@ FRAME_DTYPE = np.dtype(
         ("ground", np.float32, (4,)),
         ("up_ws", np.float32, (4,)),
         ("viewport", np.float32, (4,)),
+        ("model", np.float32, (4,)),
+        ("params_a", np.float32, (4,)),
+        ("params_b", np.float32, (4,)),
         ("sh9", np.float32, (9, 4)),
     ]
 )
-FRAME_BYTES = 432
+FRAME_BYTES = 480
+MODELS = {"lambert": 0, "legacy-v1": 1, "legacy-v2": 2}
 DEPTH_FORMAT = "depth32float"
 COLOR_FORMAT = "rgba16float"
 GBUFFER_FORMATS = ("rgba8unorm-srgb", "rgba16float", "rgba8uint", "rg11b10ufloat")
@@ -194,6 +198,15 @@ class Scene:
     sky: tuple[float, float, float] = (0.4, 0.5, 0.7)
     ground: tuple[float, float, float] = (0.2, 0.15, 0.1)
     environment: str = "studio_small_09"
+    model: str = "legacy-v2"
+    rough_is_gloss: bool = False
+    # legacy v1 Disney lobes: subsurface, specular_tint, anisotropic, sheen; sheen_tint, clearcoat, clearcoat_gloss
+    subsurface: float = 0.0
+    anisotropic: float = 0.0
+    sheen: float = 0.0
+    sheen_tint: float = 0.0
+    clearcoat: float = 0.0
+    clearcoat_gloss: float = 0.0
     sh9: NDArray = field(default_factory=lambda: np.zeros((9, 3)))
 
     def view_proj(self) -> tuple[NDArray, NDArray]:
@@ -224,6 +237,9 @@ class Scene:
         frame["ground"] = (*self.ground, 0.0)
         frame["up_ws"] = (0.0, 1.0, 0.0, 0.0)
         frame["viewport"] = (float(self.width), float(self.height), 0.0, 0.0)
+        frame["model"] = (float(MODELS[self.model]), 1.0 if self.rough_is_gloss else 0.0, 0.0, 0.0)
+        frame["params_a"] = (self.subsurface, self.specular_tint, self.anisotropic, self.sheen)
+        frame["params_b"] = (self.sheen_tint, self.clearcoat, self.clearcoat_gloss, 0.0)
         sh = np.zeros((9, 4), dtype=np.float32)
         sh[:, :3] = np.asarray(self.sh9, dtype=np.float32)[:9]
         frame["sh9"] = sh

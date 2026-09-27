@@ -147,6 +147,16 @@ A file name never repeats the host, version, check or variant and never chains t
 owner stopped that pattern the first time it appeared because agents copy existing patterns. The
 comparison framework inherits this layout as its capture set. Rule in `tools/README.md`.
 
+### The v1 port (2026-09-27; decided by the record)
+
+v1 was one model, the Disney principled BRDF; the roadmap's "Disney, Cook-Torrance and game BRDFs"
+was wrong, since the other two includes never compiled. Ported as `legacy_v1` with the interface
+additions above; both legacy models are selectable in the wgpu host and the Maya shell. Lessons:
+the Maya shell now takes 24 s under fxc with two models (14 s with one), the FXC canary's second
+reading; a resident Maya worker keeps the previous check's scene, so every check starts with a new
+scene; registered grids and the debug views are the per-host orientation and channel probes
+(roadmap, procedural test data).
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`

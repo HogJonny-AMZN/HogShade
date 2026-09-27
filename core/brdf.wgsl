@@ -49,6 +49,38 @@ fn brdf_vis_hable(n_dot_l: f32, n_dot_v: f32, alpha: f32) -> f32 {
     return brdf_g1_schlick_ggx(n_dot_l, k) * brdf_g1_schlick_ggx(n_dot_v, k);
 }
 
+// Schlick's weight (1 - u)^5, clamped; the "SchlickFresnel" of the Disney BRDF explorer.
+fn brdf_schlick_weight(u: f32) -> f32 {
+    let m = clamp(1.0 - u, 0.0, 1.0);
+    let m2 = m * m;
+    return m2 * m2 * m;
+}
+
+// Disney GTR1 (Berry) distribution, the clearcoat lobe; a >= 1 degenerates to uniform.
+fn brdf_gtr1(n_dot_h: f32, a: f32) -> f32 {
+    if (a >= 1.0) {
+        return HOGSHADE_INV_PI;
+    }
+    let a2 = a * a;
+    let t = 1.0 + (a2 - 1.0) * n_dot_h * n_dot_h;
+    return (a2 - 1.0) / (HOGSHADE_PI * log(a2) * t);
+}
+
+// Disney anisotropic GTR2 (GGX) with per-axis roughness ax, ay and the half vector in the tangent frame.
+fn brdf_gtr2_aniso(n_dot_h: f32, h_dot_x: f32, h_dot_y: f32, ax: f32, ay: f32) -> f32 {
+    let hx = h_dot_x / ax;
+    let hy = h_dot_y / ay;
+    let d = hx * hx + hy * hy + n_dot_h * n_dot_h;
+    return 1.0 / (HOGSHADE_PI * ax * ay * d * d);
+}
+
+// The Disney explorer's single-direction Smith G for GGX: 1 / (n.v + sqrt(a^2 + n.v^2 - a^2 n.v^2)).
+fn brdf_smith_g_ggx_disney(n_dot_v: f32, alpha_g: f32) -> f32 {
+    let a = alpha_g * alpha_g;
+    let b = n_dot_v * n_dot_v;
+    return 1.0 / (n_dot_v + sqrt(a + b - a * b));
+}
+
 // Lambert diffuse: albedo / pi. The n.l is applied by the caller.
 fn brdf_lambert(albedo: vec3<f32>) -> vec3<f32> {
     return albedo * HOGSHADE_INV_PI;

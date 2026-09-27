@@ -1,12 +1,15 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-09-26, PR #18 (the Maya gate passed; PR F complete).
+**Last updated:** 2026-09-27, PR G (the legacy v1 port; both legacy models render in both hosts).
 
 A new session reads this, then `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then
 `Docs/ROADMAP.md`, then the plan in flight (`Docs/plans/phase-2-restructure.md`).
 
 ## In flight
+
+**PR G, the v1 port, is on its branch (`feat/phase2-legacy-v1`).** Next in the agreed order: the
+standards pass, then the phase 2 close at 0.2.0.
 
 **PR F is complete.** The Maya gate (plan task 17) passed on 2026-09-26 as a BATS job on the
 `hogshade_maya_gui` worker: `Main` technique listed, cubes and LUT decoded, pictures under

@@ -152,8 +152,28 @@ own. Tick a task only when its verification ran.
       `debug-28.png` (the specular environment term) mirrors the studio in the ball. The compile
       failure of the first standalone runs was the string parameters carrying vertex semantics,
       removed in PR #15; nothing else changed in the shell. E1 task 11 is closed by this.
-- [ ] 18. Legacy v1 port (`core/models/legacy_v1.wgsl`) with its own reference and tests; selectable
-      in both hosts.
+- [x] 18. Legacy v1 port (`core/models/legacy_v1.wgsl`) with its own reference and tests; selectable
+      in both hosts. Done 2026-09-27 (PR G). **The record first:** v1's effect includes only
+      `bigdBRDF.fxh`; the Cook-Torrance and "game" includes in `legacy/v1.0/` were never included and
+      could not have compiled (a duplicated parameter, a missing comma, an undefined struct), so v1
+      is one Disney principled BRDF, one light (slot 0 as a point light), a dome as the same BRDF
+      along the normal, and RGBM cubes. Kept verbatim: the scalar specular accumulator (red channel
+      only), the negated n.v LUT lookup (the u = 0 column), the roughness-to-the-fourth anisotropic
+      axes, the dome and environment terms occluded by AO while the direct light is not. Six
+      deviations in the header. Interface: `ShadingInputs` gains `tangent_ws`, `binormal_ws` and two
+      `model_params` vectors (forward-only; deferred builds a frame and zeros the lobes). Toolbox:
+      `brdf_schlick_weight`, `brdf_gtr1`, `brdf_gtr2_aniso`, `brdf_smith_g_ggx_disney` with references.
+      Verified: `tests/core/test_legacy_v1_gpu.py` (inputs, light, environment, the lookup sign, nine
+      debug modes, the dispatcher, a furnace that records the response) against
+      `hogshade/reference/legacy_v1.py` within 2e-4 relative to each row's magnitude; 118 tests on
+      Vulkan, 89 core and host tests on D3D12. Hosts: the wgpu frame carries a model selector and the
+      Disney parameters (`verification/wgpu/shader-ball/studio_small_09/legacy-v1/`, forward and
+      deferred, plus `metal/`); the Maya shell has a Shading Model dropdown and a "Legacy v1 Disney"
+      group, compiles in 24 s under fxc (the FXC canary: 14 s before the second model), and the
+      IBL check job passed for both models on the `hogshade_maya_gui` worker
+      (`verification/maya-2026/ibl-check/legacy-v1/studio_small_09/`, techniques `['Main']`, cubes
+      and LUT decoded, sheen and clearcoat visible). Not verified: pixel identity against the legacy
+      effect on the shader ball, which waits for the comparison framework (roadmap, track E).
 
 ## Close
 

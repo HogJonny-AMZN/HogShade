@@ -136,6 +136,11 @@ TYPE NAME < string UIGroup = "Material Properties"; string UIName = LABEL; strin
 #define HOGSHADE_BOOL(NAME, LABEL, ORDER, DEFAULT)                                                             \
 bool NAME < string UIGroup = "Material Properties"; string UIName = LABEL; int UIOrder = ORDER; > = DEFAULT;
 
+int shadingModel
+<
+    string UIGroup = "Material Properties"; string UIName = "Shading Model";
+    string UIFieldNames = "Lambert:Legacy v1 (2015 Disney):Legacy v2 (2017)"; int UIOrder = 149;
+> = 2;
 float3 materialBaseColor < string UIGroup = "Material Properties"; string UIName = "Base Color"; string UIWidget = "Color"; int UIOrder = 150; > = { 0.6, 0.6, 0.6 };
 HOGSHADE_SLIDER(float, materialRoughness, "Roughness", 151, 0.0, 1.0, 0.5)
 HOGSHADE_SLIDER(float, materialMetalness, "Metalness", 152, 0.0, 1.0, 0.0)
@@ -159,6 +164,20 @@ HOGSHADE_SLIDER(float, gammaCorrectionValue, "Swatch Gamma", 169, 1.0, 3.0, 2.2)
 int NormalCoordsysX < string UIGroup = "Normal Params"; string UIFieldNames = "Positive:Negative"; string UIName = "Normal X (Red)"; int UIOrder = 207; > = 0;
 int NormalCoordsysY < string UIGroup = "Normal Params"; string UIFieldNames = "Positive:Negative"; string UIName = "Normal Y (Green)"; int UIOrder = 208; > = 0;
 int NormalCoordsysZ < string UIGroup = "Normal Params"; string UIFieldNames = "Positive:Negative"; string UIName = "Normal Z (Blue)"; int UIOrder = 209; > = 0;
+
+// ------------------------------------------------------------------------------------- legacy v1 Disney lobes
+
+#define HOGSHADE_V1(NAME, LABEL, ORDER, DEFAULT)                                                               \
+float NAME < string UIGroup = "Legacy v1 Disney"; string UIName = LABEL; string UIWidget = "Slider";           \
+             float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = ORDER; > = DEFAULT;
+HOGSHADE_V1(materialSubsurface, "Subsurface", 180, 0.0)
+HOGSHADE_V1(materialAnisotropic, "Anisotropic", 181, 0.0)
+HOGSHADE_V1(materialSheen, "Sheen", 182, 0.0)
+HOGSHADE_V1(materialSheenTint, "Sheen Tint", 183, 0.0)
+HOGSHADE_V1(materialClearcoat, "Clearcoat", 184, 0.0)
+HOGSHADE_V1(materialClearcoatGloss, "Clearcoat Gloss", 185, 0.0)
+bool roughIsGloss < string UIGroup = "Legacy v1 Disney"; string UIName = "Roughness Map Is Gloss (v1)"; int UIOrder = 186; > = false;
+bool useSpecularMask < string UIGroup = "Legacy v1 Disney"; string UIName = "Specular Amount From Map Alpha (v1)"; int UIOrder = 187; > = false;
 
 // ------------------------------------------------------------------------------------- parallax (v2, shell-owned)
 
@@ -495,7 +514,60 @@ PsOutput pMain(VsOutput p, bool FrontFace : SV_IsFrontFace)
     g.vertex_ao = p.m_VertexAO.rgb;
     g.front_face = FrontFace ? 1u : 0u;
 
-    ShadingInputs i = legacy_v2_inputs(m, s, g);
+    ShadingInputs i;
+    if (shadingModel == 1)
+    {
+        // legacy v1: the same samples and geometry, the Disney lobes, v1's own map semantics
+        legacy_v1_Material m1 = (legacy_v1_Material)0;
+        m1.base_color = m.base_color;
+        m1.metalness = materialMetalness;
+        m1.subsurface = materialSubsurface;
+        m1.specular = materialSpecular;
+        m1.roughness = materialRoughness;
+        m1.specular_tint = materialSpecTint;
+        m1.anisotropic = materialAnisotropic;
+        m1.sheen = materialSheen;
+        m1.sheen_tint = materialSheenTint;
+        m1.clearcoat = materialClearcoat;
+        m1.clearcoat_gloss = materialClearcoatGloss;
+        m1.use_vertex_color_ao = useVertexC1_AO ? 1u : 0u;
+        m1.has_alpha = hasAlpha ? 1u : 0u;
+        m1.use_vertex_alpha = hasVertexAlpha ? 1u : 0u;
+        m1.use_cutout_alpha = useCutoutAlpha ? 1u : 0u;
+        m1.flip_backface_normals = flipBackfaceNormals ? 1u : 0u;
+        m1.rough_is_gloss = roughIsGloss ? 1u : 0u;
+        m1.use_specular_mask = useSpecularMask ? 1u : 0u;
+        m1.normal_flip = m.normal_flip;
+        legacy_v1_Samples s1 = (legacy_v1_Samples)0;
+        s1.base_color = s.base_color;
+        s1.specular = useSpecularMap ? specularMap.Sample(SamplerAnisoWrap, uv) : float4(1.0f, 1.0f, 1.0f, 1.0f);
+        s1.roughness = s.roughness;
+        s1.metalness = s.metalness;
+        s1.ao = useAmbOccMap ? ambOccMap.Sample(SamplerAnisoWrap, uv).rgb : float3(1.0f, 1.0f, 1.0f);
+        s1.normal_ts = s.normal_ts;
+        s1.use_base_map = useBaseColorMap ? 1u : 0u;
+        s1.use_specular_map = useSpecularMap ? 1u : 0u;
+        s1.use_roughness_map = useRoughnessMap ? 1u : 0u;
+        s1.use_metalness_map = useMetalnessMap ? 1u : 0u;
+        s1.use_normal_map = useNormalMap ? 1u : 0u;
+        legacy_v1_Geometry g1 = (legacy_v1_Geometry)0;
+        g1.normal_ws = g.normal_ws;
+        g1.tangent_ws = g.tangent_ws;
+        g1.binormal_ws = g.binormal_ws;
+        g1.view_ws = g.view_ws;
+        g1.position_ws = g.position_ws;
+        g1.vertex_color = float4(g.vertex_ao, g.vertex_color.a);  // v1 read AO and alpha from one colour set
+        g1.front_face = g.front_face;
+        i = legacy_v1_inputs(m1, s1, g1);
+    }
+    else if (shadingModel == 0)
+    {
+        i = lambert_inputs(m.base_color, s.ao, s.emissive, g.normal_ws, g.view_ws, g.position_ws);
+    }
+    else
+    {
+        i = legacy_v2_inputs(m, s, g);
+    }
 
     if (useCutoutAlpha)
         clip(i.opacity < opacityMaskBias ? -1.0f : 1.0f);
@@ -532,7 +604,7 @@ PsOutput pMain(VsOutput p, bool FrontFace : SV_IsFrontFace)
     float3 color = r.color;
     if (g_DebugMode > 0)
     {
-        color = legacy_v2_debug_is_inputs_mode((uint)g_DebugMode)
+        color = (shadingModel == 2 && legacy_v2_debug_is_inputs_mode((uint)g_DebugMode))
             ? legacy_v2_debug_inputs(m, s, g, uv, par.self_shadow, ambientSkyColor, ambientGroundColor, up, (uint)g_DebugMode)
             : r.debug;
     }

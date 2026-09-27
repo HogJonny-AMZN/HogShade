@@ -23,6 +23,6 @@ fn vs_main(v: host_VertexIn) -> host_VertexOut {
 
 @fragment
 fn fs_main(v: host_VertexOut, @builtin(front_facing) front_face: bool) -> @location(0) vec4<f32> {
-    let i = legacy_v2_inputs(host_material(), host_samples(), host_geometry(v.position_ws, v.normal_ws, front_face));
+    let i = host_inputs(v.position_ws, v.normal_ws, front_face);
     return vec4<f32>(host_shade(i), 1.0);
 }

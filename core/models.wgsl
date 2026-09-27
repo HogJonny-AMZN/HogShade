@@ -14,6 +14,8 @@
 fn models_evaluate_light(i: ShadingInputs, light: LightSource, env: EnvironmentSamples) -> vec3<f32> {
     if (i.surface.model == 0u) {
         return lambert_evaluate_light(i, light, env);
+    } else if (i.surface.model == 1u) {
+        return legacy_v1_evaluate_light(i, light, env);
     } else if (i.surface.model == 2u) {
         return legacy_v2_evaluate_light(i, light, env);
     }
@@ -25,6 +27,8 @@ fn models_evaluate_light(i: ShadingInputs, light: LightSource, env: EnvironmentS
 fn models_env_lookup(i: ShadingInputs) -> vec2<f32> {
     if (i.surface.model == 0u) {
         return lambert_env_lookup(i);
+    } else if (i.surface.model == 1u) {
+        return legacy_v1_env_lookup(i);
     } else if (i.surface.model == 2u) {
         return legacy_v2_env_lookup(i);
     }
@@ -34,6 +38,8 @@ fn models_env_lookup(i: ShadingInputs) -> vec2<f32> {
 fn models_evaluate_env(i: ShadingInputs, env: EnvironmentSamples) -> vec3<f32> {
     if (i.surface.model == 0u) {
         return lambert_evaluate_env(i, env);
+    } else if (i.surface.model == 1u) {
+        return legacy_v1_evaluate_env(i, env);
     } else if (i.surface.model == 2u) {
         return legacy_v2_evaluate_env(i, env);
     }
@@ -43,6 +49,8 @@ fn models_evaluate_env(i: ShadingInputs, env: EnvironmentSamples) -> vec3<f32> {
 fn models_debug(i: ShadingInputs, slots: FixedSlots16, env: EnvironmentSamples, mode: u32) -> vec3<f32> {
     if (i.surface.model == 0u) {
         return lambert_debug(i, slots, env, mode);
+    } else if (i.surface.model == 1u) {
+        return legacy_v1_debug(i, slots, env, mode);
     } else if (i.surface.model == 2u) {
         return legacy_v2_debug(i, slots, env, mode);
     }

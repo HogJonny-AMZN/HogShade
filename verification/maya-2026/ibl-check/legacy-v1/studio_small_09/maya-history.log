@@ -1,0 +1,16 @@
+currentTime 1 ;
+currentTime 1 ;
+currentTime 1 ;
+HOGSHADE_RESULT {"ok": true, "dir": "D:\\Depot\\HogShade\\verification\\maya-2026\\ibl-check\\legacy-v1\\studio_small_09", "log": "D:\\Depot\\HogShade\\verification\\maya-2026\\ibl-check\\legacy-v1\\studio_small_09\\check.log", "png": "D:\\Depot\\HogShade\\verification\\maya-2026\\ibl-check\\legacy-v1\\studio_small_09\\main.png", "techniques": ["Main"]}
+// 09/27/2026, :12:02:13 AM :: [INFO][job_orchestrator.dcc_workers.maya.maya_rpc_server] >> [OK] Job 9d61744c... completed in 12.56s :(maya_rpc_server.py:557)
+// 09/27/2026, :12:02:33 AM :: [INFO][job_orchestrator.dcc_workers.maya.maya_rpc_server] >> Received job: 157bdaa4... :(maya_rpc_server.py:153)
+// 09/27/2026, :12:02:33 AM :: [INFO][job_orchestrator.dcc_workers.maya.maya_rpc_server] >>   Type: hogshade_maya_gui, Priority: 5, Execution mode: 1 :(maya_rpc_server.py:154)
+// 09/27/2026, :12:02:33 AM :: [INFO][job_orchestrator.dcc_workers.maya.maya_rpc_server] >> Executing job 157bdaa4... (log: job_157bdaa4_20260927_000233.log) :(maya_rpc_server.py:213)
+// 09/27/2026, :12:02:33 AM :: [INFO][job_orchestrator.orchestrator.config] >> Loading configuration from D:\Depot\Job_Orchestrator\job_orchestrator\config\orchestrator_config.json :(config.py:634)
+// 09/27/2026, :12:02:33 AM :: [INFO][job_orchestrator.orchestrator.config] >> Found local sidecar config: D:\Depot\Job_Orchestrator\job_orchestrator\config\orchestrator_config.local.json :(config.py:508)
+// 09/27/2026, :12:02:33 AM :: [INFO][job_orchestrator.orchestrator.config] >> Merging 1 sidecar config(s): ['orchestrator_config.local.json'] :(config.py:643)
+// 09/27/2026, :12:02:33 AM :: [INFO][job_orchestrator.orchestrator.config] >> Merged sidecar: orchestrator_config.local.json :(config.py:653)
+// 09/27/2026, :12:02:33 AM :: [INFO][job_orchestrator.orchestrator.config] >> Loading DCC paths from unified config: D:\Depot\Job_Orchestrator\job_orchestrator\config\orchestrator_config.json :(config.py:659)
+// 09/27/2026, :12:02:33 AM :: [INFO][job_orchestrator.orchestrator.config] >> Loaded 2 package path(s) for hook dependencies :(config.py:671)
+2026-09-27 00:02:33 :: [INFO][hogshade.jobs.maya_ibl_check] >> maya_ibl_check job: fx=D:\Depot\HogShade\hosts\maya_dx11\hogshade.fx env=studio_small_09 :(maya_ibl_check.py:90)
+// 09/27/2026, :12:02:33 AM :: [INFO][hogshade.jobs.maya_ibl_check] >> maya_ibl_check job: fx=D:\Depot\HogShade\hosts\maya_dx11\hogshade.fx env=studio_small_09 :(maya_ibl_check.py:90)
