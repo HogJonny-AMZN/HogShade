@@ -21,6 +21,14 @@ the phase 2 standards pass; until then these pointers are the contract.)
 | Generated hosts and what to call in the core | [hosts/README.md](hosts/README.md), [hosts/hlsl/README.md](hosts/hlsl/README.md), [hosts/wgpu/README.md](hosts/wgpu/README.md) |
 | IBL content and the cook | [content/ibl/README.md](content/ibl/README.md), [Docs/specs/e1-ibl-cook.md](Docs/specs/e1-ibl-cook.md) |
 
+## Skills (procedures)
+
+Plain-markdown procedures under `.claude/skills/<name>/SKILL.md`, Claude's layout, readable by any
+agent: `bats-job` (submit and read jobs), `maya-check` (a Maya check through the resident worker
+and how to read its result), `shader-build` (change the core, rebuild, verify on every compiler),
+`review-and-pr` (the PR checklist and how to assess a Copilot review). Follow the matching one
+before improvising; add one when a procedure has been done twice.
+
 ## Non-negotiable rules
 
 - The doc process: roadmap, pre-spec design (a hand-written lock of what was decided), spec, plan,
