@@ -435,7 +435,9 @@ The pass also aligns the documentation layout with the owner's cross-repo conven
 2026-09-26): `Docs/superpowers/design/` (the pre-spec conversational decision lock), `specs/`,
 `plans/`, `handoff/` (dated context for a new or bloated session), which `Docs/{design,specs,plans}`
 and `Docs/handoffs/` become with links updated; and from the next spec on, the superpowers skills
-drive each step (`brainstorming` for the design lock, `writing-plans` for the plan,
+drive each step after the design lock: the pre-spec design stays hand-written (what was talked
+about and locked, decisions with reasons, open questions), `brainstorming` produces the spec from
+it, `writing-plans` the plan,
 `executing-plans` with `test-driven-development` for the build, `verification-before-completion`
 and `requesting-code-review` before a PR).
 

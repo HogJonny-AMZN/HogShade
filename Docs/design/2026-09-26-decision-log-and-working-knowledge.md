@@ -131,8 +131,10 @@ new session continues without this one. Details: `Docs/knowledge/job-orchestrato
 ### Docs convention and the superpowers skills (owner, 2026-09-26; decided, applied in the standards pass)
 
 `Docs/superpowers/{design,specs,plans,handoff}` is the cross-repo convention; HogShade's folders move
-there in the standards pass. The superpowers skills (brainstorming, writing-plans, executing-plans,
-TDD, verification, code review) drive each step of the doc process from the next spec on. A handoff
+there in the standards pass. The pre-spec design stays a hand-written lock of what was discussed
+and decided; the superpowers skills take over from there (brainstorming writes the spec from the
+lock, writing-plans the plan, executing-plans with TDD the build, verification and code review
+before a PR) from the next spec on. A handoff
 file is written whenever a session is interrupted or grows long; `Docs/handoffs/CURRENT.md` is the
 first.
 
