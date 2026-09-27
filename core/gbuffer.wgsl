@@ -82,5 +82,11 @@ fn gbuffer_reconstruct(s: SurfaceInputs, view_ws: vec3<f32>, position_ws: vec3<f
     i.cavity = 1.0;             // folded into ao by gbuffer_encode_from_inputs
     i.opacity = 1.0;
     i.specular_weight = 1.0;
+    // any orthonormal frame: the deferred path carries no tangents, so anisotropic lobes are isotropic there
+    let helper = select(vec3<f32>(1.0, 0.0, 0.0), vec3<f32>(0.0, 0.0, 1.0), abs(s.normal_ws.x) > 0.9);
+    i.tangent_ws = normalize(cross(helper, s.normal_ws));
+    i.binormal_ws = cross(s.normal_ws, i.tangent_ws);
+    i.model_params_a = vec4<f32>(0.0);
+    i.model_params_b = vec4<f32>(0.0);
     return i;
 }

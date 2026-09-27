@@ -52,6 +52,33 @@ def vis_hable(n_dot_l: NDArray, n_dot_v: NDArray, alpha: NDArray) -> NDArray:
     return g1_schlick_ggx(n_dot_l, k) * g1_schlick_ggx(n_dot_v, k)
 
 
+def schlick_weight(u: NDArray) -> NDArray:
+    m = np.clip(1.0 - u, 0.0, 1.0)
+    return m**5
+
+
+def gtr1(n_dot_h: NDArray, a: NDArray) -> NDArray:
+    a = np.asarray(a, dtype=np.float64)
+    a2 = a * a
+    t = 1.0 + (a2 - 1.0) * n_dot_h * n_dot_h
+    safe_a2 = np.where(a >= 1.0, 0.5, a2)
+    out = (safe_a2 - 1.0) / (PI * np.log(safe_a2) * t)
+    return np.where(a >= 1.0, INV_PI, out)
+
+
+def gtr2_aniso(n_dot_h: NDArray, h_dot_x: NDArray, h_dot_y: NDArray, ax: NDArray, ay: NDArray) -> NDArray:
+    hx = h_dot_x / ax
+    hy = h_dot_y / ay
+    d = hx * hx + hy * hy + n_dot_h * n_dot_h
+    return 1.0 / (PI * ax * ay * d * d)
+
+
+def smith_g_ggx_disney(n_dot_v: NDArray, alpha_g: NDArray) -> NDArray:
+    a = alpha_g * alpha_g
+    b = n_dot_v * n_dot_v
+    return 1.0 / (n_dot_v + np.sqrt(a + b - a * b))
+
+
 def lambert(albedo: NDArray) -> NDArray:
     return albedo * INV_PI
 

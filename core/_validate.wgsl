@@ -20,11 +20,14 @@ fn hogshade_validate(@location(0) normal_ws: vec3<f32>, @location(1) view_ws: ve
     var v2 = i;
     v2.surface.model = HOGSHADE_MODEL_LEGACY_V2;
     let r2 = models_shade(v2, slots, samples, 16u);
+    var v1 = i;
+    v1.surface.model = HOGSHADE_MODEL_LEGACY_V1;
+    let r1 = models_shade(v1, slots, samples, 8u);
     var layout_meta: GBufferLayoutAdr002;
     layout_meta.layer = 0u;
     layout_meta.channel_mask = 255u;
     layout_meta.flags = 0u;
     let targets = gbuffer_encode_from_inputs(i, layout_meta);
     let back = gbuffer_reconstruct(gbuffer_decode_adr002(targets), i.view_ws, i.position_ws);
-    return vec4<f32>(r.color + back.specular_f0 * 0.0 + r2.debug * 0.0, 1.0);
+    return vec4<f32>(r.color + back.specular_f0 * 0.0 + r2.debug * 0.0 + r1.debug * 0.0, 1.0);
 }

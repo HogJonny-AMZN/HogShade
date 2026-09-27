@@ -23,6 +23,10 @@ fn lambert_inputs(
     i.cavity = 1.0;
     i.opacity = 1.0;
     i.specular_weight = 1.0;
+    i.tangent_ws = vec3<f32>(1.0, 0.0, 0.0);
+    i.binormal_ws = vec3<f32>(0.0, 0.0, 1.0);
+    i.model_params_a = vec4<f32>(0.0);
+    i.model_params_b = vec4<f32>(0.0);
     return i;
 }
 
