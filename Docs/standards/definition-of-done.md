@@ -30,6 +30,7 @@ uv run python tools/build_shaders.py --check --require-compilers   # after any c
 | 5 | The decision log has every decision made in conversation, with where it is formalised | Judgment |
 | 6 | [`../journal/`](../journal/README.md) appended for this session | `check_docs.py` (`journal-index`), plus judgment on content |
 | 7 | [`../handoffs/CURRENT.md`](../handoffs/CURRENT.md) reflects present state when work was interrupted, a decision changed or the state moved | Judgment |
+| 7a | [`../plan/BOARD.md`](../plan/BOARD.md) updated when a row lands, a gate closes, or an idea is said out loud; a landed row keeps its PR number and is struck through, never deleted | `check_docs.py` for its status line; judgment |
 | 8 | **Every two-way-door decision is in the pull request's *Decisions* table**, no more than eight | The template's checkbox; judgment |
 | 9 | Copilot's review assessed: each finding fixed or refuted with evidence, answered on its thread | The `review-and-pr` skill |
 | 9a | A significant increment has had `/local-review diff`, its findings answered in the PR's *Review* section | The template's checkbox; the rule below |

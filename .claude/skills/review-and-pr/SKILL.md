@@ -11,7 +11,9 @@ description: Open a HogShade pull request the way this repo expects, and assess 
    `git grep -n -i -E "bluepoint|sony|bp_py|bp_color" -- ':!legacy'`.
 2. Lint and tests: `uv run ruff format hogshade tests tools`, `uv run ruff check hogshade tests
    tools`, the full suite, and for shader changes the `shader-build` skill's four commands.
-3. Docs in the same PR: the plan task ticked with a dated verification note, the spec amended if
+3. Docs in the same PR: `Docs/plan/BOARD.md` (the landed row struck through with its PR number, any
+   idea said out loud added to the Icebox with a cost, a gate closed only with a recorded decision),
+   the plan task ticked with a dated verification note, the spec amended if
    an interface changed, `Docs/README.md` status rows, the decision log for any decision made in
    conversation, `Docs/handoffs/CURRENT.md` if work is interrupted or the state changed.
 4. `tools/check_docs.py` clean; the journal appended (`Docs/journal/README.md`); for a significant

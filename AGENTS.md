@@ -7,6 +7,9 @@ the phase 2 standards pass; until then these pointers are the contract.)
 ## Read first
 
 1. [Docs/handoffs/CURRENT.md](Docs/handoffs/CURRENT.md): where work is right now and how to run it.
+   Then [Docs/plan/BOARD.md](Docs/plan/BOARD.md), the tracker: the gates only the owner can close
+   (nothing downstream of an open one may be committed to), what is in flight, what is blocked on
+   whom, and the Icebox where every idea said out loud lands with a cost.
 2. [Docs/design/2026-09-26-decision-log-and-working-knowledge.md](Docs/design/2026-09-26-decision-log-and-working-knowledge.md):
    every decision and lesson to date, with where each is formalised.
 3. [Docs/README.md](Docs/README.md): the document layers (roadmap, design, spec, plan) and the
@@ -49,6 +52,9 @@ matching one before improvising; add one when a procedure has been done twice.
 - Every PR is reviewed by Copilot; assess each finding, fix or refute with evidence, reply on the
   thread; the owner merges. Claims in a reply come after the evidence exists.
 - Record decisions and lessons in the decision log or a topic file in the same PR as the work.
+- **A mentioned feature is not a work order.** It goes on the board's Icebox with a cost and a reason,
+  in the same session it was said; it is built when the owner says so, when it blocks work in flight,
+  or when it is smaller than the conversation about it.
 - **Journal continuously**, not retrospectively: every meaningful exchange, every step that changed
   or taught something, whenever a belief changes, and whenever the orchestrator made the difference
   (a `→ BATS:` line). One file per session under `Docs/journal/`; `tools/check_docs.py` fails when a

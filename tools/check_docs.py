@@ -14,6 +14,8 @@ Checks:
   with one of `STATUS_WORDS`; a ``Superseded`` document says by what
 - **journal-index**: every ``Docs/journal/YYYY-MM-DD-session-NN.md`` has a row in ``Docs/journal/README.md``
 - **adr-index**: every ``Docs/decisions/ADR-*.md`` has a row in ``Docs/decisions/README.md`` (none yet)
+- **board**: ``Docs/plan/BOARD.md`` exists and keeps its five sections (Gates, Now, Next, Blocked, Icebox),
+  so the tracker cannot be deleted or quietly collapsed into a list
 
 Run standalone (exit code 1 on findings)::
 
@@ -54,7 +56,14 @@ EXCLUDED_PARTS = {
 
 #: Directories (repo-relative, POSIX) whose documents must carry a status header. The design, spec
 #: and plan folders join in the standards pass, once every file there has one.
-STATUS_REQUIRED_DIRS = ("Docs/decisions", "Docs/handoffs", "Docs/journal", "Docs/knowledge", "Docs/standards")
+STATUS_REQUIRED_DIRS = (
+    "Docs/decisions",
+    "Docs/handoffs",
+    "Docs/journal",
+    "Docs/knowledge",
+    "Docs/plan",
+    "Docs/standards",
+)
 
 #: The vocabulary (SpriteJammer ``documentation.md``): a reader must be able to tell a decision from a
 #: hypothesis, and a live document from a stale one.
@@ -65,6 +74,8 @@ STATUS_EXEMPT = {"Docs/decisions/README.md"}
 
 ADR_INDEX = "Docs/decisions/README.md"
 JOURNAL_INDEX = "Docs/journal/README.md"
+BOARD = "Docs/plan/BOARD.md"
+BOARD_SECTIONS = ("## Gates", "## Now", "## Next", "## Blocked", "## Icebox")
 
 #: An inline link: the destination is ``<...>`` or a run without whitespace or ``)``; an optional title
 #: (``"..."`` or ``'...'``) may follow. Titles are not paths.
@@ -217,7 +228,16 @@ def check_journal_index(files: Iterable[Path], root: Path = REPO_ROOT) -> list[F
     return _check_index(list(files), root, JOURNAL_INDEX, _SESSION_FILE_RE, "journal-index")
 
 
-CHECKS = (check_links, check_status_headers, check_journal_index, check_adr_index)
+def check_board(files: Iterable[Path], root: Path = REPO_ROOT) -> list[Finding]:
+    """The board exists and keeps every section a reader looks for; a section missing is a tracker degrading."""
+    path = root / BOARD
+    if not path.exists():
+        return [Finding("board", BOARD, "missing; the tracker lives here")]
+    text = path.read_text(encoding="utf-8", errors="replace")
+    return [Finding("board", BOARD, f"no {name!r} section") for name in BOARD_SECTIONS if name not in text]
+
+
+CHECKS = (check_links, check_status_headers, check_journal_index, check_adr_index, check_board)
 
 
 def run(root: Path = REPO_ROOT, checks: Sequence = CHECKS) -> list[Finding]:

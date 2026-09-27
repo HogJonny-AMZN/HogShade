@@ -36,6 +36,7 @@ them is how they drift.
 | **Design doc** | **Why**: goal, options, what is decided and why | Status, or an increment's detailed design |
 | **Spec** | **What one increment builds** and how it is verified | The program; it links up to its design |
 | **Plan** | The ordered tasks and their verification notes | Rationale beyond a line |
+| **Board** | **Status**: gates, now, next, blocked, Icebox | Rationale beyond a line |
 | **Decision log** | Every decision stated in conversation, and where it is formalised | The narrative that led to it |
 | **Journal** | **The narrative**: what happened, which beliefs changed, where BATS made the difference | Current truth |
 | **Handoff** | **The snapshot** a new session needs | History |
@@ -43,8 +44,8 @@ them is how they drift.
 
 ## Standing rules at every stage
 
-- **A mentioned feature is not a work order.** It goes on the roadmap with a cost, unless the owner
-  says build it or it blocks work in flight.
+- **A mentioned feature is not a work order.** It goes on the board's Icebox with a cost, unless the
+  owner says build it or it blocks work in flight.
 - **Two-way doors are decided and recorded in the PR's *Decisions* table; one-way doors are asked.**
   The autonomy protocol in [definition-of-done.md](definition-of-done.md).
 - **Never stop a process you did not start; never launch a DCC beside an orchestrator worker for it.**

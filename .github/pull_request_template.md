@@ -4,6 +4,8 @@ Branch: type/<slug> (feat, fix, docs, chore, content). The owner merges and dele
 Delete any section that has nothing in it.
 -->
 
+**Board:** <!-- the row in Docs/plan/BOARD.md this lands, closes or adds; "none" is an answer, an omission is not -->
+
 ## What changed
 
 <!-- What is now true that was not. Lead with the result, not the process. Name the plan task. -->
@@ -50,7 +52,7 @@ reviews every push automatically; this is the deliberate one.
 - [ ] Tests and lint green on CI, read with `gh pr checks`, not assumed
 - [ ] `tools/build_shaders.py --check --require-compilers` clean, if the core changed
 - [ ] Hygiene grep clean (`review-and-pr` skill)
-- [ ] `tools/check_docs.py` clean; docs match reality: plan task, spec, `Docs/README.md`, decision log, journal, handoff
+- [ ] `tools/check_docs.py` clean; docs match reality: BOARD (the row struck or added, gates touched), plan task, spec, `Docs/README.md`, decision log, journal, handoff
 - [ ] Review: `/local-review diff` run and its findings answered above, **or** this increment is not
       significant under the rule, and *Review* says why
 - [ ] Every two-way-door decision is in *Decisions*, and there are no more than 8

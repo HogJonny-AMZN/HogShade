@@ -3,8 +3,8 @@
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
 **Last updated:** 2026-09-27, PR H (the journal and the process around it; `local-review`; the BATS case).
 
-A new session reads this, then `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then
-the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
+A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
+`Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
 (`Docs/plans/phase-2-restructure.md`). `Docs/standards/definition-of-done.md` says what done means and
 how much to decide alone.
 

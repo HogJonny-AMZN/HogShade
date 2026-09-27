@@ -3,7 +3,9 @@
 Date: 2026-09-20. Owner: Jonny Galloway. Companion to
 [design/2026-09-20-modernization-direction.md](design/2026-09-20-modernization-direction.md), which
 holds the architecture detail. This document is the order of work across four tracks and the
-gates between them. Tick items as they land.
+gates between them. Tick items as they land. **It is not the tracker**: what is in flight, what is
+blocked on whom, the owner gates and every idea said out loud with a cost live on
+[plan/BOARD.md](plan/BOARD.md) (2026-09-27).
 
 ## The goal
 

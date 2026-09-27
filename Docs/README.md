@@ -8,6 +8,7 @@ Four layers, in the order they are written. Nothing is built from a layer that d
 | Pre-spec design | [design/](design/) | What is the problem, what are the options, what is decided and why | Before a phase's spec; dated filenames |
 | Spec | [specs/](specs/) | For one phase: the exact deliverable, its interfaces, its acceptance gate, what is out of scope | Before the phase's plan |
 | Plan | [plans/](plans/) | For one phase: the ordered tasks with checkboxes, each small enough to verify | Before the phase's work starts |
+| Board | [plan/BOARD.md](plan/BOARD.md) | The tracker: owner gates, now, next, blocked on whom, and the Icebox where every idea said out loud lands with a cost | Every increment's PR |
 
 A fifth document is not a layer but a safety net: the decision log
 (`design/2026-09-26-decision-log-and-working-knowledge.md`) catches every direction or decision
@@ -29,7 +30,8 @@ link, a governed document without a status line, or a session missing from the j
 
 | If you are... | Read |
 | --- | --- |
-| Starting any session | `handoffs/CURRENT.md`, then the decision log, then the newest journal file |
+| Starting any session | `handoffs/CURRENT.md`, then `plan/BOARD.md` (gates first), then the decision log, then the newest journal file |
+| An idea was said out loud | `plan/BOARD.md`, Icebox, with a cost and a reason; it is not a work order |
 | Finishing an increment | `standards/definition-of-done.md`, the PR template, `journal/README.md` |
 | Deciding something the owner has not | The autonomy protocol in `standards/definition-of-done.md` |
 | Running anything in Maya or Blender | `knowledge/job-orchestrator.md`, then the `bats-job` and `maya-check` skills |

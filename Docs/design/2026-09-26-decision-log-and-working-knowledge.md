@@ -211,6 +211,17 @@ GPU) behind a `bats_describe_worker`, and workflows as catalogued lists of job r
 edges, which do not exist yet and need their own design. Here only, plus the to-do list in
 `Docs/knowledge/job-orchestrator.md`.
 
+### The board (owner, 2026-09-27; decided)
+
+"We should employ the same kind of ideas about evolving roadmap, board, icebox, etc. here."
+`Docs/plan/BOARD.md`, on the LargeWorlds shape: gates first (G1 clearance, G2 the OCIO config, G3 the
+material contract split, G4 the comparison-design date, G5 the shader-ball mesh), then Now, Next,
+Blocked on whom, and an Icebox seeded from this log's section 3, the roadmap's unscheduled track E
+items, section 6's open questions and the orchestrator to-dos. The roadmap stays the map of tracks and
+phases; this log stays the index of decisions; the board is the tracker. Section 3 of this log stops
+growing: a new idea goes to the Icebox with a cost, and a decision that schedules one is recorded here
+with a pointer to its row.
+
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
 - HogShade left the fork network on 2026-09-26; it is standalone. LFS uploads work. `content/ibl`
