@@ -80,13 +80,13 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
 
 | Phase | Spec | Plan | Status |
 | --- | --- | --- | --- |
-| 1. Repo hygiene | [specs/phase-1-hygiene.md](superpowers/specs/phase-1-hygiene.md) | [plans/phase-1-hygiene.md](superpowers/plans/phase-1-hygiene.md) | In progress |
-| 2. Restructure (WGSL core, naga spike) | [specs/phase-2-restructure.md](superpowers/specs/phase-2-restructure.md) | [plans/phase-2-restructure.md](superpowers/plans/phase-2-restructure.md) | Done 2026-09-27, `0.2.0`: PRs A to G plus the standards pass; both legacy models in both hosts; the acceptance gate met except item 5 (the same mesh in both hosts), deferred to track E by the owner at the close |
+| 1. Repo hygiene | [superpowers/specs/phase-1-hygiene.md](superpowers/specs/phase-1-hygiene.md) | [superpowers/plans/phase-1-hygiene.md](superpowers/plans/phase-1-hygiene.md) | In progress |
+| 2. Restructure (WGSL core, naga spike) | [superpowers/specs/phase-2-restructure.md](superpowers/specs/phase-2-restructure.md) | [superpowers/plans/phase-2-restructure.md](superpowers/plans/phase-2-restructure.md) | Done 2026-09-27, `0.2.0`: PRs A to G plus the standards pass; both legacy models in both hosts; the acceptance gate met except item 5 (the same mesh in both hosts), deferred to track E by the owner at the close |
 | 3. OpenPBR model and MaterialX carrier | not yet | not yet | Design done |
 | 4. Surface authoring | not yet | not yet | Design done |
 | 5. wgpu host | not yet | not yet | Design done |
 | 6. Other hosts | not yet | not yet | Design done |
-| E1. IBL cook | [specs/e1-ibl-cook.md](superpowers/specs/e1-ibl-cook.md) | [plans/e1-ibl-cook.md](superpowers/plans/e1-ibl-cook.md) | Done: cook, tests, job, Maya diffuse-term check, LFS payloads in the repo (2026-09-26) |
-| E2. Cook performance and resolution | [specs/e2-cook-performance.md](superpowers/specs/e2-cook-performance.md) | [plans/e2-cook-performance.md](superpowers/plans/e2-cook-performance.md) | Done except the roadmap tick: numba 140x, measured to an 8192 cube |
+| E1. IBL cook | [superpowers/specs/e1-ibl-cook.md](superpowers/specs/e1-ibl-cook.md) | [superpowers/plans/e1-ibl-cook.md](superpowers/plans/e1-ibl-cook.md) | Done: cook, tests, job, Maya diffuse-term check, LFS payloads in the repo (2026-09-26) |
+| E2. Cook performance and resolution | [superpowers/specs/e2-cook-performance.md](superpowers/specs/e2-cook-performance.md) | [superpowers/plans/e2-cook-performance.md](superpowers/plans/e2-cook-performance.md) | Done except the roadmap tick: numba 140x, measured to an 8192 cube |
 | E. Parity and pipeline, rest | not yet | not yet | Design done |
 | D. SpriteJammer tiers | lives in the SpriteJammer repo | | Design done here |

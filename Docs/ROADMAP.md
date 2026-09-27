@@ -463,9 +463,11 @@ went, the Maya helpers log instead of print, `submit.py` builds its stub from a 
 studio package path in the generated profile is the owner's call under the clearance gate.
 
 The pass also aligns the documentation layout with the owner's cross-repo convention (owner,
-2026-09-26): `Docs/superpowers/design/` (the pre-spec conversational decision lock), `superpowers/specs/`,
-`superpowers/plans/`, `handoff/` (dated context for a new or bloated session), which `Docs/{design,specs,plans}`
-and `Docs/handoffs/` become with links updated; and from the next spec on, the superpowers skills
+2026-09-26; landed 2026-09-27 in the pass's remainder): `Docs/superpowers/specs/` and
+`Docs/superpowers/plans/` hold the specs and plans, while `Docs/design/` (the pre-spec conversational
+decision lock) and `Docs/handoffs/` (the living handoff) stay at the top level as LargeWorlds and
+SpriteJammer keep them; the docs map records that deviation from the convention's first wording.
+From the next spec on, the superpowers skills
 drive each step after the design lock: the pre-spec design stays hand-written (what was talked
 about and locked, decisions with reasons, open questions), `brainstorming` produces the spec from
 it, `writing-plans` the plan,
