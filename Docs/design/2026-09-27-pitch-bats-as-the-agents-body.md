@@ -22,8 +22,9 @@ decides, and nothing merges or ships without a human. Three of the six (Tuesday,
 come from the week of work proposed below. Monday needs a job catalogue the orchestrator is already
 due. The first two need pieces named under "Around the corner": a first gated workflow on existing
 assets is a month past the three pieces, since a workflow is one job that calls jobs and waits at
-each gate; the generative steps and the editor as a worker are the year-out parts. They are the
-reason to start.
+each gate; Saturday's editor is already a worker at work, where the orchestrator runs Unreal Editor
+as a worker type; Thursday's generative model steps are a couple of weeks of their own at least.
+They are the reason to start.
 
 **Thursday, on the train.** You send "produce a character: <a paragraph describing it>". A workflow
 starts: concept images, a blockout, a textured model, a turntable rendered in the DCC or in the
@@ -80,10 +81,10 @@ like. Generation is cheap now. Reading and following up is the expensive half, a
 ## Why BATS
 
 BATS already is the execution half. It runs resident DCC workers (Maya headless and GUI, Blender,
-Houdini, a plain Python environment) behind a queue, takes a job as a script or as a Python module
-with an entry point, carries a manifest per job that says what it needs and what it produces, and
-exposes the same operations to an AI agent through an MCP server. A project keeps its own worker
-profile and launcher; downstream users never need it.
+Houdini, Unreal Editor, a plain Python environment) behind a queue, takes a job as a script or as a
+Python module with an entry point, carries a manifest per job that says what it needs and what it
+produces, and exposes the same operations to an AI agent through an MCP server. A project keeps its
+own worker profile and launcher; downstream users never need it.
 
 This week's evidence is one afternoon. A DirectX 11 effect had to be proven to load and light in
 Maya 2026, and a day of scripted Maya launches could not do it: a minute of start-up per attempt,
@@ -174,9 +175,10 @@ six days above are the ones that already earned their place; these are the ones 
 
 **Long shots worth naming**
 
-- **The editor, and the engine, as workers.** An editor or a runtime with a command bus registered as
-  a worker type, so an agent can load and place an asset in a named view, run the game, drive the
-  camera and capture profiles. Saturday's day waits on this one.
+- **The home engines as workers.** At work the editor is already a worker: the orchestrator runs
+  Unreal Editor as a worker type, so Saturday needs only the three pieces there. For the home engine
+  and its editor this is the long shot: a command bus registered as a worker type, so an agent can
+  load and place an asset in a named view, run the game, drive the camera and capture profiles.
 - **In-context annotation.** Once the marks people make on a Saturday render are known, a tool that
   understands the view's depth and objects turns a stroke into a placement or a light move directly.
   The generation after phone markup, not before it.

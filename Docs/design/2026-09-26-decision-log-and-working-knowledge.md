@@ -357,7 +357,11 @@ job that calls jobs and blocks on a bridge reply at each gate, and typed inputs 
 manifest conventions before they are a schema. The generative 3D steps (Thursday's blockout and
 model) and the editor as a worker (Saturday) are the year-out parts: the first is unproven anywhere
 in this repo, the second needs a command bus LargeWorlds does not have (SpriteJammer's spike proved
-the shape). The pitch now says the split rather than "a year" for both days.
+the shape). The pitch now says the split rather than "a year" for both days. Then the owner: "we already have an engine that starts and BATS can
+operate (for work, not hobby), and that is Unreal", and "the model workflow is complex, you are
+right, at least a couple of weeks". So Saturday's prerequisite exists at work today (the
+orchestrator's Unreal Editor worker type) and the long shot is only the home engine; Thursday's
+generative steps carry the owner's own floor of a couple of weeks. The pitch says both.
 
 ## 4. Repository and GitHub state (as of 2026-09-26)
 
