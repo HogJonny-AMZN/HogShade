@@ -71,6 +71,16 @@ Gate to finish: v2.0 loads in Maya 2026 `dx11Shader`; clone under 5 MB; licence 
 - [x] `git-filter-repo`: strip `testFiles/`, `images/`, `ShaderDevProj/` from history. Force-pushed 2026-09-20; fork network left 2026-09-26; the owner deletes `legacy-pointer` after the pointer PR merges.
 - [ ] Git LFS: one shader-ball scene, one licence-clean HDR (owner picks), the packed test textures.
 - [ ] Close the getting-started issue on the legacy repo, pointing at the README.
+- [ ] **Coding standards and agent context (owner, 2026-09-26).** Port the Python and general coding
+      standards from LargeWorlds (module header template, absolute imports, naming, type hints on
+      every signature, reST docstrings, two-part log messages, 120 columns, mini-tests kept, the
+      anti-pattern list) into a `CLAUDE.md` and a `.github/copilot-instructions.md` for HogShade, and
+      write the AI instructions and context that are meaningful to HogShade standalone: the doc
+      process (roadmap, design, spec, plan; tick on verification), the core rules (WGSL source,
+      textures and samplers as function parameters, the module-prefix rule, NumPy twin per core
+      function, GPU tests on the owner's machine and the CI adapter), the build and check commands,
+      the Maya scripting lessons, the LFS and hygiene rules, and what a PR must carry before it is
+      done. Not a copy of the LargeWorlds file: only what applies here.
 - [x] v3.0 salvage (2026-09-20): six of eleven includes compile against v2; all six are reformats.
       Nothing taken. Folder deleted; archive stays at
       `D:\Depot\Maya-PBR-BRDF-VP2_BAK\uncommitted-v3.0-2025-04`. Details in the direction spec.

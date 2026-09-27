@@ -913,39 +913,48 @@ fn legacy_v2_debug(i: ShadingInputs, slots: FixedSlots16, env: EnvironmentSample
 // models_evaluate_env once, adds emissive, and reads models_debug when a debug view is on;
 // models_shade does all of that. Every branch here is a model's own function; nothing
 // shading-specific lives in this file.
+//
+// The dispatch is an if-chain, not a switch: FXC (the compiler behind wgpu's D3D12 backend and
+// Maya's dx11Shader) fails with "internal error: no storage type for block output" on naga's HLSL
+// when a switch selects on a value read from a uint texture, as the deferred light pass does with
+// the G-buffer's model ID, in a shader that also passes textures into functions (PR E, 2026-09-26).
 
 fn models_evaluate_light(i: ShadingInputs, light: LightSource, env: EnvironmentSamples) -> vec3<f32> {
-    switch (i.surface.model) {
-        case 0u: { return lambert_evaluate_light(i, light, env); }
-        case 2u: { return legacy_v2_evaluate_light(i, light, env); }
-        default: { return lambert_evaluate_light(i, light, env); }
+    if (i.surface.model == 0u) {
+        return lambert_evaluate_light(i, light, env);
+    } else if (i.surface.model == 2u) {
+        return legacy_v2_evaluate_light(i, light, env);
     }
+    return lambert_evaluate_light(i, light, env);
 }
 
 // The (n.v, roughness) a model wants its LUT and prefiltered-mip lookups made at; a host passes
 // the result to environment_sample. v2 uses abs(n.v) + 1e-4 and its biased roughness.
 fn models_env_lookup(i: ShadingInputs) -> vec2<f32> {
-    switch (i.surface.model) {
-        case 0u: { return lambert_env_lookup(i); }
-        case 2u: { return legacy_v2_env_lookup(i); }
-        default: { return lambert_env_lookup(i); }
+    if (i.surface.model == 0u) {
+        return lambert_env_lookup(i);
+    } else if (i.surface.model == 2u) {
+        return legacy_v2_env_lookup(i);
     }
+    return lambert_env_lookup(i);
 }
 
 fn models_evaluate_env(i: ShadingInputs, env: EnvironmentSamples) -> vec3<f32> {
-    switch (i.surface.model) {
-        case 0u: { return lambert_evaluate_env(i, env); }
-        case 2u: { return legacy_v2_evaluate_env(i, env); }
-        default: { return lambert_evaluate_env(i, env); }
+    if (i.surface.model == 0u) {
+        return lambert_evaluate_env(i, env);
+    } else if (i.surface.model == 2u) {
+        return legacy_v2_evaluate_env(i, env);
     }
+    return lambert_evaluate_env(i, env);
 }
 
 fn models_debug(i: ShadingInputs, slots: FixedSlots16, env: EnvironmentSamples, mode: u32) -> vec3<f32> {
-    switch (i.surface.model) {
-        case 0u: { return lambert_debug(i, slots, env, mode); }
-        case 2u: { return legacy_v2_debug(i, slots, env, mode); }
-        default: { return lambert_debug(i, slots, env, mode); }
+    if (i.surface.model == 0u) {
+        return lambert_debug(i, slots, env, mode);
+    } else if (i.surface.model == 2u) {
+        return legacy_v2_debug(i, slots, env, mode);
     }
+    return lambert_debug(i, slots, env, mode);
 }
 
 // The v2 gather pattern: sum the bound slots. count caps the loop; kind 0 slots contribute nothing.

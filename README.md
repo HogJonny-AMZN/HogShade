@@ -32,8 +32,9 @@ generated artifacts under `hosts/` (shader-model 5 and 6 HLSL, GLSL, WGSL), vali
 dxc on every change. The IBL cook (`hogshade/ibl`) produces prefiltered cubes, irradiance, SH9
 and the BRDF LUT for two Poly Haven environments; the manifests, SH9 and previews are in the tree
 and the EXR and DDS payloads are under Git LFS (PR #12, once the repository left the fork
-network). Nothing renders through the core in a host yet; the
-wgpu viewport and the Maya shell are the next two PRs. Phase 1 (hygiene) is done except for the
+network). The wgpu host (`hosts/wgpu/`, `tools/wgpu_viewport.py`) renders the shader ball
+through the core, forward and deferred, and writes `Docs/verification/wgpu-v2-studio.png`; the
+Maya shell is the next PR. Phase 1 (hygiene) is done except for the
 owner's GitHub steps. The legacy shaders compile clean under `fxc` (warnings only) and are the
 reference every port is diffed against.
 

@@ -982,71 +982,59 @@ vec3 legacy_v2_debug(ShadingInputs i_17, FixedSlots16_ slots_3, EnvironmentSampl
 }
 
 vec3 models_evaluate_light(ShadingInputs i_18, LightSource light_5, EnvironmentSamples env_14) {
-    switch(i_18.surface.model) {
-        case 0u: {
-            vec3 _e5 = lambert_evaluate_light(i_18, light_5, env_14);
-            return _e5;
-        }
-        case 2u: {
-            vec3 _e6 = legacy_v2_evaluate_light(i_18, light_5, env_14);
-            return _e6;
-        }
-        default: {
-            vec3 _e7 = lambert_evaluate_light(i_18, light_5, env_14);
-            return _e7;
+    if ((i_18.surface.model == 0u)) {
+        vec3 _e7 = lambert_evaluate_light(i_18, light_5, env_14);
+        return _e7;
+    } else {
+        if ((i_18.surface.model == 2u)) {
+            vec3 _e12 = legacy_v2_evaluate_light(i_18, light_5, env_14);
+            return _e12;
         }
     }
+    vec3 _e13 = lambert_evaluate_light(i_18, light_5, env_14);
+    return _e13;
 }
 
 vec2 models_env_lookup(ShadingInputs i_19) {
-    switch(i_19.surface.model) {
-        case 0u: {
-            vec2 _e3 = lambert_env_lookup(i_19);
-            return _e3;
-        }
-        case 2u: {
-            vec2 _e4 = legacy_v2_env_lookup(i_19);
-            return _e4;
-        }
-        default: {
-            vec2 _e5 = lambert_env_lookup(i_19);
-            return _e5;
+    if ((i_19.surface.model == 0u)) {
+        vec2 _e5 = lambert_env_lookup(i_19);
+        return _e5;
+    } else {
+        if ((i_19.surface.model == 2u)) {
+            vec2 _e10 = legacy_v2_env_lookup(i_19);
+            return _e10;
         }
     }
+    vec2 _e11 = lambert_env_lookup(i_19);
+    return _e11;
 }
 
 vec3 models_evaluate_env(ShadingInputs i_20, EnvironmentSamples env_15) {
-    switch(i_20.surface.model) {
-        case 0u: {
-            vec3 _e4 = lambert_evaluate_env(i_20, env_15);
-            return _e4;
-        }
-        case 2u: {
-            vec3 _e5 = legacy_v2_evaluate_env(i_20, env_15);
-            return _e5;
-        }
-        default: {
-            vec3 _e6 = lambert_evaluate_env(i_20, env_15);
-            return _e6;
+    if ((i_20.surface.model == 0u)) {
+        vec3 _e6 = lambert_evaluate_env(i_20, env_15);
+        return _e6;
+    } else {
+        if ((i_20.surface.model == 2u)) {
+            vec3 _e11 = legacy_v2_evaluate_env(i_20, env_15);
+            return _e11;
         }
     }
+    vec3 _e12 = lambert_evaluate_env(i_20, env_15);
+    return _e12;
 }
 
 vec3 models_debug(ShadingInputs i_21, FixedSlots16_ slots_4, EnvironmentSamples env_16, uint mode_4) {
-    switch(i_21.surface.model) {
-        case 0u: {
-            vec3 _e6 = lambert_debug(i_21, slots_4, env_16, mode_4);
-            return _e6;
-        }
-        case 2u: {
-            vec3 _e7 = legacy_v2_debug(i_21, slots_4, env_16, mode_4);
-            return _e7;
-        }
-        default: {
-            vec3 _e8 = lambert_debug(i_21, slots_4, env_16, mode_4);
-            return _e8;
+    if ((i_21.surface.model == 0u)) {
+        vec3 _e8 = lambert_debug(i_21, slots_4, env_16, mode_4);
+        return _e8;
+    } else {
+        if ((i_21.surface.model == 2u)) {
+            vec3 _e13 = legacy_v2_debug(i_21, slots_4, env_16, mode_4);
+            return _e13;
         }
     }
+    vec3 _e14 = lambert_debug(i_21, slots_4, env_16, mode_4);
+    return _e14;
 }
 
 vec3 models_evaluate_slots(ShadingInputs i_22, FixedSlots16_ slots_5, EnvironmentSamples env_17) {

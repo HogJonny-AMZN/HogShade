@@ -3,7 +3,7 @@ HogShade phase 2 spike (plan PR A, task 3): Maya 2026 draws the naga-derived eff
 Package: Spikes/naga-fx/maya_spike_check.py
 
     set MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11
-    set HOGSHADE_ROOT=D:/Depot/Maya-PBR-BRDF-VP2
+    set HOGSHADE_ROOT=D:/Depot/HogShade
     maya.exe -script Spikes/naga-fx/maya_spike_check.mel
 
 Loads ggx.fx on a sphere, connects a file node to baseColorMap, adds a directional light (dx11Shader

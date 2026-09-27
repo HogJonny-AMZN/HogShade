@@ -93,11 +93,28 @@ own. Tick a task only when its verification ran.
 
 ## PR E: the wgpu host
 
-- [ ] 13. `hosts/wgpu/lit_mesh.wgsl`, `gbuffer_fill.wgsl`, `deferred_light.wgsl` over the stitched
-      core; naga-validated in `tests/compile/`.
-- [ ] 14. `tools/wgpu_viewport.py`: shader ball (derkreature, glTF), legacy v2 model, studio IBL from
+- [x] 13. `hosts/wgpu/lit_mesh.wgsl`, `gbuffer_fill.wgsl`, `deferred_light.wgsl` over the stitched
+      core; naga-validated in `tests/compile/`. Done 2026-09-26: plus `common.wgsl` (the frame uniform,
+      the environment bindings, the host's material and geometry builders, `host_shade`); the three
+      stitched passes validate under naga in `tests/compile/` and compile on the RTX 5090 through
+      Vulkan. The deferred pair renders into ADR-002's real formats (rgba8unorm-srgb, rgba16float,
+      rgba8uint, rg11b10ufloat) so its cost is measured, not modelled. FXC finding (Copilot asked for a
+      D3D12 check): the deferred pass failed under wgpu's D3D12 backend with FXC's "no storage type
+      for block output", bisected to `switch (i.surface.model)` in `core/models.wgsl` when the
+      selector comes from the uint G-buffer texture in a shader that also passes textures into
+      functions; the dispatcher is an if-chain now and both backends render the pass.
+- [x] 14. `tools/wgpu_viewport.py`: shader ball (derkreature, OBJ; the plan first said glTF), legacy v2 model, studio IBL from
       `content/ibl`, one directional light; writes `Docs/verification/wgpu-v2-studio.png`. Verified:
-      the PNG shows a lit ball with a specular reflection of the studio.
+      the PNG shows a lit ball with a specular reflection of the studio. Done 2026-09-26: the ball is
+      the OBJ, not glTF (that repository ships OBJ and FBX; `content/shaderball/`, Unlicense, LFS),
+      read by `hogshade.wgpu_host.load_obj`. `hogshade.wgpu_host.Renderer` draws both paths offscreen
+      and reads them back; the tool writes the forward and deferred PNGs and prints their difference.
+      Verified: `wgpu-v2-studio.png` (grey dielectric, roughness 0.2) shows the studio softbox in the
+      cavity and on the rim; `wgpu-v2-studio-metal.png` (metal, roughness 0.15) mirrors the studio.
+      Forward versus deferred over the ball, 1024 px: dielectric mean 0.005 and max 0.41 scene-linear
+      (silhouette pixels); metal mean 0.06 with a max of 134 at the hottest highlight pixel, where
+      the fp16 normal moves v2's unbounded grazing specular. `tests/host/test_wgpu_host.py` renders
+      at 96 px and asserts coverage, a lit ball, path agreement and a non-zero specular debug view.
 
 ## PR F: the Maya host and the modern HLSL
 
