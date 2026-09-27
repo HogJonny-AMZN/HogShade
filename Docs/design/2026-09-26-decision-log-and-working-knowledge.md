@@ -201,7 +201,14 @@ register *providers* (one line per project in its profile, `hogshade.jobs:manife
 forgotten), and let the orchestrator and its MCP enumerate from the providers (`bats_list_jobs`,
 `bats_describe_job`, a CLI flag), so an agent that never read the docs still finds the jobs through
 the tool it reaches for anyway. HogShade's `MANIFEST` shape is the candidate schema. Cost: about a
-day on the dev checkout, half a day here. Here only, plus the to-do list in
+day on the dev checkout, half a day here. Owner's follow-up: "shouldn't the AI just be able to ask
+the running orchestrator about workers, workflows, jobs/tasks and capabilities?" Yes; that is the
+point. Today the running orchestrator answers about workers (types, state, submit, poll, results)
+and nothing about jobs, because it holds a queue and a pool, not a catalogue. Providers are how it
+learns the catalogue, once, at start; the agent then asks the orchestrator. Two further layers the
+question implies: workers describing themselves at boot (DCC and version, plugins, viewport device,
+GPU) behind a `bats_describe_worker`, and workflows as catalogued lists of job references with
+edges, which do not exist yet and need their own design. Here only, plus the to-do list in
 `Docs/knowledge/job-orchestrator.md`.
 
 ## 4. Repository and GitHub state (as of 2026-09-26)
