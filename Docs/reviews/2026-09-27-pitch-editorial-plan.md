@@ -91,6 +91,24 @@ Portable test restated in the closer: "if a step needs time, a machine, a queue,
 | Rhythm | 6 | 7 | Mean paragraph mass 62 to 58, longest 118 to 96 |
 | Length (trend, not scored) | 1,930 words | 1,720 words | Grew in every pass of the day until this one |
 
-## Layer 9: for the author
+## Layer 9: author review, and what it found
+
+Owner, on the revised draft: "needs the best 'human in the loop' use cases early, which are all my
+initial desires. Why would I want or need a cron job (and for what)? Why would I want a remote
+interface? How does this make my life better?"
+
+Finding 9, ranked above every other: **the memo argued the architecture before it showed a single
+day being better.** Diagnosis: the author's initial desires (a Friday review with a nudge, the Maya
+gate from the phone, asking the orchestrator what it can do, ideas becoming board rows that get
+followed up) were scattered through *What*, *Around the corner* and *How* as features, never as
+days. A manager reads for the day, not the feature. Applied: a new section, "A week with it",
+directly after the lead: five concrete moments (Friday's three-line verdict, the Tuesday gate from
+the phone, Wednesday's waiting pull request, thinking out loud, a new person on Monday), each naming
+why a schedule or a remote channel is the thing that makes it possible and what it buys. The lead
+gained one sentence saying the machinery is not the point. Every case keeps the person deciding; the
+agent never merges. Word count 1,720 to 2,090; the growth is the author's requested content, and it
+displaces nothing.
+
+## Layer 9, first pass: for the author
 
 Worth your attention: the steelman paragraph (it concedes that a CI runner covers schedule, secrets and notifiers), the falsification condition in *Risks*, the softened "one launch in three", and the ask's first sentence, which now commits one person for a week. Not worth it: the clause trims in *Around the corner*, recorded above as the alternative to cutting bullets.

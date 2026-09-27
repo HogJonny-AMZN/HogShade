@@ -11,7 +11,40 @@ Date: 2026-09-27. Author: the owner.
 AI agents think well and persist badly. The harness that reads a repository, plans, edits, tests and
 opens a pull request is the brain, and it gets better every quarter without our effort. What it lacks
 is a body: something that starts work on a schedule, runs it on the machine with the DCC on it, and
-tells a person when it is done. BATS already is most of that body. Three small additions finish it.
+tells a person when it is done. BATS already is most of that body. Three small additions finish it, and the point of finishing it is
+not the machinery. It is a week that reads differently.
+
+## A week with it
+
+Before the architecture, the days it changes. Every case below keeps a person in the loop; the
+agent proposes and runs, the person reads and decides, and nothing merges without a human.
+
+**Friday, 4 p.m.** Your phone shows three lines and a link: CI got 40 seconds slower this week and
+the commit that did it; the Maya check was run by hand three times and is a one-line job now; the
+export experiment from August never proved out and is still described as current in two documents.
+You read it on the couch. Monday opens with that list instead of reconstructing the week from
+memory. Why a schedule: a review is the one task nobody books for themselves, and it has to read the
+week whole, which no single session can see from inside.
+
+**Tuesday, away from the desk.** A shader change needs the Maya gate. You send "run the IBL check on
+v1" from your phone; the resident worker runs it while you are out and the picture comes back. A
+reply, "again with sheen at one", is a second job. Why remote: the machine has the DCC, the GPU and
+the licence, and you do not always have the desk. Verification stops waiting for you to sit down.
+
+**Wednesday, 9 a.m.** A pull request is waiting that you did not write: the smallest ready item on
+the board, built overnight behind an allowlist, with its tests. Your morning is a review, not a blank
+editor. If it is wrong you say so in the review and it is gone; nothing landed.
+
+**Any day, thinking out loud.** You mention a feature in passing. It lands on the board with a cost,
+not in the code, and next Friday's report opens with last week's items and whether you acted on them.
+The follow-up is enforced by the report, not by anyone's memory.
+
+**A new person, or a new agent, on Monday.** "What can this pipeline do?" is a question the running
+orchestrator answers with its jobs, their parameters and what each produces, instead of a week of
+reading and asking.
+
+Those five days are the whole case. The rest of this memo says why they are not possible today,
+what makes them possible, and what it costs to find out.
 
 ## Why
 
