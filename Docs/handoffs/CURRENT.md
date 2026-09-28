@@ -38,8 +38,7 @@ on the owner's GPU, the run log at `verification/core/gpu-tests.log` with its co
 `build_shaders.py --check --require-compilers` clean.
 
 Not done, on purpose, and on the board as the pass's remainder: the decision log split into topic
-files, and the `Docs/superpowers/` move. Not decided, the owner's: the gates (G1 narrowed 2026-09-27: the
-clearance half is settled and the profile path is gone; housekeeping boxes remain).
+files, and the `Docs/superpowers/` move. Not decided, the owner's: the gates G2 to G5 (G1 closed 2026-09-27).
 
 Next in the agreed order: the phase 2 close (deviations list, status rows, roadmap C2, VERSION
 `0.2.0`), then phase 3. The agent loop and the weekly review stay Icebox rows awaiting a design lock.
@@ -87,7 +86,7 @@ waits on SpriteJammer; its catch-up is a session in that repo.
 
 ## Owner-only steps still open
 
-Legacy pointer PR and issue on the hogjonny account; track A's housekeeping boxes; the orphaned 8K LFS object
+Legacy pointer PR and issue on the hogjonny account; the orphaned 8K LFS object
 (support request, optional). See the decision log, section 4.
 
 ## Repository and GitHub state (moved from the decision log, 2026-09-27; as of 2026-09-26 unless dated)
@@ -101,7 +100,7 @@ Legacy pointer PR and issue on the hogjonny account; track A's housekeeping boxe
   runs or support is asked.
 - Owner-only steps still open: merge the legacy pointer PR (`hogjonny/Maya-PBR-BRDF-VP2#2`) from
   the legacy account, delete the `legacy-pointer` branch, close legacy issue #1, archive the legacy
-  repo. Track A: the two clearance boxes are settled (owner, 2026-09-27: `hog_color` is the owner's own
-  toolbox rewritten, no approval to seek; the backup repo is gone); the housekeeping boxes remain.
+  repo. Track A closed 2026-09-27: the clearance boxes settled by the owner's account, the profile
+  housekeeping moved out of this repo (account work, parked in the agent's memory until the owner names a home).
 - The CI runner (`windows-latest`) has a DirectX 12 adapter, so the GPU tests run there through
   FXC; LFS is not hydrated on CI (`lfs: false`), so asset-dependent tests skip there.

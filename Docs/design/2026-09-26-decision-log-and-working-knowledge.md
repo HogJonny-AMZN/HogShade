@@ -454,6 +454,14 @@ just am not distributing Job_Orchestrator/BATS in any of those itself."* Formali
 third box (struck, with the rule) and a Distribution section in `Docs/knowledge/job-orchestrator.md`;
 board G1 no longer lists it.
 
+### Track A closed; the profile housekeeping leaves this repo (owner, 2026-09-27)
+
+With both clearance boxes settled, the owner looked at what remained of track A (archive dead public repos,
+pin four repos, a profile README) and said it *"doesn't have any strong relevance to HogShade, so I am not
+sure why it's in this repo's roadmap being tracked; we should track that somewhere else (not sure where)."*
+Track A is closed and G1 with it. The items are parked in the agent's memory so they are not lost; the
+recommended home is the GitHub profile repository, which is what they are about. The owner picks.
+
 ## 4. What moved out of this file (2026-09-27)
 
 | Was here | Now |

@@ -33,7 +33,7 @@ cleanup that make the work publishable, and the employer conversation that decid
 
 | Track | What | Blocks |
 | --- | --- | --- |
-| A | GitHub profile and open-source clearance | Publishing anything from LargeWorlds, Job_Orchestrator, BATS |
+| A | ~~GitHub profile and open-source clearance~~ **Closed 2026-09-27** | Nothing here. The clearance half is settled by the owner's account; the profile housekeeping is account work and moved out of this repo (below) |
 | B | Maya-PBR-BRDF-VP2 repo hygiene | Everything in C and D |
 | C | Shading core and hosts | The SpriteJammer tiers |
 | D | SpriteJammer PBR tiers | Nothing downstream; it is the consumer |
@@ -44,32 +44,23 @@ Tracks A and B are independent. C follows B. E starts with B and its capture too
 D follows C5 but its G-buffer prep and the bake decision can start any time. The reasoning behind E
 is [design/2026-09-20-wysiwyg-blindspots.md](design/2026-09-20-wysiwyg-blindspots.md).
 
-## Track A: profile and clearance
+## Track A: profile and clearance (closed 2026-09-27)
 
-- [x] ~~Move the private backup repo off GitHub before raising anything.~~ Done 2026-09-27: the owner
-      removed it.
-- [x] ~~Ask about open-sourcing LargeWorlds, stating `hog_color`'s lineage.~~ **Settled 2026-09-27, the
-      owner's account:** the colour toolbox was the owner's own work first, on personal time and equipment;
-      a later fork of it for a studio never reached a production tool, and that studio has since closed;
-      `hog_color` in LargeWorlds is a fresh rewrite inside a private personal project. No lineage question,
-      no approval to seek, and publishing LargeWorlds is the owner's call alone. The old identifiers were
-      retired from every repo the same day for the codename `proto_color` / `proto_py`; they do not come back.
-- [x] ~~Raise Job_Orchestrator second, with the commit-time evidence. BATS last or not at all.~~ **Settled
-      2026-09-27 as a standing rule, the owner's account:** Job_Orchestrator (BATS) is the owner's own work,
-      first written on personal time and equipment; a studio fork never reached production; the owner kept the
-      private original going and their manager knows of it and of the blog posts about it. Whether it is ever
-      made public is the owner's own call, not pending anywhere, and they would seek a blessing first if so.
-      Meanwhile: use it, operate and extend it, ship jobs written for it in this and the sibling repos (those
-      jobs may be defunct for a reader without it), and **never vendor or distribute Job_Orchestrator / BATS
-      itself here.** No approval task belongs on this roadmap.
-- [ ] Archive the dead public repos (2022 O3DE templates, tutorial scaffolds, one-day experiments).
-- [ ] Pin four repos: CO3DEX, Maya-PBR-BRDF-VP2, the O3DE fork, and whichever private repo is
-      cleared first.
-- [ ] Profile README pointing at the O3DE contribution history (428 commits, 44 merged PRs, about
-      130 reviews across the org).
-- [ ] Standing rule for every repo that might be published: no employer names, personal email only,
-      no files copied from a studio tree, Apache-compatible dependencies only. Recorded in memory as
-      the hygiene rule; LargeWorlds was scrubbed in commit 9d9e963e.
+Closed by the owner on 2026-09-27, in two moves recorded in the decision log ("`hog_color`'s history
+settled", "Job_Orchestrator / BATS: use freely, never distribute", "Track A closed"):
+
+- **The clearance half is settled, not pending.** `hog_color` is the owner's own toolbox rewritten, with
+  no lineage question and no approval to seek; the old identifiers are retired for the codename
+  `proto_color` / `proto_py`. Job_Orchestrator / BATS is the owner's own private tool: used, referenced and
+  written for in this repo, never vendored or distributed by it; publishing it is the owner's own call and
+  not tracked here. The private backup repo is gone.
+- **The profile housekeeping has no strong relevance to HogShade** (owner, 2026-09-27) and left this
+  roadmap: archiving dead public repos, pinning four repos, a profile README pointing at the O3DE
+  contribution history. They are parked in the agent's memory until the owner names a home; the
+  recommended one is the GitHub profile repository itself, since that is what they are about.
+- **The standing hygiene rule stays, where it always belonged:** [ADR-008](decisions/ADR-008-lfs-and-hygiene.md)
+  and `tools/check_hygiene.py` (personal email on commits, no files copied from another tree,
+  Apache-compatible dependencies, the retired identifiers never reintroduced).
 
 ## Track B: repo hygiene (phase 1 of the spec)
 

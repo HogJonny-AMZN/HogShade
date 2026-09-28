@@ -29,7 +29,7 @@ A gate is not a task. It is a question that blocks tasks, and the cost of guessi
 
 | Gate | State | What it blocks | What it needs |
 | --- | --- | --- | --- |
-| **G1 · Track A, open-source clearance** | 🟡 **Open, owner-only, narrowed 2026-09-27.** `hog_color`'s history is settled by the owner's account (roadmap track A, second box): the owner's own toolbox first, a studio fork that never shipped and whose studio has closed, then a fresh rewrite; no approval to seek. The generated orchestrator profile no longer carries a path from the dev checkout (`package_paths` dropped in `make_profile.py`). This repo is already public | Nothing in HogShade. Public links to LargeWorlds wait on the owner publishing it, which is the owner's call alone now | The remaining track A boxes: dead repos archived, pins, the profile README. Job_Orchestrator / BATS is settled as a standing rule (used and referenced, never distributed here; roadmap track A, third box). Closes when the owner strikes the housekeeping boxes |
+| ~~**G1 · Track A, open-source clearance**~~ | 🟢 **CLOSED 2026-09-27.** The clearance half settled by the owner's account (`hog_color` the owner's own toolbox rewritten; Job_Orchestrator / BATS used here, never distributed; the backup repo gone); the generated profile's dev-checkout path dropped. The profile housekeeping is account work with no strong relevance to HogShade (owner) and left the roadmap; parked in the agent's memory until the owner names a home | — | Done: roadmap track A closed; `tools/check_hygiene.py` guards the retired spellings; publishing anything from this repo is the owner's call alone |
 | **G2 · Which OCIO config seeds the repo** | 🟡 **Open.** Blender's 4.x config (CC0, ships AgX) with the ACES views added, or an ACES studio config with an AgX view added, or an own AgX view from the published transform | Track E colour management: scene-referred ACEScg captures, the AgX default view, the ACES alternative, the wgpu host's numeric twin of the view | The owner's pick; the roadmap's colour-management item holds the trade-off |
 | ~~**G3 · The material contract and editor split**~~ | 🟢 **CLOSED 2026-09-27.** Owner: "let's not build the material editor here, but let's own the core generalized material schema / data." [ADR-009](../decisions/ADR-009-hogshade-owns-the-material-schema.md) | — | Done: HogShade owns the schema, the document, the mapping and the Python library; LargeWorlds owns the editor; dependency one way |
 | **G4 · When the comparison framework design is written** | 🟡 **Open.** The current plan says after the standards pass; the owner may pull it earlier | The pixel-identical screenshot diff of both legacy ports against the legacy effects (plan task 18's open half); the C3 comparison view; the bake comparisons | A date relative to the standards pass |
@@ -118,7 +118,6 @@ forgotten. **An empty Icebox means ideas are going missing.**
 | --- | --- |
 | **Merge the legacy pointer PR and close the getting-started issue** on `hogjonny/Maya-PBR-BRDF-VP2`; archive that repo; delete `legacy-pointer` here | Roadmap, track B |
 | **The orphaned 8K LFS object** | A support request, optional; the file is gitignored and never committed again |
-| **Track A**, in the roadmap's order | G1 |
 
 ---
 
