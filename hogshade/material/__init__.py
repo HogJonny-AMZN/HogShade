@@ -13,8 +13,8 @@ from __future__ import annotations
 
 import logging as _logging
 
-from hogshade.material.conversion import check_table, convert, load_table, table_names
-from hogshade.material.document import load
+from hogshade.material.conversion import check_table, conditions_of, convert, load_table, table_names
+from hogshade.material.document import from_data, load
 from hogshade.material.model import Document, Finding, Loss, MaterialError, MaterialType, ParameterDef, Resolved
 from hogshade.material.resolution import resolve
 from hogshade.material.schema import check_type_data, type_of, types
@@ -35,7 +35,9 @@ __all__ = [
     "Resolved",
     "check_table",
     "check_type_data",
+    "conditions_of",
     "convert",
+    "from_data",
     "load",
     "load_table",
     "resolve",

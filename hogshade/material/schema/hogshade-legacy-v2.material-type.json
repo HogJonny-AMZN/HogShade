@@ -160,11 +160,10 @@
       "widget": "texture",
       "semantic": "normal_ts",
       "colour_space": "raw",
-      "strength": true,
       "overridable": true,
       "tier": 1,
       "hosts": {},
-      "doc": "baseNormalMap, tangent space, +Y up."
+      "doc": "baseNormalMap, tangent space, +Y up; its strength is bump_intensity."
     },
     "bump_intensity": {
       "type": "float",

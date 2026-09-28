@@ -13,7 +13,7 @@ import logging as _logging
 from typing import Any
 
 from hogshade.material.document import path_findings
-from hogshade.material.model import BLENDS, VALUE_KEYS, Document, Finding, ParameterDef, Resolved
+from hogshade.material.model import BLENDS, VALUE_KEYS, Document, Finding, MaterialError, ParameterDef, Resolved
 from hogshade.material.schema import type_of
 
 _MODULE_NAME = "hogshade.material.validation"
@@ -100,7 +100,10 @@ def validate(obj: Document | Resolved) -> list[Finding]:
 
 def _validate_document(doc: Document) -> list[Finding]:
     where = str(doc.path) if doc.path else "<document>"
-    mtype = type_of(doc.material_type)
+    try:
+        mtype = type_of(doc.material_type)
+    except MaterialError as e:  # an in-memory Document with an unknown type; validate never raises
+        return [Finding(where, "", str(e))]
     out: list[Finding] = []
     if doc.parent is not None:
         out.extend(Finding(where, "", m) for m in path_findings(doc.parent, "parent"))
@@ -118,12 +121,18 @@ def _validate_document(doc: Document) -> list[Finding]:
 
 def _validate_resolved(res: Resolved) -> list[Finding]:
     where = str(res.chain[0]) if res.chain else "<resolved>"
-    mtype = type_of(res.material_type)
+    try:
+        mtype = type_of(res.material_type)
+    except MaterialError as e:
+        return [Finding(where, "", str(e))]
     out: list[Finding] = []
     for name, p in mtype.parameters.items():
         value = res.values.get(name)
         if value is None:
             out.append(Finding(where, name, "missing after resolution"))
+            continue
+        if not isinstance(value, dict):
+            out.append(Finding(where, name, "a resolved value is an object with factor, texture, blend"))
             continue
         if p.type != "texture" and value.get("factor") is None:
             out.append(Finding(where, name, "no factor and no default"))
@@ -134,8 +143,10 @@ def _validate_resolved(res: Resolved) -> list[Finding]:
             out.append(Finding(where, name, f"not a parameter of {mtype.name}"))
     # mask cuts coverage at 0.5: with no opacity texture and a constant factor below the cut, nothing renders.
     # A constant at or above the cut is a no-op and stays silent, since mask is the type's default.
-    alpha = res.values.get("alpha_mode", {}).get("factor")
-    opacity = res.values.get("geometry_opacity", {})
+    alpha_value = res.values.get("alpha_mode")
+    alpha = alpha_value.get("factor") if isinstance(alpha_value, dict) else None
+    opacity = res.values.get("geometry_opacity")
+    opacity = opacity if isinstance(opacity, dict) else {}
     factor = opacity.get("factor")
     if alpha == "mask" and opacity.get("texture") is None and _is_number(factor) and factor < 0.5:
         out.append(

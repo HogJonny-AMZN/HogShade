@@ -15,7 +15,7 @@ import json
 import logging as _logging
 from functools import cache
 from importlib import resources
-from importlib.abc import Traversable
+from importlib.resources.abc import Traversable
 from typing import Any
 
 from hogshade.material.model import (
@@ -167,7 +167,9 @@ def _check_migration(where: str, i: int, m: Any) -> list[Finding]:
             out.append(Finding(where, "", f"migration {i} op {j}: op is one of {sorted(MIGRATION_OPS)}"))
             continue
         for key in MIGRATION_OPS[kind]:
-            if not isinstance(op.get(key), str) if key != "value" else key not in op:
+            # a name key is a non-empty string; the default op's value is any JSON value, but present
+            missing = key not in op if key == "value" else not (isinstance(op.get(key), str) and op.get(key))
+            if missing:
                 out.append(Finding(where, "", f"migration {i} op {j}: {kind!r} carries {key!r}"))
     return out
 
