@@ -20,7 +20,7 @@ about it.
 **Reading the ids.** Rows carry the roadmap's own names (tracks A to E, phases C2 to C6, E1 and E2) or a
 PR letter. A struck-through row is done and stays for the record with its PR number.
 
----**
+---
 
 ## Gates: decisions only the owner can make
 

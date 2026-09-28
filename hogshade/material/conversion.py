@@ -97,9 +97,11 @@ def _check_entry(where: str, entry: Any, src: MaterialType, dst: MaterialType) -
         return [Finding(where, "", f"a map entry is an object, got {entry!r}")]
     out: list[Finding] = []
     name = entry.get("from")
+    if not isinstance(name, str) or not isinstance(entry.get("to"), str):
+        return [Finding(where, "", f"an entry's from and to are parameter names, got {name!r} and {entry.get('to')!r}")]
     for key in entry:
         if key not in _ENTRY_KEYS:
-            out.append(Finding(where, str(name), f"unknown entry key {key!r}"))
+            out.append(Finding(where, name, f"unknown entry key {key!r}"))
     sp = src.parameters.get(name)
     if sp is None:
         return out + [Finding(where, str(name), f"not a parameter of {src.name}")]
@@ -198,8 +200,8 @@ def check_table(table: dict[str, Any], src: MaterialType, dst: MaterialType, whe
     consulted: set[str] = set()
     for entry in table["map"]:
         out.extend(_check_entry(where, entry, src, dst))
-        if not isinstance(entry, dict):
-            continue
+        if not isinstance(entry, dict) or not isinstance(entry.get("from"), str):
+            continue  # already a finding; no name to count
         name = entry.get("from")
         if "when" in entry:
             # a source may appear once per distinct condition; those entries count as one appearance
@@ -220,9 +222,12 @@ def check_table(table: dict[str, Any], src: MaterialType, dst: MaterialType, whe
             out.append(Finding(where, "", f"a dropped entry is an object, got {entry!r}"))
             continue
         name = entry.get("from")
+        if not isinstance(name, str):
+            out.append(Finding(where, "", f"a dropped entry's from is a parameter name, got {name!r}"))
+            continue
         seen[name] = seen.get(name, 0) + 1
         if name not in src.parameters:
-            out.append(Finding(where, str(name), f"dropped parameter is not a parameter of {src.name}"))
+            out.append(Finding(where, name, f"dropped parameter is not a parameter of {src.name}"))
         elif name in consulted:
             out.append(
                 Finding(where, name, "consulted by a when condition; a parameter that shapes the output is not a loss")

@@ -414,3 +414,14 @@ def test_two_sources_onto_one_target_factor_are_refused(monkeypatch):
     monkeypatch.setattr("hogshade.material.conversion.load_table", lambda a, b: table)
     with pytest.raises(MaterialError, match="written twice"):
         convert(_v2({}), "hogshade-standard")
+
+
+def test_unhashable_names_in_a_table_are_findings_not_errors():
+    table = _v2_table()
+    table["map"].append({"from": [], "to": "alpha_mode", "transform": "identity"})
+    table["map"].append({"from": "roughness", "to": {"x": 1}, "transform": "identity"})
+    table["dropped"].append({"from": ["specular_tint"], "reason": "x"})
+    msgs = _messages(table)
+    assert any("from and to are parameter names, got []" in m for m in msgs)
+    assert any("got 'roughness' and {'x': 1}" in m for m in msgs)
+    assert any("a dropped entry's from is a parameter name" in m for m in msgs)
