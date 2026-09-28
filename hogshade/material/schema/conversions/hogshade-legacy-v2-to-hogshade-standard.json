@@ -1,0 +1,151 @@
+{
+  "from": "hogshade-legacy-v2",
+  "to": "hogshade-standard",
+  "version": 1,
+  "map": [
+    {
+      "from": "base_color",
+      "to": "base_color",
+      "transform": "identity"
+    },
+    {
+      "from": "roughness",
+      "to": "specular_roughness",
+      "transform": "identity"
+    },
+    {
+      "from": "metalness",
+      "to": "base_metalness",
+      "transform": "identity"
+    },
+    {
+      "from": "specular",
+      "to": "specular_weight",
+      "transform": "identity"
+    },
+    {
+      "from": "ior",
+      "to": "specular_ior",
+      "transform": "identity"
+    },
+    {
+      "from": "specular_f0_map",
+      "to": "specular_color",
+      "transform": "identity"
+    },
+    {
+      "from": "normal_map",
+      "to": "geometry_normal",
+      "transform": "identity"
+    },
+    {
+      "from": "bump_intensity",
+      "to": "geometry_normal",
+      "transform": "clamp",
+      "field": "strength",
+      "range": [
+        0.0,
+        4.0
+      ]
+    },
+    {
+      "from": "ambient_occlusion_map",
+      "to": "ambient_occlusion",
+      "transform": "identity"
+    },
+    {
+      "from": "cavity_map",
+      "to": "cavity",
+      "transform": "identity"
+    },
+    {
+      "from": "height_map",
+      "to": "height",
+      "transform": "identity"
+    },
+    {
+      "from": "emission_color",
+      "to": "emission_color",
+      "transform": "identity"
+    },
+    {
+      "from": "emission_intensity",
+      "to": "emission_luminance",
+      "transform": "scale",
+      "by": 100.0
+    },
+    {
+      "from": "opacity",
+      "to": "geometry_opacity",
+      "transform": "identity"
+    },
+    {
+      "from": "use_cutout_alpha",
+      "to": "alpha_mode",
+      "transform": "constant",
+      "value": "mask"
+    }
+  ],
+  "dropped": [
+    {
+      "from": "specular_tint",
+      "reason": "the standard has specular_color; a scalar tint toward the base colour has no lossless image"
+    },
+    {
+      "from": "normal_flip",
+      "reason": "an import-time convention of the map; the standard's normal is +Y up and a binding flips channels"
+    },
+    {
+      "from": "flip_backface_normals",
+      "reason": "host render state, not a material value in the standard"
+    },
+    {
+      "from": "has_alpha",
+      "reason": "the standard binds geometry_opacity explicitly; the base colour map's alpha is a packing choice"
+    },
+    {
+      "from": "opacity_mask_bias",
+      "reason": "the standard cuts at 0.5; a threshold is a binding constant (S3)"
+    },
+    {
+      "from": "has_vertex_alpha",
+      "reason": "a vertex-stream flag; a mesh and binding concern, not a material value in the standard"
+    },
+    {
+      "from": "use_vertex_color",
+      "reason": "a vertex-stream flag; a mesh and binding concern, not a material value in the standard"
+    },
+    {
+      "from": "use_vertex_ao",
+      "reason": "a vertex-stream flag; a mesh and binding concern, not a material value in the standard"
+    },
+    {
+      "from": "parallax_enabled",
+      "reason": "parallax is a host feature in v1; the standard carries the height map and phase 4 decides the technique"
+    },
+    {
+      "from": "height_scale",
+      "reason": "parallax is a host feature in v1; the standard carries the height map and phase 4 decides the technique"
+    },
+    {
+      "from": "min_samples",
+      "reason": "parallax is a host feature in v1; the standard carries the height map and phase 4 decides the technique"
+    },
+    {
+      "from": "max_samples",
+      "reason": "parallax is a host feature in v1; the standard carries the height map and phase 4 decides the technique"
+    },
+    {
+      "from": "self_shadow",
+      "reason": "parallax is a host feature in v1; the standard carries the height map and phase 4 decides the technique"
+    },
+    {
+      "from": "self_shadow_strength",
+      "reason": "parallax is a host feature in v1; the standard carries the height map and phase 4 decides the technique"
+    },
+    {
+      "from": "self_shadow_multiplier",
+      "reason": "parallax is a host feature in v1; the standard carries the height map and phase 4 decides the technique"
+    }
+  ]
+}

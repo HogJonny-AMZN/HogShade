@@ -123,6 +123,17 @@ arrive with the most conviction and the least review.
 carried a promise the proposed week did not keep, a ledger this repository does not have, and
 sample numbers reading as measurements. The second pass caught all three (`../reviews/`).
 
+### 13 · A module named after the function it exports
+
+**Trigger:** A package `__init__` that re-exports a function whose name equals one of its submodules
+(`from pkg.validate import validate`).
+**Do:** Name the module for the activity (`validation.py`) or the noun, never the verb the function
+takes; a test that monkeypatches `pkg.module.name` catches it, as does `import pkg.module as m`.
+**Because:** The S1 spec named `validate.py`, `resolve.py` and `convert.py` after the library functions;
+Copilot's eight findings on the spec and the author both missed that `hogshade.material.validate` would
+be the function once the package exported it. The tests' fake-type fixture found it on the first run
+(`feat/s1-material-schema`).
+
 ## How to add an entry
 
 When process fails again, append in the same PR as the fix: a trigger you would notice, the action

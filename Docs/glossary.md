@@ -43,6 +43,9 @@ travels between the repos under one vocabulary.
 | **Material Instance** | Runtime, in-memory overrides on a Material that never write back: damage, wetness, team colour, selection. An engine concern, never a file here. |
 | **Document** | A `*.material.json` as a file on disk, before or after resolution; the library's `load()` returns it raw. |
 | **Resolved** | A Material with its parent chain followed and every default applied: the full parameter set the library's `resolve()` returns and `bind()` consumes. |
+| **Finding** | One problem `validate()` reports: the document's path, the parameter (empty for the document itself) and a message. A finding never raises; a file that cannot be used at all is a `MaterialError`. |
+| **Loss** | A parameter a conversion dropped and the table's reason, returned beside the converted Document by `convert()`. |
+| **Meta-check** | The check of a material-type file's own shape (`check_type_data`): every field present and typed, groups declared, the `<group>_enabled` rule, the migrations list. A hundred lines of our own, no JSON Schema dependency. |
 | **Conversion table** | Per legacy type, the mapping of its parameters to the standard's and the list of what has no counterpart; `convert()` applies it. How comparison between models is done: by conversion, never by a shared type. |
 | **Binding** | The material-owned values and texture slots in one host's names, produced by `bind()`; never per-frame state. |
 | **Extension block** | A namespaced `ext` block in a Material that an engine owns and validates; HogShade passes it through. |

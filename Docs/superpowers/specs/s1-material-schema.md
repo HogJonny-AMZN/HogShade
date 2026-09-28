@@ -1,7 +1,8 @@
 # S1 spec: the schema files and `hogshade.material`'s load, validate, resolve and convert
 
-**Status:** Proposed. Drafted 2026-09-27 from the locked design; the owner approves it, then the plan
-runs. S1 is the first increment of the material schema and needs nothing from gate G4.
+**Status:** Accepted. Drafted 2026-09-27 from the locked design and built the same day on
+`feat/s1-material-schema`; the build's amendments are the last section. S1 is the first increment of the
+material schema and needed nothing from gate G4.
 
 Date: 2026-09-27. Design: [../../design/2026-09-27-material-schema.md](../../design/2026-09-27-material-schema.md)
 (locked 2026-09-27, all ten questions). Decision: [ADR-009](../../decisions/ADR-009-hogshade-owns-the-material-schema.md).
@@ -245,3 +246,33 @@ reverse direction is S2 or later, when a comparison view needs it.
   import (S5), the glTF game profile (S6).
 - Any change to the core or the hosts. S1 is Python and JSON.
 - A JSON Schema dependency: the meta-check is a hundred lines of our own over the file's shape.
+
+## Amendments made in the build (2026-09-27)
+
+Each is a two-way door recorded in the PR's Decisions table; the text above is left as written so the
+diff between the contract and the build stays readable.
+
+- **Module names.** `validate.py`, `resolve.py` and `convert.py` became `validation.py`, `resolution.py`
+  and `conversion.py`: the package re-exports functions named `validate`, `resolve` and `convert`, and a
+  function bound on the package shadows the submodule of the same name (`hogshade.material.validate` was
+  the function, so `monkeypatch.setattr("hogshade.material.validate.type_of", ...)` and
+  `import hogshade.material.validate as v` both broke). `document.py` keeps its name; `load` does not clash.
+- **Opt-in groups are inferred.** There is no `optional_groups` field: a group is opt-in when a bool named
+  `<group>_enabled` exists in it (the meta-check enforces the bool and the group); `MaterialType.optional_groups`
+  is derived. The standard's four `surface` opt-ins are textures (and one float) that are in use when bound,
+  so the standard has no enabled flag; legacy v2's `parallax` is the one opt-in group.
+- **Legacy v2 carries `specular_f0_map`** (texture, the shell's `specularF0Map`; the struct's
+  `specular_f0_from_map` is derived from the binding, like the other `use<Map>` flags), which the spec's
+  table omitted and the union test demanded. The parallax ranges are the shell's (`min_samples` 1 to 128,
+  `max_samples` 1 to 256, `self_shadow_strength` 0.001 to 1), not the table's smaller ones. The shell's
+  `shadowMultiplier` (declared with the material slider macro, part of the Shadows block) is host-only.
+- **The v2 table maps `cavity_map` to `cavity`** (the standard has the opt-in), where the example dropped it;
+  the parallax group is dropped with one reason; `specular_f0_map` maps to `specular_color`.
+- **The resolved `mask` rule is narrower.** A finding only when `alpha_mode` is `mask`, `geometry_opacity`
+  has no texture and its constant factor is below the 0.5 cut (nothing would render). With `mask` the
+  type's default, the letter of the rule would have flagged every untextured material.
+- **Standard library only.** The spec said everything numeric goes through numpy; the library uses none,
+  so it imports under any DCC Python (the import test asserts `numpy` absent too). Arrays arrive with a
+  caller that needs them.
+- **A `constant` entry's `value` is checked against the target's type** in the coverage rule, as the
+  spec's prose said and its test list did not.

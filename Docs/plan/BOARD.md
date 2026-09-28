@@ -41,7 +41,8 @@ A gate is not a task. It is a question that blocks tasks, and the cost of guessi
 
 | Item | Cost | Notes |
 | --- | --- | --- |
-| **The standards pass, remainder** (`docs/standards-remainder`, PR open) | 1 d, done | The decision log's working knowledge into `Docs/knowledge/toolchain.md` and `maya-scripting.md`, its repository state into the handoff, its open questions to the gates; specs and plans under `Docs/superpowers/` with every link and reference fixed (design and handoffs stay at the top level, as in the sibling repos). Merge when read |
+| **S1 · the material schema files and `hogshade.material`** (`feat/s1-material-schema`, PR open) | 1 d, done | Four `*.material-type.json` (the standard with OpenPBR names, legacy v2 and v1 typed from the structs and the shell with a test tying them, lambert), three conversion tables under the coverage rule, `load`, `validate`, `resolve`, `convert`; 108 tests; the wheel carries the data; mayapy imports it. Amendments in the spec's last section. Merge when read |
+| ~~**The standards pass, remainder**~~ | — | ✅ **Merged 2026-09-27 as [#27](https://github.com/HogJonny-AMZN/HogShade/pull/27)**; the design's cross-repo catch-up and the O3DE lessons as #28, the glossary and `check_vocabulary` as #29, S1's spec and plan as #30. The decision log's working knowledge into `Docs/knowledge/toolchain.md` and `maya-scripting.md`, its repository state into the handoff, its open questions to the gates; specs and plans under `Docs/superpowers/` with every link and reference fixed (design and handoffs stay at the top level, as in the sibling repos). Merge when read |
 | ~~**Phase 2 close**~~ | — | ✅ **Merged 2026-09-27 as [#26](https://github.com/HogJonny-AMZN/HogShade/pull/26)**, tagged `v0.2.0`; gate item 5 deferred to track E by the merge |
 | ~~**The standards pass**~~ | — | ✅ **Merged 2026-09-27 as [#25](https://github.com/HogJonny-AMZN/HogShade/pull/25).** Two standards pages, the ledger, Copilot's instructions, ADR-001 to 008, status on every document, the project review with its ten fixes, `tools/check_hygiene.py` from Copilot's review of it; thirteen findings answered |
 | ~~**PR H · the process port** (#20)~~ | — | ✅ **Merged 2026-09-27 as [#20](https://github.com/HogJonny-AMZN/HogShade/pull/20).** The journal, `Docs/standards/`, the PR template, `tools/check_docs.py` in CI, the `local-review` skill, the BATS case, this board; Copilot's two findings fixed |
@@ -59,7 +60,7 @@ is the first two rows, in that order.
 
 | Item | Cost | Notes |
 | --- | --- | --- |
-| **The material schema, pre-spec design** (unblocked by G3, ADR-009; [Docs/design/2026-09-27-material-schema.md](../design/2026-09-27-material-schema.md)) | **locked 2026-09-27**; S1's spec and plan drafted the same day ([spec](../superpowers/specs/s1-material-schema.md), [plan](../superpowers/plans/s1-material-schema.md)), awaiting the owner's approval; then the build, about 2 d | The design is locked (all ten questions in the owner's words); S1's spec and plan await the owner's approval, then the build runs as one PR; C3's build itself still waits on G4 |
+| **S2 · the generators over the schema** (the Maya shell's material block and the wgpu binding's struct from the type files; [design](../design/2026-09-27-material-schema.md), "Six increments") | a spec first, ½ d; the build 1 to 2 d | Unblocked by S1; the S1 spec's Out of scope names it. The design is locked ([Docs/design/2026-09-27-material-schema.md](../design/2026-09-27-material-schema.md)); C3's build itself still waits on G4 |
 | **Job providers and capability discovery** (owner note, 2026-09-27) | 1 d on the Job_Orchestrator dev checkout, ½ d here | Decision log, "Job providers and capability discovery". Here: `hogshade.jobs` discovers its jobs by scanning, a test fails on a job without a `MANIFEST` (the Maya job was unregistered for a day). There: a provider field in the profile, `bats_list_jobs` and `bats_describe_job`, a CLI flag. Cross-repo; the HogShade half can go first |
 | **The history-log fix, verified** | one job | `tools/maya/_session.py` now stops Script Editor mirroring at the end of a check (PR H); the next Maya job proves the committed log stops growing |
 
@@ -69,7 +70,7 @@ is the first two rows, in that order.
 
 | Item | Blocked on |
 | --- | --- |
-| **Phase C3 · OpenPBR model, MaterialX carrier, parameter schema** | **G4** because the roadmap says E's calibration capture runs in `maya_dx11` before C3 opens; G3 closed 2026-09-27 (ADR-009), so the schema's pre-spec design is unblocked (Next) |
+| **Phase C3 · OpenPBR model, MaterialX carrier, parameter schema** | **G4** because the roadmap says E's calibration capture runs in `maya_dx11` before C3 opens; G3 closed 2026-09-27 (ADR-009); the schema's design is locked and S1 is built (Now) |
 | **The comparison framework** (roadmap, track E) | **G4** for its design date. Design first, then spec, then build; `tools/wgpu/viewport.py` is replaced, not extended |
 | **Colour management: ACEScg, AgX default, ACES alternative** (track E) | **G2** |
 | **The pixel-identical screenshot diff of v1 and v2 against the legacy effects** | The comparison framework |

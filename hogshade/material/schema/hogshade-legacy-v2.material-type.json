@@ -1,0 +1,435 @@
+{
+  "material_type": "hogshade-legacy-v2",
+  "version": 1,
+  "title": "HogShade legacy v2 (2017 model) as the Maya shell takes it",
+  "groups": [
+    "base",
+    "geometry",
+    "surface",
+    "parallax"
+  ],
+  "parameters": {
+    "base_color": {
+      "type": "color3",
+      "default": [
+        0.6,
+        0.6,
+        0.6
+      ],
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "color",
+      "semantic": "base_color_linear",
+      "colour_space": "srgb",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialBaseColor; the sRGB base colour map multiplies it."
+    },
+    "roughness": {
+      "type": "float",
+      "default": 0.5,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "roughness_perceptual",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialRoughness; the roughness map's green channel."
+    },
+    "metalness": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "metalness",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialMetalness; the metalness map's green channel."
+    },
+    "specular": {
+      "type": "float",
+      "default": 1.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "specular_amount",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialSpecular, the specular amount; the specular map's red channel."
+    },
+    "specular_tint": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "specular_tint",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialSpecTint; tints the dielectric F0 toward the base colour."
+    },
+    "ior": {
+      "type": "float",
+      "default": 1.45,
+      "range": [
+        1.0,
+        3.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "ior",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialIOR; the dielectric F0 comes from it unless the F0 map is bound."
+    },
+    "specular_f0_map": {
+      "type": "texture",
+      "group": "base",
+      "widget": "texture",
+      "semantic": "specular_f0",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "specularF0Map, rgb; when bound it replaces the IOR-derived F0 (specular_f0_from_map)."
+    },
+    "emission_color": {
+      "type": "color3",
+      "default": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "color",
+      "semantic": "emission_color_linear",
+      "colour_space": "srgb",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialEmissive; the sRGB emissive map multiplies it."
+    },
+    "emission_intensity": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        100.0
+      ],
+      "soft": true,
+      "group": "base",
+      "widget": "slider",
+      "semantic": "emission_intensity",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialEmissiveIntensity; a unitless multiplier, nits arrive with the standard."
+    },
+    "normal_map": {
+      "type": "texture",
+      "group": "geometry",
+      "widget": "texture",
+      "semantic": "normal_ts",
+      "colour_space": "raw",
+      "strength": true,
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "baseNormalMap, tangent space, +Y up."
+    },
+    "bump_intensity": {
+      "type": "float",
+      "default": 1.0,
+      "range": [
+        0.0,
+        4.0
+      ],
+      "group": "geometry",
+      "widget": "slider",
+      "semantic": "normal_strength",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialBumpIntensity; the strength the shell exposes, kept so the generator round-trips."
+    },
+    "normal_flip": {
+      "type": "vector3",
+      "default": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "range": [
+        -1.0,
+        1.0
+      ],
+      "group": "geometry",
+      "widget": "vector",
+      "semantic": "normal_flip",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "NormalCoordsysX/Y/Z: +1 or -1 per tangent-space axis."
+    },
+    "flip_backface_normals": {
+      "type": "bool",
+      "default": true,
+      "group": "geometry",
+      "widget": "toggle",
+      "semantic": "flip_backface_normals",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "flipBackfaceNormals."
+    },
+    "opacity": {
+      "type": "float",
+      "default": 1.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "geometry",
+      "widget": "slider",
+      "semantic": "opacity",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "opacity; multiplied with the base colour alpha when has_alpha."
+    },
+    "has_alpha": {
+      "type": "bool",
+      "default": false,
+      "group": "geometry",
+      "widget": "toggle",
+      "semantic": "has_alpha",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "hasAlpha: the base colour map's alpha is opacity."
+    },
+    "use_cutout_alpha": {
+      "type": "bool",
+      "default": false,
+      "group": "geometry",
+      "widget": "toggle",
+      "semantic": "cutout_alpha",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "useCutoutAlpha: opacity is cut at opacity_mask_bias."
+    },
+    "opacity_mask_bias": {
+      "type": "float",
+      "default": 0.1,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "geometry",
+      "widget": "slider",
+      "semantic": "cutout_threshold",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "opacityMaskBias, the cutout threshold."
+    },
+    "has_vertex_alpha": {
+      "type": "bool",
+      "default": false,
+      "group": "geometry",
+      "widget": "toggle",
+      "semantic": "vertex_alpha",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "hasVertexAlpha: vertex colour set 0's alpha is opacity (use_vertex_alpha in the core)."
+    },
+    "ambient_occlusion_map": {
+      "type": "texture",
+      "group": "surface",
+      "widget": "texture",
+      "semantic": "ambient_occlusion",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "ambOccMap, red channel."
+    },
+    "cavity_map": {
+      "type": "texture",
+      "group": "surface",
+      "widget": "texture",
+      "semantic": "cavity",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "cavityMap, red channel."
+    },
+    "height_map": {
+      "type": "texture",
+      "group": "surface",
+      "widget": "texture",
+      "semantic": "height",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "heightMap, red channel; read by the parallax group."
+    },
+    "use_vertex_color": {
+      "type": "bool",
+      "default": false,
+      "group": "surface",
+      "widget": "toggle",
+      "semantic": "vertex_color",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "useVertexC0_RGBA: vertex colour set 0 tints the base colour."
+    },
+    "use_vertex_ao": {
+      "type": "bool",
+      "default": false,
+      "group": "surface",
+      "widget": "toggle",
+      "semantic": "vertex_ao",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "useVertexC1_AO: vertex colour set 1 is ambient occlusion."
+    },
+    "parallax_enabled": {
+      "type": "bool",
+      "default": false,
+      "group": "parallax",
+      "widget": "toggle",
+      "semantic": "parallax_enabled",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "useParallaxOcclusionMapping; the group's opt-in."
+    },
+    "height_scale": {
+      "type": "float",
+      "default": 0.05,
+      "range": [
+        0.001,
+        1.0
+      ],
+      "group": "parallax",
+      "widget": "slider",
+      "semantic": "parallax_height_scale",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialPomHeightScale."
+    },
+    "min_samples": {
+      "type": "int",
+      "default": 25,
+      "range": [
+        1,
+        128
+      ],
+      "group": "parallax",
+      "widget": "slider",
+      "semantic": "parallax_min_samples",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "pomMinSamples."
+    },
+    "max_samples": {
+      "type": "int",
+      "default": 75,
+      "range": [
+        1,
+        256
+      ],
+      "group": "parallax",
+      "widget": "slider",
+      "semantic": "parallax_max_samples",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "pomMaxSamples."
+    },
+    "self_shadow": {
+      "type": "enum",
+      "default": "none",
+      "group": "parallax",
+      "widget": "dropdown",
+      "semantic": "parallax_self_shadow",
+      "choices": [
+        "none",
+        "simple"
+      ],
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "parallaxOccShadowType."
+    },
+    "self_shadow_strength": {
+      "type": "float",
+      "default": 0.7,
+      "range": [
+        0.001,
+        1.0
+      ],
+      "group": "parallax",
+      "widget": "slider",
+      "semantic": "parallax_self_shadow_strength",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "selfOccShadowStrength."
+    },
+    "self_shadow_multiplier": {
+      "type": "float",
+      "default": 0.5,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "parallax",
+      "widget": "slider",
+      "semantic": "parallax_self_shadow_multiplier",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "pomShadowMultiplier."
+    }
+  },
+  "migrations": []
+}

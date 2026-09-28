@@ -66,3 +66,6 @@ content/**/source_8k.exr
 
 # the shader ball test asset lives under LFS (content/shaderball/LICENSE.md)
 !content/shaderball/*.obj
+
+# setuptools build tree (uv build in the wheel test)
+build/

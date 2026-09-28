@@ -1,0 +1,9 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "values": {
+    "shininess": {
+      "factor": 1.0
+    }
+  }
+}
