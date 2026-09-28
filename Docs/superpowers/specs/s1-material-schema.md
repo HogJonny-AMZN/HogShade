@@ -330,3 +330,10 @@ design finding was new. Both fixed in a PR of their own:
 - Housekeeping from the review: `Traversable` from `importlib.resources.abc` (the `importlib.abc` spelling
   is removed in 3.14), a readable migration-op check, `Callable` on `_each`, a debug log line when a
   document migrates on load.
+- **The condition-set rules**, from the third review (run before the fix PR opened): a `when` is a value of
+  the entry's source or a non-empty object that names that source among its conditions; over the product of
+  the consulted bool and enum domains, every combination is matched by exactly one entry (two would let table
+  order decide, none would let the target's default decide; both are findings); a consulted parameter is not a
+  loss; a `constant` into the `strength` field is a float. `convert()` refuses a target factor written twice
+  by two unconditional entries, which the coverage rule alone cannot see. `load()` wraps every `OSError` (a
+  directory, permissions), not only a bad encoding.

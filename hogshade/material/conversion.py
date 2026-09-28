@@ -14,6 +14,7 @@ type (the design, question 2).
 from __future__ import annotations
 
 import copy
+import itertools
 import logging as _logging
 from collections.abc import Callable
 from importlib import resources
@@ -73,6 +74,13 @@ def conditions_of(entry: dict[str, Any]) -> dict[str, Any]:
 
 def _check_when(where: str, name: str, entry: dict[str, Any], src: MaterialType) -> list[Finding]:
     out: list[Finding] = []
+    when = entry.get("when")
+    if isinstance(when, (list, tuple)) or (isinstance(when, dict) and not when):
+        return [
+            Finding(where, name, "when is a value of the source, or a non-empty object of parameter names to values")
+        ]
+    if isinstance(when, dict) and name not in when:
+        out.append(Finding(where, name, f"a when object names its own source {name!r} among its conditions"))
     for cname, cvalue in conditions_of(entry).items():
         cp = src.parameters.get(cname)
         if cp is None:
@@ -115,8 +123,11 @@ def _check_entry(where: str, entry: Any, src: MaterialType, dst: MaterialType) -
             out.append(Finding(where, name, "range is [min, max]"))
     if t != "constant" and sp.type in ("bool", "enum"):
         out.append(Finding(where, name, "a bool or enum converts only through 'constant'"))
-    if t == "constant" and "value" in entry and not value_matches(tp.type, entry["value"], tp.choices):
-        out.append(Finding(where, name, f"constant {entry['value']!r} is not a {tp.type} for {tp.name!r}"))
+    if t == "constant" and "value" in entry:
+        # a constant into a field is the field's type (strength: a float), otherwise the target's
+        value_type = "float" if entry.get("field") is not None else tp.type
+        if not value_matches(value_type, entry["value"], tp.choices):
+            out.append(Finding(where, name, f"constant {entry['value']!r} is not a {value_type} for {tp.name!r}"))
     if "when" in entry:
         out.extend(_check_when(where, name, entry, src))
     field = entry.get("field")
@@ -132,6 +143,36 @@ def _check_entry(where: str, entry: Any, src: MaterialType, dst: MaterialType) -
             out.append(Finding(where, name, f"{sp.type} {sp.name!r} cannot map to {tp.type} {tp.name!r} by {t!r}"))
         elif t in ("scale", "clamp", "invert") and tp.type not in _NUMERIC_TARGETS:
             out.append(Finding(where, name, f"transform {t!r} needs a numeric target, {tp.name!r} is {tp.type}"))
+    return out
+
+
+def _domain(p: Any) -> list[Any] | None:
+    """The finite values a bool or enum parameter takes; ``None`` for a type a condition set cannot enumerate."""
+    if p.type == "bool":
+        return [True, False]
+    if p.type == "enum":
+        return list(p.choices)
+    return None
+
+
+def _check_condition_set(where: str, name: str, conditions: list[dict[str, Any]], src: MaterialType) -> list[Finding]:
+    """
+    Over the product of the consulted parameters' domains (bool and enum only): every combination is matched
+    by exactly one entry. Two entries matching one combination would let table order decide; none would
+    let the target's default decide, silently. A set that consults a number is not enumerated.
+    """
+    names = sorted({cname for c in conditions for cname in c})
+    domains = [_domain(src.parameters[n]) if n in src.parameters else None for n in names]
+    if not names or any(d is None for d in domains):
+        return []
+    out: list[Finding] = []
+    for combination in itertools.product(*domains):
+        point = dict(zip(names, combination))
+        matches = [c for c in conditions if all(_same(point.get(k), v) for k, v in c.items())]
+        if len(matches) > 1:
+            out.append(Finding(where, name, f"{len(matches)} entries match {point}; table order would decide"))
+        elif not matches:
+            out.append(Finding(where, name, f"no entry matches {point}; the target's default would decide"))
     return out
 
 
@@ -170,9 +211,10 @@ def check_table(table: dict[str, Any], src: MaterialType, dst: MaterialType, whe
             seen[name] = max(seen.get(name, 0), 1)
         else:
             seen[name] = seen.get(name, 0) + 1
-    for name in whens:
+    for name, conditions in whens.items():
         if seen.get(name, 0) > 1:
             out.append(Finding(where, name, "mixes conditional and unconditional entries"))
+        out.extend(_check_condition_set(where, name, conditions, src))
     for entry in table["dropped"]:
         if not isinstance(entry, dict):
             out.append(Finding(where, "", f"a dropped entry is an object, got {entry!r}"))
@@ -181,6 +223,10 @@ def check_table(table: dict[str, Any], src: MaterialType, dst: MaterialType, whe
         seen[name] = seen.get(name, 0) + 1
         if name not in src.parameters:
             out.append(Finding(where, str(name), f"dropped parameter is not a parameter of {src.name}"))
+        elif name in consulted:
+            out.append(
+                Finding(where, name, "consulted by a when condition; a parameter that shapes the output is not a loss")
+            )
         if not isinstance(entry.get("reason"), str) or not entry.get("reason"):
             out.append(Finding(where, str(name), "a dropped parameter carries a reason"))
     for name in src.parameters:
@@ -254,13 +300,17 @@ def convert(obj: Document | Resolved, to_type: str) -> tuple[Document, list[Loss
         source = res.values.get(entry["from"], {})
         target = values.setdefault(entry["to"], {})
         t = entry["transform"]
-        field = entry.get("field")
-        if field is not None:
-            target[field] = _apply(t, entry, source.get("factor"))
+        field = entry.get("field") or "factor"
+        written = _apply(t, entry, source.get("factor"))
+        if written is not None:
+            if field in target and field != "strength":
+                raise MaterialError(
+                    f"{entry['to']}.{field} written twice: by {entry['from']!r} after another entry; "
+                    "the table must decide"
+                )
+            target[field] = written
+        if field != "factor":
             continue
-        factor = _apply(t, entry, source.get("factor"))
-        if factor is not None:
-            target["factor"] = factor
         tp = dst.parameters[entry["to"]]
         if t == "identity" and source.get("texture") is not None and tp.texturable:
             target["texture"] = source["texture"]

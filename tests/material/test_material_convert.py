@@ -14,7 +14,9 @@ from hogshade.material import (
     Loss,
     MaterialError,
     check_table,
+    conditions_of,
     convert,
+    from_data,
     load,
     load_table,
     resolve,
@@ -22,8 +24,7 @@ from hogshade.material import (
     type_of,
     validate,
 )
-from hogshade.material.conversion import _apply, conditions_of
-from hogshade.material.document import from_data
+from hogshade.material.conversion import _apply
 
 PAIRS = [
     ("hogshade-legacy-v2", "hogshade-standard"),
@@ -347,3 +348,69 @@ def test_non_object_table_entries_are_findings_not_errors():
 def test_load_table_is_a_registry_lookup():
     with pytest.raises(MaterialError, match="no conversion table"):
         load_table("../../x", "y")
+
+
+# -------------------------------------------------------------------- the condition-set rules (third review)
+
+
+def _cutout(when, value):
+    return {"from": "use_cutout_alpha", "to": "alpha_mode", "transform": "constant", "when": when, "value": value}
+
+
+def test_overlapping_conditions_are_a_finding():
+    table = _v2_table()
+    table["map"].append(_cutout({"use_cutout_alpha": True, "has_alpha": True}, "blend"))
+    msgs = _messages(table)
+    assert any(m.startswith("use_cutout_alpha: 2 entries match") and "table order would decide" in m for m in msgs)
+
+
+def test_a_condition_set_that_covers_no_case_is_a_finding():
+    table = _v2_table()
+    table["map"] = [e for e in table["map"] if e.get("value") != "opaque"]
+    msgs = _messages(table)
+    assert any(m.startswith("use_cutout_alpha: no entry matches") and "'has_alpha': False" in m for m in msgs)
+
+
+def test_a_when_object_names_its_own_source():
+    table = _v2_table()
+    table["map"] = [e for e in table["map"] if e["from"] != "use_cutout_alpha"]
+    table["map"].append(_cutout({"has_alpha": True}, "blend"))
+    assert "use_cutout_alpha: a when object names its own source 'use_cutout_alpha' among its conditions" in _messages(
+        table
+    )
+
+
+@pytest.mark.parametrize("when", [{}, [True]])
+def test_when_is_a_value_or_a_non_empty_object(when):
+    table = _v2_table()
+    table["map"].append(_cutout(when, "blend"))
+    assert any("when is a value of the source, or a non-empty object" in m for m in _messages(table))
+
+
+def test_a_consulted_parameter_is_not_a_loss():
+    table = _v2_table()
+    table["dropped"].append({"from": "has_alpha", "reason": "x"})
+    assert "has_alpha: consulted by a when condition; a parameter that shapes the output is not a loss" in _messages(
+        table
+    )
+
+
+def test_a_constant_into_the_strength_field_is_a_float():
+    table = _v2_table()
+    table["map"] = [e for e in table["map"] if e["from"] != "bump_intensity"]
+    table["map"].append(
+        {"from": "bump_intensity", "to": "geometry_normal", "transform": "constant", "field": "strength", "value": "x"}
+    )
+    assert "bump_intensity: constant 'x' is not a float for 'geometry_normal'" in _messages(table)
+    table["map"][-1]["value"] = 2.0
+    assert _messages(table) == []
+
+
+def test_two_sources_onto_one_target_factor_are_refused(monkeypatch):
+    table = _v2_table()
+    table["map"].append({"from": "specular_tint", "to": "specular_roughness", "transform": "identity"})
+    table["dropped"] = [d for d in table["dropped"] if d["from"] != "specular_tint"]
+    assert _messages(table) == [], "the coverage rule alone cannot see a collision"
+    monkeypatch.setattr("hogshade.material.conversion.load_table", lambda a, b: table)
+    with pytest.raises(MaterialError, match="written twice"):
+        convert(_v2({}), "hogshade-standard")
