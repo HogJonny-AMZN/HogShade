@@ -176,3 +176,12 @@ def test_material_type_is_a_registry_name_not_a_path():
     for name in ("../hogshade-standard", "hogshade-standard/../hogshade-lambert", "schema/hogshade-standard"):
         with pytest.raises(MaterialError, match="unknown material type"):
             from_data({"material_type": name, "material_type_version": 1, "values": {}})
+
+
+def test_unreadable_file_is_a_material_error(tmp_path):
+    bad = tmp_path / "latin.material.json"
+    bad.write_bytes(b'{"material_type": "hogshade-standard", "x": "\xe9"}')
+    with pytest.raises(MaterialError, match="cannot read"):
+        load(bad)
+    with pytest.raises(MaterialError):
+        load(tmp_path)  # a directory

@@ -22,7 +22,7 @@ from hogshade.material import (
     type_of,
     validate,
 )
-from hogshade.material.conversion import _apply
+from hogshade.material.conversion import _apply, conditions_of
 from hogshade.material.document import from_data
 
 PAIRS = [
@@ -43,7 +43,8 @@ def test_table_covers_every_source_parameter(src, dst):
     assert check_table(table, type_of(src), type_of(dst)) == []
     mapped = {e["from"] for e in table["map"]}
     dropped = {e["from"] for e in table["dropped"]}
-    assert mapped | dropped == set(type_of(src).parameters) and not (mapped & dropped)
+    consulted = {name for e in table["map"] if isinstance(e.get("when"), dict) for name in e["when"]}
+    assert mapped | dropped | consulted == set(type_of(src).parameters) and not (mapped & dropped)
 
 
 def test_missing_table_raises():
@@ -65,7 +66,7 @@ def _messages(table):
 def test_coverage_check_finds_a_forgotten_parameter():
     table = _v2_table()
     table["dropped"] = [d for d in table["dropped"] if d["from"] != "specular_tint"]
-    assert _messages(table) == ["specular_tint: neither mapped nor dropped"]
+    assert _messages(table) == ["specular_tint: neither mapped, consulted nor dropped"]
 
 
 def test_coverage_check_finds_a_duplicate_and_an_unknown_target():
@@ -164,7 +165,7 @@ def test_convert_a_resolved_material_and_keep_ext(fixtures):
 @pytest.mark.parametrize(
     ("name", "expected_losses"),
     [
-        ("hogshade-legacy-v1", 13),
+        ("hogshade-legacy-v1", 12),
         ("hogshade-lambert", 0),
     ],
 )
@@ -185,7 +186,7 @@ def test_conditional_constant_fires_only_when_the_source_matches():
     on, _ = convert(brick(True), "hogshade-standard")
     off, _ = convert(brick(False), "hogshade-standard")
     assert on.values["alpha_mode"] == {"factor": "mask"}
-    assert off.values["alpha_mode"] == {"factor": "blend"}, "the other conditional entry fires"
+    assert off.values["alpha_mode"] == {"factor": "opaque"}, "cutout off and has_alpha off: the opaque entry fires"
 
 
 def test_coverage_check_when_only_on_constant_and_of_the_source_type():
@@ -227,23 +228,15 @@ def test_convert_refuses_a_malformed_table(monkeypatch):
         )
 
 
-def test_cutout_off_converts_to_blend_and_the_tables_say_so():
-    doc = from_data(
-        {
-            "material_type": "hogshade-legacy-v2",
-            "material_type_version": 1,
-            "values": {"use_cutout_alpha": {"factor": False}},
-        }
-    )
-    out, _ = convert(doc, "hogshade-standard")
-    assert out.values["alpha_mode"] == {"factor": "blend"}
+def test_the_tables_cover_every_alpha_case():
     for src in ("hogshade-legacy-v2", "hogshade-legacy-v1"):
-        whens = {
-            e["when"]: e["value"]
-            for e in load_table(src, "hogshade-standard")["map"]
-            if e["from"] == "use_cutout_alpha"
-        }
-        assert whens == {True: "mask", False: "blend"}
+        entries = [e for e in load_table(src, "hogshade-standard")["map"] if e["from"] == "use_cutout_alpha"]
+        cases = {frozenset(conditions_of(e).items()): e["value"] for e in entries}
+        assert cases == {
+            frozenset({("use_cutout_alpha", True)}): "mask",
+            frozenset({("use_cutout_alpha", False), ("has_alpha", True)}): "blend",
+            frozenset({("use_cutout_alpha", False), ("has_alpha", False)}): "opaque",
+        }, src
 
 
 def test_coverage_check_conditional_entries_are_distinct_and_unmixed():
@@ -254,3 +247,103 @@ def test_coverage_check_conditional_entries_are_distinct_and_unmixed():
     table = _v2_table()
     table["map"].append({"from": "use_cutout_alpha", "to": "alpha_mode", "transform": "constant", "value": "opaque"})
     assert "use_cutout_alpha: mixes conditional and unconditional entries" in _messages(table)
+
+
+# ------------------------------------------------------------------------------ the second review round
+
+
+def _v2(values):
+    return from_data({"material_type": "hogshade-legacy-v2", "material_type_version": 1, "values": values})
+
+
+@pytest.mark.parametrize(
+    ("cutout", "has_alpha", "expected"),
+    [(True, False, "mask"), (True, True, "mask"), (False, True, "blend"), (False, False, "opaque")],
+)
+def test_alpha_mode_follows_both_legacy_flags(cutout, has_alpha, expected):
+    out, losses = convert(
+        _v2({"use_cutout_alpha": {"factor": cutout}, "has_alpha": {"factor": has_alpha}}), "hogshade-standard"
+    )
+    assert out.values["alpha_mode"] == {"factor": expected}
+    assert "has_alpha" not in {loss.parameter for loss in losses}, "consulted by a condition, not dropped"
+
+
+def test_an_opaque_legacy_material_converts_to_opaque():
+    out, _ = convert(_v2({}), "hogshade-standard")
+    assert out.values["alpha_mode"] == {"factor": "opaque"}
+
+
+def test_when_object_names_source_parameters_of_the_right_type():
+    table = _v2_table()
+    table["map"].append(
+        {
+            "from": "use_cutout_alpha",
+            "to": "alpha_mode",
+            "transform": "constant",
+            "when": {"nope": True, "opacity": "x", "normal_map": 1},
+            "value": "mask",
+        }
+    )
+    msgs = _messages(table)
+    assert "use_cutout_alpha: when names 'nope', not a parameter of hogshade-legacy-v2" in msgs
+    assert "use_cutout_alpha: when 'x' is not a float value of 'opacity'" in msgs
+    assert "use_cutout_alpha: when cannot test the texture parameter 'normal_map'" in msgs
+
+
+def test_a_malformed_factor_does_not_fire_a_bool_condition():
+    res = resolve(_v2({}))
+    res.values["use_cutout_alpha"]["factor"] = 1  # not a bool; validate(resolved) reports it and convert refuses
+    with pytest.raises(MaterialError, match="cannot convert an invalid material"):
+        convert(res, "hogshade-standard")
+
+
+def test_convert_refuses_an_invalid_resolved_material():
+    res = resolve(_v2({}))
+    res.values["emission_intensity"]["factor"] = "high"
+    with pytest.raises(MaterialError, match="emission_intensity"):
+        convert(res, "hogshade-standard")
+
+
+def test_apply_on_a_non_numeric_factor_is_a_material_error():
+    with pytest.raises(MaterialError, match="not numeric"):
+        _apply("invert", {"from": "x"}, "high")
+
+
+def test_identity_keeps_the_type():
+    table = _v2_table()
+    for entry in table["map"]:
+        if entry["from"] == "roughness":
+            entry["to"] = "base_color"
+    assert "roughness: float 'roughness' cannot map to color3 'base_color' by 'identity'" in _messages(table)
+
+
+def test_v1_normal_strength_survives_conversion():
+    doc = from_data(
+        {
+            "material_type": "hogshade-legacy-v1",
+            "material_type_version": 1,
+            "values": {"normal_map": {"texture": "n.png", "strength": 3.0}},
+        }
+    )
+    out, _ = convert(doc, "hogshade-standard")
+    assert out.values["geometry_normal"] == {"texture": "n.png", "strength": 3.0}
+
+
+def test_v2_normal_strength_is_bump_intensity_only():
+    assert type_of("hogshade-legacy-v2").parameters["normal_map"].strength is False
+    doc = _v2({"normal_map": {"texture": "n.png"}, "bump_intensity": {"factor": 2.0}})
+    out, _ = convert(doc, "hogshade-standard")
+    assert out.values["geometry_normal"] == {"texture": "n.png", "strength": 2.0}
+
+
+def test_non_object_table_entries_are_findings_not_errors():
+    table = _v2_table()
+    table["map"].append("roughness")
+    table["dropped"].append(3)
+    msgs = _messages(table)
+    assert any("a map entry is an object" in m for m in msgs) and any("a dropped entry is an object" in m for m in msgs)
+
+
+def test_load_table_is_a_registry_lookup():
+    with pytest.raises(MaterialError, match="no conversion table"):
+        load_table("../../x", "y")

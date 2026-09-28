@@ -301,3 +301,32 @@ diff between the contract and the build stays readable.
   the design's `emission_luminance_nits`.
 - **Resolved values and converted documents are deep copies**: the first build aliased the cached type's
   default list into every resolved value, so mutating one mutated the schema for the rest of the process.
+
+### After the second local review (2026-09-27 night, `fix/s1-review-round-2`)
+
+The re-review of #31's head scored eight of nine metrics at or above 7; error handling stayed at 6 and one
+design finding was new. Both fixed in a PR of their own:
+
+- **`when` conditions on several sources.** A conditional `constant` may carry `when` as an object of
+  source parameter names to values, all of which must hold; a bare value still conditions the entry's own
+  source. A parameter named in a condition is *consulted* and needs no `dropped` entry. The cutout mapping
+  reads both legacy flags: cutout on gives `mask`, cutout off with `has_alpha` on gives `blend`, both off
+  gives `opaque`. (The earlier "cutout off gives `blend`" would have sent every opaque legacy material
+  through the transparency pass in S3.) A scalar `opacity` below 1 with both flags off still converts to
+  `opaque` plus the factor; the shells blend it, S3 decides how the standard reads that case.
+- **`validate()` never raises**: an unknown type on an in-memory Document, or a non-object resolved value,
+  is a `Finding`. `convert()` validates the resolved material first and refuses an invalid one as
+  `MaterialError` naming the findings; a transform on a non-numeric factor is `MaterialError`, not
+  `TypeError`. `load()` turns an unreadable or non-UTF-8 file into `MaterialError`. A non-object table
+  entry is a finding.
+- **Non-constant transforms keep the type**: float to float, colour to colour, a texture-only source to a
+  texturable target; the coverage rule reports a mismatch. `load_table` is a registry lookup like
+  `read_type_data`.
+- **Legacy v2's `normal_map` has no `strength` of its own**: `bump_intensity` is the shell's one strength
+  and converts through the `field` entry. Legacy v1's `normal_map` keeps `strength: true`, and `identity`
+  now carries a source `strength` to a target that admits it, so it is no longer lost.
+- `from_data` is exported (the in-memory entry every test wants); `__all__` is wider than the spec's
+  "nothing else public" (the checkers, the model dataclasses), recorded here as the intent.
+- Housekeeping from the review: `Traversable` from `importlib.resources.abc` (the `importlib.abc` spelling
+  is removed in 3.14), a readable migration-op check, `Callable` on `_each`, a debug log line when a
+  document migrates on load.

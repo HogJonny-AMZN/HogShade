@@ -182,3 +182,16 @@ def test_in_memory_document_with_good_relative_paths_is_clean():
     values = {"geometry_normal": {"texture": "textures/n.png", "strength": 1.5}}
     doc = Document("hogshade-standard", 1, "base/steel.material.json", values)
     assert validate(doc) == []
+
+
+def test_validate_never_raises_on_an_unknown_type():
+    findings = validate(Document("hogshade-phong", 1, None, {}))
+    assert _parameters(findings) == [""] and "unknown material type" in findings[0].message
+
+
+def test_validate_resolved_reports_a_non_object_value():
+    res = resolve(Document("hogshade-standard", 1, None, {}))
+    res.values["base_metalness"] = 3
+    res.values["alpha_mode"] = "mask"
+    findings = validate(res)
+    assert set(_parameters(findings)) == {"base_metalness", "alpha_mode"}

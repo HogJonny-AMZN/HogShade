@@ -74,9 +74,9 @@ def test_parent_without_a_document_path_raises():
 
 
 def test_default_strength_on_normal_maps_only():
-    res = resolve(from_data({"material_type": "hogshade-legacy-v2", "material_type_version": 1, "values": {}}))
+    res = resolve(from_data({"material_type": "hogshade-legacy-v1", "material_type_version": 1, "values": {}}))
     assert res.values["normal_map"]["strength"] == 1.0
-    assert "strength" not in res.values["height_map"]
+    assert "strength" not in res.values["ambient_occlusion_map"]
 
 
 def test_resolved_values_do_not_alias_the_cached_type():

@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-09-28: `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-09-28: the second local review of S1 and its fix PR (`fix/s1-review-round-2`, open); before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -9,6 +9,17 @@ A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 how much to decide alone.
 
 ## In flight
+
+**Sit rep, 2026-09-27 late night.** #31 (S1) and #32 (the history put to bed, from the LargeWorlds
+session) are merged. The owner asked how to raise the review's low scores; the answer was to re-run the
+review on the merged head, which scored 7 to 8 everywhere but error handling (6) and found that the
+cutout mapping sent every opaque legacy material to `blend`. Both are fixed on `fix/s1-review-round-2`
+(PR open): `when` conditions may read several source parameters, `validate()` never raises, `convert()`
+refuses an invalid material, and the rest of the review's list. The process lesson, for the definition
+of done: run `/local-review diff` before `gh pr create`, and again after the fixes until nothing is
+below 7; the first S1 review ran after the PR opened and its findings became a second commit. Not done
+and worth a PR of its own: `extend-select = ["E501"]` plus the logger in the rest of the tree (26 long
+lines and about 20 loggers outside `hogshade/material/`). Next real work: S2, the generators; spec first.
 
 **Sit rep, 2026-09-27 night.** S1 is built and #31 is open for the owner: `hogshade/material/`
 (`model`, `schema`, `document`, `validation`, `resolution`, `conversion`), four `*.material-type.json`

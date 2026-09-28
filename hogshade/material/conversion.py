@@ -3,27 +3,31 @@ HogShade: convert a material of one type into a document of another through a co
 Package: hogshade/material/conversion
 
 A table (``schema/conversions/<from>-to-<to>.json``) maps each source parameter to a target parameter with
-a transform, or drops it with a reason. ``check_table`` is the coverage rule: every source parameter
-appears exactly once (or once per distinct ``when`` value of a conditional ``constant``), every target
-exists, every payload matches its transform. Comparison between
-models is by conversion, never by a shared type (the design, question 2).
+a transform, or drops it with a reason. ``check_table`` is the coverage rule: every source parameter is
+mapped once, consulted by a ``when`` condition, or dropped; every target exists; every payload matches its
+transform; a non-constant transform keeps the type. A conditional ``constant`` carries ``when``: a value
+of its own source, or an object of source parameter names to values, all of which must hold; a source may
+carry one entry per distinct condition. Comparison between models is by conversion, never by a shared
+type (the design, question 2).
 """
 
 from __future__ import annotations
 
 import copy
 import logging as _logging
+from collections.abc import Callable
 from importlib import resources
-from importlib.abc import Traversable
+from importlib.resources.abc import Traversable
 from typing import Any
 
 from hogshade.material.model import Document, Finding, Loss, MaterialError, MaterialType, Resolved
 from hogshade.material.resolution import resolve
 from hogshade.material.schema import read_json, type_of, value_matches
+from hogshade.material.validation import validate
 
 _MODULE_NAME = "hogshade.material.conversion"
-__version__ = "0.1.0"
-__updated__ = "2026-09-27"
+__version__ = "0.1.1"
+__updated__ = "2026-09-28"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 TRANSFORMS = ("identity", "invert", "scale", "clamp", "constant")
@@ -43,17 +47,46 @@ def table_names() -> list[str]:
 
 def load_table(from_type: str, to_type: str) -> dict[str, Any]:
     """The raw JSON of the shipped table for the pair; ``MaterialError`` when there is none."""
-    path = _tables_dir() / f"{from_type}-to-{to_type}.json"
-    if not path.is_file():
-        raise MaterialError(f"no conversion table from {from_type!r} to {to_type!r}; shipped: {table_names()}")
-    return read_json(path, "conversion table")
+    name = f"{from_type}-to-{to_type}"
+    shipped = table_names()
+    if name not in shipped:  # the registry check: caller strings never become a path
+        raise MaterialError(f"no conversion table from {from_type!r} to {to_type!r}; shipped: {shipped}")
+    return read_json(_tables_dir() / f"{name}.json", "conversion table")
 
 
 def _is_number(x: Any) -> bool:
     return isinstance(x, (int, float)) and not isinstance(x, bool)
 
 
-def _check_entry(where: str, entry: dict[str, Any], src: MaterialType, dst: MaterialType) -> list[Finding]:
+def _same(a: Any, b: Any) -> bool:
+    """Equality that keeps bool and int apart (``1 == True`` in Python; not in a document)."""
+    return isinstance(a, bool) == isinstance(b, bool) and a == b
+
+
+def conditions_of(entry: dict[str, Any]) -> dict[str, Any]:
+    """The ``when`` of an entry as source name to value; a bare value conditions the entry's own source."""
+    when = entry.get("when")
+    if isinstance(when, dict):
+        return dict(when)
+    return {entry.get("from"): when}
+
+
+def _check_when(where: str, name: str, entry: dict[str, Any], src: MaterialType) -> list[Finding]:
+    out: list[Finding] = []
+    for cname, cvalue in conditions_of(entry).items():
+        cp = src.parameters.get(cname)
+        if cp is None:
+            out.append(Finding(where, name, f"when names {cname!r}, not a parameter of {src.name}"))
+        elif cp.type == "texture":
+            out.append(Finding(where, name, f"when cannot test the texture parameter {cname!r}"))
+        elif not value_matches(cp.type, cvalue, cp.choices):
+            out.append(Finding(where, name, f"when {cvalue!r} is not a {cp.type} value of {cname!r}"))
+    return out
+
+
+def _check_entry(where: str, entry: Any, src: MaterialType, dst: MaterialType) -> list[Finding]:
+    if not isinstance(entry, dict):
+        return [Finding(where, "", f"a map entry is an object, got {entry!r}")]
     out: list[Finding] = []
     name = entry.get("from")
     for key in entry:
@@ -84,20 +117,33 @@ def _check_entry(where: str, entry: dict[str, Any], src: MaterialType, dst: Mate
         out.append(Finding(where, name, "a bool or enum converts only through 'constant'"))
     if t == "constant" and "value" in entry and not value_matches(tp.type, entry["value"], tp.choices):
         out.append(Finding(where, name, f"constant {entry['value']!r} is not a {tp.type} for {tp.name!r}"))
-    if "when" in entry and not value_matches(sp.type, entry["when"], sp.choices):
-        out.append(Finding(where, name, f"when {entry['when']!r} is not a {sp.type} value of {sp.name!r}"))
+    if "when" in entry:
+        out.extend(_check_when(where, name, entry, src))
     field = entry.get("field")
     if field is not None:
         if field != "strength" or not tp.strength:
             out.append(Finding(where, name, f"target {tp.name!r} does not admit field {field!r}"))
-    elif t in ("scale", "clamp", "invert") and tp.type not in _NUMERIC_TARGETS:
-        out.append(Finding(where, name, f"transform {t!r} needs a numeric target, {tp.name!r} is {tp.type}"))
+        elif t == "identity" and sp.type != "float":
+            out.append(Finding(where, name, f"field {field!r} takes a float, {sp.name!r} is {sp.type}"))
+    elif t != "constant":
+        # a non-constant transform keeps the type: float to float, colour to colour, texture to a texturable
+        compatible = sp.type == tp.type or (sp.type == "texture" and tp.texturable)
+        if not compatible:
+            out.append(Finding(where, name, f"{sp.type} {sp.name!r} cannot map to {tp.type} {tp.name!r} by {t!r}"))
+        elif t in ("scale", "clamp", "invert") and tp.type not in _NUMERIC_TARGETS:
+            out.append(Finding(where, name, f"transform {t!r} needs a numeric target, {tp.name!r} is {tp.type}"))
     return out
 
 
 def check_table(table: dict[str, Any], src: MaterialType, dst: MaterialType, where: str = "<table>") -> list[Finding]:
     """The coverage rule and the payload rule; empty when the table is complete and well formed."""
     out: list[Finding] = []
+    if (
+        not isinstance(table, dict)
+        or not isinstance(table.get("map"), list)
+        or not isinstance(table.get("dropped"), list)
+    ):
+        return [Finding(where, "", "a table is an object with from, to, version, map (a list) and dropped (a list)")]
     if table.get("from") != src.name or table.get("to") != dst.name:
         out.append(
             Finding(
@@ -107,22 +153,30 @@ def check_table(table: dict[str, Any], src: MaterialType, dst: MaterialType, whe
             )
         )
     seen: dict[str, int] = {}
-    whens: dict[str, list[Any]] = {}
-    for entry in table.get("map", []):
+    whens: dict[str, list[dict[str, Any]]] = {}
+    consulted: set[str] = set()
+    for entry in table["map"]:
+        out.extend(_check_entry(where, entry, src, dst))
+        if not isinstance(entry, dict):
+            continue
         name = entry.get("from")
         if "when" in entry:
-            # a source may appear once per distinct `when` value; those entries count as one appearance
-            if entry["when"] in whens.setdefault(name, []):
+            # a source may appear once per distinct condition; those entries count as one appearance
+            condition = conditions_of(entry)
+            if condition in whens.setdefault(name, []):
                 out.append(Finding(where, str(name), f"when {entry['when']!r} appears twice"))
-            whens[name].append(entry["when"])
+            whens[name].append(condition)
+            consulted.update(condition)
             seen[name] = max(seen.get(name, 0), 1)
         else:
             seen[name] = seen.get(name, 0) + 1
-        out.extend(_check_entry(where, entry, src, dst))
     for name in whens:
         if seen.get(name, 0) > 1:
             out.append(Finding(where, name, "mixes conditional and unconditional entries"))
-    for entry in table.get("dropped", []):
+    for entry in table["dropped"]:
+        if not isinstance(entry, dict):
+            out.append(Finding(where, "", f"a dropped entry is an object, got {entry!r}"))
+            continue
         name = entry.get("from")
         seen[name] = seen.get(name, 0) + 1
         if name not in src.parameters:
@@ -131,14 +185,14 @@ def check_table(table: dict[str, Any], src: MaterialType, dst: MaterialType, whe
             out.append(Finding(where, str(name), "a dropped parameter carries a reason"))
     for name in src.parameters:
         n = seen.get(name, 0)
-        if n == 0:
-            out.append(Finding(where, name, "neither mapped nor dropped"))
+        if n == 0 and name not in consulted:
+            out.append(Finding(where, name, "neither mapped, consulted nor dropped"))
         elif n > 1:
             out.append(Finding(where, name, f"appears {n} times"))
     return out
 
 
-def _each(factor: Any, fn: Any) -> Any:
+def _each(factor: Any, fn: Callable[[float], float]) -> Any:
     """``fn`` over a scalar, or over each component of a triple (list or tuple), returning a list."""
     if isinstance(factor, (list, tuple)):
         return [fn(v) for v in factor]
@@ -146,31 +200,48 @@ def _each(factor: Any, fn: Any) -> Any:
 
 
 def _apply(t: str, entry: dict[str, Any], factor: Any) -> Any:
-    """One transform on one factor. ``None`` (no factor) passes through every transform but ``constant``."""
+    """
+    One transform on one factor. ``None`` (no factor) passes through every transform but ``constant``; a
+    factor the transform cannot take is ``MaterialError``.
+    """
     if t == "constant":
         return copy.deepcopy(entry["value"])
     if factor is None:
         return None
     if t == "identity":
         return copy.deepcopy(factor)
-    if t == "invert":
-        return _each(factor, lambda v: 1.0 - v)
-    if t == "scale":
-        by = entry["by"]
-        return _each(factor, lambda v: v * by)
-    if t == "clamp":
-        lo, hi = entry["range"]
-        return _each(factor, lambda v: min(max(v, lo), hi))
+    try:
+        if t == "invert":
+            return _each(factor, lambda v: 1.0 - v)
+        if t == "scale":
+            by = entry["by"]
+            return _each(factor, lambda v: v * by)
+        if t == "clamp":
+            lo, hi = entry["range"]
+            return _each(factor, lambda v: min(max(v, lo), hi))
+    except TypeError as e:
+        raise MaterialError(f"{entry.get('from')}: factor {factor!r} is not numeric for {t!r}") from e
     raise MaterialError(f"unknown transform {t!r}")
+
+
+def _fires(entry: dict[str, Any], res: Resolved) -> bool:
+    """Whether a conditional entry's every condition holds on the resolved source."""
+    if "when" not in entry:
+        return True
+    return all(_same(res.values.get(cname, {}).get("factor"), cvalue) for cname, cvalue in conditions_of(entry).items())
 
 
 def convert(obj: Document | Resolved, to_type: str) -> tuple[Document, list[Loss]]:
     """
     A raw document of ``to_type`` carrying the converted values, and the losses. A ``Document`` is resolved
-    first, so the conversion sees every parameter. The result has no path: its texture strings are copied
-    as written and are relative to the source document's directory.
+    first, so the conversion sees every parameter; a resolved material that does not validate is
+    ``MaterialError`` naming its findings. The result has no path: its texture strings are copied as
+    written and are relative to the source document's directory.
     """
     res = resolve(obj) if isinstance(obj, Document) else obj
+    problems = validate(res)
+    if problems:
+        raise MaterialError("cannot convert an invalid material: " + "; ".join(str(f) for f in problems))
     src, dst = type_of(res.material_type), type_of(to_type)
     table = load_table(src.name, dst.name)
     findings = check_table(table, src, dst, f"{src.name}-to-{dst.name}")
@@ -178,11 +249,11 @@ def convert(obj: Document | Resolved, to_type: str) -> tuple[Document, list[Loss
         raise MaterialError("malformed conversion table: " + "; ".join(str(f) for f in findings))
     values: dict[str, dict[str, Any]] = {}
     for entry in table["map"]:
-        source = res.values.get(entry["from"], {})
-        t = entry["transform"]
-        if "when" in entry and source.get("factor") != entry["when"]:
+        if not _fires(entry, res):
             continue  # a conditional constant that does not fire writes nothing; the target's default stands
+        source = res.values.get(entry["from"], {})
         target = values.setdefault(entry["to"], {})
+        t = entry["transform"]
         field = entry.get("field")
         if field is not None:
             target[field] = _apply(t, entry, source.get("factor"))
@@ -190,14 +261,17 @@ def convert(obj: Document | Resolved, to_type: str) -> tuple[Document, list[Loss
         factor = _apply(t, entry, source.get("factor"))
         if factor is not None:
             target["factor"] = factor
-        if t == "identity" and source.get("texture") is not None and dst.parameters[entry["to"]].texturable:
+        tp = dst.parameters[entry["to"]]
+        if t == "identity" and source.get("texture") is not None and tp.texturable:
             target["texture"] = source["texture"]
             if source.get("blend") is not None:
                 target["blend"] = source["blend"]
+            if tp.strength and source.get("strength") is not None:
+                target.setdefault("strength", source["strength"])  # a field entry for the target already set it
     # a target that received nothing (an unbound source texture, a None factor) or only a strength for an
     # unbound normal map is not written: the target type's default applies
     values = {name: v for name, v in values.items() if v and set(v) != {"strength"}}
-    losses = [Loss(d["from"], d["reason"]) for d in table.get("dropped", [])]
+    losses = [Loss(d["from"], d["reason"]) for d in table["dropped"]]
     doc = Document(
         material_type=dst.name,
         material_type_version=dst.version,

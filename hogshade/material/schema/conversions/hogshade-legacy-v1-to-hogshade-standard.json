@@ -47,15 +47,28 @@
       "from": "use_cutout_alpha",
       "to": "alpha_mode",
       "transform": "constant",
-      "value": "mask",
-      "when": true
+      "when": true,
+      "value": "mask"
     },
     {
       "from": "use_cutout_alpha",
       "to": "alpha_mode",
       "transform": "constant",
-      "when": false,
+      "when": {
+        "use_cutout_alpha": false,
+        "has_alpha": true
+      },
       "value": "blend"
+    },
+    {
+      "from": "use_cutout_alpha",
+      "to": "alpha_mode",
+      "transform": "constant",
+      "when": {
+        "use_cutout_alpha": false,
+        "has_alpha": false
+      },
+      "value": "opaque"
     }
   ],
   "dropped": [
@@ -98,10 +111,6 @@
     {
       "from": "flip_backface_normals",
       "reason": "host render state, not a material value in the standard"
-    },
-    {
-      "from": "has_alpha",
-      "reason": "the standard binds geometry_opacity explicitly; the base colour map's alpha is a packing choice"
     },
     {
       "from": "has_vertex_alpha",

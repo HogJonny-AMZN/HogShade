@@ -79,6 +79,7 @@ def migrate(
     for m in sorted(migrations, key=lambda m: m["from"]):
         if m["from"] < from_version:
             continue
+        _LOGGER.debug("migrating a document from version %d to %d (%d ops)", m["from"], m["to"], len(m["ops"]))
         for op in m["ops"]:
             kind = op["op"]
             if kind == "rename" and op["from"] in out:
@@ -151,6 +152,8 @@ def load(path: str | Path, root: str | Path | None = None) -> Document:
         data = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as e:
         raise MaterialError(f"no such document: {path}") from e
+    except (OSError, UnicodeDecodeError) as e:
+        raise MaterialError(f"{path}: cannot read ({e})") from e
     except json.JSONDecodeError as e:
         raise MaterialError(f"{path}: not JSON ({e.msg} at line {e.lineno})") from e
     return from_data(data, path, Path(root).resolve() if root is not None else None)

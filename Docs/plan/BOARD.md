@@ -20,7 +20,7 @@ about it.
 **Reading the ids.** Rows carry the roadmap's own names (tracks A to E, phases C2 to C6, E1 and E2) or a
 PR letter. A struck-through row is done and stays for the record with its PR number.
 
----
+---**
 
 ## Gates: decisions only the owner can make
 
@@ -41,7 +41,8 @@ A gate is not a task. It is a question that blocks tasks, and the cost of guessi
 
 | Item | Cost | Notes |
 | --- | --- | --- |
-| **S1 · the material schema files and `hogshade.material`** (`feat/s1-material-schema`, [#31](https://github.com/HogJonny-AMZN/HogShade/pull/31) open) | 1 d, done | Four `*.material-type.json` (the standard with OpenPBR names, legacy v2 and v1 typed from the structs and the shell with a test tying them, lambert), three conversion tables under the coverage rule, `load`, `validate`, `resolve`, `convert`; 133 tests; the wheel carries the data; mayapy imports it. Amendments in the spec's last section. Merge when read |
+| **S1, the second review's fixes** (`fix/s1-review-round-2`, PR open) | ½ d, done | The re-review of #31 scored error handling 6 and found the cutout mapping ignored `has_alpha`: `when` conditions on several sources (cutout and `has_alpha` give mask, blend or opaque), `validate()` never raises, `convert()` refuses an invalid material, `load()` wraps unreadable files, transforms keep the type, v2's normal strength is `bump_intensity` alone, the 3.14 import. 150 tests. Merge when read |
+| ~~**S1 · the material schema files and `hogshade.material`**~~ | — | ✅ **Merged 2026-09-28 as [#31](https://github.com/HogJonny-AMZN/HogShade/pull/31).** Four `*.material-type.json` (the standard with OpenPBR names, legacy v2 and v1 typed from the structs and the shell with a test tying them, lambert), three conversion tables under the coverage rule, `load`, `validate`, `resolve`, `convert`; 133 tests; the wheel carries the data; mayapy imports it. Amendments in the spec's last section. Merge when read |
 | ~~**The standards pass, remainder**~~ | — | ✅ **Merged 2026-09-27 as [#27](https://github.com/HogJonny-AMZN/HogShade/pull/27)**; the design's cross-repo catch-up and the O3DE lessons as #28, the glossary and `check_vocabulary` as #29, S1's spec and plan as #30. The decision log's working knowledge into `Docs/knowledge/toolchain.md` and `maya-scripting.md`, its repository state into the handoff, its open questions to the gates; specs and plans under `Docs/superpowers/` with every link and reference fixed (design and handoffs stay at the top level, as in the sibling repos). Merge when read |
 | ~~**Phase 2 close**~~ | — | ✅ **Merged 2026-09-27 as [#26](https://github.com/HogJonny-AMZN/HogShade/pull/26)**, tagged `v0.2.0`; gate item 5 deferred to track E by the merge |
 | ~~**The standards pass**~~ | — | ✅ **Merged 2026-09-27 as [#25](https://github.com/HogJonny-AMZN/HogShade/pull/25).** Two standards pages, the ledger, Copilot's instructions, ADR-001 to 008, status on every document, the project review with its ten fixes, `tools/check_hygiene.py` from Copilot's review of it; thirteen findings answered |
