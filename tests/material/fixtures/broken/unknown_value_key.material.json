@@ -1,0 +1,10 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "values": {
+    "base_metalness": {
+      "factor": 0.0,
+      "amount": 1.0
+    }
+  }
+}

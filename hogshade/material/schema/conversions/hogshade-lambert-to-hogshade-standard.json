@@ -1,0 +1,23 @@
+{
+  "from": "hogshade-lambert",
+  "to": "hogshade-standard",
+  "version": 1,
+  "map": [
+    {
+      "from": "base_color",
+      "to": "base_color",
+      "transform": "identity"
+    },
+    {
+      "from": "ambient_occlusion_map",
+      "to": "ambient_occlusion",
+      "transform": "identity"
+    },
+    {
+      "from": "emission_color",
+      "to": "emission_color",
+      "transform": "identity"
+    }
+  ],
+  "dropped": []
+}

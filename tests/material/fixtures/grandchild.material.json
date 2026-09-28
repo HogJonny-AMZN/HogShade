@@ -1,0 +1,15 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "parent": "child.material.json",
+  "values": {
+    "specular_roughness": {
+      "factor": 0.2
+    }
+  },
+  "ext": {
+    "other": {
+      "x": 1
+    }
+  }
+}

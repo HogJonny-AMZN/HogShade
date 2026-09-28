@@ -1,0 +1,281 @@
+{
+  "material_type": "hogshade-standard",
+  "version": 1,
+  "title": "HogShade standard material (OpenPBR names)",
+  "groups": [
+    "base",
+    "specular",
+    "emission",
+    "geometry",
+    "surface"
+  ],
+  "parameters": {
+    "base_color": {
+      "type": "color3",
+      "default": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "color",
+      "semantic": "base_color_linear",
+      "colour_space": "srgb",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Albedo for dielectrics, reflectance tint for metals."
+    },
+    "base_metalness": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "metalness",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Blend from dielectric (0) to metal (1)."
+    },
+    "specular_weight": {
+      "type": "float",
+      "default": 1.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "specular",
+      "widget": "slider",
+      "semantic": "specular_weight",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Scales the dielectric specular lobe; 1 is the physical amount at the IOR."
+    },
+    "specular_color": {
+      "type": "color3",
+      "default": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "specular",
+      "widget": "color",
+      "semantic": "specular_color_linear",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Tint of the dielectric specular; white is physical."
+    },
+    "specular_roughness": {
+      "type": "float",
+      "default": 0.5,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "specular",
+      "widget": "slider",
+      "semantic": "roughness_perceptual",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {
+        "osl": "a closure parameter, not a texture sample"
+      },
+      "doc": "Perceptual roughness before any bias."
+    },
+    "specular_ior": {
+      "type": "float",
+      "default": 1.5,
+      "range": [
+        1.0,
+        3.0
+      ],
+      "group": "specular",
+      "widget": "slider",
+      "semantic": "ior",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Index of refraction of the dielectric; 1.5 is glass, 1.33 water."
+    },
+    "specular_anisotropy": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "specular",
+      "widget": "slider",
+      "semantic": "anisotropy",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Stretch of the specular highlight along the tangent; 0 is isotropic."
+    },
+    "specular_rotation": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "specular",
+      "widget": "slider",
+      "semantic": "anisotropy_rotation",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Rotation of the anisotropy direction, in turns."
+    },
+    "emission_luminance": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        10000.0
+      ],
+      "soft": true,
+      "group": "emission",
+      "widget": "slider",
+      "semantic": "emission_luminance_nits",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Emitted luminance in nits (cd/m2); 0 is no emission."
+    },
+    "emission_color": {
+      "type": "color3",
+      "default": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "emission",
+      "widget": "color",
+      "semantic": "emission_color_linear",
+      "colour_space": "srgb",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Colour of the emission; scaled by emission_luminance."
+    },
+    "geometry_opacity": {
+      "type": "float",
+      "default": 1.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "geometry",
+      "widget": "slider",
+      "semantic": "opacity",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Coverage; how alpha_mode reads it."
+    },
+    "geometry_normal": {
+      "type": "texture",
+      "group": "geometry",
+      "widget": "texture",
+      "semantic": "normal_ts",
+      "colour_space": "raw",
+      "strength": true,
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Tangent-space normal map, +Y up; strength scales the tilt."
+    },
+    "alpha_mode": {
+      "type": "enum",
+      "default": "mask",
+      "group": "geometry",
+      "widget": "dropdown",
+      "semantic": "alpha_mode",
+      "choices": [
+        "opaque",
+        "mask",
+        "blend"
+      ],
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "How geometry_opacity is applied: ignored, cut at 0.5, or blended."
+    },
+    "ambient_occlusion": {
+      "type": "texture",
+      "group": "surface",
+      "widget": "texture",
+      "semantic": "ambient_occlusion",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Baked ambient occlusion, red channel; unbound is 1."
+    },
+    "cavity": {
+      "type": "texture",
+      "group": "surface",
+      "widget": "texture",
+      "semantic": "cavity",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Baked cavity, red channel; darkens specular in crevices; unbound is 1."
+    },
+    "specular_occlusion": {
+      "type": "float",
+      "default": 1.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "surface",
+      "widget": "slider",
+      "semantic": "specular_occlusion",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Occlusion of the specular lobe; textured from the red channel."
+    },
+    "height": {
+      "type": "texture",
+      "group": "surface",
+      "widget": "texture",
+      "semantic": "height",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "Height for parallax and displacement, red channel; unbound is flat."
+    }
+  },
+  "migrations": []
+}

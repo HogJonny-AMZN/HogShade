@@ -1,0 +1,50 @@
+{
+  "material_type": "hogshade-legacy-v2",
+  "material_type_version": 1,
+  "values": {
+    "base_color": {
+      "factor": [
+        0.5,
+        0.3,
+        0.2
+      ],
+      "texture": "brick_basecolor.png"
+    },
+    "roughness": {
+      "factor": 0.8
+    },
+    "metalness": {
+      "factor": 0.0
+    },
+    "specular_tint": {
+      "factor": 0.3
+    },
+    "ior": {
+      "factor": 1.6
+    },
+    "normal_map": {
+      "texture": "brick_normal.png"
+    },
+    "bump_intensity": {
+      "factor": 2.5
+    },
+    "cavity_map": {
+      "texture": "brick_cavity.png"
+    },
+    "emission_intensity": {
+      "factor": 3.0
+    },
+    "use_cutout_alpha": {
+      "factor": true
+    },
+    "opacity": {
+      "factor": 0.9
+    },
+    "parallax_enabled": {
+      "factor": true
+    },
+    "height_scale": {
+      "factor": 0.1
+    }
+  }
+}

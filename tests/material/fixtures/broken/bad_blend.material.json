@@ -1,0 +1,15 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "values": {
+    "base_color": {
+      "factor": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "texture": "x.png",
+      "blend": "screen"
+    }
+  }
+}

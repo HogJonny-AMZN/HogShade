@@ -1,0 +1,25 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "values": {
+    "base_color": {
+      "factor": [
+        0.18,
+        0.21,
+        0.24
+      ]
+    },
+    "specular_roughness": {
+      "factor": 0.4
+    },
+    "base_metalness": {
+      "factor": 1.0
+    }
+  },
+  "ext": {
+    "spritejammer": {
+      "tier_cap": 2,
+      "tag": "base"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "material_type": "hogshade-lambert",
+  "version": 1,
+  "title": "HogShade lambert, the unlit-check model",
+  "groups": [
+    "base",
+    "surface",
+    "emission"
+  ],
+  "parameters": {
+    "base_color": {
+      "type": "color3",
+      "default": [
+        0.6,
+        0.6,
+        0.6
+      ],
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "color",
+      "semantic": "base_color_linear",
+      "colour_space": "srgb",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "The diffuse colour; the sRGB base colour map multiplies it."
+    },
+    "ambient_occlusion_map": {
+      "type": "texture",
+      "group": "surface",
+      "widget": "texture",
+      "semantic": "ambient_occlusion",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "ambOccMap, red channel."
+    },
+    "emission_color": {
+      "type": "color3",
+      "default": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "emission",
+      "widget": "color",
+      "semantic": "emission_color_linear",
+      "colour_space": "srgb",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "The emissive colour, added unlit."
+    }
+  },
+  "migrations": []
+}

@@ -1,0 +1,10 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "values": {
+    "specular_roughness": {
+      "factor": 0.5,
+      "strength": 2.0
+    }
+  }
+}

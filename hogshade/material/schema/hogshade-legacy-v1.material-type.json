@@ -1,0 +1,320 @@
+{
+  "material_type": "hogshade-legacy-v1",
+  "version": 1,
+  "title": "HogShade legacy v1 (2015 Disney model) as the Maya shell takes it",
+  "groups": [
+    "base",
+    "geometry",
+    "surface"
+  ],
+  "parameters": {
+    "base_color": {
+      "type": "color3",
+      "default": [
+        0.6,
+        0.6,
+        0.6
+      ],
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "color",
+      "semantic": "base_color_linear",
+      "colour_space": "srgb",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialBaseColor; the sRGB base colour map multiplies it."
+    },
+    "roughness": {
+      "type": "float",
+      "default": 0.5,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "roughness_perceptual",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialRoughness; the roughness map's green channel."
+    },
+    "metalness": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "metalness",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialMetalness; the metalness map's green channel."
+    },
+    "specular_tint": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "specular_tint",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialSpecTint; tints the dielectric F0 toward the base colour."
+    },
+    "specular": {
+      "type": "float",
+      "default": 1.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "specular_amount",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialSpecular, the Disney specular; the specular map is rgba, its red or alpha the amount."
+    },
+    "subsurface": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "subsurface",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialSubsurface, the Disney lobe."
+    },
+    "anisotropic": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "anisotropic",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialAnisotropic, the Disney lobe."
+    },
+    "sheen": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "sheen",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialSheen, the Disney lobe."
+    },
+    "sheen_tint": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "sheen_tint",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialSheenTint, the Disney lobe."
+    },
+    "clearcoat": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "clearcoat",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialClearcoat, the Disney lobe."
+    },
+    "clearcoat_gloss": {
+      "type": "float",
+      "default": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "base",
+      "widget": "slider",
+      "semantic": "clearcoat_gloss",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "materialClearcoatGloss, the Disney lobe."
+    },
+    "rough_is_gloss": {
+      "type": "bool",
+      "default": false,
+      "group": "base",
+      "widget": "toggle",
+      "semantic": "rough_is_gloss",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "roughIsGloss: the roughness map stores gloss and is inverted."
+    },
+    "use_specular_mask": {
+      "type": "bool",
+      "default": false,
+      "group": "base",
+      "widget": "toggle",
+      "semantic": "use_specular_mask",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "useSpecularMask: the specular map's alpha is the amount, else its red."
+    },
+    "normal_map": {
+      "type": "texture",
+      "group": "geometry",
+      "widget": "texture",
+      "semantic": "normal_ts",
+      "colour_space": "raw",
+      "strength": true,
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "baseNormalMap, tangent space, +Y up."
+    },
+    "normal_flip": {
+      "type": "vector3",
+      "default": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "range": [
+        -1.0,
+        1.0
+      ],
+      "group": "geometry",
+      "widget": "vector",
+      "semantic": "normal_flip",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "NormalCoordsysX/Y/Z: +1 or -1 per tangent-space axis."
+    },
+    "flip_backface_normals": {
+      "type": "bool",
+      "default": true,
+      "group": "geometry",
+      "widget": "toggle",
+      "semantic": "flip_backface_normals",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "flipBackfaceNormals."
+    },
+    "opacity": {
+      "type": "float",
+      "default": 1.0,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "group": "geometry",
+      "widget": "slider",
+      "semantic": "opacity",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "opacity; multiplied with the base colour alpha when has_alpha."
+    },
+    "has_alpha": {
+      "type": "bool",
+      "default": false,
+      "group": "geometry",
+      "widget": "toggle",
+      "semantic": "has_alpha",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "hasAlpha: the base colour map's alpha is opacity."
+    },
+    "use_cutout_alpha": {
+      "type": "bool",
+      "default": false,
+      "group": "geometry",
+      "widget": "toggle",
+      "semantic": "cutout_alpha",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "useCutoutAlpha: opacity is cut at opacity_mask_bias."
+    },
+    "has_vertex_alpha": {
+      "type": "bool",
+      "default": false,
+      "group": "geometry",
+      "widget": "toggle",
+      "semantic": "vertex_alpha",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "hasVertexAlpha: vertex colour set 0's alpha is opacity (use_vertex_alpha in the core)."
+    },
+    "ambient_occlusion_map": {
+      "type": "texture",
+      "group": "surface",
+      "widget": "texture",
+      "semantic": "ambient_occlusion",
+      "colour_space": "raw",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "ambOccMap, red channel."
+    },
+    "use_vertex_ao": {
+      "type": "bool",
+      "default": false,
+      "group": "surface",
+      "widget": "toggle",
+      "semantic": "vertex_ao",
+      "overridable": true,
+      "tier": 1,
+      "hosts": {},
+      "doc": "useVertexC1_AO: vertex colour set 1 is ambient occlusion."
+    }
+  },
+  "migrations": []
+}
