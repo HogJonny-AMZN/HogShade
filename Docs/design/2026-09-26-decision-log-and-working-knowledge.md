@@ -443,6 +443,17 @@ codename everywhere is `proto_color` / `proto_py`. SpriteJammer had already drop
 Git history is untouched. Formalised in `Docs/ROADMAP.md` track A and `Docs/plan/BOARD.md` G1;
 `tools/check_hygiene.py` now guards the old spellings only, so they cannot come back unnoticed.
 
+### Job_Orchestrator / BATS: use freely, never distribute (owner, 2026-09-27; standing rule)
+
+The owner gave the same account for Job_Orchestrator: their own work first, on personal time and equipment
+(the first working version over a holiday break); a studio fork showcased but never in production; the
+private original developed on since; their manager aware of it and of the blog posts. The owner has not
+decided to publish it, sees a possible conflict of interest in doing so, and would seek a blessing first.
+Owner: *"So its use during the development of HogShade, LargeWorlds, SpriteJammer and others is fine; I
+just am not distributing Job_Orchestrator/BATS in any of those itself."* Formalised as roadmap track A's
+third box (struck, with the rule) and a Distribution section in `Docs/knowledge/job-orchestrator.md`;
+board G1 no longer lists it.
+
 ## 4. What moved out of this file (2026-09-27)
 
 | Was here | Now |

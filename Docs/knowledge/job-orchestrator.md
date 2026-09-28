@@ -115,6 +115,13 @@ listed too, because the case is only credible if it is honest.
 | The E1 cook | The CLI under uv, which still exists and is the documented path | `hogshade.jobs.cook_ibl` on `hogshade_python` | Convenience only so far; it earns its place when cooks fan out across environments |
 | The wgpu viewport, the GPU tests, the shader build | In-process under uv | Not routed through the orchestrator | Honest row: nothing gained; a job is never the only way to run something |
 
+## Distribution (owner, 2026-09-27; standing rule)
+
+Job_Orchestrator / BATS is the owner's own private tool and stays private by the owner's choice. HogShade
+uses it, writes jobs for it (`hogshade/jobs/`, `tools/bats/`) and documents it here; it never vendors,
+copies or distributes the orchestrator itself. A reader without BATS finds those jobs defunct, and that is
+accepted. Publishing BATS is not a task in this repo.
+
 ## Rules learned the hard way
 
 - **Never kill a process you did not start.** The orchestrator's workers are its; a job is the way

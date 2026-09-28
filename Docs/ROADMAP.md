@@ -54,8 +54,14 @@ is [design/2026-09-20-wysiwyg-blindspots.md](design/2026-09-20-wysiwyg-blindspot
       `hog_color` in LargeWorlds is a fresh rewrite inside a private personal project. No lineage question,
       no approval to seek, and publishing LargeWorlds is the owner's call alone. The old identifiers were
       retired from every repo the same day for the codename `proto_color` / `proto_py`; they do not come back.
-- [ ] Raise Job_Orchestrator second, with the commit-time evidence (about 60 percent outside work
-      hours, 70 commits from an employer address). BATS last or not at all.
+- [x] ~~Raise Job_Orchestrator second, with the commit-time evidence. BATS last or not at all.~~ **Settled
+      2026-09-27 as a standing rule, the owner's account:** Job_Orchestrator (BATS) is the owner's own work,
+      first written on personal time and equipment; a studio fork never reached production; the owner kept the
+      private original going and their manager knows of it and of the blog posts about it. Whether it is ever
+      made public is the owner's own call, not pending anywhere, and they would seek a blessing first if so.
+      Meanwhile: use it, operate and extend it, ship jobs written for it in this and the sibling repos (those
+      jobs may be defunct for a reader without it), and **never vendor or distribute Job_Orchestrator / BATS
+      itself here.** No approval task belongs on this roadmap.
 - [ ] Archive the dead public repos (2022 O3DE templates, tutorial scaffolds, one-day experiments).
 - [ ] Pin four repos: CO3DEX, Maya-PBR-BRDF-VP2, the O3DE fork, and whichever private repo is
       cleared first.
