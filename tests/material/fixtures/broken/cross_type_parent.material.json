@@ -1,0 +1,10 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "parent": "lambert_parent.material.json",
+  "values": {
+    "base_metalness": {
+      "factor": 0.0
+    }
+  }
+}

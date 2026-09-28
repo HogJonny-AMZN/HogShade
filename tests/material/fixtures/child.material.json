@@ -1,0 +1,25 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "parent": "base/steel.material.json",
+  "values": {
+    "base_color": {
+      "factor": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "texture": "textures/steel_basecolor.png",
+      "blend": "multiply"
+    },
+    "geometry_normal": {
+      "texture": "textures/steel_normal.png",
+      "strength": 0.8
+    }
+  },
+  "ext": {
+    "spritejammer": {
+      "tier_cap": 1
+    }
+  }
+}
