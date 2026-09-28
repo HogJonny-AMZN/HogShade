@@ -424,6 +424,25 @@ with nothing brought forward; specular occlusion in the surface group as a game 
 MaterialX an optional extra (measured: Maya's Python lacks it, Blender's ships 1.39.4); the schema
 as package data; the three truths of question 10. Formalised in the design; ADR-009 stands.
 
+### `hog_color`'s history settled; the old toolbox identifiers retired (owner, 2026-09-27; locked)
+
+Asked what the roadmap's "private backup repo" line meant, the owner removed that repo and then settled
+the lineage question in four statements: the experimental colour toolbox was written on the owner's own
+time and machine first; a fork of it was used at a studio and never went into a production tool; that
+studio has been shuttered and no owner or code base remains; `hog_color` in LargeWorlds is a wholly new,
+modernised rewrite inside the owner's private personal project. Owner: *"Derived, ported, are true but
+loose. This is my code, there is no path back or approvals to seek. I just want references and history
+... to just be nuked, so we stop talking about this. It's a non-concern. If there is risk (and there
+isn't) I will take it. Let's put it to bed."*
+
+Done the same day: every old identifier (the studio, its Python tree, its colour package, the class
+prefix, the checkout path) retired from LargeWorlds (its PR #68, 93 files, five specs renamed), from
+this repo (this branch: roadmap track A, board G1, the generated orchestrator profile's `package_paths`
+and its generator, the hygiene checker and its test, one knowledge line) and from the agent memory. The
+codename everywhere is `proto_color` / `proto_py`. SpriteJammer had already dropped its vendored copy.
+Git history is untouched. Formalised in `Docs/ROADMAP.md` track A and `Docs/plan/BOARD.md` G1;
+`tools/check_hygiene.py` now guards the old spellings only, so they cannot come back unnoticed.
+
 ## 4. What moved out of this file (2026-09-27)
 
 | Was here | Now |

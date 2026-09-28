@@ -62,7 +62,7 @@ named profile `orchestrator_config_<name>.json` in the same folder), then deep-m
 
 - A **renamed worker type has no profile mapping** and boots with a clean environment. The
   supported path for a named variant is `environment_json_path`, the mechanism the studio
-  `bp_mayapy` type uses (its file is written by a pre-launch hook). HogShade generates its files.
+  canon mayapy worker type uses (its file is written by a pre-launch hook). HogShade generates its files.
 - A **direct environment file gets no profile inheritance**, so it must fold `base_env.json` in
   itself or the worker cannot import `job_orchestrator` (the GUI Maya then never registers and sits
   at BOOTING; the Python worker exits). `make_profile.py` merges base, then the DCC environment,

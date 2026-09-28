@@ -46,10 +46,14 @@ is [design/2026-09-20-wysiwyg-blindspots.md](design/2026-09-20-wysiwyg-blindspot
 
 ## Track A: profile and clearance
 
-- [ ] Move the private `Bluepoint` backup repo off GitHub before raising anything with the employer.
-- [ ] Ask the manager, in writing, about open-sourcing LargeWorlds under Apache 2.0, stating plainly
-      that `hog_color` is a rewrite of `bp_color`, which was written for Bluepoint use. Offer to
-      release the other packages separately if `hog_color` is refused.
+- [x] ~~Move the private backup repo off GitHub before raising anything.~~ Done 2026-09-27: the owner
+      removed it.
+- [x] ~~Ask about open-sourcing LargeWorlds, stating `hog_color`'s lineage.~~ **Settled 2026-09-27, the
+      owner's account:** the colour toolbox was the owner's own work first, on personal time and equipment;
+      a later fork of it for a studio never reached a production tool, and that studio has since closed;
+      `hog_color` in LargeWorlds is a fresh rewrite inside a private personal project. No lineage question,
+      no approval to seek, and publishing LargeWorlds is the owner's call alone. The old identifiers were
+      retired from every repo the same day for the codename `proto_color` / `proto_py`; they do not come back.
 - [ ] Raise Job_Orchestrator second, with the commit-time evidence (about 60 percent outside work
       hours, 70 commits from an employer address). BATS last or not at all.
 - [ ] Archive the dead public repos (2022 O3DE templates, tutorial scaffolds, one-day experiments).

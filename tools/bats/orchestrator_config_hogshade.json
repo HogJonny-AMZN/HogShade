@@ -45,10 +45,6 @@
       "python": "C:\\Program Files\\Blender Foundation\\Blender 5.2\\5.2\\python\\bin\\python.exe"
     }
   },
-  "package_paths": {
-    "_comment": "External package paths for pre-launch hook sys.path requirements",
-    "bp_python": "d:/dev/CP14/Build/ArtTools/bp_python/bp-packages"
-  },
   "scaling": {
     "enable_auto_scaling": false,
     "max_instances_per_type": 5,

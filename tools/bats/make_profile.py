@@ -99,7 +99,8 @@ def build_env(base: dict, dcc: dict, name: str, extra: dict) -> dict:
 
 
 def build_profile(canon: dict) -> dict:
-    profile = {k: v for k, v in canon.items() if k != "worker_types"}
+    # package_paths is the dev checkout's own sys.path additions; HogShade's workers need none of them
+    profile = {k: v for k, v in canon.items() if k not in ("worker_types", "package_paths")}
     profile["_hogshade"] = {
         "generated_by": "tools/bats/make_profile.py",
         "from": _fwd(CANON),

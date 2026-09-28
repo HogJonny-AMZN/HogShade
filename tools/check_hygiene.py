@@ -1,10 +1,11 @@
 """
-HogShade: the hygiene check, mechanised: no studio identifier in any tracked file outside the allowlist.
+HogShade: the hygiene check, mechanised: none of the retired identifiers in any tracked file outside the allowlist.
 Package: tools/check_hygiene
 
-The rule (ADR-008): nothing in this repository names the owner's employer or a studio codebase. The
-identifiers live in this one file so that every document can say "run the hygiene check" without
-repeating them, which would make the grep flag the document (Copilot on PR #25). The allowlist names
+The rule (ADR-008): nothing in this repository names the owner's earlier prototype toolbox by its old
+identifiers, nor the checkout path it lived in; the codename is ``proto_color`` / ``proto_py`` (owner,
+2026-09-27, history settled). The identifiers live in this one file so that every document can say
+"run the hygiene check" without repeating them, which would make the grep flag the document (Copilot on PR #25). The allowlist names
 the tracked files that may carry a match and why; a match anywhere else is a finding.
 
 Run standalone (exit code 1 on findings)::
@@ -29,16 +30,12 @@ __updated__ = "2026-09-27"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 #: The identifiers, case-insensitive. Kept here and nowhere else.
-PATTERN = re.compile("bluepoint|sony|bp_py|bp_color", re.IGNORECASE)
+PATTERN = re.compile(r"\bbp_py|\bbp_color|\bbp_python|\bbp-packages|dev[/\\]cp14", re.IGNORECASE)
 
 #: Tracked paths (repo-relative, POSIX) that may carry a match, and the reason each may.
 ALLOWLIST: dict[str, str] = {
     "tools/check_hygiene.py": "holds the pattern",
     "tests/test_check_hygiene.py": "tests the pattern",
-    "Docs/ROADMAP.md": "track A, the clearance conversation, names what is being cleared",
-    "Docs/plan/BOARD.md": "gate G1 and its Icebox row describe the clearance work",
-    "Docs/reviews/2026-09-27-standards-pass-project-review.md": "records the profile finding below",
-    "tools/bats/orchestrator_config_hogshade.json": "a path from the dev checkout's canon config; the owner's call under G1",
 }
 
 #: Path prefixes outside the corpus: the legacy shaders are a frozen record.
