@@ -62,7 +62,7 @@ named profile `orchestrator_config_<name>.json` in the same folder), then deep-m
 
 - A **renamed worker type has no profile mapping** and boots with a clean environment. The
   supported path for a named variant is `environment_json_path`, the mechanism the studio
-  `bp_mayapy` type uses (its file is written by a pre-launch hook). HogShade generates its files.
+  canon mayapy worker type uses (its file is written by a pre-launch hook). HogShade generates its files.
 - A **direct environment file gets no profile inheritance**, so it must fold `base_env.json` in
   itself or the worker cannot import `job_orchestrator` (the GUI Maya then never registers and sits
   at BOOTING; the Python worker exits). `make_profile.py` merges base, then the DCC environment,
@@ -114,6 +114,13 @@ listed too, because the case is only credible if it is honest.
 | 2026-09-26, the MCP validation | An agent drives a DCC through an ad-hoc MCP that holds no queue, no manifest and no history | The `bats_*` tools are a doorway to the same queue the humans use; a job's `MANIFEST` is written for an agent to read | The MCP is the agent's entry, not a rival pipeline; what it submits is durable and inspectable afterwards |
 | The E1 cook | The CLI under uv, which still exists and is the documented path | `hogshade.jobs.cook_ibl` on `hogshade_python` | Convenience only so far; it earns its place when cooks fan out across environments |
 | The wgpu viewport, the GPU tests, the shader build | In-process under uv | Not routed through the orchestrator | Honest row: nothing gained; a job is never the only way to run something |
+
+## Distribution (owner, 2026-09-27; standing rule)
+
+Job_Orchestrator / BATS is the owner's own private tool and stays private by the owner's choice. HogShade
+uses it, writes jobs for it (`hogshade/jobs/`, `tools/bats/`) and documents it here; it never vendors,
+copies or distributes the orchestrator itself. A reader without BATS finds those jobs defunct, and that is
+accepted. Publishing BATS is not a task in this repo.
 
 ## Rules learned the hard way
 

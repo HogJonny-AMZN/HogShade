@@ -19,13 +19,13 @@
 | Coding standards | 6/10 | Ruff clean, absolute imports, no bare except, no `os.path`; module headers missing on seven tools and both package inits; `Package:` line inconsistent |
 | Core contract | 6/10 | Prefix rule enforced; `environment.wgsl` and `lambert.wgsl` have no twin and no GPU test; the "single return" rule overstates what FXC rejects; one unused constant |
 
-Verdict: needs work, lowest 6/10. Hard findings: `bp_python` in the generated orchestrator profile (board G1, the owner's call); the grep pattern quoted in two skills matches itself (exempt by intent, now said). `build_shaders.py --check`: artifacts current.
+Verdict: needs work, lowest 6/10. Hard findings: the dev checkout's package path in the generated orchestrator profile (board G1, the owner's call; resolved the same day, see row 1); the grep pattern quoted in two skills matches itself (exempt by intent, now said). `build_shaders.py --check`: artifacts current.
 
 ## The ten fixes, and what happened to each
 
 | # | Fix | Effort | Outcome in the standards pass |
 | --- | --- | --- | --- |
-| 1 | Strip `bp_python` from the generated profile, or record "leave while private" | 15 min | **Left to the owner** (G1); not stripped without a decision. The match is now an allowlisted, printed exception in `tools/check_hygiene.py`, which replaced the ad hoc grep after Copilot found the grep flagging the documents that quoted it |
+| 1 | Strip the dev checkout's package path from the generated profile, or record "leave while private" | 15 min | Left to the owner (G1) at review time; the match was an allowlisted, printed exception in `tools/check_hygiene.py`, which replaced the ad hoc grep after Copilot found the grep flagging the documents that quoted it. **Resolved 2026-09-27 (PR #32):** `package_paths` dropped from the profile and excluded in `make_profile.py`, so a regeneration stays clean; the allowlist entry went with it |
 | 2 | `environment.wgsl`: NumPy twin and GPU test | 60 min | **Done** |
 | 3 | The FXC rule in the skill and rubric: a `switch` on a texture-derived value is what fxc rejects; a `switch` on a uniform and early returns are fine | 15 min | **Done**, and in `Docs/standards/wgsl.md` |
 | 4 | Module headers on `tools/*.py` and the two package inits; `Package:` in dotted form | 40 min | **Done** |

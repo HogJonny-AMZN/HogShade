@@ -31,7 +31,8 @@ employer.
   with `lfs: false`; the tests that need payloads skip).
 - The generated orchestrator profile carries a studio package path from the dev checkout's canon
   config; it is the owner's call under the clearance gate (board, G1).
-- Publishing anything waits on track A of the roadmap.
+- Publishing anything is the owner's call alone (track A of the roadmap closed 2026-09-27; the hygiene rule here
+  is what keeps that call cheap).
 
 ## Revisit if
 

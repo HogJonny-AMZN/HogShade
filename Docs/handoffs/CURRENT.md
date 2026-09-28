@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-09-27, night: S1 built on `feat/s1-material-schema` (#31 open); #27 to #30 merged (the standards remainder, the schema design, the glossary, the S1 spec).
+**Last updated:** 2026-09-28: `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -51,8 +51,7 @@ on the owner's GPU, the run log at `verification/core/gpu-tests.log` with its co
 `build_shaders.py --check --require-compilers` clean.
 
 Not done, on purpose, and on the board as the pass's remainder: the decision log split into topic
-files, and the `Docs/superpowers/` move. Not decided, the owner's: the studio package path in the
-generated orchestrator profile (G1); the five gates.
+files, and the `Docs/superpowers/` move. Not decided, the owner's: the gates G2 to G5 (G1 closed 2026-09-27).
 
 Next in the agreed order: the phase 2 close (deviations list, status rows, roadmap C2, VERSION
 `0.2.0`), then phase 3. The agent loop and the weekly review stay Icebox rows awaiting a design lock.
@@ -100,7 +99,7 @@ waits on SpriteJammer; its catch-up is a session in that repo.
 
 ## Owner-only steps still open
 
-Legacy pointer PR and issue on the hogjonny account; track A clearance; the orphaned 8K LFS object
+Legacy pointer PR and issue on the hogjonny account; the orphaned 8K LFS object
 (support request, optional). See the decision log, section 4.
 
 ## Repository and GitHub state (moved from the decision log, 2026-09-27; as of 2026-09-26 unless dated)
@@ -114,6 +113,7 @@ Legacy pointer PR and issue on the hogjonny account; track A clearance; the orph
   runs or support is asked.
 - Owner-only steps still open: merge the legacy pointer PR (`hogjonny/Maya-PBR-BRDF-VP2#2`) from
   the legacy account, delete the `legacy-pointer` branch, close legacy issue #1, archive the legacy
-  repo. Track A clearance steps untouched.
+  repo. Track A closed 2026-09-27: the clearance boxes settled by the owner's account, the profile
+  housekeeping moved out of this repo (account work, parked in the agent's memory until the owner names a home).
 - The CI runner (`windows-latest`) has a DirectX 12 adapter, so the GPU tests run there through
   FXC; LFS is not hydrated on CI (`lfs: false`), so asset-dependent tests skip there.
