@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from hogshade.material import MaterialError, load, resolve, type_of
+from hogshade.material import Document, MaterialError, load, resolve, type_of
 from hogshade.material.document import from_data
 
 
@@ -77,3 +77,30 @@ def test_default_strength_on_normal_maps_only():
     res = resolve(from_data({"material_type": "hogshade-legacy-v2", "material_type_version": 1, "values": {}}))
     assert res.values["normal_map"]["strength"] == 1.0
     assert "strength" not in res.values["height_map"]
+
+
+def test_resolved_values_do_not_alias_the_cached_type():
+    res = resolve(from_data({"material_type": "hogshade-standard", "material_type_version": 1, "values": {}}))
+    res.values["base_color"]["factor"][0] = 9.0
+    assert type_of("hogshade-standard").parameters["base_color"].default == [0.8, 0.8, 0.8]
+    again = resolve(from_data({"material_type": "hogshade-standard", "material_type_version": 1, "values": {}}))
+    assert again.values["base_color"]["factor"] == [0.8, 0.8, 0.8]
+
+
+def test_resolved_values_do_not_alias_the_documents(fixtures):
+    doc = load(fixtures / "base" / "steel.material.json")
+    res = resolve(doc)
+    res.values["base_color"]["factor"][0] = 9.0
+    res.ext["spritejammer"]["tier_cap"] = 99
+    assert doc.values["base_color"]["factor"] == [0.18, 0.21, 0.24]
+    assert doc.ext["spritejammer"]["tier_cap"] == 2
+
+
+def test_malformed_known_value_survives_resolution_for_validate_to_report():
+    from hogshade.material import validate
+
+    doc = Document("hogshade-standard", 1, None, {"base_metalness": "high"})
+    res = resolve(doc)
+    assert res.values["base_metalness"]["factor"] == "high", "not silently replaced by the default"
+    findings = validate(res)
+    assert [f.parameter for f in findings] == ["base_metalness"] and "is not float" in findings[0].message

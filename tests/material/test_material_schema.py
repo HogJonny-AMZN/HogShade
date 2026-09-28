@@ -62,7 +62,7 @@ def test_standard_alpha_mode_and_emission():
     std = type_of("hogshade-standard")
     assert std.parameters["alpha_mode"].choices == ("opaque", "mask", "blend")
     assert std.parameters["alpha_mode"].default == "mask"
-    assert std.parameters["emission_luminance"].semantic == "emission_nits"
+    assert std.parameters["emission_luminance"].semantic == "emission_luminance_nits"
     assert std.parameters["geometry_normal"].strength is True
     assert std.parameters["specular_ior"].texturable is False
 
@@ -251,7 +251,13 @@ V1_DOES_NOT_READ = {
     "pomShadowMultiplier",
 }
 V1_GROUP = "Legacy v1 Disney"
-SHELL_GROUPS = ("Material Properties", "Normal Params", V1_GROUP, "Parallax Occlusion")
+# Every UI group of the shell: the material groups the schema covers, and the host groups it does not. A
+# group the shell adds that is in neither set fails the test below, so a new material group cannot slip by.
+MATERIAL_GROUPS = ("Material Properties", "Normal Params", V1_GROUP, "Parallax Occlusion")
+HOST_GROUPS = ("Material Maps", "Environment Lighting", "Shadows", "DEBUG [Preview]")
+# Every HOGSHADE_* macro the shell defines; a new one is unknown to the parser until it is classified here.
+MATERIAL_MACROS = ("HOGSHADE_SLIDER", "HOGSHADE_BOOL", "HOGSHADE_V1", "HOGSHADE_MAP")
+HOST_MACROS = ("HOGSHADE_LIGHT_SLOT", "HOGSHADE_FILL_SLOT")  # the light slots and the G-buffer fill, never material
 
 
 def _struct_fields(model: str, struct: str) -> set[str]:
@@ -275,9 +281,17 @@ def _shell_parameters() -> dict[str, str]:
         out[name] = "maps"
     pattern = r'^(?:float3|float|int|bool)\s+(\w+)\s*(?::\s*\w+)?\s*<[^>]*?UIGroup = "([^"]+)"'
     for name, group in re.findall(pattern, text, re.MULTILINE):
-        if group in SHELL_GROUPS and name != "NAME":
+        if group in MATERIAL_GROUPS and name != "NAME":
             out[name] = group
     return out
+
+
+def test_shell_groups_and_macros_are_all_classified():
+    text = (REPO / "hosts" / "maya_dx11" / "hogshade.fx").read_text(encoding="utf-8")
+    groups = set(re.findall(r'UIGroup = "([^"]+)"', text))
+    assert groups == set(MATERIAL_GROUPS) | set(HOST_GROUPS), f"unclassified shell groups: {sorted(groups)}"
+    macros = set(re.findall(r"^#define (HOGSHADE_\w+)\(", text, re.MULTILINE))
+    assert macros == set(MATERIAL_MACROS) | set(HOST_MACROS), f"unclassified shell macros: {sorted(macros)}"
 
 
 def test_shell_parameters_are_all_named():
@@ -285,6 +299,32 @@ def test_shell_parameters_are_all_named():
     assert len(shell) > 40, "the shell parser found too little; the .fx layout changed"
     unnamed = set(shell) - SHELL_HOST_ONLY - set(SHELL_TO_SCHEMA)
     assert unnamed == set(), f"shell parameters with no schema name: {sorted(unnamed)}"
+
+
+def test_meta_check_tier_semantic_and_soft_types():
+    data = _standard()
+    data["parameters"]["base_color"]["tier"] = True
+    data["parameters"]["base_color"]["semantic"] = ""
+    data["parameters"]["specular_roughness"]["soft"] = "yes"
+    found = _findings(data)
+    assert ("base_color", "tier is an integer or a named tier") in found
+    assert ("base_color", "semantic is a name") in found
+    assert ("specular_roughness", "soft is a bool") in found
+    data["parameters"]["base_color"]["tier"] = "forward"
+    data["parameters"]["base_color"]["semantic"] = "base_color_linear"
+    data["parameters"]["specular_roughness"]["soft"] = True
+    assert _findings(data) == []
+
+
+def test_meta_check_migration_op_payloads():
+    data = _standard()
+    data["migrations"] = [
+        {"from": 1, "to": 2, "ops": [{"op": "rename", "from": "a"}, {"op": "remove"}, {"op": "default", "name": "x"}]}
+    ]
+    msgs = [m for _, m in _findings(data)]
+    assert "migration 0 op 0: 'rename' carries 'to'" in msgs
+    assert "migration 0 op 1: 'remove' carries 'name'" in msgs
+    assert "migration 0 op 2: 'default' carries 'value'" in msgs
 
 
 def _shell_schema_names(v1: bool) -> set[str]:
@@ -323,3 +363,18 @@ def test_legacy_textures_are_the_shell_maps():
     textured = {n for n, p in v2.parameters.items() if p.texturable}
     maps = {SHELL_TO_SCHEMA[n] for n, g in _shell_parameters().items() if g == "maps"}
     assert textured == maps
+
+
+def test_meta_check_int_default_must_be_an_int():
+    data = copy.deepcopy(read_type_data("hogshade-legacy-v2"))
+    data["parameters"]["min_samples"]["default"] = 2.5
+    assert any(p == "min_samples" and "does not match type 'int'" in m for p, m in _findings(data))
+
+
+def test_meta_check_colour_range_shape_and_default_components():
+    data = _standard()
+    data["parameters"]["base_color"]["range"] = [0.0]
+    assert ("base_color", "range is [min, max]") in _findings(data)
+    data["parameters"]["base_color"]["range"] = [0.0, 1.0]
+    data["parameters"]["base_color"]["default"] = [0.5, 2.0, 0.5]
+    assert ("base_color", "a default component is outside range") in _findings(data)

@@ -132,7 +132,8 @@ takes; a test that monkeypatches `pkg.module.name` catches it, as does `import p
 **Because:** The S1 spec named `validate.py`, `resolve.py` and `convert.py` after the library functions;
 Copilot's eight findings on the spec and the author both missed that `hogshade.material.validate` would
 be the function once the package exported it. The tests' fake-type fixture found it on the first run
-(`feat/s1-material-schema`).
+(`feat/s1-material-schema`); the rename then missed `types.py` against the exported `types()`, which the
+local review caught, so the test that no exported name is a submodule's is the mechanised half.
 
 ## How to add an entry
 

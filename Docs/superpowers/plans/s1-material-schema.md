@@ -1,6 +1,6 @@
 # S1 plan: the schema files and `hogshade.material`
 
-**Status:** Accepted. Done 2026-09-27 on `feat/s1-material-schema` (one PR, open for the owner's merge). Every task's
+**Status:** Accepted. Done 2026-09-27 on `feat/s1-material-schema` (#31, open for the owner's merge). Every task's
 verification ran; the notes are under the tasks.
 
 Spec: [../specs/s1-material-schema.md](../specs/s1-material-schema.md). Test-first: each task's test
@@ -62,4 +62,10 @@ lands with it.
 | 9 | `mayapy.exe -c "import hogshade.material as m; print(m.types())"` on Maya 2026 (Python 3.11.9) printed the four types and their parameter counts `[3, 22, 30, 17]`; numpy was not needed |
 | 10 | `uv run tools/check_docs.py`: 63 files, no drift; `check_hygiene.py` clean |
 
-Totals: `uv run pytest tests/material` 108 passed; the full suite 263 passed on the owner's GPU.
+Totals after the review round: `uv run pytest tests/material` 133 passed; the full suite 288 passed on the
+owner's GPU.
+
+| Review | Ran |
+| --- | --- |
+| `/local-review diff` | Verdict needs-work, lowest 6/10, no hard findings; the shared-default aliasing, the `types` shadow, the raw path rule, the unconditional constant, the union test's group whitelist, three error-handling holes, the missing loggers and three long lines, all fixed the same evening with a test each; the table and each finding are in #31's Review section |
+| Copilot on #31 | Ten findings: the two cutout ones and the raw-path one overlap the local review; the seven others (normalised spellings stored, the registry lookup, int defaults, colour range shape, migration payloads, malformed known values in `resolve`) fixed with tests; every thread answered with the commit |

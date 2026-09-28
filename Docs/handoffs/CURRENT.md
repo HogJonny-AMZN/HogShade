@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-09-27, night: S1 built on `feat/s1-material-schema` (PR open); #27 to #30 merged (the standards remainder, the schema design, the glossary, the S1 spec).
+**Last updated:** 2026-09-27, night: S1 built on `feat/s1-material-schema` (#31 open); #27 to #30 merged (the standards remainder, the schema design, the glossary, the S1 spec).
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -10,9 +10,9 @@ how much to decide alone.
 
 ## In flight
 
-**Sit rep, 2026-09-27 night.** S1 is built and its PR is open for the owner: `hogshade/material/`
-(`types`, `schema`, `document`, `validation`, `resolution`, `conversion`), four `*.material-type.json`
-and three conversion tables as package data, 108 tests, the wheel check, and the mayapy import run
+**Sit rep, 2026-09-27 night.** S1 is built and #31 is open for the owner: `hogshade/material/`
+(`model`, `schema`, `document`, `validation`, `resolution`, `conversion`), four `*.material-type.json`
+and three conversion tables as package data, 133 tests, the wheel check, and the mayapy import run
 (Maya 2026's Python 3.11.9 lists the four types; the library is standard-library only). The build
 amended the spec in seven places, all two-way doors listed in the spec's last section and the PR's
 Decisions table; the ones worth knowing: the modules are `validation.py`, `resolution.py` and
@@ -20,7 +20,8 @@ Decisions table; the ones worth knowing: the modules are `validation.py`, `resol
 are inferred from a `<group>_enabled` bool, legacy v2 carries `specular_f0_map`, and the resolved
 `mask` finding fires only for a constant opacity below the cut. Next in the schema's six increments
 is S2, the generators (the Maya material block and the wgpu struct from the type files); it needs a
-spec, and nothing from G4. The Copilot review of the S1 PR is to be assessed when it posts.
+spec, and nothing from G4. The local review (needs-work, lowest 6/10) and Copilot's ten findings on #31 are fixed in the second
+commit and answered on their threads; the PR waits on the owner's merge.
 
 **Sit rep, 2026-09-27 evening.** Phase 2 is closed: #26 merged, `v0.2.0` tagged on the merge commit
 (the owner gave permission; gate item 5, the same mesh in both hosts, deferred to track E by the

@@ -83,7 +83,15 @@
       "from": "use_cutout_alpha",
       "to": "alpha_mode",
       "transform": "constant",
-      "value": "mask"
+      "value": "mask",
+      "when": true
+    },
+    {
+      "from": "use_cutout_alpha",
+      "to": "alpha_mode",
+      "transform": "constant",
+      "when": false,
+      "value": "blend"
     }
   ],
   "dropped": [

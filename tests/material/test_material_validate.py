@@ -89,7 +89,8 @@ def test_strength_must_be_at_or_above_zero():
 def test_blend_only_on_colour_or_slider_widgets(fake_type):
     def vector_texture(data):
         data["parameters"]["normal_flip"] = {
-            "type": "vector3", "default": [1.0, 1.0, 1.0], "range": [-1.0, 1.0], "group": "geometry", "widget": "vector",
+            "type": "vector3", "default": [1.0, 1.0, 1.0], "range": [-1.0, 1.0], "group": "geometry",
+            "widget": "vector",
             "semantic": "normal_flip", "colour_space": "raw", "overridable": True, "tier": 1, "hosts": {}, "doc": "x",
         }  # fmt: skip
 
@@ -142,7 +143,7 @@ def test_resolved_mask_with_a_constant_opacity_below_the_cut_is_a_finding():
     assert _parameters(findings) == ["alpha_mode"] and "nothing renders" in findings[0].message
 
 
-def test_resolved_mask_with_an_opacity_texture_or_blend_is_fine(tmp_path):
+def test_resolved_mask_with_an_opacity_texture_or_blend_is_fine():
     for values in (
         {"alpha_mode": {"factor": "mask"}, "geometry_opacity": {"factor": 0.2, "texture": "o.png"}},
         {"alpha_mode": {"factor": "blend"}, "geometry_opacity": {"factor": 0.2}},
@@ -152,12 +153,32 @@ def test_resolved_mask_with_an_opacity_texture_or_blend_is_fine(tmp_path):
         assert validate(res) == [], values
 
 
-def test_resolved_reports_a_parameter_with_no_factor_and_no_default(fake_type):
-    def no_default_is_impossible(data):
-        pass
-
-    fake_type(no_default_is_impossible)
+def test_resolved_reports_a_parameter_with_no_factor_and_no_default():
     res = resolve(Document("hogshade-standard", 1, None, {}))
     res.values["base_metalness"]["factor"] = None
     res.values["shininess"] = {"factor": 1.0}
     assert _parameters(validate(res)) == ["base_metalness", "shininess"]
+
+
+# -------------------------------------------------------------------------------- the path rules on raw documents
+
+
+@pytest.mark.parametrize("texture", ["../escape.png", "/abs.png", "C:/abs.png", "//server/share/x.png", ""])
+def test_raw_document_texture_paths_are_checked_as_strings(texture):
+    values = {"geometry_normal": {"texture": texture}}
+    doc = from_data({"material_type": "hogshade-standard", "material_type_version": 1, "values": values})
+    findings = validate(doc)
+    assert _parameters(findings) == ["geometry_normal"], findings
+    assert any(word in findings[0].message for word in ("absolute", "climbs", "non-empty"))
+
+
+def test_raw_document_parent_path_is_checked_as_a_string():
+    doc = Document("hogshade-standard", 1, "../other.material.json", {})
+    findings = validate(doc)
+    assert _parameters(findings) == [""] and "climbs" in findings[0].message
+
+
+def test_in_memory_document_with_good_relative_paths_is_clean():
+    values = {"geometry_normal": {"texture": "textures/n.png", "strength": 1.5}}
+    doc = Document("hogshade-standard", 1, "base/steel.material.json", values)
+    assert validate(doc) == []

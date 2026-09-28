@@ -4,27 +4,36 @@ type's defaults; merge extension blocks child over parent per namespace.
 Package: hogshade/material/resolution
 
 The one place the parent chain is followed. A cycle and a parent of another type are ``MaterialError``.
+Values merge per key: a child that rebinds a texture keeps the parent's factor and blend (the document is a
+record of deltas); a child cannot unset a parent's texture in version 1.
 """
 
 from __future__ import annotations
 
+import copy
+import logging as _logging
 from pathlib import Path
 from typing import Any
 
 from hogshade.material.document import load
+from hogshade.material.model import Document, MaterialError, MaterialType, Resolved
 from hogshade.material.schema import type_of
-from hogshade.material.types import Document, MaterialError, MaterialType, Resolved
 
 _MODULE_NAME = "hogshade.material.resolution"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 
 def defaults_of(mtype: MaterialType) -> dict[str, dict[str, Any]]:
-    """Every parameter's value when nothing sets it: the default factor (none for a texture), no texture."""
+    """
+    Every parameter's value when nothing sets it: the default factor (none for a texture), no texture. The
+    defaults are copied: the cached ``MaterialType`` is never aliased into a result a caller may mutate.
+    """
     out: dict[str, dict[str, Any]] = {}
     for name, p in mtype.parameters.items():
-        value: dict[str, Any] = {"factor": None if p.type == "texture" else p.default, "texture": None, "blend": None}
+        factor = None if p.type == "texture" else copy.deepcopy(p.default)
+        value: dict[str, Any] = {"factor": factor, "texture": None, "blend": None}
         if p.strength:
             value["strength"] = 1.0
         out[name] = value
@@ -47,17 +56,13 @@ def chain_of(doc: Document, root: Path | None = None) -> list[Document]:
         parent = load(parent_path, root or current.root)
         if parent.material_type != doc.material_type:
             raise MaterialError(
-                f"{parent_path}: parent is a {parent.material_type}, the child a {doc.material_type}; a chain resolves to one type"
+                f"{parent_path}: parent is a {parent.material_type}, the child a {doc.material_type}; "
+                "a chain resolves to one type"
             )
         seen.add(parent_path)
         chain.append(parent)
         current = parent
     return chain
-
-
-def _merge_value(into: dict[str, Any], value: dict[str, Any]) -> None:
-    for key, v in value.items():
-        into[key] = v
 
 
 def resolve(doc: Document, root: Path | None = None) -> Resolved:
@@ -68,14 +73,17 @@ def resolve(doc: Document, root: Path | None = None) -> Resolved:
     ext: dict[str, Any] = {}
     for d in reversed(chain):
         for name, value in d.values.items():
-            if name in values and isinstance(value, dict):
-                _merge_value(values[name], value)
-            elif name not in values:
-                values[name] = dict(value) if isinstance(value, dict) else {"factor": value}  # validate() reports it
+            if not isinstance(value, dict):
+                # malformed as written; kept as a factor so validate(resolved) reports it instead of a default
+                value = {"factor": copy.deepcopy(value)}
+            if name in values:
+                values[name].update(copy.deepcopy(value))
+            else:
+                values[name] = copy.deepcopy(value)  # not a parameter of the type; validate() reports it
         for ns, block in d.ext.items():
             if isinstance(block, dict):
-                ext.setdefault(ns, {}).update(block)
+                ext.setdefault(ns, {}).update(copy.deepcopy(block))
             else:
-                ext[ns] = block
+                ext[ns] = copy.deepcopy(block)
     paths = tuple(d.path for d in chain if d.path is not None)
     return Resolved(material_type=mtype.name, version=mtype.version, values=values, ext=ext, chain=paths)

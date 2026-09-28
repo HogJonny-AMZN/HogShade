@@ -276,3 +276,28 @@ diff between the contract and the build stays readable.
   caller that needs them.
 - **A `constant` entry's `value` is checked against the target's type** in the coverage rule, as the
   spec's prose said and its test list did not.
+
+### After the review round (local review, then Copilot on #31; same day)
+
+- **`types.py` became `model.py`**: the same shadow as the three renamed modules (`types()` is an exported
+  function), missed by the first rename; a test now asserts no exported name is a submodule's.
+- **`validate()` on a raw document applies the string half of the path rule** (`path_findings`: non-empty,
+  not absolute, no `..`) to `parent` and every `texture`, so a document built in memory is checked; root
+  confinement still needs a base directory and stays in `load()`.
+- **`load()` stores the normalised spelling** of `parent` and every `texture` (forward slashes, no `./`),
+  as the document section promised; the raw values were kept as written before.
+- **A conditional `constant`**: an entry may carry `when`, a value of the source's type; it fires only when
+  the resolved source factor equals it, and a source may appear once per distinct `when` value (the
+  coverage rule counts those as one appearance and refuses a mix with an unconditional entry). The
+  shipped tables map `use_cutout_alpha` `true` to `alpha_mode` `mask` and `false` to `blend` (the shells
+  blend through the transparency pass when cutout is off).
+- **`resolve()` keeps a malformed known value** as a factor instead of dropping it for the default, and
+  `validate()` on a resolved material type-checks every factor, so the malformation is reported there.
+- **The meta-check** also checks `tier`, `semantic` and `soft`, each migration op's payload, the range
+  shape of colours and vectors and their default components, and that an `int` default is an integer.
+  A document's `material_type` is looked up in the shipped registry, never joined into a resource path.
+- **Every module declares `_LOGGER`** (`Docs/standards/python.md`: a module that never logs still declares
+  it); `schema.py` and `document.py` carry `__main__` smoke blocks; the `emission_luminance` semantic is
+  the design's `emission_luminance_nits`.
+- **Resolved values and converted documents are deep copies**: the first build aliased the cached type's
+  default list into every resolved value, so mutating one mutated the schema for the rest of the process.

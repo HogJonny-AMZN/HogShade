@@ -95,7 +95,7 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
 | 4. Surface authoring | not yet | not yet | Design done |
 | 5. wgpu host | not yet | not yet | Design done |
 | 6. Other hosts | not yet | not yet | Design done |
-| S1. The material schema files and `hogshade.material` (load, validate, resolve, convert) | [superpowers/specs/s1-material-schema.md](superpowers/specs/s1-material-schema.md) | [superpowers/plans/s1-material-schema.md](superpowers/plans/s1-material-schema.md) | Built 2026-09-27 (`feat/s1-material-schema`, PR open): four types, three tables, `hogshade.material` with 108 tests; mayapy 3.11.9 lists the four types |
+| S1. The material schema files and `hogshade.material` (load, validate, resolve, convert) | [superpowers/specs/s1-material-schema.md](superpowers/specs/s1-material-schema.md) | [superpowers/plans/s1-material-schema.md](superpowers/plans/s1-material-schema.md) | Built 2026-09-27 (`feat/s1-material-schema`, [#31](https://github.com/HogJonny-AMZN/HogShade/pull/31) open): four types, three tables, `hogshade.material` with 133 tests; mayapy 3.11.9 lists the four types |
 | E1. IBL cook | [superpowers/specs/e1-ibl-cook.md](superpowers/specs/e1-ibl-cook.md) | [superpowers/plans/e1-ibl-cook.md](superpowers/plans/e1-ibl-cook.md) | Done: cook, tests, job, Maya diffuse-term check, LFS payloads in the repo (2026-09-26) |
 | E2. Cook performance and resolution | [superpowers/specs/e2-cook-performance.md](superpowers/specs/e2-cook-performance.md) | [superpowers/plans/e2-cook-performance.md](superpowers/plans/e2-cook-performance.md) | Done except the roadmap tick: numba 140x, measured to an 8192 cube |
 | E. Parity and pipeline, rest | not yet | not yet | Design done |

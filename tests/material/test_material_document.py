@@ -60,7 +60,8 @@ def test_absolute_fixture_raises(fixtures):
 
 
 def test_backslashes_normalise_to_posix(tmp_path):
-    assert confine("textures\\a.png", tmp_path, tmp_path, "texture") == (tmp_path / "textures" / "a.png").resolve()
+    spelling, joined = confine("textures" + chr(92) + "a.png", tmp_path, tmp_path, "texture")
+    assert spelling == "textures/a.png" and joined == (tmp_path / "textures" / "a.png").resolve()
 
 
 @pytest.mark.parametrize("value", ["", None, 3])
@@ -146,3 +147,32 @@ def test_current_document_is_not_migrated(tmp_path, fake_type):
         encoding="utf-8",
     )
     assert load(path).values == {"base_metalness": {"factor": 1.0}}
+
+
+def test_loaded_paths_are_stored_normalised(tmp_path):
+    (tmp_path / "base").mkdir()
+    (tmp_path / "base" / "steel.material.json").write_text(
+        json.dumps({"material_type": "hogshade-standard", "material_type_version": 1, "values": {}}), encoding="utf-8"
+    )
+    backslashed = "base" + chr(92) + "steel.material.json"
+    child = tmp_path / "child.material.json"
+    child.write_text(
+        json.dumps(
+            {
+                "material_type": "hogshade-standard",
+                "material_type_version": 1,
+                "parent": backslashed,
+                "values": {"geometry_normal": {"texture": "./textures/n.png"}},
+            }
+        ),
+        encoding="utf-8",
+    )
+    doc = load(child)
+    assert doc.parent == "base/steel.material.json"
+    assert doc.values["geometry_normal"]["texture"] == "textures/n.png"
+
+
+def test_material_type_is_a_registry_name_not_a_path():
+    for name in ("../hogshade-standard", "hogshade-standard/../hogshade-lambert", "schema/hogshade-standard"):
+        with pytest.raises(MaterialError, match="unknown material type"):
+            from_data({"material_type": name, "material_type_version": 1, "values": {}})

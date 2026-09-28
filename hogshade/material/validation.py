@@ -2,20 +2,24 @@
 HogShade: validate a material document (raw) or a resolved material against its type.
 Package: hogshade/material/validation
 
-Raw: unknown keys, value shapes and types, ranges, colour spaces, blend, strength, overridable. Resolved:
-completeness and the cross-parameter rules. Never raises; every problem is a ``Finding``.
+Raw: unknown keys, value shapes and types, ranges, colour spaces, blend, strength, overridable, the string
+rules of every path. Resolved: completeness and the cross-parameter rules. Never raises; every problem is
+a ``Finding``.
 """
 
 from __future__ import annotations
 
+import logging as _logging
 from typing import Any
 
+from hogshade.material.document import path_findings
+from hogshade.material.model import BLENDS, VALUE_KEYS, Document, Finding, ParameterDef, Resolved
 from hogshade.material.schema import type_of
-from hogshade.material.types import BLENDS, VALUE_KEYS, Document, Finding, ParameterDef, Resolved
 
 _MODULE_NAME = "hogshade.material.validation"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 _BLENDABLE_WIDGETS = ("color", "slider")
 
@@ -62,8 +66,8 @@ def _value_findings(where: str, p: ParameterDef, value: Any, has_parent: bool) -
     if has_texture:
         if not p.texturable:
             out.append(Finding(where, p.name, "not texturable: the schema gives it no colour space"))
-        elif not isinstance(value["texture"], str) or not value["texture"]:
-            out.append(Finding(where, p.name, "texture is a relative path"))
+        else:
+            out.extend(Finding(where, p.name, m) for m in path_findings(value["texture"], "texture"))
     if "blend" in value:
         if not (has_factor and has_texture):
             out.append(Finding(where, p.name, "blend only with both factor and texture"))
@@ -98,6 +102,8 @@ def _validate_document(doc: Document) -> list[Finding]:
     where = str(doc.path) if doc.path else "<document>"
     mtype = type_of(doc.material_type)
     out: list[Finding] = []
+    if doc.parent is not None:
+        out.extend(Finding(where, "", m) for m in path_findings(doc.parent, "parent"))
     for name, value in doc.values.items():
         p = mtype.parameters.get(name)
         if p is None:
@@ -121,6 +127,8 @@ def _validate_resolved(res: Resolved) -> list[Finding]:
             continue
         if p.type != "texture" and value.get("factor") is None:
             out.append(Finding(where, name, "no factor and no default"))
+        elif value.get("factor") is not None:
+            out.extend(_factor_findings(where, p, value["factor"]))
     for name in res.values:
         if name not in mtype.parameters:
             out.append(Finding(where, name, f"not a parameter of {mtype.name}"))

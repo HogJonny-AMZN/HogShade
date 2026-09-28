@@ -1,21 +1,24 @@
 """
-HogShade: the data types of the material library: a parameter definition, a material type, a document, a
+HogShade: the data model of the material library: a parameter definition, a material type, a document, a
 resolved material, a finding, a loss.
-Package: hogshade/material/types
+Package: hogshade/material/model
 
 Plain dataclasses, numpy-free, so every DCC Python can import them. The shapes are the S1 spec's
-(Docs/superpowers/specs/s1-material-schema.md).
+(Docs/superpowers/specs/s1-material-schema.md). Named ``model``, not ``types``: the package exports a
+``types()`` function, and a module of that name would be shadowed by it (failure-modes entry 13).
 """
 
 from __future__ import annotations
 
+import logging as _logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-_MODULE_NAME = "hogshade.material.types"
+_MODULE_NAME = "hogshade.material.model"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 #: Parameter types a schema may declare.
 PARAMETER_TYPES = ("float", "int", "bool", "enum", "color3", "vector3", "texture")

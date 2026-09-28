@@ -157,7 +157,7 @@
       "soft": true,
       "group": "emission",
       "widget": "slider",
-      "semantic": "emission_nits",
+      "semantic": "emission_luminance_nits",
       "overridable": true,
       "tier": 1,
       "hosts": {},

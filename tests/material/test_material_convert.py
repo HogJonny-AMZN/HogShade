@@ -161,21 +161,96 @@ def test_convert_a_resolved_material_and_keep_ext(fixtures):
     assert out.ext == {"sj": {"tier_cap": 1}}
 
 
-def test_convert_v1_and_lambert_defaults_validate():
-    for name in ("hogshade-legacy-v1", "hogshade-lambert"):
-        out, losses = convert(
-            from_data({"material_type": name, "material_type_version": 1, "values": {}}), "hogshade-standard"
-        )
-        assert validate(out) == [] and validate(resolve(out)) == [], name
-    assert losses == []
+@pytest.mark.parametrize(
+    ("name", "expected_losses"),
+    [
+        ("hogshade-legacy-v1", 13),
+        ("hogshade-lambert", 0),
+    ],
+)
+def test_convert_v1_and_lambert_defaults_validate(name, expected_losses):
+    out, losses = convert(
+        from_data({"material_type": name, "material_type_version": 1, "values": {}}), "hogshade-standard"
+    )
+    assert validate(out) == [] and validate(resolve(out)) == [], name
+    assert len(losses) == expected_losses
+    assert {loss.parameter for loss in losses} == {d["from"] for d in load_table(name, "hogshade-standard")["dropped"]}
+
+
+def test_conditional_constant_fires_only_when_the_source_matches():
+    def brick(cutout):
+        values = {"use_cutout_alpha": {"factor": cutout}}
+        return from_data({"material_type": "hogshade-legacy-v2", "material_type_version": 1, "values": values})
+
+    on, _ = convert(brick(True), "hogshade-standard")
+    off, _ = convert(brick(False), "hogshade-standard")
+    assert on.values["alpha_mode"] == {"factor": "mask"}
+    assert off.values["alpha_mode"] == {"factor": "blend"}, "the other conditional entry fires"
+
+
+def test_coverage_check_when_only_on_constant_and_of_the_source_type():
+    table = _v2_table()
+    for entry in table["map"]:
+        if entry["from"] == "roughness":
+            entry["when"] = 0.5
+        if entry["from"] == "use_cutout_alpha":
+            entry["when"] = "yes"
+    msgs = _messages(table)
+    assert "roughness: transform 'identity' does not carry 'when'" in msgs
+    assert "use_cutout_alpha: when 'yes' is not a bool value of 'use_cutout_alpha'" in msgs
+
+
+def test_transforms_accept_tuples_and_return_copies():
+    assert _apply("invert", {}, (0.0, 1.0, 0.5)) == [1.0, 0.0, 0.5]
+    source = [0.5, 0.3, 0.2]
+    out = _apply("identity", {}, source)
+    assert out == source and out is not source
+    constant = {"value": [1.0, 1.0, 1.0]}
+    assert _apply("constant", constant, None) is not constant["value"]
+
+
+def test_converted_values_do_not_alias_the_source(fixtures):
+    res = resolve(load(fixtures / "legacy" / "brick_v2.material.json"))
+    out, _ = convert(res, "hogshade-standard")
+    out.values["base_color"]["factor"][0] = 9.0
+    assert res.values["base_color"]["factor"] == [0.5, 0.3, 0.2]
 
 
 def test_convert_refuses_a_malformed_table(monkeypatch):
     table = _v2_table()
-    table["map"].pop()
+    table["map"] = [e for e in table["map"] if e["from"] != "roughness"]
     monkeypatch.setattr("hogshade.material.conversion.load_table", lambda a, b: table)
     with pytest.raises(MaterialError, match="malformed conversion table"):
         convert(
             from_data({"material_type": "hogshade-legacy-v2", "material_type_version": 1, "values": {}}),
             "hogshade-standard",
         )
+
+
+def test_cutout_off_converts_to_blend_and_the_tables_say_so():
+    doc = from_data(
+        {
+            "material_type": "hogshade-legacy-v2",
+            "material_type_version": 1,
+            "values": {"use_cutout_alpha": {"factor": False}},
+        }
+    )
+    out, _ = convert(doc, "hogshade-standard")
+    assert out.values["alpha_mode"] == {"factor": "blend"}
+    for src in ("hogshade-legacy-v2", "hogshade-legacy-v1"):
+        whens = {
+            e["when"]: e["value"]
+            for e in load_table(src, "hogshade-standard")["map"]
+            if e["from"] == "use_cutout_alpha"
+        }
+        assert whens == {True: "mask", False: "blend"}
+
+
+def test_coverage_check_conditional_entries_are_distinct_and_unmixed():
+    table = _v2_table()
+    cutout = [e for e in table["map"] if e["from"] == "use_cutout_alpha"]
+    table["map"].append(dict(cutout[0]))
+    assert "use_cutout_alpha: when True appears twice" in _messages(table)
+    table = _v2_table()
+    table["map"].append({"from": "use_cutout_alpha", "to": "alpha_mode", "transform": "constant", "value": "opaque"})
+    assert "use_cutout_alpha: mixes conditional and unconditional entries" in _messages(table)

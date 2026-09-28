@@ -56,3 +56,15 @@ def test_wheel_contains_the_schema_files(tmp_path):
         names = set(z.namelist())
     missing = EXPECTED_DATA - names
     assert missing == set(), f"missing from the wheel: {sorted(missing)}"
+
+
+def test_no_exported_name_shadows_a_submodule():
+    """The package binds its functions on itself; a submodule of the same name would be hidden (ledger 13)."""
+    import pkgutil
+
+    import hogshade.material as m
+
+    submodules = {info.name for info in pkgutil.iter_modules(m.__path__)}
+    clashes = submodules & set(m.__all__)
+    assert clashes == set(), f"exported names that are also submodules: {sorted(clashes)}"
+    assert "model" in submodules and "types" not in submodules
