@@ -18,8 +18,11 @@ state is the section at the end of this file, its open questions are the board's
 plans are under `Docs/superpowers/`. Phase 3 is next in the order of operations and is blocked on
 G4 only: the owner closed G3 the same evening (ADR-009, HogShade owns the material schema and
 data, the editor lives in LargeWorlds), so the schema's pre-spec design is the unblocked Next row; it is drafted
-(`Docs/design/2026-09-27-material-schema.md`, Exploring) and is locked in full (2026-09-27, all ten questions answered in the owner's words). S1's spec is
-the next increment: the schema files and the library's load, validate, resolve and convert.
+(`Docs/design/2026-09-27-material-schema.md`, Accepted) and is locked in full (2026-09-27, all ten questions answered in the owner's words). S1's spec and
+plan are drafted (`Docs/superpowers/specs/s1-material-schema.md`, `plans/s1-material-schema.md`,
+Proposed): the four schema files as package data, the three conversion tables, and
+`hogshade.material`'s load, validate, resolve and convert with tests. The owner approves the spec;
+then the plan runs as one PR, about 2 d, and needs nothing from G4.
 
 What the standards pass landed: `Docs/standards/python.md` and `wgsl.md`, `Docs/standards/failure-modes.md`
 (twelve entries from this week, five with checks), `.github/copilot-instructions.md`, `Docs/decisions/`
