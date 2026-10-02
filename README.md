@@ -201,7 +201,7 @@ Headless `mayapy` can load an effect but cannot compile it (no DirectX device).
 
 ```text
 uv sync --all-extras
-uv run tools/wgpu/viewport.py --model legacy-v1
+uv run tools/wgpu/viewport.py --material content/materials/legacy-v1/default.material.json --variant legacy-v1
 ```
 
 renders the shader ball forward and deferred to `verification/wgpu/shader-ball/<env>/legacy-v1/`.
