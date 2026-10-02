@@ -43,6 +43,10 @@ data already covers `hosts/*.json`.
 
 ## The wgpu host map
 
+An abbreviated, non-normative excerpt; the shipped file carries an entry for every parameter of the three
+types (38 of them), every unbound one `unsupported` with its reason, and the test holds it to the coverage
+rule below:
+
 ```json
 {
   "host": "wgpu", "version": 1,
@@ -54,6 +58,7 @@ data already covers `hosts/*.json`.
     "metalness":     {"field": "material", "components": [0]},
     "specular":      {"field": "material", "components": [1]},
     "specular_tint": {"field": "material", "components": [2], "types": ["hogshade-legacy-v2"]},
+    "specular_tint@hogshade-legacy-v1": {"field": "params_a", "components": [1]},
     "ior":           {"field": "material", "components": [3]},
     "rough_is_gloss": {"field": "model", "components": [1]},
     "subsurface":    {"field": "params_a", "components": [0]},
@@ -88,8 +93,12 @@ class Binding:
     model: str                      # "legacy-v2" | "legacy-v1" | "lambert", from the type (MODELS in wgpu_host)
     fields: dict[str, tuple[float, ...]]   # every frame field in the map's `fields`, full width, zeros where unwritten
     textures: dict[str, str]        # parameter name -> the texture path as the document spells it (relative)
-    unsupported: tuple[Loss, ...]   # the parameters the host cannot carry, with the map's reasons
+    unsupported: tuple[Unbound, ...]  # the parameters the host cannot carry, with the map's reasons
 ```
+
+`Unbound(parameter, reason)` is a new record in `model.py`, distinct from `Loss`: a `Loss` is what a
+conversion between types drops, an `Unbound` is what one host cannot carry from a type it does render.
+The glossary gains the noun.
 
 `model` is derived from the type: `hogshade-legacy-v2` is `legacy-v2`, `hogshade-legacy-v1` is
 `legacy-v1`, `hogshade-lambert` is `lambert`; `hogshade-standard` has no wgpu model before C3, so
@@ -100,19 +109,23 @@ class Binding:
 
 | Function | Contract |
 | --- | --- |
-| `bind(resolved, host) -> Binding` | A `Resolved` (or a `Document`, resolved first) into the host's values through its map. Unknown host, a type the host does not carry, or a material that does not validate is `MaterialError`. Pure: no numpy, no wgpu. |
+| `bind(resolved, host) -> Binding` | A `Resolved` into the host's values through its map; the caller resolves (so the parent chain's file reads and their errors stay in `resolve()`, as the design places them). A `Document` is refused. Unknown host, a type the host does not carry, or a material that does not validate is `MaterialError`. Pure: no numpy, no wgpu. |
 | `hosts()`, `host_map(host)`, `check_host_map(hmap, params)` | As S2, with the wgpu entry shape. `check_host_map` reads the map's `host` to pick the shape. |
 
 `hogshade.wgpu_host`:
 
 - A `MaterialBinding` dataclass holds what `Scene` carried by hand (`base_color`, `roughness`, `metalness`,
   `specular`, `specular_tint`, `ior`, `model`, `rough_is_gloss`, the six v1 lobes). `Scene.material:
-  MaterialBinding` replaces those fields on `Scene`; its default is today's default values, so an existing
-  `Scene()` renders as before. `MaterialBinding.from_binding(binding)` reads a `Binding`'s `fields`; the
+  MaterialBinding` replaces those fields on `Scene`. **Its defaults are the legacy v2 type's schema
+  defaults** (roughness 0.5, IOR 1.45, base colour 0.6), not the host's old hand-set ones (0.2, 1.5, 0.5):
+  the schema is the one source of a default, and the old values were a host author's taste. The pre-S3
+  default render is therefore not preserved; the wgpu pictures under `verification/wgpu/` are recaptured
+  in the PR and the diff stated. `MaterialBinding.from_binding(binding)` reads a `Binding`'s `fields`; the
   packing into `frame_bytes` becomes one loop over the map's `fields`, so a map change cannot miss a field.
 - `tools/wgpu/viewport.py` takes `--material <path.material.json>` and renders it; without the flag it
   renders `content/materials/legacy-v2/default.material.json`, which binds to the same values as
-  `Scene()`'s defaults did (a test says so). `--model` goes: the document's type picks the model.
+  `MaterialBinding()`'s defaults (a test says so, component for component). `--model` goes: the document's
+  type picks the model.
 
 ## The first documents
 
@@ -126,14 +139,15 @@ S4 decides the directory layout beyond this (its design, track F).
 - `tests/material/test_material_bind.py`: the shipped wgpu map passes `check_host_map` and covers the
   union of its three types; mutations (a component written twice, a component beyond the field's width,
   a parameter both bound and unsupported, a missing reason, an unknown field) each produce the named
-  finding; `bind()` of the v2 default document gives `fields` equal to the hand-set `Scene()` defaults,
-  component for component; the v1 default binds the lobes into `params_a`/`params_b` and
-  `specular_tint` into `params_a[1]`, not `material[2]`; a lambert document binds `base_color` only; a
-  standard document is `MaterialError` naming C3; a document with a bound normal map lists it in
-  `textures` and `unsupported`; `bind()` refuses an invalid material.
-- `tests/host/test_wgpu_host.py`: `Scene(material=MaterialBinding.from_binding(bind(doc, "wgpu")))` and
-  the equivalent hand-set `Scene` give identical `frame_bytes`; on a GPU, the v2 default document renders
-  the same forward image as the pre-S3 default (the existing fixtures), and a v1 document with `sheen`
+  finding; `bind(resolve(doc), "wgpu")` of the v2 default document gives `fields` equal to
+  `MaterialBinding()`'s defaults, component for component; the v1 default binds the lobes into
+  `params_a`/`params_b` and `specular_tint` into `params_a[1]`, not `material[2]`; a lambert document binds
+  `base_color` only; a standard document is `MaterialError` naming C3; a raw `Document` is refused; a
+  document with a bound normal map lists it in `textures` and `unsupported`; `bind()` refuses an invalid
+  material.
+- `tests/host/test_wgpu_host.py`: `Scene(material=MaterialBinding.from_binding(bind(resolve(doc), "wgpu")))`
+  and the equivalent hand-set `Scene(material=MaterialBinding(...))` give identical `frame_bytes`; on a
+  GPU, the v2 default document and `Scene()` render the same forward image, and a v1 document with `sheen`
   differs from one without (the lobes reach the shader through the binding).
 - The S1 import test still holds; `binding.py` imports nothing outside the standard library.
 
