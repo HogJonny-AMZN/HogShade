@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-02, night: #39 merged; the S4 design drafted (#40, `docs/s4-library-design`) for the owner to lock; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-02, late night: #40 (the S4 design) merged, its eight questions awaiting the owner; the owner's gallery, latest-vault and manual ideas boarded with verdicts; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -9,6 +9,15 @@ A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 how much to decide alone.
 
 ## In flight
+
+**Sit rep, 2026-10-02, late night.** #40 merged: the S4 design is in with eight questions and the owner
+has not answered them yet; nothing of S4 is built until they do. The owner said two things worth more than
+a row: this is a generate-visuals project, so PRs should carry pictures as proof, bounded against storage
+(a latest vault and a gallery page: the hero scene in every rendering path, a comparison and a showcase
+per feature such as parallax occlusion); and a `Docs/manual/` is coming, reusing the same pictures. Both
+are Next rows with verdicts. The facts behind the verdict: the pictures are plain git, not LFS, 2.7 MB in
+all, overwritten in place, so `verification/` already is the vault; what is missing is the rule, a manifest
+and a generated page. Nothing is built from either until the owner says so.
 
 **Sit rep, 2026-10-02 night.** S1 to S3 and the standards PR are merged. The owner asked for the S4 design
 ("design S4"); it is drafted as `Docs/design/2026-10-02-material-library.md` (Proposed, exploring) with eight
