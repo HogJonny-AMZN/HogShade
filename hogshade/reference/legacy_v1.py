@@ -8,6 +8,7 @@ in the WGSL header; this file is the numeric specification the GPU is checked ag
 
 from __future__ import annotations
 
+import logging as _logging
 from dataclasses import dataclass
 
 import numpy as np
@@ -21,6 +22,7 @@ from hogshade.reference.legacy_v2 import EnvSamples
 _MODULE_NAME = "hogshade.reference.legacy_v1"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 DEBUG_MODE_NAMES = ("final", "NdotL", "clampNdotL", "NdotV", "H.x", "NdotH", "LdotH", "VdotH", "vis")
 

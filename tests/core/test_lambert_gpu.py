@@ -1,5 +1,6 @@
 """
-HogShade: the Lambert model agrees with its NumPy twin for one light and the environment (the standards pass, 2026-09-27).
+HogShade: the Lambert model agrees with its NumPy twin for one light and the environment (the standards
+pass, 2026-09-27).
 Package: tests/core/test_lambert_gpu
 """
 

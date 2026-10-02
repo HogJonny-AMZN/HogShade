@@ -5,7 +5,8 @@ Package: tools/check_hygiene
 The rule (ADR-008): nothing in this repository names the owner's earlier prototype toolbox by its old
 identifiers, nor the checkout path it lived in; the codename is ``proto_color`` / ``proto_py`` (owner,
 2026-09-27, history settled). The identifiers live in this one file so that every document can say
-"run the hygiene check" without repeating them, which would make the grep flag the document (Copilot on PR #25). The allowlist names
+"run the hygiene check" without repeating them, which would make the grep flag the document (Copilot on
+PR #25). The allowlist names
 the tracked files that may carry a match and why; a match anywhere else is a finding.
 
 Run standalone (exit code 1 on findings)::
@@ -17,6 +18,7 @@ CI runs it as a step; ``tests/test_check_hygiene.py`` runs it on the tree and on
 
 from __future__ import annotations
 
+import logging as _logging
 import re
 import subprocess
 import sys
@@ -26,6 +28,7 @@ from pathlib import Path
 _MODULE_NAME = "tools.check_hygiene"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 

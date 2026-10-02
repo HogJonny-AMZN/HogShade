@@ -89,4 +89,8 @@ def main(parameters: dict) -> dict:
     import ibl_check  # a tools/maya script module, on sys.path above
 
     _LOGGER.info(f"maya_ibl_check job: fx={ibl_check.SHADER} env={ibl_check.ENV}")
-    return ibl_check.run_check(quit_after=False)
+    result = ibl_check.run_check(quit_after=False)
+    _LOGGER.info(
+        "maya_ibl_check job done: ok=%s, log %s, dir %s", result.get("ok"), result.get("log"), result.get("dir")
+    )
+    return result

@@ -115,6 +115,7 @@ def from_data(data: Any, path: Path | None = None, root: Path | None = None) -> 
         raise MaterialError(f"{where}: values is an object")
     if version < mtype.version:
         values = migrate(values, mtype.migrations, version)
+        _LOGGER.info("%s: migrated from %s version %d to %d", where, name, version, mtype.version)
     ext = data.get("ext", {})
     if not isinstance(ext, dict):
         raise MaterialError(f"{where}: ext is an object of namespaces")

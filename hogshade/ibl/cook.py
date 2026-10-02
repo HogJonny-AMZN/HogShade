@@ -121,8 +121,11 @@ def cook_environment(
     (out_dir / "irradiance_sh9.json").write_text(
         json.dumps(
             {
-                "note": "Radiance SH L2 coefficients L_lm, RGB, in the order Y00, Y1-1, Y10, Y11, Y2-2, Y2-1, Y20, Y21, Y22. "
-                "Irradiance/pi at normal n = sum_lm A_l L_lm Y_lm(n) / pi with A = (pi, 2pi/3, pi/4).",
+                "note": (
+                    "Radiance SH L2 coefficients L_lm, RGB, in the order Y00, Y1-1, Y10, Y11, Y2-2, Y2-1, Y20, "
+                    "Y21, Y22. "
+                    "Irradiance/pi at normal n = sum_lm A_l L_lm Y_lm(n) / pi with A = (pi, 2pi/3, pi/4)."
+                ),
                 "coefficients": [[float(x) for x in row] for row in coeffs],
                 "irradiance_source_width": int(small.shape[1]),
             },

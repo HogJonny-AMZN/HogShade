@@ -102,6 +102,18 @@ def bind(resolved: Resolved, host: str) -> Binding:
         for pname, entry in entries_for(hmap, resolved.material_type).items()
         if "unsupported" in entry
     )
+    _LOGGER.info(
+        "bound %s (%s) for the %s host as model %s: %d texture(s) carried as paths, "
+        "%d parameter(s) the host cannot take",
+        resolved.chain[0] if resolved.chain else "<document>",
+        resolved.material_type,
+        host,
+        model,
+        len(textures),
+        len(unsupported),
+    )
+    for u in unsupported:
+        _LOGGER.debug("  %s: %s", u.parameter, u.reason)
     return Binding(
         host=host,
         material_type=resolved.material_type,

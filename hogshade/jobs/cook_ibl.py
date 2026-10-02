@@ -40,7 +40,9 @@ MANIFEST = {
         "master_exr": {
             "type": "path",
             "required": False,
-            "description": "8K equirect EXR to condition into env_dir/source_4k.exr before cooking; omit if the source exists",
+            "description": (
+                "8K equirect EXR to condition into env_dir/source_4k.exr before cooking; omit if the source exists"
+            ),
         },
         "base": {"type": "int", "default": 256, "description": "Specular cube base size; mips follow"},
         "samples": {"type": "int", "default": 1024, "description": "GGX samples per texel"},
@@ -82,6 +84,7 @@ def main(parameters: dict) -> dict:
     result.update(
         cook.cook_environment(env_dir, base=base, samples=samples, irradiance_size=irradiance_size, backend=backend)
     )
+    _LOGGER.info("cook_ibl job done: %s, artifacts %s", env_dir, sorted(k for k in result if k != "conditioned"))
     return result
 
 

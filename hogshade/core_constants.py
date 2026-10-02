@@ -8,6 +8,7 @@ or the test fails, which is the point.
 
 from __future__ import annotations
 
+import logging as _logging
 import math
 import re
 from pathlib import Path
@@ -15,6 +16,7 @@ from pathlib import Path
 _MODULE_NAME = "hogshade.core_constants"
 __version__ = "0.1.0"
 __updated__ = "2026-09-20"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 PI = math.pi
 INV_PI = 1.0 / math.pi

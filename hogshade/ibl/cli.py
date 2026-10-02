@@ -14,6 +14,7 @@ from pathlib import Path
 _MODULE_NAME = "hogshade.ibl.cli"
 __version__ = "0.1.0"
 __updated__ = "2026-09-20"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 
 def main(argv: list[str] | None = None) -> int:

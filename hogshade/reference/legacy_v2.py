@@ -9,6 +9,7 @@ this file is the numeric specification the GPU is checked against.
 
 from __future__ import annotations
 
+import logging as _logging
 from dataclasses import dataclass
 
 import numpy as np
@@ -21,6 +22,7 @@ from hogshade.reference._common import _col, _unit, luminance
 _MODULE_NAME = "hogshade.reference.legacy_v2"
 __version__ = "0.1.0"
 __updated__ = "2026-09-25"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 N_DOT_V_EPSILON = 1e-4  # v2: #define EPSILON 10e-5f
 

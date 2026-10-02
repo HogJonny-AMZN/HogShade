@@ -96,21 +96,22 @@ def main(argv: list[str] | None = None) -> int:
     )
     mode.add_argument("--write", action="store_true", help="regenerate the shell's block and the docs reference")
     args = parser.parse_args(argv)
+    _logging.basicConfig(level=_logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     try:
         if args.write:
             for path in write():
-                print(f"wrote {_rel(path)}")
+                _LOGGER.info("wrote %s", _rel(path))
             return 0
         stale = check()
     except MaterialError as e:
-        print(f"material UI: {e}", file=sys.stderr)
+        _LOGGER.error("material UI: %s", e)
         return 2
     if stale:
         for diff in stale:
             sys.stdout.write(diff)
-        print(f"material UI check: {len(stale)} stale output(s); run tools/generate_material_ui.py --write")
+        _LOGGER.error("material UI check: %d stale output(s); run tools/generate_material_ui.py --write", len(stale))
         return 1
-    print("material UI check: the Maya block and the docs reference are current")
+    _LOGGER.info("material UI check: the Maya block and the docs reference are current")
     return 0
 
 

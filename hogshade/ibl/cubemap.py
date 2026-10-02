@@ -13,12 +13,15 @@ The conventions here are the spec's (Docs/superpowers/specs/e1-ibl-cook.md, "Cub
 
 from __future__ import annotations
 
+import logging as _logging
+
 import numpy as np
 from numpy.typing import NDArray
 
 _MODULE_NAME = "hogshade.ibl.cubemap"
 __version__ = "0.1.0"
 __updated__ = "2026-09-20"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 FACE_NAMES = ("+X", "-X", "+Y", "-Y", "+Z", "-Z")
 FACE_CONVENTION = "d3d11-cube-yup-equirect-center-negz-v1"

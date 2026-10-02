@@ -11,6 +11,7 @@ legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx). Writes verification/maya-2026/<check>/check
 name load-check) with the technique list and RESULT: OK, or the traceback.
 """
 
+import logging as _logging
 import os
 from pathlib import Path
 
@@ -20,6 +21,7 @@ from maya import cmds
 _MODULE_NAME = "tools.maya.load_check"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 SHADER = Path(os.environ.get("HOGSHADE_FX", str(s.ROOT / "hosts" / "maya_dx11" / "hogshade.fx")))
 LOG = s.output_dir(os.environ.get("HOGSHADE_CHECK", "load-check")) / "check.log"

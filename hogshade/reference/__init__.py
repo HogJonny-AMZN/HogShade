@@ -7,6 +7,9 @@ minus the module prefix. The references are the specification of the maths; the 
 implementation every host runs. A test that runs the WGSL on the GPU against these is phase 2 PR C.
 """
 
+import logging as _logging
+
 _MODULE_NAME = "hogshade.reference"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)

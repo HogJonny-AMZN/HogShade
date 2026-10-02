@@ -8,12 +8,15 @@ kind, position(3), direction(3), intensity, color(3), range, cone_cos(2), shadow
 
 from __future__ import annotations
 
+import logging as _logging
+
 import numpy as np
 from numpy.typing import NDArray
 
 _MODULE_NAME = "hogshade.reference.lighting"
 __version__ = "0.1.0"
 __updated__ = "2026-09-25"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 KIND_OFF, KIND_DIRECTIONAL, KIND_POINT, KIND_SPOT = 0, 1, 2, 3
 

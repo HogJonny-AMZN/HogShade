@@ -8,6 +8,7 @@ pixel data face-major (all mips of +X, then all mips of -X, ...), each mip's row
 
 from __future__ import annotations
 
+import logging as _logging
 import struct
 from pathlib import Path
 
@@ -17,6 +18,7 @@ from numpy.typing import NDArray
 _MODULE_NAME = "hogshade.ibl.dds"
 __version__ = "0.1.0"
 __updated__ = "2026-09-20"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 DDS_MAGIC = b"DDS "
 DDSD_CAPS, DDSD_HEIGHT, DDSD_WIDTH, DDSD_PITCH, DDSD_PIXELFORMAT, DDSD_MIPMAPCOUNT = 0x1, 0x2, 0x4, 0x8, 0x1000, 0x20000

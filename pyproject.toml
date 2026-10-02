@@ -42,3 +42,6 @@ addopts = "-q"
 [tool.ruff]
 line-length = 120
 target-version = "py311"
+
+[tool.ruff.lint]
+extend-select = ["E501"]

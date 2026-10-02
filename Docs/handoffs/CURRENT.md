@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-02, later: S3 built (`feat/s3-wgpu-binding`, [#38](https://github.com/HogJonny-AMZN/HogShade/pull/38) open) after #37 approved the spec; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-02, evening: #38 (S3) merged; the standards PR open (#39, `chore/standards-e501-loggers`: E501 on, loggers everywhere); before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -9,6 +9,15 @@ A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 how much to decide alone.
 
 ## In flight
+
+**Sit rep, 2026-10-02 evening.** S1, S2 and S3 are merged: the schema files and library, the Maya UI
+generated from them, the wgpu host bound from a document. The owner took the standards PR next ("go"):
+`E501` is enforced, every module declares `_LOGGER`, and, on the owner's point that the log is the record a
+human reads and an agent spelunks after a failed run, `python.md` now says what to log and the library, the
+host, the tools and the jobs log their inputs, decisions and artifacts; it removes the two findings the
+four local reviews kept repeating. Next real work: S4, the base library, which needs track F's design
+locked first (the constants-only base set as semantic parent baselines, the small texture set, the
+layout under `content/materials/`, the quality bar); the comparison framework's design waits on G4.
 
 **Sit rep, 2026-10-02, later.** S3 is built and #38 is open: `bind(resolved, "wgpu")` through
 `hogshade/material/hosts/wgpu.json` (every parameter of the three legacy types bound to a frame field and

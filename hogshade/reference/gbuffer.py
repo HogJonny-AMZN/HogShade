@@ -8,6 +8,8 @@ with the same operand order so the two can be read side by side.
 
 from __future__ import annotations
 
+import logging as _logging
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -16,6 +18,7 @@ from hogshade.core_constants import DIELECTRIC_F0
 _MODULE_NAME = "hogshade.reference.gbuffer"
 __version__ = "0.1.0"
 __updated__ = "2026-09-21"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 
 def oct_encode(n: NDArray) -> NDArray:

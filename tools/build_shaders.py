@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import logging as _logging
 import os
 import re
 import shutil
@@ -38,6 +39,7 @@ from pathlib import Path
 _MODULE_NAME = "tools.build_shaders"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE = ROOT / "core"
@@ -130,6 +132,12 @@ def build(out_dir: Path, require_compilers: bool = False) -> dict[str, str]:
         raise BuildError("naga not found: cargo install naga-cli (Docs/knowledge/toolchain.md)")
     manifest = load_manifest()
     entry = manifest["validate"]["entry_point"]
+    _LOGGER.info(
+        "building the core from %d module(s) of core/manifest.toml into %s with %s",
+        len(manifest["module"]),
+        out_dir,
+        naga,
+    )
     core_only = stitch(manifest, with_validate=False)
     with_entry = stitch(manifest, with_validate=True)
 
@@ -169,16 +177,21 @@ def build(out_dir: Path, require_compilers: bool = False) -> dict[str, str]:
         run([fxc, "/nologo", "/T", "ps_5_0", "/E", entry, "/Fo", str(work / "sm5.cso"), str(targets["hlsl_sm5"])])
     elif require_compilers:
         raise BuildError("fxc not found (Windows 10 SDK)")
+    else:
+        _LOGGER.warning("fxc not found: the shader-model 5 artifact was translated but not compiled")
     if dxc:
         run([dxc, "-T", "ps_6_0", "-E", entry, "-Fo", str(work / "sm6.cso"), str(targets["hlsl_sm6"])])
     elif require_compilers:
         raise BuildError("dxc not found (Windows 10 SDK)")
+    else:
+        _LOGGER.warning("dxc not found: the shader-model 6 artifact was translated but not compiled")
 
     hashes = {}
     for key, path in targets.items():
         data = path.read_bytes().replace(b"\r\n", b"\n")
         path.write_bytes(data)
         hashes[key] = hashlib.sha256(data).hexdigest()
+        _LOGGER.info("wrote %s (%d bytes, sha256 %s)", path, len(data), hashes[key][:12])
     (out_dir / "generated_manifest.json").write_text(
         json.dumps(
             {
@@ -225,10 +238,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--check", action="store_true", help="fail if the committed artifacts are stale")
     parser.add_argument("--require-compilers", action="store_true", help="fail when fxc or dxc are missing")
     args = parser.parse_args(argv)
+    _logging.basicConfig(level=_logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     try:
         if args.check:
             stale = check(require_compilers=args.require_compilers)
             if stale:
+                _LOGGER.error("stale generated artifacts: %s", ", ".join(stale))
                 print("stale generated artifacts:\n  " + "\n  ".join(stale))
                 return 1
             print("generated artifacts are up to date")
@@ -238,7 +253,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{key:9s} {digest[:12]}  {ARTIFACTS[key].relative_to(ROOT)}")
         return 0
     except BuildError as e:
-        print(f"build failed: {e}", file=sys.stderr)
+        _LOGGER.error("build failed: %s", e)
         return 1
 
 

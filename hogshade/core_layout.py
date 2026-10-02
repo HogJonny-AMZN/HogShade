@@ -9,12 +9,14 @@ std430-style rules for the types involved (vec3 aligned to 16, scalars to 4, vec
 
 from __future__ import annotations
 
+import logging as _logging
 import re
 from pathlib import Path
 
 _MODULE_NAME = "hogshade.core_layout"
 __version__ = "0.1.0"
 __updated__ = "2026-09-21"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 # (field, wgsl type, byte offset) in declaration order
 LIGHT_SOURCE_FIELDS: list[tuple[str, str, int]] = [

@@ -237,9 +237,13 @@ def test_inputs_match_reference(gpu) -> None:
     body = """
     let i0 = legacy_v1_inputs(hs_material(base), hs_samples(base + 22u), hs_geometry(base + 44u));
     let o = i * 24u;
-    hs_out[o + 0u] = i0.surface.base_color.x; hs_out[o + 1u] = i0.surface.base_color.y; hs_out[o + 2u] = i0.surface.base_color.z;
+    hs_out[o + 0u] = i0.surface.base_color.x;
+    hs_out[o + 1u] = i0.surface.base_color.y;
+    hs_out[o + 2u] = i0.surface.base_color.z;
     hs_out[o + 3u] = i0.surface.metalness; hs_out[o + 4u] = i0.surface.roughness; hs_out[o + 5u] = i0.surface.ao;
-    hs_out[o + 6u] = i0.surface.normal_ws.x; hs_out[o + 7u] = i0.surface.normal_ws.y; hs_out[o + 8u] = i0.surface.normal_ws.z;
+    hs_out[o + 6u] = i0.surface.normal_ws.x;
+    hs_out[o + 7u] = i0.surface.normal_ws.y;
+    hs_out[o + 8u] = i0.surface.normal_ws.z;
     hs_out[o + 9u] = i0.specular_f0.x; hs_out[o + 10u] = i0.specular_f0.y; hs_out[o + 11u] = i0.specular_f0.z;
     hs_out[o + 12u] = i0.opacity; hs_out[o + 13u] = i0.specular_weight; hs_out[o + 14u] = f32(i0.surface.model);
     hs_out[o + 15u] = i0.model_params_a.x; hs_out[o + 16u] = i0.model_params_a.w; hs_out[o + 17u] = i0.model_params_b.y;

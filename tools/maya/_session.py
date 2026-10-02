@@ -12,6 +12,7 @@ HOGSHADE_VERIFICATION (default <root>/verification). Paths are pathlib.Path insi
 get str() at the boundary, with forward slashes.
 """
 
+import logging as _logging
 import os
 import time
 import traceback
@@ -22,6 +23,7 @@ from maya import cmds
 _MODULE_NAME = "tools.maya._session"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 ROOT = Path(os.environ.get("HOGSHADE_ROOT", os.getcwd()))
 VERIFICATION = Path(os.environ.get("HOGSHADE_VERIFICATION", str(ROOT / "verification")))

@@ -1,5 +1,6 @@
 """
-HogShade: tests for the IBL cook (Docs/superpowers/plans/e1-ibl-cook.md, tasks 3 to 9). Small sizes; seconds, not minutes.
+HogShade: tests for the IBL cook (Docs/superpowers/plans/e1-ibl-cook.md, tasks 3 to 9). Small sizes; seconds,
+not minutes.
 Package: tests/ibl/test_cook
 """
 

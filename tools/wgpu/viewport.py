@@ -3,7 +3,7 @@ HogShade: render the shader ball from a material document under an E1 environmen
 and write the verification PNGs (phase 2 plan, task 14).
 Package: tools/wgpu/viewport
 
-    uv run tools/wgpu/viewport.py                      # verification/wgpu/shader-ball/studio_small_09/{forward,deferred}.png
+    uv run tools/wgpu/viewport.py                      # verification/wgpu/shader-ball/<env>/{forward,deferred}.png
     uv run tools/wgpu/viewport.py --debug-mode 18      # the v2 specular accumulator
     uv run tools/wgpu/viewport.py --material content/materials/legacy-v1/default.material.json --variant legacy-v1
 
@@ -30,7 +30,7 @@ from hogshade.material import bind, load, resolve
 from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
 
 _MODULE_NAME = "tools.wgpu.viewport"
-_LOGGER = _logging.getLogger(_MODULE_NAME)  # the tool prints; nothing logs below
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 DEFAULT_MATERIAL = ROOT / "content" / "materials" / "legacy-v2" / "default.material.json"
 __version__ = "0.1.0"
 __updated__ = "2026-10-02"
@@ -57,11 +57,19 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--exposure-ev", type=float, default=0.0, help="display exposure for the PNG only")
     ap.add_argument("--hemisphere-mode", type=int, default=0, help="0 off, 1 add, 2 multiply")
     args = ap.parse_args(argv)
+    _logging.basicConfig(level=_logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
     t0 = time.perf_counter()
+    _LOGGER.info(
+        "rendering %s under %s at %dx%d, debug mode %d",
+        args.material,
+        args.environment,
+        args.size,
+        args.size,
+        args.debug_mode,
+    )
     binding = bind(resolve(load(args.material)), "wgpu")
-    adapter, device = request_device()
-    info = adapter.info
+    _adapter, device = request_device()
     mesh = load_shader_ball()
     renderer = Renderer(device, mesh, environment=args.environment)
     scene = Scene(
@@ -86,20 +94,26 @@ def main(argv: list[str] | None = None) -> int:
     mean_diff, max_diff = frames.difference()
     covered = frames.covered
     lit = frames.forward[covered]
-    print(
-        f"adapter: {info.get('device')} ({info.get('backend_type')}), GB3 {renderer.gb3_format}, model {binding.model}"
+    _LOGGER.info(
+        "GB3 %s, model %s; mesh %d vertices, %d triangles",
+        renderer.gb3_format,
+        binding.model,
+        len(mesh.vertices),
+        len(mesh.indices) // 3,
+    )
+    _LOGGER.info(
+        "material %s (%s): %d parameter(s) the host does not carry: %s",
+        args.material,
+        binding.material_type,
+        len(binding.unsupported),
+        ", ".join(u.parameter for u in binding.unsupported) or "none",
     )
     print(
-        f"material: {args.material} ({binding.material_type}); "
-        f"{len(binding.unsupported)} parameters the host does not carry: "
-        + ", ".join(u.parameter for u in binding.unsupported)
-    )
-    print(f"mesh: {len(mesh.vertices)} vertices, {len(mesh.indices) // 3} triangles; environment {args.environment}")
-    print(
-        f"ball covers {int(covered.sum())} of {covered.size} pixels; mean linear radiance {lit.mean():.4f}, max {lit.max():.4f}"
+        f"ball covers {int(covered.sum())} of {covered.size} pixels; "
+        f"mean linear radiance {lit.mean():.4f}, max {lit.max():.4f}"
     )
     print(f"forward vs deferred over covered pixels: mean {mean_diff:.5f}, max {max_diff:.5f}")
-    print(f"wrote {out} and {deferred_path} in {elapsed:.1f} s")
+    _LOGGER.info("wrote %s and %s in %.1f s", out, deferred_path, elapsed)
     finite = np.isfinite(frames.forward).all() and np.isfinite(frames.deferred).all()
     return 0 if covered.any() and finite else 1
 
