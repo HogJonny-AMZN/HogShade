@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-02: S3's spec and plan drafted (`docs/s3-wgpu-binding-spec`, [#37](https://github.com/HogJonny-AMZN/HogShade/pull/37) open) after #36 merged; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-02, later: S3 built (`feat/s3-wgpu-binding`, PR open) after #37 approved the spec; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -9,6 +9,15 @@ A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 how much to decide alone.
 
 ## In flight
+
+**Sit rep, 2026-10-02, later.** S3 is built and its PR is open: `bind(resolved, "wgpu")` through
+`hogshade/material/hosts/wgpu.json` (every parameter of the three legacy types bound to a frame field and
+component or `unsupported` with a reason), `Binding` and `Unbound` in `model.py`, `Scene.material` in
+`hogshade/wgpu_host.py` packing the map's fields in one loop, `tools/wgpu/viewport.py --material`, three
+documents under `content/materials/`, the wgpu pictures recaptured (the defaults are the schema's now, so
+63 percent of the ball's pixels moved). A document is now the one way a material reaches either host.
+Next: S4 (the base library, track F's design first) or the standards PR; the comparison framework waits
+on G4.
 
 **Sit rep, 2026-10-02.** #36 merged: S2 is closed on every count. The owner chose S3 ("go"). Its spec and
 plan are drafted and open for approval: `bind(resolved, "wgpu")` through a wgpu host map (the S2 mechanism

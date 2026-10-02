@@ -1,0 +1,29 @@
+{
+  "material_type": "hogshade-legacy-v2",
+  "material_type_version": 1,
+  "values": {
+    "base_color": {
+      "factor": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "roughness": {
+      "factor": 0.2
+    },
+    "metalness": {
+      "factor": 1.0
+    },
+    "specular": {
+      "factor": 1.0
+    },
+    "specular_tint": {
+      "factor": 0.0
+    },
+    "ior": {
+      "factor": 1.45
+    }
+  },
+  "ext": {}
+}

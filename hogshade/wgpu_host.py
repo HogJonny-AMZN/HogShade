@@ -19,6 +19,9 @@ import numpy as np
 from numpy.typing import NDArray
 
 from hogshade.ibl.dds import read_2d_rgba16f, read_cube_rgba16f
+from hogshade.material.binding import WGPU_MODELS, pack_fields
+from hogshade.material.generators import host_map
+from hogshade.material.model import Binding
 
 _MODULE_NAME = "hogshade.wgpu_host"
 __version__ = "0.1.0"
@@ -55,6 +58,8 @@ FRAME_DTYPE = np.dtype(
 )
 FRAME_BYTES = 480
 MODELS = {"lambert": 0, "legacy-v1": 1, "legacy-v2": 2}
+#: The material type each model renders (the inverse of the binder's WGPU_MODELS).
+WGPU_TYPES = {model: type_name for type_name, model in WGPU_MODELS.items()}
 DEPTH_FORMAT = "depth32float"
 COLOR_FORMAT = "rgba16float"
 GBUFFER_FORMATS = ("rgba8unorm-srgb", "rgba16float", "rgba8uint", "rg11b10ufloat")
@@ -173,6 +178,74 @@ def orbit_eye(yaw_deg: float, pitch_deg: float, distance: float) -> NDArray:
 
 
 @dataclass
+class MaterialBinding:
+    """
+    The material-owned values the frame carries, in the schema's names. The defaults are the legacy v2
+    type's schema defaults (S3: the schema is the one source of a default). ``fields()`` packs them through
+    the wgpu host map, the same path ``hogshade.material.bind()`` takes, so a hand-set material and a bound
+    document cannot disagree on where a value lands.
+    """
+
+    model: str = "legacy-v2"
+    base_color: tuple[float, float, float] = (0.6, 0.6, 0.6)
+    roughness: float = 0.5
+    metalness: float = 0.0
+    specular: float = 1.0
+    specular_tint: float = 0.0
+    ior: float = 1.45
+    rough_is_gloss: bool = False
+    # legacy v1 Disney lobes
+    subsurface: float = 0.0
+    anisotropic: float = 0.0
+    sheen: float = 0.0
+    sheen_tint: float = 0.0
+    clearcoat: float = 0.0
+    clearcoat_gloss: float = 0.0
+
+    @property
+    def material_type(self) -> str:
+        return WGPU_TYPES[self.model]
+
+    def fields(self) -> dict[str, tuple[float, ...]]:
+        """The host map's frame fields at full width, the model id in ``model[0]``."""
+        factors = {name: getattr(self, name) for name in _BINDING_PARAMETERS}
+        factors["base_color"] = list(self.base_color)
+        packed = pack_fields(host_map("wgpu"), self.material_type, factors)
+        packed["model"][0] = float(MODELS[self.model])
+        return {name: tuple(values) for name, values in packed.items()}
+
+    @classmethod
+    def from_binding(cls, binding: Binding) -> MaterialBinding:
+        """A ``MaterialBinding`` carrying a ``Binding``'s fields; ``fields()`` returns them unchanged."""
+        if binding.host != "wgpu":
+            raise ValueError(f"a {binding.host!r} binding cannot drive the wgpu host")
+        out = cls(model=binding.model)
+        object.__setattr__(out, "_bound_fields", {k: tuple(v) for k, v in binding.fields.items()})
+        return out
+
+
+_BINDING_PARAMETERS = (
+    "roughness",
+    "metalness",
+    "specular",
+    "specular_tint",
+    "ior",
+    "rough_is_gloss",
+    "subsurface",
+    "anisotropic",
+    "sheen",
+    "sheen_tint",
+    "clearcoat",
+    "clearcoat_gloss",
+)
+
+
+def _material_fields(material: MaterialBinding) -> dict[str, tuple[float, ...]]:
+    bound = getattr(material, "_bound_fields", None)
+    return bound if bound is not None else material.fields()
+
+
+@dataclass
 class Scene:
     """Everything the frame uniform carries, in plain numbers. Colours are linear."""
 
@@ -182,12 +255,7 @@ class Scene:
     pitch_deg: float = 18.0
     distance: float = 4.0
     fov_y_deg: float = 32.0
-    base_color: tuple[float, float, float] = (0.5, 0.5, 0.5)
-    roughness: float = 0.2
-    metalness: float = 0.0
-    specular: float = 1.0
-    specular_tint: float = 0.0
-    ior: float = 1.5
+    material: MaterialBinding = field(default_factory=MaterialBinding)
     light_dir: tuple[float, float, float] = (0.45, 0.8, 0.4)
     light_intensity: float = 3.0
     light_color: tuple[float, float, float] = (1.0, 1.0, 1.0)
@@ -198,16 +266,11 @@ class Scene:
     sky: tuple[float, float, float] = (0.4, 0.5, 0.7)
     ground: tuple[float, float, float] = (0.2, 0.15, 0.1)
     environment: str = "studio_small_09"
-    model: str = "legacy-v2"
-    rough_is_gloss: bool = False
-    # legacy v1 Disney lobes: subsurface, specular_tint, anisotropic, sheen; sheen_tint, clearcoat, clearcoat_gloss
-    subsurface: float = 0.0
-    anisotropic: float = 0.0
-    sheen: float = 0.0
-    sheen_tint: float = 0.0
-    clearcoat: float = 0.0
-    clearcoat_gloss: float = 0.0
     sh9: NDArray = field(default_factory=lambda: np.zeros((9, 3)))
+
+    @property
+    def model(self) -> str:
+        return self.material.model
 
     def view_proj(self) -> tuple[NDArray, NDArray]:
         eye = orbit_eye(self.yaw_deg, self.pitch_deg, self.distance)
@@ -225,8 +288,8 @@ class Scene:
         ld = ld / np.linalg.norm(ld)
         frame["light_dir_ws"] = (*ld, self.light_intensity)
         frame["light_color"] = (*self.light_color, self.light_shadow)
-        frame["base_color"] = (*self.base_color, self.roughness)
-        frame["material"] = (self.metalness, self.specular, self.specular_tint, self.ior)
+        for name, values in _material_fields(self.material).items():  # the host map's fields, one loop
+            frame[name] = values
         frame["env"] = (
             float(specular_mip_count),
             self.env_exposure,
@@ -237,9 +300,6 @@ class Scene:
         frame["ground"] = (*self.ground, 0.0)
         frame["up_ws"] = (0.0, 1.0, 0.0, 0.0)
         frame["viewport"] = (float(self.width), float(self.height), 0.0, 0.0)
-        frame["model"] = (float(MODELS[self.model]), 1.0 if self.rough_is_gloss else 0.0, 0.0, 0.0)
-        frame["params_a"] = (self.subsurface, self.specular_tint, self.anisotropic, self.sheen)
-        frame["params_b"] = (self.sheen_tint, self.clearcoat, self.clearcoat_gloss, 0.0)
         sh = np.zeros((9, 4), dtype=np.float32)
         sh[:, :3] = np.asarray(self.sh9, dtype=np.float32)[:9]
         frame["sh9"] = sh

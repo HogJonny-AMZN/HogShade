@@ -49,7 +49,8 @@ travels between the repos under one vocabulary.
 | **Consulted** | A source parameter a conversion table's `when` condition reads without mapping it: it shapes the output, so it is neither a mapping nor a Loss. The coverage rule counts it as covered. |
 | **Meta-check** | The check of a material-type file's own shape (`check_type_data`): every field present and typed, groups declared, the `<group>_enabled` rule, the migrations list. A hundred lines of our own, no JSON Schema dependency. |
 | **Conversion table** | Per legacy type, the mapping of its parameters to the standard's and the list of what has no counterpart; `convert()` applies it. How comparison between models is done: by conversion, never by a shared type. |
-| **Binding** | The material-owned values and texture slots in one host's names, produced by `bind()`; never per-frame state. |
+| **Binding** | The material-owned values and texture slots in one host's names, produced by `bind()`; never per-frame state. For the wgpu host: the frame fields at full width, the model, the texture paths and the Unbound list. |
+| **Unbound** | A parameter one host cannot carry from a type it does render, with the host map's reason; returned on a Binding. Distinct from a Loss, which a conversion between types drops. |
 | **Extension block** | A namespaced `ext` block in a Material that an engine owns and validates; HogShade passes it through. |
 | **Game profile** | OpenPBR restricted to what glTF 2.0 and its KHR material extensions carry, with a conversion table in the repo; outside it is forward-only. |
 | **Library** (of materials) | `content/materials/`: the constants-only base set written as semantic parent baselines, then a small texture-based set (CC0 or generated through the harness). |

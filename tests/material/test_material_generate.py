@@ -45,8 +45,8 @@ def _findings(hmap):
 # ---------------------------------------------------------------------------------------------- the host map
 
 
-def test_one_host_ships():
-    assert hosts() == ["maya_dx11"]
+def test_two_hosts_ship():
+    assert hosts() == ["maya_dx11", "wgpu"]
     with pytest.raises(MaterialError, match="no host map"):
         host_map("blender")
 

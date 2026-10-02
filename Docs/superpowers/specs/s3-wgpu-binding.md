@@ -1,7 +1,7 @@
 # S3 spec: the wgpu binding, a material document into the wgpu host's frame
 
-**Status:** Proposed. Drafted 2026-10-02 from the locked design, after S2 (#35, #36); the owner approves it,
-then the plan runs as one PR. S3 needs nothing from gate G4.
+**Status:** Accepted. Drafted 2026-10-02 from the locked design, approved as #37 and built the same day on
+`feat/s3-wgpu-binding`; the build's amendments are the last section. S3 needed nothing from gate G4.
 
 Date: 2026-10-02. Design: [../../design/2026-09-27-material-schema.md](../../design/2026-09-27-material-schema.md),
 "The Python library" (`bind(resolved, host) -> Binding`) and "Increments" (S3). Decision:
@@ -165,3 +165,20 @@ S4 decides the directory layout beyond this (its design, track F).
   document through its own generated UI, not through a frame; a Maya `bind()` is a later increment if the
   check scripts want it.
 - The library's layout and content beyond the two default documents (S4).
+
+## Amendments made in the build (2026-10-02)
+
+- **A third document**, `content/materials/legacy-v2/metal.material.json` (metalness 1, roughness 0.2), so the
+  committed `metal` variant of the wgpu pictures stays reproducible now that the viewport takes only a
+  document; S4 owns the layout from here.
+- **`Binding` and `Unbound` live in `model.py`** beside `Loss`, as the other records do; `binding.py` holds
+  `bind()` and `pack_fields()`. `MaterialBinding.from_binding()` carries the `Binding`'s fields as they are
+  and `fields()` returns them unchanged; a hand-set `MaterialBinding` packs through the same `pack_fields()`,
+  so the two paths cannot disagree.
+- **`entries_for(hmap, type)`** is the one place the `@type` suffix and an entry's `types` list are read;
+  the checker, the binder and the host all go through it. A wgpu finding is reported once per entry, not
+  once per type that shares it.
+- **`Scene.model` is a property** of `Scene.material`; the host's `WGPU_TYPES` is the inverse of the
+  binder's `WGPU_MODELS`.
+- The unsupported count for the legacy v2 type is 24 of 30 parameters; the host carries six scalars and
+  the model id. Every unsupported entry's reason names what the host does instead.

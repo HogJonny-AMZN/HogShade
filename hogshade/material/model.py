@@ -58,6 +58,30 @@ class Loss:
 
 
 @dataclass(frozen=True)
+class Unbound:
+    """A parameter one host cannot carry from a type it does render, and the host map's reason."""
+
+    parameter: str
+    reason: str
+
+
+@dataclass(frozen=True)
+class Binding:
+    """
+    The material-owned values of one host, produced by ``bind()``: the host's frame fields at full width
+    (zeros where nothing writes), the model the host selects, every bound texture's path as the document
+    spells it, and the parameters the host cannot carry. Never per-frame state.
+    """
+
+    host: str
+    material_type: str
+    model: str
+    fields: dict[str, tuple[float, ...]]
+    textures: dict[str, str]
+    unsupported: tuple[Unbound, ...]
+
+
+@dataclass(frozen=True)
 class ParameterDef:
     """One parameter of a material type, as the schema file declares it."""
 

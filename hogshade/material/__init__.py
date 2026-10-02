@@ -13,10 +13,21 @@ from __future__ import annotations
 
 import logging as _logging
 
+from hogshade.material.binding import bind
 from hogshade.material.conversion import check_table, conditions_of, convert, load_table, table_names
 from hogshade.material.document import from_data, load
-from hogshade.material.generators import check_host_map, generate, host_map, hosts, union_of
-from hogshade.material.model import Document, Finding, Loss, MaterialError, MaterialType, ParameterDef, Resolved
+from hogshade.material.generators import check_host_map, entries_for, generate, host_map, hosts, union_of
+from hogshade.material.model import (
+    Binding,
+    Document,
+    Finding,
+    Loss,
+    MaterialError,
+    MaterialType,
+    ParameterDef,
+    Resolved,
+    Unbound,
+)
 from hogshade.material.resolution import resolve
 from hogshade.material.schema import check_type_data, type_of, types
 from hogshade.material.validation import validate
@@ -27,6 +38,7 @@ __updated__ = "2026-09-27"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 __all__ = [
+    "Binding",
     "Document",
     "Finding",
     "Loss",
@@ -34,11 +46,14 @@ __all__ = [
     "MaterialType",
     "ParameterDef",
     "Resolved",
+    "Unbound",
+    "bind",
     "check_host_map",
     "check_table",
     "check_type_data",
     "conditions_of",
     "convert",
+    "entries_for",
     "from_data",
     "generate",
     "host_map",

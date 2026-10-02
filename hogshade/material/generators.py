@@ -287,18 +287,135 @@ def _check_entry(
     return out
 
 
+TYPE_SUFFIX = "@"
+
+
+def entries_for(hmap: dict[str, Any], type_name: str) -> dict[str, dict[str, Any]]:
+    """
+    The map's entries for one type, keyed by parameter name: a ``<parameter>@<type>`` key wins over the plain
+    key for that type, and a plain entry whose ``types`` excludes the type is left out.
+    """
+    out: dict[str, dict[str, Any]] = {}
+    params = type_of(type_name).parameters
+    for key, entry in hmap["parameters"].items():
+        pname, _, only = key.partition(TYPE_SUFFIX)
+        if pname not in params or not isinstance(entry, dict):
+            continue
+        if only:
+            if only == type_name:
+                out[pname] = entry
+        elif pname not in out and type_name in entry.get("types", [type_name]):
+            out[pname] = entry
+    return out
+
+
+def _check_wgpu_entry(
+    where: str,
+    key: str,
+    pname: str,
+    p: ParameterDef,
+    e: Any,
+    fields: dict[str, int],
+    written: dict[tuple[str, int], str],
+) -> list[Finding]:
+    if not isinstance(e, dict):
+        return [Finding(where, key, "an entry is an object")]
+    out: list[Finding] = []
+    for k in e:
+        if k in _SCHEMA_KEYS:
+            out.append(
+                Finding(where, key, f"{k!r} repeats what the schema knows; the map carries the frame layout only")
+            )
+        elif k not in ("field", "components", "types", "unsupported"):
+            out.append(Finding(where, key, f"unknown key {k!r}"))
+    if "unsupported" in e:
+        if not isinstance(e["unsupported"], str) or not e["unsupported"]:
+            out.append(Finding(where, key, "unsupported carries a reason"))
+        if "field" in e or "components" in e:
+            out.append(Finding(where, key, "a parameter is bound or unsupported, not both"))
+        return out
+    if p.type == "texture":
+        return out + [Finding(where, key, "a texture parameter is unsupported in the wgpu host (no texture bindings)")]
+    field, comps = e.get("field"), e.get("components")
+    if field not in fields:
+        return out + [Finding(where, key, f"field {field!r} is not one of the map's fields")]
+    width = 3 if p.type in ("color3", "vector3") else 1
+    if not (isinstance(comps, list) and len(comps) == width and all(_is_int(c) for c in comps)):
+        return out + [Finding(where, key, f"a {p.type} writes {width} component(s) as integers")]
+    for c in comps:
+        if not 0 <= c < fields[field]:
+            out.append(Finding(where, key, f"component {c} is outside {field!r} (width {fields[field]})"))
+        elif (field, c) in written:
+            out.append(Finding(where, key, f"{field}[{c}] is already written by {written[(field, c)]!r}"))
+        else:
+            written[(field, c)] = key
+    if "types" in e and not (
+        isinstance(e["types"], list) and e["types"] and all(isinstance(t, str) for t in e["types"])
+    ):
+        out.append(Finding(where, key, "types is a non-empty list of type names"))
+    return out
+
+
+def _check_wgpu_map(hmap: dict[str, Any], params: dict[str, ParameterDef], where: str) -> list[Finding]:
+    out: list[Finding] = []
+    for key in ("types", "fields"):
+        if key not in hmap:
+            out.append(Finding(where, "", f"missing top-level field {key!r}"))
+    if out:
+        return out
+    type_names = hmap["types"]
+    if not (isinstance(type_names, list) and type_names and all(t in types() for t in type_names)):
+        return [Finding(where, "", f"types names shipped types; got {type_names!r}")]
+    fields = hmap["fields"]
+    if not (isinstance(fields, dict) and fields and all(_is_int(w) and w > 0 for w in fields.values())):
+        return [Finding(where, "", "fields is an object of frame field name to its width")]
+    entries = hmap["parameters"]
+    if not isinstance(entries, dict):
+        return [Finding(where, "", "parameters is an object keyed by parameter name, optionally @type")]
+    for key, e in entries.items():
+        pname, _, only = key.partition(TYPE_SUFFIX)
+        if pname not in params:
+            out.append(Finding(where, key, "not a parameter of the types this host carries"))
+        elif only and (only not in type_names or pname not in type_of(only).parameters):
+            out.append(Finding(where, key, f"the suffix names a type that does not carry {pname!r}"))
+    for tname in type_names:
+        covered = entries_for(hmap, tname)
+        for pname in type_of(tname).parameters:
+            if pname not in covered:
+                out.append(Finding(where, pname, f"no entry for {tname}"))
+        written: dict[tuple[str, int], str] = {}
+        for pname, e in covered.items():
+            key = pname if pname in entries and entries[pname] is e else f"{pname}{TYPE_SUFFIX}{tname}"
+            out.extend(_check_wgpu_entry(where, key, pname, type_of(tname).parameters[pname], e, fields, written))
+    # one finding per entry, not per type that shares it
+    seen: set[tuple[str, str]] = set()
+    unique: list[Finding] = []
+    for f in out:
+        if (f.parameter, f.message) not in seen:
+            seen.add((f.parameter, f.message))
+            unique.append(f)
+    return unique
+
+
 def check_host_map(hmap: dict[str, Any], params: dict[str, ParameterDef], where: str = "<host map>") -> list[Finding]:
-    """The host-map rules of the S2 spec against the parameters it must cover; empty when it is complete."""
+    """
+    The host-map rules against the parameters it must cover; empty when it is complete. The map's ``host``
+    picks the entry shape: the Maya UI shape (S2) or the wgpu frame shape (S3).
+    """
     if not isinstance(hmap, dict):
         return [Finding(where, "", "a host map is a JSON object")]
     out: list[Finding] = []
-    for key in ("host", "version", "groups", "parameters"):
+    for key in ("host", "version", "parameters"):
         if key not in hmap:
             out.append(Finding(where, "", f"missing top-level field {key!r}"))
     if out:
         return out
     if not (_is_int(hmap["version"]) and hmap["version"] >= 1):
         out.append(Finding(where, "", "version is an integer from 1"))
+    if hmap["host"] == "wgpu":
+        return out + _check_wgpu_map(hmap, params, where)
+    if "groups" not in hmap:
+        return out + [Finding(where, "", "missing top-level field 'groups'")]
     groups = hmap["groups"]
     if not (isinstance(groups, dict) and groups and all(isinstance(g, str) and _is_int(o) for g, o in groups.items())):
         out.append(Finding(where, "", "groups is an object of group name to its leading order"))

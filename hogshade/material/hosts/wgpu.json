@@ -1,0 +1,182 @@
+{
+  "host": "wgpu",
+  "version": 1,
+  "types": [
+    "hogshade-legacy-v2",
+    "hogshade-legacy-v1",
+    "hogshade-lambert"
+  ],
+  "fields": {
+    "base_color": 4,
+    "material": 4,
+    "model": 4,
+    "params_a": 4,
+    "params_b": 4
+  },
+  "parameters": {
+    "base_color": {
+      "field": "base_color",
+      "components": [
+        0,
+        1,
+        2
+      ]
+    },
+    "roughness": {
+      "field": "base_color",
+      "components": [
+        3
+      ]
+    },
+    "metalness": {
+      "field": "material",
+      "components": [
+        0
+      ]
+    },
+    "specular": {
+      "field": "material",
+      "components": [
+        1
+      ]
+    },
+    "specular_tint": {
+      "field": "material",
+      "components": [
+        2
+      ],
+      "types": [
+        "hogshade-legacy-v2"
+      ]
+    },
+    "specular_tint@hogshade-legacy-v1": {
+      "field": "params_a",
+      "components": [
+        1
+      ]
+    },
+    "ior": {
+      "field": "material",
+      "components": [
+        3
+      ]
+    },
+    "specular_f0_map": {
+      "unsupported": "no texture bindings in the wgpu host before the comparison framework; the path is carried on the Binding"
+    },
+    "emission_color": {
+      "unsupported": "the host's frame carries no emission; the core receives the unbound default (0)"
+    },
+    "emission_intensity": {
+      "unsupported": "the host's frame carries no emission; the core receives the unbound default (0)"
+    },
+    "normal_map": {
+      "unsupported": "no texture bindings in the wgpu host before the comparison framework; the path is carried on the Binding"
+    },
+    "bump_intensity": {
+      "unsupported": "the host samples no normal map; the core receives 1.0"
+    },
+    "normal_flip": {
+      "unsupported": "the host samples no normal map; the core receives +1 on every axis"
+    },
+    "flip_backface_normals": {
+      "unsupported": "the host's geometry builder decides facing from the fragment; the flag is not carried"
+    },
+    "opacity": {
+      "unsupported": "the wgpu host renders opaque; alpha, cutout and the threshold arrive with the comparison framework"
+    },
+    "has_alpha": {
+      "unsupported": "the wgpu host renders opaque; alpha, cutout and the threshold arrive with the comparison framework"
+    },
+    "use_cutout_alpha": {
+      "unsupported": "the wgpu host renders opaque; alpha, cutout and the threshold arrive with the comparison framework"
+    },
+    "opacity_mask_bias": {
+      "unsupported": "the wgpu host renders opaque; alpha, cutout and the threshold arrive with the comparison framework"
+    },
+    "has_vertex_alpha": {
+      "unsupported": "the shader ball carries no vertex colour or alpha; the host's geometry builder passes 1"
+    },
+    "ambient_occlusion_map": {
+      "unsupported": "no texture bindings in the wgpu host before the comparison framework; the path is carried on the Binding"
+    },
+    "cavity_map": {
+      "unsupported": "no texture bindings in the wgpu host before the comparison framework; the path is carried on the Binding"
+    },
+    "height_map": {
+      "unsupported": "no texture bindings in the wgpu host before the comparison framework; the path is carried on the Binding"
+    },
+    "use_vertex_color": {
+      "unsupported": "the shader ball carries no vertex colour or alpha; the host's geometry builder passes 1"
+    },
+    "use_vertex_ao": {
+      "unsupported": "the shader ball carries no vertex colour or alpha; the host's geometry builder passes 1"
+    },
+    "parallax_enabled": {
+      "unsupported": "parallax is the Maya shell's own code (hosts/maya_dx11); the wgpu host has none"
+    },
+    "height_scale": {
+      "unsupported": "parallax is the Maya shell's own code (hosts/maya_dx11); the wgpu host has none"
+    },
+    "min_samples": {
+      "unsupported": "parallax is the Maya shell's own code (hosts/maya_dx11); the wgpu host has none"
+    },
+    "max_samples": {
+      "unsupported": "parallax is the Maya shell's own code (hosts/maya_dx11); the wgpu host has none"
+    },
+    "self_shadow": {
+      "unsupported": "parallax is the Maya shell's own code (hosts/maya_dx11); the wgpu host has none"
+    },
+    "self_shadow_strength": {
+      "unsupported": "parallax is the Maya shell's own code (hosts/maya_dx11); the wgpu host has none"
+    },
+    "self_shadow_multiplier": {
+      "unsupported": "parallax is the Maya shell's own code (hosts/maya_dx11); the wgpu host has none"
+    },
+    "subsurface": {
+      "field": "params_a",
+      "components": [
+        0
+      ]
+    },
+    "anisotropic": {
+      "field": "params_a",
+      "components": [
+        2
+      ]
+    },
+    "sheen": {
+      "field": "params_a",
+      "components": [
+        3
+      ]
+    },
+    "sheen_tint": {
+      "field": "params_b",
+      "components": [
+        0
+      ]
+    },
+    "clearcoat": {
+      "field": "params_b",
+      "components": [
+        1
+      ]
+    },
+    "clearcoat_gloss": {
+      "field": "params_b",
+      "components": [
+        2
+      ]
+    },
+    "rough_is_gloss": {
+      "field": "model",
+      "components": [
+        1
+      ]
+    },
+    "use_specular_mask": {
+      "unsupported": "the host samples no specular map; the mask flag has nothing to select"
+    }
+  }
+}
