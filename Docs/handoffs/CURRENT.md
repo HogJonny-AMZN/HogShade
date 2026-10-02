@@ -12,7 +12,9 @@ how much to decide alone.
 
 **Sit rep, 2026-10-02 evening.** S1, S2 and S3 are merged: the schema files and library, the Maya UI
 generated from them, the wgpu host bound from a document. The owner took the standards PR next ("go"):
-`E501` is enforced, every module declares `_LOGGER`, no behaviour changed; it removes the two findings the
+`E501` is enforced, every module declares `_LOGGER`, and, on the owner's point that the log is the record a
+human reads and an agent spelunks after a failed run, `python.md` now says what to log and the library, the
+host, the tools and the jobs log their inputs, decisions and artifacts; it removes the two findings the
 four local reviews kept repeating. Next real work: S4, the base library, which needs track F's design
 locked first (the constants-only base set as semantic parent baselines, the small texture set, the
 layout under `content/materials/`, the quality bar); the comparison framework's design waits on G4.

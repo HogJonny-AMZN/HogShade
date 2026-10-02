@@ -185,3 +185,20 @@ def test_unreadable_file_is_a_material_error(tmp_path):
         load(bad)
     with pytest.raises(MaterialError):
         load(tmp_path)  # a directory
+
+
+def test_a_migration_is_logged_at_info(tmp_path, fake_type, caplog):
+    import logging
+
+    def to_version_2(data):
+        data["version"] = 2
+        data["migrations"] = [{"from": 1, "to": 2, "ops": [{"op": "remove", "name": "gloss"}]}]
+
+    fake_type(to_version_2)
+    path = tmp_path / "old.material.json"
+    path.write_text(
+        json.dumps({"material_type": "hogshade-standard", "material_type_version": 1, "values": {}}), encoding="utf-8"
+    )
+    with caplog.at_level(logging.INFO, logger="hogshade.material.document"):
+        load(path)
+    assert any("migrated from hogshade-standard version 1 to 2" in r.getMessage() for r in caplog.records)

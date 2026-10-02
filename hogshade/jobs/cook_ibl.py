@@ -84,6 +84,7 @@ def main(parameters: dict) -> dict:
     result.update(
         cook.cook_environment(env_dir, base=base, samples=samples, irradiance_size=irradiance_size, backend=backend)
     )
+    _LOGGER.info("cook_ibl job done: %s, artifacts %s", env_dir, sorted(k for k in result if k != "conditioned"))
     return result
 
 

@@ -250,3 +250,15 @@ def test_map_may_not_target_the_binder_slot_and_survives_a_malformed_types():
     msgs = _findings(hmap)  # no TypeError: a malformed types selects no type, and is reported
     assert "ior: types is a non-empty list of type names" in msgs
     assert "ior: no entry for hogshade-legacy-v2" in msgs
+
+
+def test_bind_leaves_a_record(caplog):
+    import logging
+
+    with caplog.at_level(logging.DEBUG, logger="hogshade.material.binding"):
+        bind(resolve(load(CONTENT / "legacy-v2" / "default.material.json")), "wgpu")
+    messages = [r.getMessage() for r in caplog.records if r.name == "hogshade.material.binding"]
+    assert any(
+        "bound" in m and "hogshade-legacy-v2" in m and "legacy-v2" in m and "24 parameter(s)" in m for m in messages
+    )
+    assert sum("normal_map" in m for m in messages) == 1, "each unsupported parameter is one DEBUG line"

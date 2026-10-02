@@ -343,6 +343,13 @@ class Renderer:
         self._build_layouts()
         self._build_pipelines()
         self._targets: dict = {}
+        _LOGGER.info(
+            "wgpu host ready: mesh %d vertices, environment %s (%d specular mips), GB3 %s",
+            len(mesh.vertices),
+            environment,
+            self.specular_mip_count,
+            self.gb3_format,
+        )
 
     # ---- resources
     def _upload_mesh(self) -> None:
@@ -628,6 +635,10 @@ def request_device(power_preference: str = "high-performance"):
 
     adapter = wgpu.gpu.request_adapter_sync(power_preference=power_preference)
     features = ["rg11b10ufloat-renderable"] if "rg11b10ufloat-renderable" in adapter.features else []
+    info = adapter.info
+    _LOGGER.info(
+        "adapter %s (%s), features requested: %s", info.get("device"), info.get("backend_type"), features or "none"
+    )
     return adapter, adapter.request_device_sync(required_features=features)
 
 

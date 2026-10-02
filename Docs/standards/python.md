@@ -78,8 +78,33 @@ because the launcher puts the folder on `sys.path`; that is the one relative-loo
   code is to log whatever a DCC throws and keep going, and the comment says so.
 - Two-part messages, context then detail: `f"Failed to decode {path}: {e}"`. No emoji or non-ASCII
   in log text (Maya's console is not UTF-8 safe).
-- `print()` only in a script's own entry point (`main`) and in DCC scripts, whose stdout is the
-  log. Library code logs.
+- `print()` only for a script's final summary in its own entry point (`main`) and in DCC scripts,
+  whose stdout is the log. Library code logs.
+
+### What a log is for
+
+A log is the record of a run that a person reads afterwards and an agent spelunks when the run
+failed and nobody watched it (the owner, 2026-10-02: "the point is that logging is meaningful to
+humans, as well as an artifact for ai spelunking and troubleshooting"). A declared logger that never
+logs satisfies the header rule and nothing else. So every unit of work logs:
+
+- **What it is about to do, with its inputs named**, at `INFO`: the document, the environment, the
+  shell, the host; paths as the caller gave them.
+- **What it produced and where**, at `INFO`: every artifact written with its path, every file
+  replaced, with sizes or counts where they help ("4 tables, 39 entries").
+- **Anything it decided on the caller's behalf**: a default taken, a migration applied, a parameter
+  a host cannot carry, a fallback format, a mesh or texture skipped. `INFO` when the result is still
+  what was asked for, `WARNING` when it is not.
+- **Per-item detail** at `DEBUG`: each unsupported parameter with its reason, each chain link, each
+  artifact's digest. Off by default, there when a failure needs it.
+- Failures with the context first: what was being done, to which input, then the exception.
+
+Entry points (`tools/*.py`, `main` of a job) configure logging once, to stderr, with a timestamp, the
+level and the module (`_logging.basicConfig(level=_logging.INFO, format="%(asctime)s %(levelname)s
+%(name)s: %(message)s")`), so the record exists; library modules never configure it. A BATS job's log
+is what the orchestrator keeps beside the result, so a job's `main` logs its start with its parameters
+and its end with its artifacts. Maya-side checks write their own `check.log` through `_session.Log`;
+that file is the same thing by another name.
 
 ## Structure
 

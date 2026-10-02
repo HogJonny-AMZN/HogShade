@@ -2,7 +2,7 @@
 HogShade: benchmark the IBL prefilter across backends, cube sizes and sample counts (E2 plan, task 5).
 Package: tools/bench_cook
 
-    uv run tools/bench_cook.py --source content/ibl/studio_small_09/source_4k.exr \
+    uv run tools/bench_cook.py --source content/ibl/studio_small_09/source_4k.exr \\
         --out Docs/research/benchmarks/2026-09-20-cook.md
     uv run tools/bench_cook.py --quick            # 256 only, both backends; a smoke run
 

@@ -19,7 +19,7 @@ import traceback
 
 from maya import cmds
 
-_MODULE_NAME = "Spikes.naga_fx.maya_spike_check"
+_MODULE_NAME = "Spikes.naga-fx.maya_spike_check"  # the Package line with dots
 __version__ = "0.1.0"
 __updated__ = "2026-10-02"
 _LOGGER = _logging.getLogger(_MODULE_NAME)

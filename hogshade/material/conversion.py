@@ -327,6 +327,14 @@ def convert(obj: Document | Resolved, to_type: str) -> tuple[Document, list[Loss
     # unbound normal map is not written: the target type's default applies
     values = {name: v for name, v in values.items() if v and set(v) != {"strength"}}
     losses = [Loss(d["from"], d["reason"]) for d in table["dropped"]]
+    _LOGGER.info(
+        "converted %s to %s: %d value(s) written, %d parameter(s) lost (%s)",
+        src.name,
+        dst.name,
+        len(values),
+        len(losses),
+        ", ".join(loss.parameter for loss in losses) or "none",
+    )
     doc = Document(
         material_type=dst.name,
         material_type_version=dst.version,
