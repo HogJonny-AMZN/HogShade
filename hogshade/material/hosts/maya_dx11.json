@@ -1,0 +1,297 @@
+{
+  "host": "maya_dx11",
+  "version": 1,
+  "groups": {
+    "Material Maps": 100,
+    "Material Properties": 150,
+    "Legacy v1 Disney": 180,
+    "Parallax Occlusion": 190,
+    "Normal Params": 207
+  },
+  "parameters": {
+    "base_color": {
+      "name": "materialBaseColor",
+      "label": "Base Color",
+      "group": "Material Properties",
+      "order": 150,
+      "map": {
+        "name": "baseColorMap",
+        "flag": "useBaseColorMap",
+        "label": "Base Color Map",
+        "order": 100
+      }
+    },
+    "roughness": {
+      "name": "materialRoughness",
+      "label": "Roughness",
+      "group": "Material Properties",
+      "order": 151,
+      "map": {
+        "name": "roughnessMap",
+        "flag": "useRoughnessMap",
+        "label": "Roughness Map (green)",
+        "order": 104
+      }
+    },
+    "metalness": {
+      "name": "materialMetalness",
+      "label": "Metalness",
+      "group": "Material Properties",
+      "order": 152,
+      "map": {
+        "name": "metalnessMap",
+        "flag": "useMetalnessMap",
+        "label": "Metalness Map (green)",
+        "order": 106
+      }
+    },
+    "specular": {
+      "name": "materialSpecular",
+      "label": "Specular Amount",
+      "group": "Material Properties",
+      "order": 153,
+      "map": {
+        "name": "specularMap",
+        "flag": "useSpecularMap",
+        "label": "Specular Amount Map (red)",
+        "order": 110
+      }
+    },
+    "specular_tint": {
+      "name": "materialSpecTint",
+      "label": "Specular Tint",
+      "group": "Material Properties",
+      "order": 154
+    },
+    "ior": {
+      "name": "materialIOR",
+      "label": "Index of Refraction",
+      "group": "Material Properties",
+      "order": 155
+    },
+    "specular_f0_map": {
+      "map": {
+        "name": "specularF0Map",
+        "flag": "useSpecularF0Map",
+        "label": "Specular F0 Map (rgb)",
+        "order": 108
+      }
+    },
+    "bump_intensity": {
+      "name": "materialBumpIntensity",
+      "label": "Bump Intensity",
+      "group": "Material Properties",
+      "order": 156
+    },
+    "emission_color": {
+      "name": "materialEmissive",
+      "label": "Emissive Color",
+      "group": "Material Properties",
+      "order": 157,
+      "map": {
+        "name": "emissiveMap",
+        "flag": "useEmissiveMap",
+        "label": "Emissive Map (rgb)",
+        "order": 118
+      }
+    },
+    "emission_intensity": {
+      "name": "materialEmissiveIntensity",
+      "label": "Emissive Intensity",
+      "group": "Material Properties",
+      "order": 158
+    },
+    "use_vertex_color": {
+      "name": "useVertexC0_RGBA",
+      "label": "Vertex Color Set 0 (RGB tint)",
+      "group": "Material Properties",
+      "order": 160
+    },
+    "has_vertex_alpha": {
+      "name": "hasVertexAlpha",
+      "label": "Vertex Color Set 0 Alpha (opacity)",
+      "group": "Material Properties",
+      "order": 161
+    },
+    "use_vertex_ao": {
+      "name": "useVertexC1_AO",
+      "label": "Vertex Color Set 1 (AO)",
+      "group": "Material Properties",
+      "order": 162
+    },
+    "has_alpha": {
+      "name": "hasAlpha",
+      "label": "Base Color Alpha (opacity)",
+      "group": "Material Properties",
+      "order": 163
+    },
+    "use_cutout_alpha": {
+      "name": "useCutoutAlpha",
+      "label": "Cutout Alpha",
+      "group": "Material Properties",
+      "order": 164
+    },
+    "opacity_mask_bias": {
+      "name": "opacityMaskBias",
+      "label": "Cutout Threshold",
+      "group": "Material Properties",
+      "order": 165
+    },
+    "opacity": {
+      "name": "opacity",
+      "label": "Opacity",
+      "group": "Material Properties",
+      "order": 166,
+      "semantic": "OPACITY"
+    },
+    "flip_backface_normals": {
+      "name": "flipBackfaceNormals",
+      "label": "Flip Backface Normals",
+      "group": "Material Properties",
+      "order": 167
+    },
+    "normal_map": {
+      "map": {
+        "name": "baseNormalMap",
+        "flag": "useNormalMap",
+        "label": "Normal Map (tangent, +Y up)",
+        "order": 102
+      }
+    },
+    "normal_flip": {
+      "group": "Normal Params",
+      "components": [
+        {
+          "name": "NormalCoordsysX",
+          "label": "Normal X (Red)",
+          "order": 207
+        },
+        {
+          "name": "NormalCoordsysY",
+          "label": "Normal Y (Green)",
+          "order": 208
+        },
+        {
+          "name": "NormalCoordsysZ",
+          "label": "Normal Z (Blue)",
+          "order": 209
+        }
+      ],
+      "component_choices": "Positive:Negative"
+    },
+    "ambient_occlusion_map": {
+      "map": {
+        "name": "ambOccMap",
+        "flag": "useAmbOccMap",
+        "label": "Ambient Occlusion Map (red)",
+        "order": 114
+      }
+    },
+    "cavity_map": {
+      "map": {
+        "name": "cavityMap",
+        "flag": "useCavityMap",
+        "label": "Cavity Map (red)",
+        "order": 116
+      }
+    },
+    "height_map": {
+      "map": {
+        "name": "heightMap",
+        "flag": "useHeightMap",
+        "label": "Height Map (red, parallax)",
+        "order": 112
+      }
+    },
+    "subsurface": {
+      "name": "materialSubsurface",
+      "label": "Subsurface",
+      "group": "Legacy v1 Disney",
+      "order": 180
+    },
+    "anisotropic": {
+      "name": "materialAnisotropic",
+      "label": "Anisotropic",
+      "group": "Legacy v1 Disney",
+      "order": 181
+    },
+    "sheen": {
+      "name": "materialSheen",
+      "label": "Sheen",
+      "group": "Legacy v1 Disney",
+      "order": 182
+    },
+    "sheen_tint": {
+      "name": "materialSheenTint",
+      "label": "Sheen Tint",
+      "group": "Legacy v1 Disney",
+      "order": 183
+    },
+    "clearcoat": {
+      "name": "materialClearcoat",
+      "label": "Clearcoat",
+      "group": "Legacy v1 Disney",
+      "order": 184
+    },
+    "clearcoat_gloss": {
+      "name": "materialClearcoatGloss",
+      "label": "Clearcoat Gloss",
+      "group": "Legacy v1 Disney",
+      "order": 185
+    },
+    "rough_is_gloss": {
+      "name": "roughIsGloss",
+      "label": "Roughness Map Is Gloss (v1)",
+      "group": "Legacy v1 Disney",
+      "order": 186
+    },
+    "use_specular_mask": {
+      "name": "useSpecularMask",
+      "label": "Specular Amount From Map Alpha (v1)",
+      "group": "Legacy v1 Disney",
+      "order": 187
+    },
+    "parallax_enabled": {
+      "name": "useParallaxOcclusionMapping",
+      "label": "Use Parallax Occlusion Mapping",
+      "group": "Parallax Occlusion",
+      "order": 190
+    },
+    "height_scale": {
+      "name": "materialPomHeightScale",
+      "label": "Height Scale",
+      "group": "Parallax Occlusion",
+      "order": 191
+    },
+    "min_samples": {
+      "name": "pomMinSamples",
+      "label": "Min Samples",
+      "group": "Parallax Occlusion",
+      "order": 192
+    },
+    "max_samples": {
+      "name": "pomMaxSamples",
+      "label": "Max Samples",
+      "group": "Parallax Occlusion",
+      "order": 193
+    },
+    "self_shadow": {
+      "name": "parallaxOccShadowType",
+      "label": "Self Shadow",
+      "group": "Parallax Occlusion",
+      "order": 194
+    },
+    "self_shadow_strength": {
+      "name": "selfOccShadowStrength",
+      "label": "Self Shadow Strength",
+      "group": "Parallax Occlusion",
+      "order": 195
+    },
+    "self_shadow_multiplier": {
+      "name": "pomShadowMultiplier",
+      "label": "Self Shadow Multiplier",
+      "group": "Parallax Occlusion",
+      "order": 196
+    }
+  }
+}

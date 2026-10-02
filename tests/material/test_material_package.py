@@ -23,6 +23,7 @@ EXPECTED_DATA = {
     "hogshade/material/schema/conversions/hogshade-legacy-v2-to-hogshade-standard.json",
     "hogshade/material/schema/conversions/hogshade-legacy-v1-to-hogshade-standard.json",
     "hogshade/material/schema/conversions/hogshade-lambert-to-hogshade-standard.json",
+    "hogshade/material/hosts/maya_dx11.json",
 }
 
 

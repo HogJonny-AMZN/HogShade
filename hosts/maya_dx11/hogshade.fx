@@ -65,30 +65,6 @@ SamplerState SamplerShadowDepth
     BorderColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
 };
 
-// ------------------------------------------------------------------------------------- material maps
-
-#define HOGSHADE_MAP(NAME, FLAG, LABEL, ORDER, SPACE)                                                          \
-Texture2D NAME                                                                                                  \
-<                                                                                                               \
-    string UIGroup = "Material Maps"; string UIName = LABEL; string ResourceType = "2D";                         \
-    string ResourceName = ""; int mipmaplevels = 0; int UIOrder = ORDER; string ColorSpace = SPACE;             \
->;                                                                                                              \
-bool FLAG                                                                                                       \
-<                                                                                                               \
-    string UIGroup = "Material Maps"; string UIName = "Use " LABEL; int UIOrder = ORDER + 1;                    \
-> = false;
-
-HOGSHADE_MAP(baseColorMap, useBaseColorMap, "Base Color Map", 100, "sRGB")
-HOGSHADE_MAP(baseNormalMap, useNormalMap, "Normal Map (tangent, +Y up)", 102, "Raw")
-HOGSHADE_MAP(roughnessMap, useRoughnessMap, "Roughness Map (green)", 104, "Raw")
-HOGSHADE_MAP(metalnessMap, useMetalnessMap, "Metalness Map (green)", 106, "Raw")
-HOGSHADE_MAP(specularF0Map, useSpecularF0Map, "Specular F0 Map (rgb)", 108, "Raw")
-HOGSHADE_MAP(specularMap, useSpecularMap, "Specular Amount Map (red)", 110, "Raw")
-HOGSHADE_MAP(heightMap, useHeightMap, "Height Map (red, parallax)", 112, "Raw")
-HOGSHADE_MAP(ambOccMap, useAmbOccMap, "Ambient Occlusion Map (red)", 114, "Raw")
-HOGSHADE_MAP(cavityMap, useCavityMap, "Cavity Map (red)", 116, "Raw")
-HOGSHADE_MAP(emissiveMap, useEmissiveMap, "Emissive Map (rgb)", 118, "sRGB")
-
 // ------------------------------------------------------------------------------------- environment
 
 bool useEnvMaps < string UIGroup = "Environment Lighting"; string UIName = "Use Environment Maps"; int UIOrder = 130; > = true;
@@ -128,72 +104,165 @@ float ambientSkyIntensity < string UIGroup = "Environment Lighting"; string UINa
 float3 ambientGroundColor < string UIGroup = "Environment Lighting"; string UIName = "Ground Color"; string UIWidget = "Color"; int UIOrder = 138; > = { 0.087, 0.064, 0.032 };
 float ambientGrndIntensity < string UIGroup = "Environment Lighting"; string UIName = "Ground Intensity"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 10.0; float UIStep = 0.01; int UIOrder = 139; > = 0.1;
 
-// ------------------------------------------------------------------------------------- material properties
-
-#define HOGSHADE_SLIDER(TYPE, NAME, LABEL, ORDER, LO, HI, DEFAULT)                                             \
-TYPE NAME < string UIGroup = "Material Properties"; string UIName = LABEL; string UIWidget = "Slider";          \
-            float UIMin = LO; float UIMax = HI; float UIStep = 0.001; int UIOrder = ORDER; > = DEFAULT;
-#define HOGSHADE_BOOL(NAME, LABEL, ORDER, DEFAULT)                                                             \
-bool NAME < string UIGroup = "Material Properties"; string UIName = LABEL; int UIOrder = ORDER; > = DEFAULT;
+// ------------------------------------------------------------------------------------- display and model (hand-written; host-only parameters, never material)
 
 int shadingModel
 <
     string UIGroup = "Material Properties"; string UIName = "Shading Model";
     string UIFieldNames = "Lambert:Legacy v1 (2015 Disney):Legacy v2 (2017)"; int UIOrder = 149;
 > = 2;
+bool linearSpaceLighting < string UIGroup = "Material Properties"; string UIName = "Linearise Color Swatches and Vertex Colors (gamma below)"; int UIOrder = 168; > = true;
+float gammaCorrectionValue < string UIGroup = "Material Properties"; string UIName = "Swatch Gamma"; string UIWidget = "Slider"; float UIMin = 1.0; float UIMax = 3.0; float UIStep = 0.001; int UIOrder = 169; > = 2.2;
+
+// The material UI below is generated from hogshade/material/schema by tools/generate_material_ui.py
+// (the S2 spec); CI checks it. Edit the schema or the host map hogshade/material/hosts/maya_dx11.json.
+// BEGIN hogshade.material generated (tools/generate_material_ui.py --write); do not edit
+// ------------------------------------------------------------------------------------- material maps (generated)
+
+Texture2D baseColorMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Base Color Map"; string ResourceType = "2D";
+    string ResourceName = ""; int mipmaplevels = 0; int UIOrder = 100; string ColorSpace = "sRGB";
+>;
+bool useBaseColorMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Use Base Color Map"; int UIOrder = 101;
+> = false;
+Texture2D baseNormalMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Normal Map (tangent, +Y up)"; string ResourceType = "2D";
+    string ResourceName = ""; int mipmaplevels = 0; int UIOrder = 102; string ColorSpace = "Raw";
+>;
+bool useNormalMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Use Normal Map (tangent, +Y up)"; int UIOrder = 103;
+> = false;
+Texture2D roughnessMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Roughness Map (green)"; string ResourceType = "2D";
+    string ResourceName = ""; int mipmaplevels = 0; int UIOrder = 104; string ColorSpace = "Raw";
+>;
+bool useRoughnessMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Use Roughness Map (green)"; int UIOrder = 105;
+> = false;
+Texture2D metalnessMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Metalness Map (green)"; string ResourceType = "2D";
+    string ResourceName = ""; int mipmaplevels = 0; int UIOrder = 106; string ColorSpace = "Raw";
+>;
+bool useMetalnessMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Use Metalness Map (green)"; int UIOrder = 107;
+> = false;
+Texture2D specularF0Map
+<
+    string UIGroup = "Material Maps"; string UIName = "Specular F0 Map (rgb)"; string ResourceType = "2D";
+    string ResourceName = ""; int mipmaplevels = 0; int UIOrder = 108; string ColorSpace = "Raw";
+>;
+bool useSpecularF0Map
+<
+    string UIGroup = "Material Maps"; string UIName = "Use Specular F0 Map (rgb)"; int UIOrder = 109;
+> = false;
+Texture2D specularMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Specular Amount Map (red)"; string ResourceType = "2D";
+    string ResourceName = ""; int mipmaplevels = 0; int UIOrder = 110; string ColorSpace = "Raw";
+>;
+bool useSpecularMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Use Specular Amount Map (red)"; int UIOrder = 111;
+> = false;
+Texture2D heightMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Height Map (red, parallax)"; string ResourceType = "2D";
+    string ResourceName = ""; int mipmaplevels = 0; int UIOrder = 112; string ColorSpace = "Raw";
+>;
+bool useHeightMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Use Height Map (red, parallax)"; int UIOrder = 113;
+> = false;
+Texture2D ambOccMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Ambient Occlusion Map (red)"; string ResourceType = "2D";
+    string ResourceName = ""; int mipmaplevels = 0; int UIOrder = 114; string ColorSpace = "Raw";
+>;
+bool useAmbOccMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Use Ambient Occlusion Map (red)"; int UIOrder = 115;
+> = false;
+Texture2D cavityMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Cavity Map (red)"; string ResourceType = "2D";
+    string ResourceName = ""; int mipmaplevels = 0; int UIOrder = 116; string ColorSpace = "Raw";
+>;
+bool useCavityMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Use Cavity Map (red)"; int UIOrder = 117;
+> = false;
+Texture2D emissiveMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Emissive Map (rgb)"; string ResourceType = "2D";
+    string ResourceName = ""; int mipmaplevels = 0; int UIOrder = 118; string ColorSpace = "sRGB";
+>;
+bool useEmissiveMap
+<
+    string UIGroup = "Material Maps"; string UIName = "Use Emissive Map (rgb)"; int UIOrder = 119;
+> = false;
+
+// ------------------------------------------------------------------------------------- Material Properties (generated)
+
 float3 materialBaseColor < string UIGroup = "Material Properties"; string UIName = "Base Color"; string UIWidget = "Color"; int UIOrder = 150; > = { 0.6, 0.6, 0.6 };
-HOGSHADE_SLIDER(float, materialRoughness, "Roughness", 151, 0.0, 1.0, 0.5)
-HOGSHADE_SLIDER(float, materialMetalness, "Metalness", 152, 0.0, 1.0, 0.0)
-HOGSHADE_SLIDER(float, materialSpecular, "Specular Amount", 153, 0.0, 1.0, 1.0)
-HOGSHADE_SLIDER(float, materialSpecTint, "Specular Tint", 154, 0.0, 1.0, 0.0)
-HOGSHADE_SLIDER(float, materialIOR, "Index of Refraction", 155, 1.0, 3.0, 1.45)
-HOGSHADE_SLIDER(float, materialBumpIntensity, "Bump Intensity", 156, 0.0, 4.0, 1.0)
+float materialRoughness < string UIGroup = "Material Properties"; string UIName = "Roughness"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 151; > = 0.5;
+float materialMetalness < string UIGroup = "Material Properties"; string UIName = "Metalness"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 152; > = 0.0;
+float materialSpecular < string UIGroup = "Material Properties"; string UIName = "Specular Amount"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 153; > = 1.0;
+float materialSpecTint < string UIGroup = "Material Properties"; string UIName = "Specular Tint"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 154; > = 0.0;
+float materialIOR < string UIGroup = "Material Properties"; string UIName = "Index of Refraction"; string UIWidget = "Slider"; float UIMin = 1.0; float UIMax = 3.0; float UIStep = 0.001; int UIOrder = 155; > = 1.45;
+float materialBumpIntensity < string UIGroup = "Material Properties"; string UIName = "Bump Intensity"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 4.0; float UIStep = 0.001; int UIOrder = 156; > = 1.0;
 float3 materialEmissive < string UIGroup = "Material Properties"; string UIName = "Emissive Color"; string UIWidget = "Color"; int UIOrder = 157; > = { 0.0, 0.0, 0.0 };
-HOGSHADE_SLIDER(float, materialEmissiveIntensity, "Emissive Intensity", 158, 0.0, 100.0, 0.0)
-HOGSHADE_BOOL(useVertexC0_RGBA, "Vertex Color Set 0 (RGB tint)", 160, false)
-HOGSHADE_BOOL(hasVertexAlpha, "Vertex Color Set 0 Alpha (opacity)", 161, false)
-HOGSHADE_BOOL(useVertexC1_AO, "Vertex Color Set 1 (AO)", 162, false)
-HOGSHADE_BOOL(hasAlpha, "Base Color Alpha (opacity)", 163, false)
-HOGSHADE_BOOL(useCutoutAlpha, "Cutout Alpha", 164, false)
-HOGSHADE_SLIDER(float, opacityMaskBias, "Cutout Threshold", 165, 0.0, 1.0, 0.1)
+float materialEmissiveIntensity < string UIGroup = "Material Properties"; string UIName = "Emissive Intensity"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 100.0; float UIStep = 0.001; int UIOrder = 158; > = 0.0;
+bool useVertexC0_RGBA < string UIGroup = "Material Properties"; string UIName = "Vertex Color Set 0 (RGB tint)"; int UIOrder = 160; > = false;
+bool hasVertexAlpha < string UIGroup = "Material Properties"; string UIName = "Vertex Color Set 0 Alpha (opacity)"; int UIOrder = 161; > = false;
+bool useVertexC1_AO < string UIGroup = "Material Properties"; string UIName = "Vertex Color Set 1 (AO)"; int UIOrder = 162; > = false;
+bool hasAlpha < string UIGroup = "Material Properties"; string UIName = "Base Color Alpha (opacity)"; int UIOrder = 163; > = false;
+bool useCutoutAlpha < string UIGroup = "Material Properties"; string UIName = "Cutout Alpha"; int UIOrder = 164; > = false;
+float opacityMaskBias < string UIGroup = "Material Properties"; string UIName = "Cutout Threshold"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 165; > = 0.1;
 float opacity : OPACITY < string UIGroup = "Material Properties"; string UIName = "Opacity"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 166; > = 1.0;
-HOGSHADE_BOOL(flipBackfaceNormals, "Flip Backface Normals", 167, true)
-HOGSHADE_BOOL(linearSpaceLighting, "Linearise Color Swatches and Vertex Colors (gamma below)", 168, true)
-HOGSHADE_SLIDER(float, gammaCorrectionValue, "Swatch Gamma", 169, 1.0, 3.0, 2.2)
+bool flipBackfaceNormals < string UIGroup = "Material Properties"; string UIName = "Flip Backface Normals"; int UIOrder = 167; > = true;
 
-int NormalCoordsysX < string UIGroup = "Normal Params"; string UIFieldNames = "Positive:Negative"; string UIName = "Normal X (Red)"; int UIOrder = 207; > = 0;
-int NormalCoordsysY < string UIGroup = "Normal Params"; string UIFieldNames = "Positive:Negative"; string UIName = "Normal Y (Green)"; int UIOrder = 208; > = 0;
-int NormalCoordsysZ < string UIGroup = "Normal Params"; string UIFieldNames = "Positive:Negative"; string UIName = "Normal Z (Blue)"; int UIOrder = 209; > = 0;
+// ------------------------------------------------------------------------------------- Legacy v1 Disney (generated)
 
-// ------------------------------------------------------------------------------------- legacy v1 Disney lobes
-
-#define HOGSHADE_V1(NAME, LABEL, ORDER, DEFAULT)                                                               \
-float NAME < string UIGroup = "Legacy v1 Disney"; string UIName = LABEL; string UIWidget = "Slider";           \
-             float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = ORDER; > = DEFAULT;
-HOGSHADE_V1(materialSubsurface, "Subsurface", 180, 0.0)
-HOGSHADE_V1(materialAnisotropic, "Anisotropic", 181, 0.0)
-HOGSHADE_V1(materialSheen, "Sheen", 182, 0.0)
-HOGSHADE_V1(materialSheenTint, "Sheen Tint", 183, 0.0)
-HOGSHADE_V1(materialClearcoat, "Clearcoat", 184, 0.0)
-HOGSHADE_V1(materialClearcoatGloss, "Clearcoat Gloss", 185, 0.0)
+float materialSubsurface < string UIGroup = "Legacy v1 Disney"; string UIName = "Subsurface"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 180; > = 0.0;
+float materialAnisotropic < string UIGroup = "Legacy v1 Disney"; string UIName = "Anisotropic"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 181; > = 0.0;
+float materialSheen < string UIGroup = "Legacy v1 Disney"; string UIName = "Sheen"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 182; > = 0.0;
+float materialSheenTint < string UIGroup = "Legacy v1 Disney"; string UIName = "Sheen Tint"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 183; > = 0.0;
+float materialClearcoat < string UIGroup = "Legacy v1 Disney"; string UIName = "Clearcoat"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 184; > = 0.0;
+float materialClearcoatGloss < string UIGroup = "Legacy v1 Disney"; string UIName = "Clearcoat Gloss"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 185; > = 0.0;
 bool roughIsGloss < string UIGroup = "Legacy v1 Disney"; string UIName = "Roughness Map Is Gloss (v1)"; int UIOrder = 186; > = false;
 bool useSpecularMask < string UIGroup = "Legacy v1 Disney"; string UIName = "Specular Amount From Map Alpha (v1)"; int UIOrder = 187; > = false;
 
-// ------------------------------------------------------------------------------------- parallax (v2, shell-owned)
+// ------------------------------------------------------------------------------------- Parallax Occlusion (generated)
 
 bool useParallaxOcclusionMapping < string UIGroup = "Parallax Occlusion"; string UIName = "Use Parallax Occlusion Mapping"; int UIOrder = 190; > = false;
-HOGSHADE_SLIDER(float, materialPomHeightScale, "Height Scale", 191, 0.001, 1.0, 0.05)
+float materialPomHeightScale < string UIGroup = "Parallax Occlusion"; string UIName = "Height Scale"; string UIWidget = "Slider"; float UIMin = 0.001; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 191; > = 0.05;
 int pomMinSamples < string UIGroup = "Parallax Occlusion"; string UIName = "Min Samples"; string UIWidget = "Slider"; float UIMin = 1; float UIMax = 128; float UIStep = 1; int UIOrder = 192; > = 25;
 int pomMaxSamples < string UIGroup = "Parallax Occlusion"; string UIName = "Max Samples"; string UIWidget = "Slider"; float UIMin = 1; float UIMax = 256; float UIStep = 1; int UIOrder = 193; > = 75;
 int parallaxOccShadowType < string UIGroup = "Parallax Occlusion"; string UIName = "Self Shadow"; string UIFieldNames = "none:simple"; int UIOrder = 194; > = 0;
-HOGSHADE_SLIDER(float, selfOccShadowStrength, "Self Shadow Strength", 195, 0.001, 1.0, 0.7)
-HOGSHADE_SLIDER(float, pomShadowMultiplier, "Self Shadow Multiplier", 196, 0.0, 1.0, 0.5)
+float selfOccShadowStrength < string UIGroup = "Parallax Occlusion"; string UIName = "Self Shadow Strength"; string UIWidget = "Slider"; float UIMin = 0.001; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 195; > = 0.7;
+float pomShadowMultiplier < string UIGroup = "Parallax Occlusion"; string UIName = "Self Shadow Multiplier"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 196; > = 0.5;
+
+// ------------------------------------------------------------------------------------- Normal Params (generated)
+
+int NormalCoordsysX < string UIGroup = "Normal Params"; string UIName = "Normal X (Red)"; string UIFieldNames = "Positive:Negative"; int UIOrder = 207; > = 0;
+int NormalCoordsysY < string UIGroup = "Normal Params"; string UIName = "Normal Y (Green)"; string UIFieldNames = "Positive:Negative"; int UIOrder = 208; > = 0;
+int NormalCoordsysZ < string UIGroup = "Normal Params"; string UIName = "Normal Z (Blue)"; string UIFieldNames = "Positive:Negative"; int UIOrder = 209; > = 0;
+// END hogshade.material generated
 
 // ------------------------------------------------------------------------------------- shadows
 
 bool useShadows < string UIGroup = "Shadows"; string UIName = "Receive Maya Shadow Maps"; int UIOrder = 300; > = false;
 float shadowDepthBias : ShadowMapBias < string UIGroup = "Shadows"; string UIName = "Shadow Depth Bias"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 10.0; float UIStep = 0.001; int UIOrder = 301; > = 0.01;
-HOGSHADE_SLIDER(float, shadowMultiplier, "Shadow Strength", 302, 0.0, 1.0, 1.0)
+float shadowMultiplier < string UIGroup = "Shadows"; string UIName = "Shadow Strength"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 1.0; float UIStep = 0.001; int UIOrder = 302; > = 1.0;
 float shadowMapTexelSize < string UIGroup = "Shadows"; string UIName = "Shadow Filter Step (1 / map size)"; string UIWidget = "Slider"; float UIMin = 0.0; float UIMax = 0.01; float UIStep = 0.0001; int UIOrder = 303; > = 0.00195313;
 
 static const int HOGSHADE_SHADOW_TAPS = 10;

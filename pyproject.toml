@@ -33,7 +33,7 @@ build-backend = "setuptools.build_meta"
 include = ["hogshade*"]
 
 [tool.setuptools.package-data]
-"hogshade.material" = ["schema/*.json", "schema/conversions/*.json"]
+"hogshade.material" = ["schema/*.json", "schema/conversions/*.json", "hosts/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

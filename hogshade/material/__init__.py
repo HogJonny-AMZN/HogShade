@@ -15,6 +15,7 @@ import logging as _logging
 
 from hogshade.material.conversion import check_table, conditions_of, convert, load_table, table_names
 from hogshade.material.document import from_data, load
+from hogshade.material.generators import check_host_map, generate, host_map, hosts, union_of
 from hogshade.material.model import Document, Finding, Loss, MaterialError, MaterialType, ParameterDef, Resolved
 from hogshade.material.resolution import resolve
 from hogshade.material.schema import check_type_data, type_of, types
@@ -33,16 +34,21 @@ __all__ = [
     "MaterialType",
     "ParameterDef",
     "Resolved",
+    "check_host_map",
     "check_table",
     "check_type_data",
     "conditions_of",
     "convert",
     "from_data",
+    "generate",
+    "host_map",
+    "hosts",
     "load",
     "load_table",
     "resolve",
     "table_names",
     "type_of",
     "types",
+    "union_of",
     "validate",
 ]
