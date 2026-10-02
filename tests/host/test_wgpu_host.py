@@ -1,5 +1,6 @@
 """
-HogShade: the wgpu host renders the shader ball through both paths and the pictures agree (phase 2 plan, tasks 13 and 14).
+HogShade: the wgpu host renders the shader ball through both paths and the pictures agree (phase 2 plan,
+tasks 13 and 14).
 Package: tests/host/test_wgpu_host
 
 Skips without a GPU adapter. The frames are small (96 px) so the test runs in well under a second.

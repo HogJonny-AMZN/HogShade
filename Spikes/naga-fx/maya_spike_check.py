@@ -12,11 +12,17 @@ the light rotated, and logs techniques, the decoded texture size and the light b
 different frames prove the light reaches the shader; a textured ball proves the texture does.
 """
 
+import logging as _logging
 import os
 import time
 import traceback
 
 from maya import cmds
+
+_MODULE_NAME = "Spikes.naga_fx.maya_spike_check"
+__version__ = "0.1.0"
+__updated__ = "2026-10-02"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 ROOT = os.environ.get("HOGSHADE_ROOT", os.getcwd()).replace("\\", "/")
 SPIKE = f"{ROOT}/Spikes/naga-fx"
@@ -87,7 +93,8 @@ def run():
         light_xf = cmds.listRelatives(light, parent=True)[0]
         cmds.setAttr(light_xf + ".rotate", -35.0, 30.0, 0.0)
         out.append(
-            f"LIGHT {light_xf} created; light0Dir attr exists={cmds.attributeQuery('light0Dir', node=node, exists=True)}"
+            f"LIGHT {light_xf} created; "
+            f"light0Dir attr exists={cmds.attributeQuery('light0Dir', node=node, exists=True)}"
         )
         # explicit binding of the scene light to the effect's Light 0 group, then Maya's own report of it
         cmds.dx11Shader(node, connectLight=("Light 0", light_xf))

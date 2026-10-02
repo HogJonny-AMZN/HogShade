@@ -152,7 +152,8 @@ def test_index_rows_may_use_dot_slash_and_fragments_and_fences_do_not_count(corp
     _write(
         corpus,
         "Docs/journal/README.md",
-        "**Status:** Living\n\n| [S1](./2026-09-27-session-01.md#top) |\n\n```\n[ghost](2026-01-01-session-99.md)\n```\n",
+        "**Status:** Living\n\n| [S1](./2026-09-27-session-01.md#top) |\n\n"
+        "```\n[ghost](2026-01-01-session-99.md)\n```\n",
     )
     assert check_docs.run(corpus) == []
 
@@ -173,7 +174,8 @@ def test_retired_term_used_as_current_is_found(corpus: Path) -> None:
     _write(
         corpus,
         "Docs/glossary.md",
-        "**Status:** Living\n\n| Term | Meaning |\n| --- | --- |\n| ~~**Master material**~~ | **RETIRED.** A Material Prime. |\n",
+        "**Status:** Living\n\n| Term | Meaning |\n| --- | --- |\n"
+        "| ~~**Master material**~~ | **RETIRED.** A Material Prime. |\n",
     )
     _write(corpus, "Docs/handoffs/CURRENT.md", "**Status:** Living\n\nBuild the master material first.\n")
     findings = check_docs.run(corpus)

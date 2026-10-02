@@ -2,7 +2,8 @@
 HogShade: benchmark the IBL prefilter across backends, cube sizes and sample counts (E2 plan, task 5).
 Package: tools/bench_cook
 
-    uv run tools/bench_cook.py --source content/ibl/studio_small_09/source_4k.exr --out Docs/research/benchmarks/2026-09-20-cook.md
+    uv run tools/bench_cook.py --source content/ibl/studio_small_09/source_4k.exr \
+        --out Docs/research/benchmarks/2026-09-20-cook.md
     uv run tools/bench_cook.py --quick            # 256 only, both backends; a smoke run
 
 Times ``prefilter_specular`` per mip and in total. Runs that are expected to exceed ``--budget``
@@ -13,6 +14,7 @@ The numba kernel is warmed once before timing so JIT compile is excluded.
 from __future__ import annotations
 
 import argparse
+import logging as _logging
 import platform
 import sys
 import time
@@ -29,6 +31,7 @@ from hogshade.ibl.imageio import read_exr_rgb
 _MODULE_NAME = "tools.bench_cook"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 
 def cube_bytes(base: int) -> int:

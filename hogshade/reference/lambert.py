@@ -9,6 +9,8 @@ compares these with the GPU.
 
 from __future__ import annotations
 
+import logging as _logging
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -19,6 +21,7 @@ from hogshade.reference._common import _unit
 _MODULE_NAME = "hogshade.reference.lambert"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 
 def env_lookup(normal_ws: NDArray, view_ws: NDArray) -> NDArray:

@@ -3,7 +3,7 @@ HogShade: render the shader ball from a material document under an E1 environmen
 and write the verification PNGs (phase 2 plan, task 14).
 Package: tools/wgpu/viewport
 
-    uv run tools/wgpu/viewport.py                      # verification/wgpu/shader-ball/studio_small_09/{forward,deferred}.png
+    uv run tools/wgpu/viewport.py                      # verification/wgpu/shader-ball/<env>/{forward,deferred}.png
     uv run tools/wgpu/viewport.py --debug-mode 18      # the v2 specular accumulator
     uv run tools/wgpu/viewport.py --material content/materials/legacy-v1/default.material.json --variant legacy-v1
 
@@ -96,7 +96,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     print(f"mesh: {len(mesh.vertices)} vertices, {len(mesh.indices) // 3} triangles; environment {args.environment}")
     print(
-        f"ball covers {int(covered.sum())} of {covered.size} pixels; mean linear radiance {lit.mean():.4f}, max {lit.max():.4f}"
+        f"ball covers {int(covered.sum())} of {covered.size} pixels; "
+        f"mean linear radiance {lit.mean():.4f}, max {lit.max():.4f}"
     )
     print(f"forward vs deferred over covered pixels: mean {mean_diff:.5f}, max {max_diff:.5f}")
     print(f"wrote {out} and {deferred_path} in {elapsed:.1f} s")

@@ -13,7 +13,10 @@ Python in this repository is three things, and the rules differ slightly for eac
 | DCC-side scripts | `tools/maya/*.py` (and later `tools/blender/`) | the DCC's own Python; no numpy, no `hogshade` import |
 
 `ruff` is the linter and formatter (`pyproject.toml`: 120 columns, `py311` target). CI runs
-`ruff check` and `ruff format --check` on `hogshade`, `tests`, `tools` and `Spikes`.
+`ruff check` and `ruff format --check` on `hogshade`, `tests`, `tools` and `Spikes`. The 120 columns are
+enforced, not only formatted: `E501` is on (`[tool.ruff.lint] extend-select`), so a long string or a long
+docstring line fails the check too (the formatter never wraps those). Since 2026-10-02, after four local
+reviews had each counted the same lines against the code.
 
 ## Module header
 

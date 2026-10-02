@@ -1,5 +1,6 @@
 """
-HogShade: launcher for the IBL cook. The implementation lives in hogshade.ibl; see Docs/superpowers/specs/e1-ibl-cook.md.
+HogShade: launcher for the IBL cook. The implementation lives in hogshade.ibl; see
+Docs/superpowers/specs/e1-ibl-cook.md.
 Package: tools/cook_ibl
 
     uv run tools/cook_ibl.py condition IN_8K.exr content/ibl/<name>/source_4k.exr
@@ -10,6 +11,7 @@ Package: tools/cook_ibl
 
 from __future__ import annotations
 
+import logging as _logging
 import sys
 from pathlib import Path
 
@@ -20,6 +22,7 @@ from hogshade.ibl.cli import main
 _MODULE_NAME = "tools.cook_ibl"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -34,7 +34,9 @@ BODY = """
     var env = environment_default(1.0);
     env.exposure = hs_in[base + 39u];
     for (var k = 0u; k < 9u; k = k + 1u) {
-        env.sh9[k] = vec4<f32>(hs_in[base + k * 4u], hs_in[base + k * 4u + 1u], hs_in[base + k * 4u + 2u], hs_in[base + k * 4u + 3u]);
+        env.sh9[k] = vec4<f32>(
+            hs_in[base + k * 4u], hs_in[base + k * 4u + 1u], hs_in[base + k * 4u + 2u], hs_in[base + k * 4u + 3u]
+        );
     }
     let n = vec3<f32>(hs_in[base + 36u], hs_in[base + 37u], hs_in[base + 38u]);
     let sky = vec3<f32>(hs_in[base + 40u], hs_in[base + 41u], hs_in[base + 42u]);
@@ -47,7 +49,9 @@ BODY = """
     hs_out[o + 3u] = d.x; hs_out[o + 4u] = d.y; hs_out[o + 5u] = d.z;
     let none = environment_samples_none();
     hs_out[o + 6u] = none.brdf.x; hs_out[o + 7u] = none.brdf.y;
-    hs_out[o + 8u] = none.irradiance_over_pi.x; hs_out[o + 9u] = none.irradiance_over_pi.y; hs_out[o + 10u] = none.irradiance_over_pi.z;
+    hs_out[o + 8u] = none.irradiance_over_pi.x;
+    hs_out[o + 9u] = none.irradiance_over_pi.y;
+    hs_out[o + 10u] = none.irradiance_over_pi.z;
     hs_out[o + 11u] = none.specular.x; hs_out[o + 12u] = none.specular.y; hs_out[o + 13u] = none.specular.z;
     hs_out[o + 14u] = none.hemisphere.x; hs_out[o + 15u] = none.hemisphere.y; hs_out[o + 16u] = none.hemisphere.z;
     hs_out[o + 17u] = f32(none.hemisphere_mode);

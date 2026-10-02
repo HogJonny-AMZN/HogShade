@@ -22,6 +22,7 @@ HOGSHADE_DEBUG_MODES="18,27,28", HOGSHADE_CHECK (directory name; default "ibl-ch
 HOGSHADE_VARIANT (sub-directory; default the environment name, e.g. "legacy-v1/studio_small_09").
 """
 
+import logging as _logging
 import os
 from pathlib import Path
 
@@ -31,6 +32,7 @@ from maya import cmds
 _MODULE_NAME = "tools.maya.ibl_check"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 ENV = os.environ.get("HOGSHADE_ENV", "studio_small_09")
 SHADER = Path(os.environ.get("HOGSHADE_FX", str(s.ROOT / "hosts" / "maya_dx11" / "hogshade.fx")))

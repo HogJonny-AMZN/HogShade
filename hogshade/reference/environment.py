@@ -8,6 +8,8 @@ hosts; these three are pure maths and the GPU harness compares them (tests/core/
 
 from __future__ import annotations
 
+import logging as _logging
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -16,6 +18,7 @@ from hogshade.core_constants import SH_A0, SH_A1, SH_A2
 _MODULE_NAME = "hogshade.reference.environment"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 #: The real SH basis constants environment_irradiance_sh9 uses, in the order of the nine coefficients.
 _Y = (0.282095, 0.488603, 0.488603, 0.488603, 1.092548, 1.092548, 0.315392, 1.092548, 0.546274)

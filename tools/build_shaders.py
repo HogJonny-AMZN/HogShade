@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import logging as _logging
 import os
 import re
 import shutil
@@ -38,6 +39,7 @@ from pathlib import Path
 _MODULE_NAME = "tools.build_shaders"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE = ROOT / "core"

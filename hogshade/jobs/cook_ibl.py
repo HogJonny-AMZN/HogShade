@@ -40,7 +40,9 @@ MANIFEST = {
         "master_exr": {
             "type": "path",
             "required": False,
-            "description": "8K equirect EXR to condition into env_dir/source_4k.exr before cooking; omit if the source exists",
+            "description": (
+                "8K equirect EXR to condition into env_dir/source_4k.exr before cooking; omit if the source exists"
+            ),
         },
         "base": {"type": "int", "default": 256, "description": "Specular cube base size; mips follow"},
         "samples": {"type": "int", "default": 1024, "description": "GGX samples per texel"},

@@ -27,12 +27,14 @@ JOB_ORCHESTRATOR_ROOT names the checkout (default D:/Depot/Job_Orchestrator).
 from __future__ import annotations
 
 import json
+import logging as _logging
 import os
 from pathlib import Path
 
 _MODULE_NAME = "tools.bats.make_profile"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
@@ -104,7 +106,9 @@ def build_profile(canon: dict) -> dict:
     profile["_hogshade"] = {
         "generated_by": "tools/bats/make_profile.py",
         "from": _fwd(CANON),
-        "note": "HogShade development profile: canon settings, HogShade's own worker types. Regenerate, never hand-edit.",
+        "note": (
+            "HogShade development profile: canon settings, HogShade's own worker types. Regenerate, never hand-edit."
+        ),
     }
     profile["dcc_paths"] = dict(canon["dcc_paths"])
     workers: dict = {}

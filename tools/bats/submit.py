@@ -6,7 +6,8 @@ Package: tools/bats/submit
 Runs with the orchestrator's own interpreter (its venv has grpc and the protos); JOB_ORCHESTRATOR_ROOT
 names the checkout (default D:/Depot/Job_Orchestrator):
 
-    "%JOB_ORCHESTRATOR_ROOT%\\.venv\\Scripts\\python.exe" tools/bats/submit.py --gui --module hogshade.jobs.maya_ibl_check
+    "%JOB_ORCHESTRATOR_ROOT%\\.venv\\Scripts\\python.exe" tools/bats/submit.py --gui \\
+        --module hogshade.jobs.maya_ibl_check
     ... submit.py --gui --script probe.py                # an inline script file, STRING mode
     ... submit.py --pool                                 # what is running
 
@@ -20,6 +21,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import logging as _logging
 import os
 import sys
 from pathlib import Path
@@ -35,6 +37,7 @@ from job_orchestrator.protos import job_pb2, orchestrator_pb2, orchestrator_pb2_
 _MODULE_NAME = "tools.bats.submit"
 __version__ = "0.1.0"
 __updated__ = "2026-09-27"
+_LOGGER = _logging.getLogger(_MODULE_NAME)
 
 MODULE_STUB = """
 import sys, json
