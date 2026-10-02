@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-02, evening: #38 (S3) merged; the standards PR open (#39, `chore/standards-e501-loggers`: E501 on, loggers everywhere); before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-02, night: #39 merged; the S4 design drafted (#40, `docs/s4-library-design`) for the owner to lock; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -9,6 +9,16 @@ A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 how much to decide alone.
 
 ## In flight
+
+**Sit rep, 2026-10-02 night.** S1 to S3 and the standards PR are merged. The owner asked for the S4 design
+("design S4"); it is drafted as `Docs/design/2026-10-02-material-library.md` (Proposed, exploring) with eight
+questions and a recommendation on each. The one that shapes everything: the base set written against the
+standard type with a reverse conversion table (standard to legacy v2) so today's hosts render it, rather
+than legacy documents that become an artefact on C3's day. The rest: a roster of six semantic parents and
+sixteen children with sourced reflectance values, `title`/`doc`/`provenance` as document fields, the
+layout under `content/materials/standard/`, a wgpu contact sheet as the human gate, the texture set after
+track E's conventions. The owner answers the questions (in the PR or in conversation); the answers are
+written into the design in their words, the status goes to Accepted/Locked, then S4a's spec and plan.
 
 **Sit rep, 2026-10-02 evening.** S1, S2 and S3 are merged: the schema files and library, the Maya UI
 generated from them, the wgpu host bound from a document. The owner took the standards PR next ("go"):
