@@ -69,7 +69,7 @@ def main(argv: list[str] | None = None) -> int:
         args.debug_mode,
     )
     binding = bind(resolve(load(args.material)), "wgpu")
-    adapter, device = request_device()
+    _adapter, device = request_device()
     mesh = load_shader_ball()
     renderer = Renderer(device, mesh, environment=args.environment)
     scene = Scene(
