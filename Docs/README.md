@@ -75,6 +75,10 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
   the same material to look the same in every host, and the gaps the first direction had.
 - [reference/material-types.md](reference/material-types.md): every material type's parameters, generated
   from the schema by `tools/generate_material_ui.py --write` and checked in CI; edit the schema, not the file.
+- [design/2026-10-02-material-library.md](design/2026-10-02-material-library.md): the library of materials
+  (S4, track F), Exploring: the base set as standard documents with a reverse conversion table, the
+  roster of parents and children with sourced values, title and provenance in the document, the layout,
+  the contact sheet as the proof, the texture set after track E; eight questions for the owner.
 - [design/2026-09-27-material-schema.md](design/2026-09-27-material-schema.md): the material
   schema's pre-spec design, locked by the owner on 2026-09-27: the versioned parameter definition,
   the O3DE-shaped document, the MaterialX and glTF exports, the `hogshade.material` library and its
