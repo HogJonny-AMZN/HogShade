@@ -11,7 +11,7 @@ how much to decide alone.
 ## In flight
 
 **Sit rep, 2026-10-02 night.** S1 to S3 and the standards PR are merged. The owner asked for the S4 design
-("design S4"); it is drafted as `Docs/design/2026-10-02-material-library.md` (Exploring) with eight
+("design S4"); it is drafted as `Docs/design/2026-10-02-material-library.md` (Proposed, exploring) with eight
 questions and a recommendation on each. The one that shapes everything: the base set written against the
 standard type with a reverse conversion table (standard to legacy v2) so today's hosts render it, rather
 than legacy documents that become an artefact on C3's day. The rest: a roster of six semantic parents and

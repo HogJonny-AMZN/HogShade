@@ -1,6 +1,6 @@
 # The library of materials (S4, track F): pre-spec design
 
-**Status:** Exploring. Drafted 2026-10-02 for the owner to lock; the questions at the end are the
+**Status:** Proposed (exploring). Drafted 2026-10-02 for the owner to lock; the questions at the end are the
 decisions, each with a recommendation. Nothing is built until it is locked, then S4 gets a spec and a plan.
 
 Date: 2026-10-02. Parent: [2026-09-27-material-schema.md](2026-09-27-material-schema.md), section 5 (locked),
