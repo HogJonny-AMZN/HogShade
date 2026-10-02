@@ -239,3 +239,14 @@ def test_the_host_scene_takes_a_binding_directly():
     with pytest.raises(ValueError, match="not one of"):
         wgpu_host.MaterialBinding(model="standard").fields()
     assert wgpu_host.MODELS is wgpu_host.WGPU_MODEL_IDS
+
+
+def test_map_may_not_target_the_binder_slot_and_survives_a_malformed_types():
+    hmap = _map()
+    hmap["parameters"]["ior"] = {"field": "model", "components": [0]}
+    assert "ior: model[0] is already written by 'the binder (the model id)'" in _findings(hmap)
+    hmap = _map()
+    hmap["parameters"]["ior"]["types"] = None
+    msgs = _findings(hmap)  # no TypeError: a malformed types selects no type, and is reported
+    assert "ior: types is a non-empty list of type names" in msgs
+    assert "ior: no entry for hogshade-legacy-v2" in msgs

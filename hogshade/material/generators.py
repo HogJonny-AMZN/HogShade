@@ -295,6 +295,16 @@ def _check_entry(
 
 
 TYPE_SUFFIX = "@"
+#: The frame slot the binder writes itself (the HOGSHADE_MODEL_* id); a map entry may not target it.
+WGPU_BINDER_SLOTS = {("model", 0): "the binder (the model id)"}
+
+
+def _applies(entry: dict[str, Any], type_name: str) -> bool:
+    """Whether a plain entry selects ``type_name``: no ``types`` admits every type; a malformed ``types`` none."""
+    restriction = entry.get("types")
+    if restriction is None:
+        return "types" not in entry
+    return isinstance(restriction, list) and type_name in restriction
 
 
 def entries_for(hmap: dict[str, Any], type_name: str) -> dict[str, dict[str, Any]]:
@@ -311,7 +321,7 @@ def entries_for(hmap: dict[str, Any], type_name: str) -> dict[str, dict[str, Any
         if only:
             if only == type_name:
                 out[pname] = entry
-        elif pname not in out and type_name in entry.get("types", [type_name]):
+        elif pname not in out and _applies(entry, type_name):
             out[pname] = entry
     return out
 
@@ -387,10 +397,14 @@ def _check_wgpu_map(hmap: dict[str, Any], params: dict[str, ParameterDef], where
             out.append(Finding(where, key, "not a parameter of the types this host carries"))
         elif only and (only not in type_names or pname not in type_of(only).parameters):
             out.append(Finding(where, key, f"the suffix names a type that does not carry {pname!r}"))
-        if isinstance(e, dict) and isinstance(e.get("types"), list):
-            for t in e["types"]:
-                if t not in type_names:
-                    out.append(Finding(where, key, f"types names {t!r}, which this host does not carry"))
+        if isinstance(e, dict) and "types" in e:
+            restriction = e["types"]
+            if not (isinstance(restriction, list) and restriction and all(isinstance(t, str) for t in restriction)):
+                out.append(Finding(where, key, "types is a non-empty list of type names"))
+            else:
+                for t in restriction:
+                    if t not in type_names:
+                        out.append(Finding(where, key, f"types names {t!r}, which this host does not carry"))
     for tname in type_names:
         covered = entries_for(hmap, tname)
         for pname in type_of(tname).parameters:
@@ -398,15 +412,13 @@ def _check_wgpu_map(hmap: dict[str, Any], params: dict[str, ParameterDef], where
                 out.append(Finding(where, pname, f"no entry for {tname}"))
             # a plain entry that admits this type and a suffixed entry for it would both select it
             plain = entries.get(pname)
-            if (
-                f"{pname}{TYPE_SUFFIX}{tname}" in entries
-                and isinstance(plain, dict)
-                and tname in plain.get("types", [tname])
-            ):
+            if f"{pname}{TYPE_SUFFIX}{tname}" in entries and isinstance(plain, dict) and _applies(plain, tname):
                 out.append(
                     Finding(where, pname, f"two entries select it for {tname}: the plain one and the suffixed one")
                 )
-        written: dict[tuple[str, int], str] = {}
+        written: dict[tuple[str, int], str] = {
+            slot: who for slot, who in WGPU_BINDER_SLOTS.items() if slot[0] in fields
+        }
         for pname, e in covered.items():
             key = pname if pname in entries and entries[pname] is e else f"{pname}{TYPE_SUFFIX}{tname}"
             out.extend(_check_wgpu_entry(where, key, pname, type_of(tname).parameters[pname], e, fields, written))

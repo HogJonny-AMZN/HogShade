@@ -16,7 +16,8 @@ Plan: [../plans/s3-wgpu-binding.md](../plans/s3-wgpu-binding.md). Vocabulary:
 wgpu host's frame carries, and the host renders from that instead of from `Scene`'s hand-set material
 fields. A material document, loaded and resolved by S1's library, is what `tools/wgpu/viewport.py`
 renders; the first two documents of the library of materials exist to prove it. After S3 a document is
-the one way a material reaches either host: the Maya shell's UI from S2, the wgpu frame from S3.
+the one way a material's values reach the wgpu host; the Maya shell's UI comes from the schema (S2) and a
+Maya-side `bind()` is a later increment.
 
 The binding is a per-host **host map** again, the S2 mechanism with a wgpu entry shape: for each
 parameter of the types the host carries, which frame field and component receives it, or that the host

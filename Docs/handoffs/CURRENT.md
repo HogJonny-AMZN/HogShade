@@ -15,7 +15,7 @@ how much to decide alone.
 component or `unsupported` with a reason), `Binding` and `Unbound` in `model.py`, `Scene.material` in
 `hogshade/wgpu_host.py` packing the map's fields in one loop, `tools/wgpu/viewport.py --material`, three
 documents under `content/materials/`, the wgpu pictures recaptured (the defaults are the schema's now, so
-63 percent of the ball's pixels moved). A document is now the one way a material reaches either host.
+63 percent of the ball's pixels moved). A document is now the one way a material reaches the wgpu host; the Maya shell takes its UI from the schema (S2) and a Maya-side `bind()` is a later increment.
 Next: S4 (the base library, track F's design first) or the standards PR; the comparison framework waits
 on G4.
 
