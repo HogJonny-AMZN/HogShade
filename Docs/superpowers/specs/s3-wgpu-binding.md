@@ -172,9 +172,11 @@ S4 decides the directory layout beyond this (its design, track F).
   committed `metal` variant of the wgpu pictures stays reproducible now that the viewport takes only a
   document; S4 owns the layout from here.
 - **`Binding` and `Unbound` live in `model.py`** beside `Loss`, as the other records do; `binding.py` holds
-  `bind()` and `pack_fields()`. `MaterialBinding.from_binding()` carries the `Binding`'s fields as they are
-  and `fields()` returns them unchanged; a hand-set `MaterialBinding` packs through the same `pack_fields()`,
-  so the two paths cannot disagree.
+  `bind()` and `pack_fields()`. **`Scene.material` takes a `Binding` directly** (`Material = MaterialBinding |
+  Binding`); the spec's `MaterialBinding.from_binding()` was built first and removed by the pre-PR review: it
+  hid the bound fields in an attribute the dataclass could not see, so equality and a later field edit lied.
+  A hand-set `MaterialBinding` packs through the same `pack_fields()` the binder uses, so the two kinds of
+  material cannot disagree on where a value lands.
 - **`entries_for(hmap, type)`** is the one place the `@type` suffix and an entry's `types` list are read;
   the checker, the binder and the host all go through it. A wgpu finding is reported once per entry, not
   once per type that shares it.
@@ -182,3 +184,18 @@ S4 decides the directory layout beyond this (its design, track F).
   binder's `WGPU_MODELS`.
 - The unsupported count for the legacy v2 type is 24 of 30 parameters; the host carries six scalars and
   the model id. Every unsupported entry's reason names what the host does instead.
+
+### After the pre-PR review (2026-10-02)
+
+- `wgpu_host.MODELS` is the binder's `WGPU_MODEL_IDS`, one table; the spec's "MODELS in wgpu_host" reads
+  as "the ids the binder owns, which the host re-exports".
+- `check_host_map` also refuses a type listed twice in `types`, an entry whose `types` names a type the host
+  does not carry, and a plain entry and a suffixed entry both selecting one parameter for one type;
+  `pack_fields` refuses a value whose width does not match the entry's components (the checker catches the
+  map, this catches a caller); `host_map()` is parsed once and handed out as a copy.
+- The viewport prints the unsupported parameters on its material line (no logging without a configured
+  logger); its docstring no longer names the v2 model; `README.md`'s v1 command uses `--material`;
+  `hosts/wgpu/README.md` says the deferred F0 reconstruction is exact only at IOR 1.5, which the default
+  document's 1.45 is not.
+- `metal/deferred.png` is new: master carried only `metal/forward.png`, so the "63 percent" diff covers the
+  default and v1 pairs and `metal/forward.png`; the metal deferred picture has no pre-S3 baseline.

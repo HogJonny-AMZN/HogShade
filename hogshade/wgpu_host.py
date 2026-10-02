@@ -19,7 +19,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from hogshade.ibl.dds import read_2d_rgba16f, read_cube_rgba16f
-from hogshade.material.binding import WGPU_MODELS, pack_fields
+from hogshade.material.binding import WGPU_MODEL_IDS, WGPU_MODELS, pack_fields
 from hogshade.material.generators import host_map
 from hogshade.material.model import Binding
 
@@ -57,7 +57,7 @@ FRAME_DTYPE = np.dtype(
     ]
 )
 FRAME_BYTES = 480
-MODELS = {"lambert": 0, "legacy-v1": 1, "legacy-v2": 2}
+MODELS = WGPU_MODEL_IDS  # one table: HOGSHADE_MODEL_* ids, owned by the binder
 #: The material type each model renders (the inverse of the binder's WGPU_MODELS).
 WGPU_TYPES = {model: type_name for type_name, model in WGPU_MODELS.items()}
 DEPTH_FORMAT = "depth32float"
@@ -204,6 +204,8 @@ class MaterialBinding:
 
     @property
     def material_type(self) -> str:
+        if self.model not in WGPU_TYPES:
+            raise ValueError(f"model {self.model!r} is not one of {sorted(WGPU_TYPES)}")
         return WGPU_TYPES[self.model]
 
     def fields(self) -> dict[str, tuple[float, ...]]:
@@ -214,15 +216,9 @@ class MaterialBinding:
         packed["model"][0] = float(MODELS[self.model])
         return {name: tuple(values) for name, values in packed.items()}
 
-    @classmethod
-    def from_binding(cls, binding: Binding) -> MaterialBinding:
-        """A ``MaterialBinding`` carrying a ``Binding``'s fields; ``fields()`` returns them unchanged."""
-        if binding.host != "wgpu":
-            raise ValueError(f"a {binding.host!r} binding cannot drive the wgpu host")
-        out = cls(model=binding.model)
-        object.__setattr__(out, "_bound_fields", {k: tuple(v) for k, v in binding.fields.items()})
-        return out
 
+#: What ``Scene.material`` accepts: a hand-set material, or the record ``hogshade.material.bind()`` returns.
+Material = MaterialBinding | Binding
 
 _BINDING_PARAMETERS = (
     "roughness",
@@ -240,9 +236,13 @@ _BINDING_PARAMETERS = (
 )
 
 
-def _material_fields(material: MaterialBinding) -> dict[str, tuple[float, ...]]:
-    bound = getattr(material, "_bound_fields", None)
-    return bound if bound is not None else material.fields()
+def _material_fields(material: Material) -> dict[str, tuple[float, ...]]:
+    """The frame fields of either kind of material; a ``Binding`` for another host is refused."""
+    if isinstance(material, Binding):
+        if material.host != "wgpu":
+            raise ValueError(f"a {material.host!r} binding cannot drive the wgpu host")
+        return material.fields
+    return material.fields()
 
 
 @dataclass
@@ -255,7 +255,7 @@ class Scene:
     pitch_deg: float = 18.0
     distance: float = 4.0
     fov_y_deg: float = 32.0
-    material: MaterialBinding = field(default_factory=MaterialBinding)
+    material: Material = field(default_factory=MaterialBinding)
     light_dir: tuple[float, float, float] = (0.45, 0.8, 0.4)
     light_intensity: float = 3.0
     light_color: tuple[float, float, float] = (1.0, 1.0, 1.0)
@@ -270,7 +270,7 @@ class Scene:
 
     @property
     def model(self) -> str:
-        return self.material.model
+        return self.material.model  # both kinds of material carry it
 
     def view_proj(self) -> tuple[NDArray, NDArray]:
         eye = orbit_eye(self.yaw_deg, self.pitch_deg, self.distance)

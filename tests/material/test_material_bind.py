@@ -192,3 +192,50 @@ def test_the_two_default_documents_validate_and_resolve():
             v.get("factor") is not None or type_of(doc.material_type).parameters[k].type == "texture"
             for k, v in res.values.items()
         )
+
+
+# ------------------------------------------------------------------------------ the pre-PR review's rules
+
+
+def test_the_metal_document_binds_differently_from_the_default():
+    default = bind(resolve(load(CONTENT / "legacy-v2" / "default.material.json")), "wgpu")
+    metal = bind(resolve(load(CONTENT / "legacy-v2" / "metal.material.json")), "wgpu")
+    assert metal != default and metal.fields["material"][0] == 1.0 and metal.fields["base_color"][3] == 0.2
+
+
+def test_map_types_rules():
+    hmap = _map()
+    hmap["types"] = ["hogshade-legacy-v2", "hogshade-legacy-v2"]
+    assert _findings(hmap) == [": types lists a type twice: ['hogshade-legacy-v2', 'hogshade-legacy-v2']"]
+    hmap = _map()
+    hmap["parameters"]["ior"]["types"] = ["hogshade-standard"]
+    msgs = _findings(hmap)
+    assert "ior: types names 'hogshade-standard', which this host does not carry" in msgs
+    hmap = _map()
+    hmap["parameters"]["metalness@hogshade-legacy-v1"] = {"field": "params_b", "components": [3]}
+    msgs = _findings(hmap)
+    assert "metalness: two entries select it for hogshade-legacy-v1: the plain one and the suffixed one" in msgs
+
+
+def test_pack_fields_refuses_a_value_of_the_wrong_width():
+    hmap = _map()
+    hmap["parameters"]["base_color"]["components"] = [0, 1, 2, 3]  # the checker would refuse; pack_fields on its own
+    with pytest.raises(MaterialError, match=r"3 value\(s\) for 4 component"):
+        pack_fields(hmap, "hogshade-legacy-v2", {"base_color": [1, 1, 1]})
+
+
+def test_host_map_hands_out_copies():
+    a, b = host_map("wgpu"), host_map("wgpu")
+    a["parameters"].clear()
+    assert b["parameters"] and host_map("wgpu")["parameters"]
+
+
+def test_the_host_scene_takes_a_binding_directly():
+    wgpu_host = pytest.importorskip("hogshade.wgpu_host")
+    metal = bind(resolve(load(CONTENT / "legacy-v2" / "metal.material.json")), "wgpu")
+    scene = wgpu_host.Scene(width=32, height=32, material=metal)
+    assert scene.model == "legacy-v2"
+    assert scene.frame_bytes(9) != wgpu_host.Scene(width=32, height=32).frame_bytes(9)
+    with pytest.raises(ValueError, match="not one of"):
+        wgpu_host.MaterialBinding(model="standard").fields()
+    assert wgpu_host.MODELS is wgpu_host.WGPU_MODEL_IDS

@@ -1,5 +1,5 @@
 """
-HogShade: render the shader ball with the legacy v2 model under an E1 environment through the wgpu host, offscreen,
+HogShade: render the shader ball from a material document under an E1 environment through the wgpu host, offscreen,
 and write the verification PNGs (phase 2 plan, task 14).
 Package: tools/wgpu/viewport
 
@@ -27,10 +27,10 @@ import logging as _logging
 
 from hogshade.ibl.imageio import preview_srgb8, write_png_rgb8
 from hogshade.material import bind, load, resolve
-from hogshade.wgpu_host import MaterialBinding, Renderer, Scene, load_shader_ball, request_device
+from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
 
 _MODULE_NAME = "tools.wgpu.viewport"
-_LOGGER = _logging.getLogger(_MODULE_NAME)
+_LOGGER = _logging.getLogger(_MODULE_NAME)  # the tool prints; nothing logs below
 DEFAULT_MATERIAL = ROOT / "content" / "materials" / "legacy-v2" / "default.material.json"
 __version__ = "0.1.0"
 __updated__ = "2026-10-02"
@@ -60,8 +60,6 @@ def main(argv: list[str] | None = None) -> int:
 
     t0 = time.perf_counter()
     binding = bind(resolve(load(args.material)), "wgpu")
-    for unbound in binding.unsupported:
-        _LOGGER.debug("%s: not carried by the wgpu host (%s)", unbound.parameter, unbound.reason)
     adapter, device = request_device()
     info = adapter.info
     mesh = load_shader_ball()
@@ -69,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
     scene = Scene(
         width=args.size,
         height=args.size,
-        material=MaterialBinding.from_binding(binding),
+        material=binding,
         debug_mode=args.debug_mode,
         hemisphere_mode=args.hemisphere_mode,
         environment=args.environment,
@@ -93,7 +91,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     print(
         f"material: {args.material} ({binding.material_type}); "
-        f"{len(binding.unsupported)} parameters the host does not carry"
+        f"{len(binding.unsupported)} parameters the host does not carry: "
+        + ", ".join(u.parameter for u in binding.unsupported)
     )
     print(f"mesh: {len(mesh.vertices)} vertices, {len(mesh.indices) // 3} triangles; environment {args.environment}")
     print(

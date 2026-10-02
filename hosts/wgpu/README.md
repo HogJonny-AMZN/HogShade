@@ -18,8 +18,9 @@ struct must agree field for field, and the renderer asserts the byte size.
 `tools/wgpu/viewport.py` renders the shader ball through both paths and writes
 `verification/wgpu/shader-ball/<env>/forward.png` and `deferred.png`, then prints the
 difference between the two: the deferred picture differs only by the G-buffer's quantisation and by
-the specular F0 reconstruction, which is exact for the dielectric the tool renders (IOR 1.5, so v2's
-Cspec0 equals the reconstructed 0.04).
+the specular F0 reconstruction, which is exact only for a dielectric at IOR 1.5 (v2's Cspec0 equals the
+reconstructed 0.04); the default document's IOR is the schema's 1.45 (F0 0.0337), so the deferred picture also
+carries that reconstruction error since S3.
 
 SpriteJammer and `hog_rendering` vendor `generated/hogshade_core.wgsl` and write their own pass files
 on this pattern; the binding groups here are this tool's, not a contract.

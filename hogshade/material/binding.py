@@ -57,6 +57,10 @@ def pack_fields(hmap: dict[str, Any], type_name: str, factors: dict[str, Any]) -
             values = [float(v) for v in factor]
         else:
             values = [_scalar(factor)]
+        if len(values) != len(entry["components"]):
+            raise MaterialError(
+                f"{pname}: {len(values)} value(s) for {len(entry['components'])} component(s) of {entry['field']!r}"
+            )
         target = fields[entry["field"]]
         for component, value in zip(entry["components"], values):
             target[component] = value
@@ -106,3 +110,18 @@ def bind(resolved: Resolved, host: str) -> Binding:
         textures=textures,
         unsupported=unsupported,
     )
+
+
+if __name__ == "__main__":
+    # smoke run: python -m hogshade.material.binding <path.material.json>
+    import sys
+
+    from hogshade.material.document import load
+    from hogshade.material.resolution import resolve
+
+    _binding = bind(resolve(load(sys.argv[1])), "wgpu")
+    print(_binding.material_type, "->", _binding.model)
+    for _name, _values in _binding.fields.items():
+        print(f"  {_name}: {_values}")
+    for _unbound in _binding.unsupported:
+        print(f"  unbound {_unbound.parameter}: {_unbound.reason}")

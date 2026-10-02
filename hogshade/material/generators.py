@@ -12,8 +12,10 @@ S2 spec (Docs/superpowers/specs/s2-material-generators.md) fixes both outputs. N
 
 from __future__ import annotations
 
+import copy
 import logging as _logging
 import re
+from functools import cache
 from importlib import resources
 from importlib.resources.abc import Traversable
 from typing import Any
@@ -129,12 +131,17 @@ def hosts() -> list[str]:
     return sorted(p.name[: -len(_HOST_SUFFIX)] for p in _hosts_dir().iterdir() if p.name.endswith(_HOST_SUFFIX))
 
 
-def host_map(host: str) -> dict[str, Any]:
-    """The shipped map of ``host``, parsed; ``MaterialError`` when there is none."""
+@cache
+def _host_map_cached(host: str) -> dict[str, Any]:
     shipped = hosts()
     if host not in shipped:
         raise MaterialError(f"no host map for {host!r}; shipped: {shipped}")
     return read_json(_hosts_dir() / f"{host}{_HOST_SUFFIX}", "host map")
+
+
+def host_map(host: str) -> dict[str, Any]:
+    """The shipped map of ``host``, parsed once and handed out as a copy; ``MaterialError`` when there is none."""
+    return copy.deepcopy(_host_map_cached(host))
 
 
 def _agree(a: ParameterDef, b: ParameterDef) -> bool:
@@ -366,6 +373,8 @@ def _check_wgpu_map(hmap: dict[str, Any], params: dict[str, ParameterDef], where
     type_names = hmap["types"]
     if not (isinstance(type_names, list) and type_names and all(t in types() for t in type_names)):
         return [Finding(where, "", f"types names shipped types; got {type_names!r}")]
+    if len(set(type_names)) != len(type_names):
+        return [Finding(where, "", f"types lists a type twice: {type_names!r}")]
     fields = hmap["fields"]
     if not (isinstance(fields, dict) and fields and all(_is_int(w) and w > 0 for w in fields.values())):
         return [Finding(where, "", "fields is an object of frame field name to its width")]
@@ -378,11 +387,25 @@ def _check_wgpu_map(hmap: dict[str, Any], params: dict[str, ParameterDef], where
             out.append(Finding(where, key, "not a parameter of the types this host carries"))
         elif only and (only not in type_names or pname not in type_of(only).parameters):
             out.append(Finding(where, key, f"the suffix names a type that does not carry {pname!r}"))
+        if isinstance(e, dict) and isinstance(e.get("types"), list):
+            for t in e["types"]:
+                if t not in type_names:
+                    out.append(Finding(where, key, f"types names {t!r}, which this host does not carry"))
     for tname in type_names:
         covered = entries_for(hmap, tname)
         for pname in type_of(tname).parameters:
             if pname not in covered:
                 out.append(Finding(where, pname, f"no entry for {tname}"))
+            # a plain entry that admits this type and a suffixed entry for it would both select it
+            plain = entries.get(pname)
+            if (
+                f"{pname}{TYPE_SUFFIX}{tname}" in entries
+                and isinstance(plain, dict)
+                and tname in plain.get("types", [tname])
+            ):
+                out.append(
+                    Finding(where, pname, f"two entries select it for {tname}: the plain one and the suffixed one")
+                )
         written: dict[tuple[str, int], str] = {}
         for pname, e in covered.items():
             key = pname if pname in entries and entries[pname] is e else f"{pname}{TYPE_SUFFIX}{tname}"

@@ -62,13 +62,11 @@ def test_a_bound_document_and_the_hand_set_scene_pack_the_same_frame() -> None:
     from hogshade.material import bind, from_data, load, resolve
 
     doc = load(wgpu_host.ROOT / "content" / "materials" / "legacy-v2" / "default.material.json")
-    bound = wgpu_host.Scene(
-        width=32, height=32, material=wgpu_host.MaterialBinding.from_binding(bind(resolve(doc), "wgpu"))
-    )
+    bound = wgpu_host.Scene(width=32, height=32, material=bind(resolve(doc), "wgpu"))
     assert bound.frame_bytes(9) == wgpu_host.Scene(width=32, height=32).frame_bytes(9)
     values = {k: {"factor": v} for k, v in V1_LOBES.items() if k != "model"}
     v1 = resolve(from_data({"material_type": "hogshade-legacy-v1", "material_type_version": 1, "values": values}))
-    bound_v1 = wgpu_host.Scene(width=32, height=32, material=wgpu_host.MaterialBinding.from_binding(bind(v1, "wgpu")))
+    bound_v1 = wgpu_host.Scene(width=32, height=32, material=bind(v1, "wgpu"))
     hand_v1 = wgpu_host.Scene(width=32, height=32, material=wgpu_host.MaterialBinding(**V1_LOBES))
     assert bound_v1.frame_bytes(9) == hand_v1.frame_bytes(9)
     assert bound_v1.model == "legacy-v1"
@@ -139,15 +137,13 @@ def test_documents_render_through_the_binding(renderer) -> None:
     from hogshade.material import bind, from_data, load, resolve
 
     doc = load(wgpu_host.ROOT / "content" / "materials" / "legacy-v2" / "default.material.json")
-    material = wgpu_host.MaterialBinding.from_binding(bind(resolve(doc), "wgpu"))
+    material = bind(resolve(doc), "wgpu")
     bound = renderer.render(wgpu_host.Scene(width=96, height=96, material=material)).forward
     plain = renderer.render(wgpu_host.Scene(width=96, height=96)).forward
     np.testing.assert_array_equal(bound, plain)
     values = {"sheen": {"factor": 1.0}}
     v1 = resolve(from_data({"material_type": "hogshade-legacy-v1", "material_type_version": 1, "values": values}))
-    sheen = renderer.render(
-        wgpu_host.Scene(width=96, height=96, material=wgpu_host.MaterialBinding.from_binding(bind(v1, "wgpu")))
-    ).forward
+    sheen = renderer.render(wgpu_host.Scene(width=96, height=96, material=bind(v1, "wgpu"))).forward
     no_sheen = renderer.render(
         wgpu_host.Scene(width=96, height=96, material=wgpu_host.MaterialBinding(model="legacy-v1"))
     ).forward
