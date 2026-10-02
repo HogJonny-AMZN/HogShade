@@ -15,7 +15,8 @@ test lands with it.
       a `default` key) each produce the named finding; `pyproject.toml` package data lists `hosts/*.json`.
 - [ ] 2. `generate("maya_dx11")`: the maps, then the groups, explicit declarations per the spec's table.
       Verify: a test parses the generated text with the S1 union parser and asserts the parameter set,
-      every default and every range equal the schema's.
+      every decoded default (colours, scalars, bools, enum indices, the flip signs) and every emitted slider
+      range (`float` and `int`; the HLSL carries no range for a colour or a vector) equal the schema's.
 - [ ] 3. The shell: markers added, the four macros and their invocations replaced by the generated
       block, the host-only parameters (`shadingModel`, `linearSpaceLighting`, `gammaCorrectionValue`)
       moved to a hand-written "display and model" section above the markers. Verify: `generate()` equals

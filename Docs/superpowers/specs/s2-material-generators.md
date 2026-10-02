@@ -76,9 +76,11 @@ the schema; a value repeated in the map is a finding.
 Rules, checked by `check_host_map()` and a test on the shipped file:
 
 - The map covers exactly the union of the legacy types' parameters (`hogshade-legacy-v2` and
-  `hogshade-legacy-v1`; `hogshade-lambert` is a subset). A parameter present in two types has one definition
-  (S1's files already satisfy this; a test asserts it). A parameter without an entry, or an entry without a
-  parameter, is a finding.
+  `hogshade-legacy-v1`; `hogshade-lambert` is a subset). A parameter present in two types has one host-map
+  entry, and its definitions agree on the fields the Maya emission reads (`type`, `default`, `range`,
+  `choices`, `colour_space`); a test asserts that. The fields that do not reach the block may differ
+  (`doc`, `strength`: v1's `normal_map` carries `strength` and v2's does not, after #33). A parameter
+  without an entry, or an entry without a parameter, is a finding.
 - An entry carries `name`, `label`, `group`, `order` for a parameter that has a factor (every type but
   `texture`); a texturable parameter also carries `map` (`name`, `flag`, `label`, `order`); a `texture`
   parameter carries only `map`. `vector3` carries `components` (three) and `component_choices` instead of
@@ -148,7 +150,8 @@ naming the shell.
   test, so `pytest` alone catches drift).
 - Before and after: the generated block, parsed with the S1 union test's parser, declares the same
   parameter set as the schema union (the existing test now runs over generated text); a second test
-  asserts every default and range in the block equals the schema's, parsed back from the HLSL.
+  parses the block back and asserts every decoded default and every emitted slider range (`float` and
+  `int`; a colour or a vector carries no range in HLSL) equals the schema's.
 - Every identifier the shell's body references (regex over the text outside the markers for the map's
   names and flags) is declared.
 - `generate("docs")` equals the committed reference; its tables list every parameter of every type.
