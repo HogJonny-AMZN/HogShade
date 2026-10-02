@@ -135,6 +135,18 @@ be the function once the package exported it. The tests' fake-type fixture found
 (`feat/s1-material-schema`); the rename then missed `types.py` against the exported `types()`, which the
 local review caught, so the test that no exported name is a submodule's is the mechanised half.
 
+### 14 · A reply that names a commit before the commit exists
+
+**Trigger:** Posting a review reply, a PR comment or a status line from the same shell chain that makes
+the change, with the steps joined by `;` or run after a `&&` chain that may have stopped.
+**Do:** Make the change, confirm the new hash (`git log -1` differs from the previous head), and only then
+compose and post anything that names it; join the steps with `&&` and `set -o pipefail`, and gate the reply
+on the hash check.
+**Because:** 2026-10-02, the S4 design PR (#40): a patch script failed on its first anchor, nothing was
+committed, and five Copilot replies went out saying "Fixed in 3f105e6" (the previous head). Corrected on
+every thread with the real commit. Entry 2 covers the claim-before-evidence class; this is the shape
+where the chain itself is the claimant.
+
 ## How to add an entry
 
 When process fails again, append in the same PR as the fix: a trigger you would notice, the action
