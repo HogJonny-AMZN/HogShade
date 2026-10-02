@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-09-28: the second local review of S1 and its fix PR (`fix/s1-review-round-2`, #33 open); before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-01: S2's spec and plan drafted (`docs/s2-generators-spec`, PR open) after #33 merged; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -9,6 +9,17 @@ A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 how much to decide alone.
 
 ## In flight
+
+**Sit rep, 2026-10-01.** #33 merged (every S1 review metric at 7 or above). The owner chose S2 over the
+standards PR ("S2, the generators, go"). S2's spec and plan are drafted and open for approval:
+`generate("maya_dx11")` produces the Maya shell's material block from the legacy types' schema files
+plus a host map that carries only names, labels, orders and groups; the block lives between markers in
+`hogshade.fx`, the four UI macros retire for explicit declarations, `tools/generate_material_ui.py
+--check` runs in CI, `generate("docs")` writes `Docs/reference/material-types.md`. The spec forbids any
+change to names, defaults or ranges: S2 reproduces the UI, a difference the first regeneration surfaces is
+settled before `--write`. The human gate is the Maya check on the `hogshade_maya_gui` worker with the
+regenerated shell. The standards PR (E501, loggers) is a Next row. The owner approves the spec; then the
+build, about 1 d, with the local review before the PR opens.
 
 **Sit rep, 2026-09-27 late night.** #31 (S1) and #32 (the history put to bed, from the LargeWorlds
 session) are merged. The owner asked how to raise the review's low scores; the answer was to re-run the
