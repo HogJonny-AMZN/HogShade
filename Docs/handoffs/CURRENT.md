@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-01, late: S2 built (`feat/s2-material-generators`, PR open) after #34 approved the spec; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-01, late: S2 built (`feat/s2-material-generators`, [#35](https://github.com/HogJonny-AMZN/HogShade/pull/35) open) after #34 approved the spec; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -10,7 +10,7 @@ how much to decide alone.
 
 ## In flight
 
-**Sit rep, 2026-10-01 late.** S2 is built and its PR is open: `hogshade.material.generate("maya_dx11")`
+**Sit rep, 2026-10-01 late.** S2 is built and #35 is open: `hogshade.material.generate("maya_dx11")`
 writes the shell's material block between markers from the legacy types' schema files and the host map
 `hogshade/material/hosts/maya_dx11.json`; the four UI macros are gone; `tools/generate_material_ui.py
 --check` is a CI step; `generate("docs")` writes `Docs/reference/material-types.md`; 180 material tests.
