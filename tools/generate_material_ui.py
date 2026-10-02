@@ -29,6 +29,7 @@ from hogshade.material.generators import (
     generate,
     replace_between,
 )
+from hogshade.material.model import MaterialError
 
 _MODULE_NAME = "tools.generate_material_ui"
 __version__ = "0.1.0"
@@ -37,6 +38,14 @@ _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 SHELL = ROOT / "hosts" / "maya_dx11" / "hogshade.fx"
 REFERENCE = ROOT / "Docs" / "reference" / "material-types.md"
+
+
+def _rel(path: Path) -> str:
+    """The repo-relative spelling, or the path itself when it lies elsewhere (a test points the tool at a copy)."""
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
 
 
 def _diff(name: str, committed: str, fresh: str) -> str:
@@ -54,25 +63,28 @@ def check() -> list[str]:
     """The stale outputs as diffs; empty when both are current."""
     stale: list[str] = []
     shell = SHELL.read_text(encoding="utf-8")
-    block = between(shell, MAYA_BEGIN, MAYA_END, str(SHELL.relative_to(ROOT)))
+    block = between(shell, MAYA_BEGIN, MAYA_END, _rel(SHELL))
     fresh = generate("maya_dx11")
     if block != fresh:
-        stale.append(_diff(str(SHELL.relative_to(ROOT)), block, fresh))
+        stale.append(_diff(_rel(SHELL), block, fresh))
     reference = REFERENCE.read_text(encoding="utf-8") if REFERENCE.exists() else ""
     fresh_docs = generate("docs")
     if reference != fresh_docs:
-        stale.append(_diff(str(REFERENCE.relative_to(ROOT)), reference, fresh_docs))
+        stale.append(_diff(_rel(REFERENCE), reference, fresh_docs))
     return stale
 
 
 def write() -> list[Path]:
     """Replace the block and the reference; the paths written."""
     shell = SHELL.read_text(encoding="utf-8")
-    SHELL.write_text(replace_between(shell, MAYA_BEGIN, MAYA_END, generate("maya_dx11"), str(SHELL)), encoding="utf-8")
+    SHELL.write_text(
+        replace_between(shell, MAYA_BEGIN, MAYA_END, generate("maya_dx11"), str(SHELL)), encoding="utf-8", newline="\n"
+    )
     REFERENCE.parent.mkdir(parents=True, exist_ok=True)
     docs = generate("docs")
-    assert docs.startswith(DOCS_HEADER)
-    REFERENCE.write_text(docs, encoding="utf-8")
+    if not docs.startswith(DOCS_HEADER):
+        raise MaterialError("the docs reference does not start with its generated-file header")
+    REFERENCE.write_text(docs, encoding="utf-8", newline="\n")
     return [SHELL, REFERENCE]
 
 
@@ -84,11 +96,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     mode.add_argument("--write", action="store_true", help="regenerate the shell's block and the docs reference")
     args = parser.parse_args(argv)
-    if args.write:
-        for path in write():
-            print(f"wrote {path.relative_to(ROOT)}")
-        return 0
-    stale = check()
+    try:
+        if args.write:
+            for path in write():
+                print(f"wrote {_rel(path)}")
+            return 0
+        stale = check()
+    except MaterialError as e:
+        print(f"material UI: {e}", file=sys.stderr)
+        return 2
     if stale:
         for diff in stale:
             sys.stdout.write(diff)

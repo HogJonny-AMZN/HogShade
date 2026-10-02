@@ -40,6 +40,83 @@ _ENTRY_KEYS = ("name", "label", "group", "order", "semantic", "map", "components
 _SCHEMA_KEYS = ("type", "default", "range", "choices", "colour_space", "doc", "soft", "widget", "strength")
 _MAP_KEYS = ("name", "flag", "label", "order")
 _IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+#: HLSL words a parameter cannot be named; the shell would not compile.
+HLSL_RESERVED = frozenset(
+    [
+        "bool",
+        "int",
+        "uint",
+        "half",
+        "float",
+        "double",
+        "float2",
+        "float3",
+        "float4",
+        "int2",
+        "int3",
+        "int4",
+        "uint2",
+        "uint3",
+        "uint4",
+        "string",
+        "struct",
+        "technique",
+        "pass",
+        "sampler",
+        "SamplerState",
+        "Texture2D",
+        "TextureCube",
+        "Buffer",
+        "cbuffer",
+        "tbuffer",
+        "const",
+        "static",
+        "shared",
+        "uniform",
+        "volatile",
+        "extern",
+        "if",
+        "else",
+        "for",
+        "while",
+        "do",
+        "switch",
+        "case",
+        "default",
+        "break",
+        "continue",
+        "return",
+        "discard",
+        "in",
+        "out",
+        "inout",
+        "void",
+        "true",
+        "false",
+        "register",
+        "matrix",
+        "vector",
+        "texture",
+        "typedef",
+        "namespace",
+        "class",
+        "interface",
+        "this",
+    ]
+)
+_MARKER_LINE = r"^{marker}\r?$"
+
+
+def _ident_ok(value: Any) -> bool:
+    """An HLSL identifier that is not a reserved word."""
+    return isinstance(value, str) and bool(_IDENT.match(value)) and value not in HLSL_RESERVED
+
+
+def _label_ok(value: Any) -> bool:
+    """A UI label the annotation string can carry: non-empty, no quote, no angle bracket."""
+    return isinstance(value, str) and bool(value) and not any(ch in value for ch in '">\\')
+
+
 _RULE = "// " + "-" * 85 + " "
 
 
@@ -94,14 +171,14 @@ def _check_map_entry(where: str, pname: str, m: Any, orders: dict[int, str], nam
             out.append(Finding(where, pname, f"map has an unknown key {key!r}"))
     for key in ("name", "flag"):
         ident = m.get(key)
-        if not isinstance(ident, str) or not _IDENT.match(ident):
-            out.append(Finding(where, pname, f"map {key} is an identifier, got {ident!r}"))
+        if not _ident_ok(ident):
+            out.append(Finding(where, pname, f"map {key} is an identifier and not an HLSL word, got {ident!r}"))
         elif ident in names:
             out.append(Finding(where, pname, f"map {key} {ident!r} is already used by {names[ident]!r}"))
         else:
             names[ident] = pname
-    if not isinstance(m.get("label"), str) or not m.get("label"):
-        out.append(Finding(where, pname, "map label is a string"))
+    if not _label_ok(m.get("label")):
+        out.append(Finding(where, pname, "map label is a string without quotes or angle brackets"))
     order = m.get("order")
     if not _is_int(order):
         out.append(Finding(where, pname, "map order is an integer"))
@@ -117,14 +194,14 @@ def _check_component(where: str, pname: str, c: Any, orders: dict[int, str], nam
     out: list[Finding] = []
     if not isinstance(c, dict) or set(c) != {"name", "label", "order"}:
         return [Finding(where, pname, "a component is an object with name, label, order")]
-    if not isinstance(c["name"], str) or not _IDENT.match(c["name"]):
-        out.append(Finding(where, pname, f"component name is an identifier, got {c['name']!r}"))
+    if not _ident_ok(c["name"]):
+        out.append(Finding(where, pname, f"component name is an identifier and not an HLSL word, got {c['name']!r}"))
     elif c["name"] in names:
         out.append(Finding(where, pname, f"component name {c['name']!r} is already used by {names[c['name']]!r}"))
     else:
         names[c["name"]] = pname
-    if not isinstance(c["label"], str) or not c["label"]:
-        out.append(Finding(where, pname, "component label is a string"))
+    if not _label_ok(c["label"]):
+        out.append(Finding(where, pname, "component label is a string without quotes or angle brackets"))
     if not _is_int(c["order"]):
         out.append(Finding(where, pname, "component order is an integer"))
     elif c["order"] in orders:
@@ -182,14 +259,14 @@ def _check_entry(
                 out.append(Finding(where, pname, f"missing {key!r}"))
         ident = e.get("name")
         if ident is not None:
-            if not isinstance(ident, str) or not _IDENT.match(ident):
-                out.append(Finding(where, pname, f"name is an identifier, got {ident!r}"))
+            if not _ident_ok(ident):
+                out.append(Finding(where, pname, f"name is an identifier and not an HLSL word, got {ident!r}"))
             elif ident in names:
                 out.append(Finding(where, pname, f"name {ident!r} is already used by {names[ident]!r}"))
             else:
                 names[ident] = pname
-        if "label" in e and (not isinstance(e["label"], str) or not e["label"]):
-            out.append(Finding(where, pname, "label is a string"))
+        if "label" in e and not _label_ok(e["label"]):
+            out.append(Finding(where, pname, "label is a string without quotes or angle brackets"))
         order = e.get("order")
         if order is not None:
             if not _is_int(order):
@@ -315,7 +392,8 @@ def _maya_map(p: ParameterDef, m: dict[str, Any]) -> list[str]:
 
 def maya_block(hmap: dict[str, Any], params: dict[str, ParameterDef]) -> str:
     """The text between the shell's markers: the maps, then each group in the map's group order."""
-    findings = check_host_map(hmap, params, hmap.get("host", "<host map>"))
+    where = hmap.get("host", "<host map>") if isinstance(hmap, dict) else "<host map>"
+    findings = check_host_map(hmap, params, where)
     if findings:
         raise MaterialError("malformed host map: " + "; ".join(str(f) for f in findings))
     entries = hmap["parameters"]
@@ -341,24 +419,34 @@ def maya_block(hmap: dict[str, Any], params: dict[str, ParameterDef]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _span(text: str, begin: str, end: str, what: str) -> tuple[int, int]:
+    """
+    The start of the line after the ``begin`` marker and the start of the ``end`` marker line; each marker
+    is a whole line (CRLF tolerated), present exactly once, in order. ``MaterialError`` otherwise.
+    """
+    begins = list(re.finditer(_MARKER_LINE.format(marker=re.escape(begin)), text, re.MULTILINE))
+    ends = list(re.finditer(_MARKER_LINE.format(marker=re.escape(end)), text, re.MULTILINE))
+    if len(begins) != 1 or len(ends) != 1:
+        raise MaterialError(
+            f"{what}: the markers {begin!r} and {end!r} must each appear exactly once as a line "
+            f"(found {len(begins)} and {len(ends)})"
+        )
+    i, j = begins[0].end() + 1, ends[0].start()
+    if j < i:
+        raise MaterialError(f"{what}: the END marker precedes the BEGIN marker")
+    return i, j
+
+
 def replace_between(text: str, begin: str, end: str, body: str, what: str) -> str:
     """``text`` with the lines between the ``begin`` and ``end`` marker lines replaced by ``body``."""
-    try:
-        i = text.index(begin + "\n")
-        j = text.index(end, i)
-    except ValueError as e:
-        raise MaterialError(f"{what}: the markers {begin!r} and {end!r} are not both present, in order") from e
-    return text[: i + len(begin) + 1] + body + text[j:]
+    i, j = _span(text, begin, end, what)
+    return text[:i] + body + text[j:]
 
 
 def between(text: str, begin: str, end: str, what: str) -> str:
     """The text between the marker lines, as ``replace_between`` would replace it."""
-    try:
-        i = text.index(begin + "\n")
-        j = text.index(end, i)
-    except ValueError as e:
-        raise MaterialError(f"{what}: the markers {begin!r} and {end!r} are not both present, in order") from e
-    return text[i + len(begin) + 1 : j]
+    i, j = _span(text, begin, end, what)
+    return text[i:j]
 
 
 # ------------------------------------------------------------------------------------------------- docs

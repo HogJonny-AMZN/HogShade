@@ -181,7 +181,13 @@ naming the shell.
   order, so Maya's panel is unchanged. The three host-only parameters sit in a hand-written "display and
   model" section just above the markers, still in the `Material Properties` UI group so the panel keeps its
   shape. `shadowMultiplier`, which the retired slider macro had put in `Material Properties`, is an explicit
-  declaration in its own `Shadows` group (a one-attribute UI move, the only visible change).
+  declaration in its own `Shadows` group. **Four attributes change UI group, not one** (the pre-PR review
+  refuted the first claim): the retired slider macro had hard-coded `Material Properties`, so
+  `materialPomHeightScale`, `selfOccShadowStrength` and `pomShadowMultiplier` sat there on master and now
+  sit in `Parallax Occlusion` with the rest of their group; `shadowMultiplier` moves to `Shadows`. Settled as
+  intentional (the grouping the labels always implied), recorded here and in the PR's Decisions. Every
+  other field Maya reads (type, default, bounds, step, order, field names, colour space, semantic) is
+  identical across the 73 declarations, by macro expansion of master against the block.
 - **Annotation order inside a declaration** is the generator's (`UIGroup`, `UIName`, widget or field names,
   bounds, `UIOrder`), not the shell's hand-written variety; Maya reads annotations by name.
 - **`union_of()` and `EMISSION_FIELDS`** are the agreement check Copilot asked for on #34: shared parameters
@@ -193,3 +199,15 @@ naming the shell.
 - **Observed, not fixed:** the resident worker keeps `HOGSHADE_VARIANT` from an earlier job's environment,
   so the crashed check wrote under `legacy-v1/` although no variant was passed. A job should set and clear
   its own environment; an Icebox row.
+
+### After the pre-PR review (2026-10-01)
+
+- `check_host_map(hmap, params, where)` takes the parameter union, not the type names (the caller picks the
+  types through `union_of`); `union_of()` and `maya_block()` are public beside the spec's four functions.
+- Host-map identifiers may not be HLSL reserved words and labels may not carry a quote or an angle bracket
+  (either would emit an effect that does not parse); `maya_block` on a non-object map is `MaterialError`.
+- The markers are matched as whole lines, CRLF tolerated, each exactly once and in order; `--write` writes
+  LF. The tool reports a `MaterialError` (missing or doubled markers, a bad map) as a message and exit 2,
+  distinct from exit 1 for a stale output.
+- The identifier test reads the hand-written shell without its comments: every host-map identifier is both
+  declared by the block and read by the body.

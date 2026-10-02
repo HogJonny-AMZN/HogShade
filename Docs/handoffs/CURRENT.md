@@ -13,7 +13,7 @@ how much to decide alone.
 **Sit rep, 2026-10-01 late.** S2 is built and its PR is open: `hogshade.material.generate("maya_dx11")`
 writes the shell's material block between markers from the legacy types' schema files and the host map
 `hogshade/material/hosts/maya_dx11.json`; the four UI macros are gone; `tools/generate_material_ui.py
---check` is a CI step; `generate("docs")` writes `Docs/reference/material-types.md`; 176 material tests.
+--check` is a CI step; `generate("docs")` writes `Docs/reference/material-types.md`; 180 material tests.
 The one gate not met as specified: the IBL check on the resident **GUI Maya worker crashed the worker
 during the shader load** and the orchestrator did not restart it; that worker is the owner's to restart
 (the kill switch and the orchestrator are human-only). The evidence came from the headless worker: master's

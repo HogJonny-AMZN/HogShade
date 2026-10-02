@@ -205,11 +205,9 @@ def test_every_identifier_the_shell_body_uses_is_declared():
             wanted.add(c["name"])
     missing = wanted - declared
     assert missing == set(), f"host-map identifiers not declared: {sorted(missing)}"
-    body = outside[outside.index("// ---- vertex") if "// ---- vertex" in outside else 0 :]
+    body = re.sub(r"//[^\n]*", "", outside)  # the hand-written shell without comments; it declares none of these
     unused = {name for name in wanted if not re.search(rf"\b{name}\b", body)}
-    assert unused <= {"materialEmissiveIntensity"} or unused == set(), (
-        f"declared but never read by the shell: {sorted(unused)}"
-    )
+    assert unused == set(), f"declared but never read by the shell: {sorted(unused)}"
 
 
 def test_shell_has_no_ui_macros_left():
@@ -247,3 +245,51 @@ def test_the_tool_check_is_clean():
     import generate_material_ui as tool
 
     assert tool.check() == []
+
+
+# ------------------------------------------------------------------------------- the pre-PR review's rules
+
+
+def test_map_refuses_hlsl_words_and_broken_labels():
+    hmap = _map()
+    hmap["parameters"]["roughness"]["name"] = "float"
+    hmap["parameters"]["metalness"]["label"] = 'Metal "ness" > 1'
+    hmap["parameters"]["normal_flip"]["components"][0]["name"] = "sampler"
+    msgs = _findings(hmap)
+    assert "roughness: name is an identifier and not an HLSL word, got 'float'" in msgs
+    assert "metalness: label is a string without quotes or angle brackets" in msgs
+    assert "normal_flip: component name is an identifier and not an HLSL word, got 'sampler'" in msgs
+
+
+def test_maya_block_refuses_a_non_object_map():
+    with pytest.raises(MaterialError, match="malformed host map"):
+        maya_block([], union_of(MAYA_TYPES))
+
+
+def test_markers_are_whole_lines_once_in_order_and_crlf_tolerant():
+    crlf = f"a\r\n{MAYA_BEGIN}\r\nold\r\n{MAYA_END}\r\nz\r\n"
+    assert between(crlf, MAYA_BEGIN, MAYA_END, "x") == "old\r\n"
+    with pytest.raises(MaterialError, match="exactly once"):
+        between(f"{MAYA_BEGIN}\nold\n{MAYA_END}X\n", MAYA_BEGIN, MAYA_END, "x")
+    with pytest.raises(MaterialError, match="exactly once"):
+        between(f"{MAYA_BEGIN}\n{MAYA_BEGIN}\nold\n{MAYA_END}\n", MAYA_BEGIN, MAYA_END, "x")
+    with pytest.raises(MaterialError, match="precedes"):
+        between(f"{MAYA_END}\nold\n{MAYA_BEGIN}\n", MAYA_BEGIN, MAYA_END, "x")
+
+
+def test_write_is_idempotent(tmp_path, monkeypatch):
+    sys.path.insert(0, str(REPO / "tools"))
+    import generate_material_ui as tool
+
+    shell = tmp_path / "hogshade.fx"
+    shell.write_text(SHELL.read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
+    reference = tmp_path / "material-types.md"
+    monkeypatch.setattr(tool, "SHELL", shell)
+    monkeypatch.setattr(tool, "REFERENCE", reference)
+    tool.write()
+    once = shell.read_bytes(), reference.read_bytes()
+    tool.write()
+    assert (shell.read_bytes(), reference.read_bytes()) == once
+    assert tool.check() == []
+    shell.write_text("no markers here\n", encoding="utf-8")
+    assert tool.main(["--check"]) == 2
