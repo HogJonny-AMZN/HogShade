@@ -76,7 +76,7 @@ is the first two rows, in that order.
 | Item | Blocked on |
 | --- | --- |
 | **Phase C3 · OpenPBR model, MaterialX carrier, parameter schema** | **G4** because the roadmap says E's calibration capture runs in `maya_dx11` before C3 opens; G3 closed 2026-09-27 (ADR-009); the schema's design is locked and S1 is built (Now) |
-| **The comparison framework** (roadmap, track E) | **G4** for its design date. Design first, then spec, then build; `tools/wgpu/viewport.py` is replaced, not extended |
+| **The comparison framework** (roadmap, track E) | **G4** for its design date. Design first, then spec, then build; `tools/wgpu/viewport.py` is replaced, not extended. Its design states the cross-host conventions before any diff: camera handedness and projection, the NDC depth range, the UV origin, the up axis and units, the HDR rotation (the blind-spots design names the last two; the owner asked on 2026-10-01 that coordinates be accounted for) |
 | **Colour management: ACEScg, AgX default, ACES alternative** (track E) | **G2** |
 | **The pixel-identical screenshot diff of v1 and v2 against the legacy effects** | The comparison framework |
 | **Track D · the SpriteJammer tiers** | C5's published core WGSL; SpriteJammer's own board carries the consuming rows |
