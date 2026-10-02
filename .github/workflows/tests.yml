@@ -49,5 +49,8 @@ jobs:
       - name: Build shaders (fails if committed artifacts are stale)
         run: uv run tools/build_shaders.py --check --require-compilers
 
+      - name: Material UI (the Maya block and the docs reference are generated)
+        run: uv run tools/generate_material_ui.py --check
+
       - name: Tests
         run: uv run pytest -q

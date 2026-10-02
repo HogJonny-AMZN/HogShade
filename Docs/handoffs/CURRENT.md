@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-01: S2's spec and plan drafted (`docs/s2-generators-spec`, [#34](https://github.com/HogJonny-AMZN/HogShade/pull/34) open) after #33 merged; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-01, late: S2 built (`feat/s2-material-generators`, [#35](https://github.com/HogJonny-AMZN/HogShade/pull/35) open) after #34 approved the spec; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -9,6 +9,20 @@ A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 how much to decide alone.
 
 ## In flight
+
+**Sit rep, 2026-10-01 late.** S2 is built and #35 is open: `hogshade.material.generate("maya_dx11")`
+writes the shell's material block between markers from the legacy types' schema files and the host map
+`hogshade/material/hosts/maya_dx11.json`; the four UI macros are gone; `tools/generate_material_ui.py
+--check` is a CI step; `generate("docs")` writes `Docs/reference/material-types.md`; 180 material tests.
+The one gate not met as specified: the IBL check on the resident **GUI Maya worker crashed the worker
+during the shader load** and the orchestrator did not restart it; that worker is the owner's to restart
+(the kill switch and the orchestrator are human-only). The evidence came from the headless worker: master's
+shell and the regenerated one load in the same session with the same technique, the same 1021 attributes
+and the same defaults, and `fxc` compiles both effects. **Owner:** restart the GUI worker, then
+`"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --module hogshade.jobs.maya_ibl_check`
+for the pictures; if it crashes again on the regenerated shell, that is a finding against S2. Also observed:
+a job's `HOGSHADE_VARIANT` leaks into the next job on the resident worker (Icebox row). Next after S2: S3 (the
+wgpu binding) or the standards PR.
 
 **Sit rep, 2026-10-01.** #33 merged (every S1 review metric at 7 or above). The owner chose S2 over the
 standards PR ("S2, the generators, go"). S2's spec and plan are drafted and open for approval:

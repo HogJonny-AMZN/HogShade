@@ -73,6 +73,8 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
   the module, tier, rendering-path half and hosts that carry it.
 - [design/2026-09-20-wysiwyg-blindspots.md](design/2026-09-20-wysiwyg-blindspots.md): what it takes for
   the same material to look the same in every host, and the gaps the first direction had.
+- [reference/material-types.md](reference/material-types.md): every material type's parameters, generated
+  from the schema by `tools/generate_material_ui.py --write` and checked in CI; edit the schema, not the file.
 - [design/2026-09-27-material-schema.md](design/2026-09-27-material-schema.md): the material
   schema's pre-spec design, locked by the owner on 2026-09-27: the versioned parameter definition,
   the O3DE-shaped document, the MaterialX and glTF exports, the `hogshade.material` library and its
@@ -96,7 +98,7 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
 | 5. wgpu host | not yet | not yet | Design done |
 | 6. Other hosts | not yet | not yet | Design done |
 | S1. The material schema files and `hogshade.material` (load, validate, resolve, convert) | [superpowers/specs/s1-material-schema.md](superpowers/specs/s1-material-schema.md) | [superpowers/plans/s1-material-schema.md](superpowers/plans/s1-material-schema.md) | Built 2026-09-27 (`feat/s1-material-schema`, [#31](https://github.com/HogJonny-AMZN/HogShade/pull/31) open): four types, three tables, `hogshade.material` with 133 tests; mayapy 3.11.9 lists the four types |
-| S2. The generators: the Maya shell's material UI and the docs reference from the schema | [superpowers/specs/s2-material-generators.md](superpowers/specs/s2-material-generators.md) | [superpowers/plans/s2-material-generators.md](superpowers/plans/s2-material-generators.md) | Proposed 2026-10-01 from the locked design; the owner approves the spec, then the plan runs |
+| S2. The generators: the Maya shell's material UI and the docs reference from the schema | [superpowers/specs/s2-material-generators.md](superpowers/specs/s2-material-generators.md) | [superpowers/plans/s2-material-generators.md](superpowers/plans/s2-material-generators.md) | Built 2026-10-01 (`feat/s2-material-generators`, [#35](https://github.com/HogJonny-AMZN/HogShade/pull/35) open): the Maya block and the docs reference generated and checked in CI; the GUI Maya picture run still owed |
 | E1. IBL cook | [superpowers/specs/e1-ibl-cook.md](superpowers/specs/e1-ibl-cook.md) | [superpowers/plans/e1-ibl-cook.md](superpowers/plans/e1-ibl-cook.md) | Done: cook, tests, job, Maya diffuse-term check, LFS payloads in the repo (2026-09-26) |
 | E2. Cook performance and resolution | [superpowers/specs/e2-cook-performance.md](superpowers/specs/e2-cook-performance.md) | [superpowers/plans/e2-cook-performance.md](superpowers/plans/e2-cook-performance.md) | Done except the roadmap tick: numba 140x, measured to an 8192 cube |
 | E. Parity and pipeline, rest | not yet | not yet | Design done |

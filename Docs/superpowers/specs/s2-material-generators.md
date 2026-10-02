@@ -1,7 +1,7 @@
 # S2 spec: the generators, the Maya shell's material UI and the docs table from the schema
 
-**Status:** Proposed. Drafted 2026-10-01 from the locked design, after S1 (#31, #33); the owner approves
-it, then the plan runs as one PR. S2 needs nothing from gate G4.
+**Status:** Accepted. Drafted 2026-10-01 from the locked design, approved as #34 and built the same day on
+`feat/s2-material-generators`; the build's amendments are the last section. S2 needed nothing from gate G4.
 
 Date: 2026-10-01. Design: [../../design/2026-09-27-material-schema.md](../../design/2026-09-27-material-schema.md),
 "The Python library" (`generate(host)`) and "Increments" (S2). Decision:
@@ -173,3 +173,41 @@ naming the shell.
 - Any change to parameter names, defaults or ranges: S2 reproduces the shell's UI, it does not redesign it.
   A difference the first regeneration surfaces is a finding to settle before `--write`, not a silent fix.
 - The standard type's UI in any host (no host carries the standard before C3 and S3).
+
+## Amendments made in the build (2026-10-01)
+
+- **The shell's layout.** One contiguous generated block needed the environment-lighting section (which sat
+  between the maps and the material properties) moved above the markers; UI order is `UIOrder`, not file
+  order, so Maya's panel is unchanged. The three host-only parameters sit in a hand-written "display and
+  model" section just above the markers, still in the `Material Properties` UI group so the panel keeps its
+  shape. `shadowMultiplier`, which the retired slider macro had put in `Material Properties`, is an explicit
+  declaration in its own `Shadows` group. **Four attributes change UI group, not one** (the pre-PR review
+  refuted the first claim): the retired slider macro had hard-coded `Material Properties`, so
+  `materialPomHeightScale`, `selfOccShadowStrength` and `pomShadowMultiplier` sat there on master and now
+  sit in `Parallax Occlusion` with the rest of their group; `shadowMultiplier` moves to `Shadows`. Settled as
+  intentional (the grouping the labels always implied), recorded here and in the PR's Decisions. Every
+  other field Maya reads (type, default, bounds, step, order, field names, colour space, semantic) is
+  identical across the 73 declarations, by macro expansion of master against the block.
+- **Annotation order inside a declaration** is the generator's (`UIGroup`, `UIName`, widget or field names,
+  bounds, `UIOrder`), not the shell's hand-written variety; Maya reads annotations by name.
+- **`union_of()` and `EMISSION_FIELDS`** are the agreement check Copilot asked for on #34: shared parameters
+  agree on `type`, `default`, `range`, `choices`, `colour_space`; `doc` and `strength` may differ.
+- **The human gate** ran on the headless worker, not the GUI one: the GUI worker crashed during the shader
+  load of the first job and the orchestrator did not restart it (the plan's task 6 says what was proven
+  instead and what remains). The crash is unexplained; the same shell loads in the headless Maya with the
+  same technique, attribute set and defaults as master's.
+- **Observed, not fixed:** the resident worker keeps `HOGSHADE_VARIANT` from an earlier job's environment,
+  so the crashed check wrote under `legacy-v1/` although no variant was passed. A job should set and clear
+  its own environment; an Icebox row.
+
+### After the pre-PR review (2026-10-01)
+
+- `check_host_map(hmap, params, where)` takes the parameter union, not the type names (the caller picks the
+  types through `union_of`); `union_of()` and `maya_block()` are public beside the spec's four functions.
+- Host-map identifiers may not be HLSL reserved words and labels may not carry a quote or an angle bracket
+  (either would emit an effect that does not parse); `maya_block` on a non-object map is `MaterialError`.
+- The markers are matched as whole lines, CRLF tolerated, each exactly once and in order; `--write` writes
+  LF. The tool reports a `MaterialError` (missing or doubled markers, a bad map) as a message and exit 2,
+  distinct from exit 1 for a stale output.
+- The identifier test reads the hand-written shell without its comments: every host-map identifier is both
+  declared by the block and read by the body.

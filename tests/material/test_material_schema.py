@@ -253,10 +253,11 @@ V1_DOES_NOT_READ = {
 V1_GROUP = "Legacy v1 Disney"
 # Every UI group of the shell: the material groups the schema covers, and the host groups it does not. A
 # group the shell adds that is in neither set fails the test below, so a new material group cannot slip by.
-MATERIAL_GROUPS = ("Material Properties", "Normal Params", V1_GROUP, "Parallax Occlusion")
-HOST_GROUPS = ("Material Maps", "Environment Lighting", "Shadows", "DEBUG [Preview]")
-# Every HOGSHADE_* macro the shell defines; a new one is unknown to the parser until it is classified here.
-MATERIAL_MACROS = ("HOGSHADE_SLIDER", "HOGSHADE_BOOL", "HOGSHADE_V1", "HOGSHADE_MAP")
+MATERIAL_GROUPS = ("Material Maps", "Material Properties", "Normal Params", V1_GROUP, "Parallax Occlusion")
+HOST_GROUPS = ("Environment Lighting", "Shadows", "DEBUG [Preview]")
+# Every HOGSHADE_* macro the shell defines; a new one is unknown to the parser until it is classified here. The
+# material UI macros retired with S2 (the block is generated as explicit declarations).
+MATERIAL_MACROS = ()
 HOST_MACROS = ("HOGSHADE_LIGHT_SLOT", "HOGSHADE_FILL_SLOT")  # the light slots and the G-buffer fill, never material
 
 
@@ -268,20 +269,22 @@ def _struct_fields(model: str, struct: str) -> set[str]:
 
 
 def _shell_parameters() -> dict[str, str]:
-    """Shell parameter name to its UI group ("maps" for the HOGSHADE_MAP textures)."""
+    """
+    Shell parameter name to its UI group ("maps" for the Material Maps textures). A `bool` in Material Maps is
+    a texture's use flag, derived from the binding, never a parameter (the S1 spec's use<Map> rule).
+    """
     text = (REPO / "hosts" / "maya_dx11" / "hogshade.fx").read_text(encoding="utf-8")
     out: dict[str, str] = {}
-    for name in re.findall(r"^HOGSHADE_SLIDER\(\w+,\s*(\w+)", text, re.MULTILINE):
-        out[name] = "Material Properties"
-    for name in re.findall(r"^HOGSHADE_BOOL\((\w+)", text, re.MULTILINE):
-        out[name] = "Material Properties"
-    for name in re.findall(r"^HOGSHADE_V1\((\w+)", text, re.MULTILINE):
-        out[name] = V1_GROUP
-    for name in re.findall(r"^HOGSHADE_MAP\((\w+)", text, re.MULTILINE):
-        out[name] = "maps"
-    pattern = r'^(?:float3|float|int|bool)\s+(\w+)\s*(?::\s*\w+)?\s*<[^>]*?UIGroup = "([^"]+)"'
-    for name, group in re.findall(pattern, text, re.MULTILINE):
-        if group in MATERIAL_GROUPS and name != "NAME":
+    pattern = (
+        r"^(?P<type>Texture2D|float3|float|int|bool)\s+(?P<name>\w+)\s*(?::\s*\w+)?"
+        r'\s*<[^>]*?UIGroup = "(?P<group>[^"]+)"'
+    )
+    for m in re.finditer(pattern, text, re.MULTILINE | re.DOTALL):
+        kind, name, group = m.group("type"), m.group("name"), m.group("group")
+        if group == "Material Maps":
+            if kind == "Texture2D":
+                out[name] = "maps"
+        elif group in MATERIAL_GROUPS:
             out[name] = group
     return out
 
