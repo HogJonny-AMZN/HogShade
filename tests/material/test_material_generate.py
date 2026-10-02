@@ -254,10 +254,12 @@ def test_map_refuses_hlsl_words_and_broken_labels():
     hmap = _map()
     hmap["parameters"]["roughness"]["name"] = "float"
     hmap["parameters"]["metalness"]["label"] = 'Metal "ness" > 1'
+    hmap["parameters"]["ior"]["label"] = "Index <of Refraction"  # only <, so the old set (which lacked it) passes this
     hmap["parameters"]["normal_flip"]["components"][0]["name"] = "sampler"
     msgs = _findings(hmap)
     assert "roughness: name is an identifier and not an HLSL word, got 'float'" in msgs
     assert "metalness: label is a string without quotes or angle brackets" in msgs
+    assert "ior: label is a string without quotes or angle brackets" in msgs
     assert "normal_flip: component name is an identifier and not an HLSL word, got 'sampler'" in msgs
 
 

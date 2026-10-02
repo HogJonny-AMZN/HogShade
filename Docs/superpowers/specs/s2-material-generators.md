@@ -192,7 +192,10 @@ naming the shell.
   bounds, `UIOrder`), not the shell's hand-written variety; Maya reads annotations by name.
 - **`union_of()` and `EMISSION_FIELDS`** are the agreement check Copilot asked for on #34: shared parameters
   agree on `type`, `default`, `range`, `choices`, `colour_space`; `doc` and `strength` may differ.
-- **The human gate** ran on the headless worker, not the GUI one: the GUI worker crashed during the shader
+- **The human gate, met after the merge.** The owner restarted the orchestrator; the IBL check completed on the
+  fresh GUI worker and master's shell rendered in the same session is pixel-identical to the regenerated
+  shell's pictures (the committed September baseline differs by session state, not by shell). Before that:
+  the gate ran on the headless worker, not the GUI one: the GUI worker crashed during the shader
   load of the first job and the orchestrator did not restart it (the plan's task 6 says what was proven
   instead and what remains). The crash is unexplained; the same shell loads in the headless Maya with the
   same technique, attribute set and defaults as master's.

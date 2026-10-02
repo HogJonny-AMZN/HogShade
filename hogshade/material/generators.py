@@ -114,7 +114,7 @@ def _ident_ok(value: Any) -> bool:
 
 def _label_ok(value: Any) -> bool:
     """A UI label the annotation string can carry: non-empty, no quote, no angle bracket."""
-    return isinstance(value, str) and bool(value) and not any(ch in value for ch in '">\\')
+    return isinstance(value, str) and bool(value) and not any(ch in value for ch in '"<>\\')
 
 
 _RULE = "// " + "-" * 85 + " "

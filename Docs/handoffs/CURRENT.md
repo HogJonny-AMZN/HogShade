@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-01, late: S2 built (`feat/s2-material-generators`, [#35](https://github.com/HogJonny-AMZN/HogShade/pull/35) open) after #34 approved the spec; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-01, night: #35 (S2) merged, its Maya gate met after the owner restarted the orchestrator, the follow-up PR open; before that #34; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -9,6 +9,15 @@ A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 how much to decide alone.
 
 ## In flight
+
+**Sit rep, 2026-10-01 night.** S2 is merged (#35) and its one open gate is closed: the owner restarted the
+orchestrator (the kill switch, then `tools/bats/run_hogshade_orchestrator.bat`), the IBL check completed on
+the fresh GUI worker, and a job that rendered master's shell in the same session produced pixel-identical
+pictures to the regenerated shell's. The new pictures are the committed baseline (the September one differs
+by session state, 5 to 8 percent of pixels on silhouettes and highlights, which two in-session runs of one
+shell do not show). The follow-up PR carries that baseline, Copilot's two post-merge findings on #35 (the
+label rule's `<`, a board row), and S2 struck. Next: S3, the wgpu binding (spec first), or the standards PR;
+the owner picks. Icebox: a job sets and clears its own environment on the resident worker.
 
 **Sit rep, 2026-10-01 late.** S2 is built and #35 is open: `hogshade.material.generate("maya_dx11")`
 writes the shell's material block between markers from the legacy types' schema files and the host map
