@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-03: the gallery built, #43 open (stacked on #42); before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-03: #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -10,15 +10,13 @@ how much to decide alone.
 
 ## In flight
 
-**Sit rep, 2026-10-03.** The owner said "gallery", so it is built, as #43 stacked on #42 (the
-A/B board row, awaiting merge): the picture rule in `verification/README.md`, the manifest
-`verification/gallery.json`, `tools/generate_gallery.py` (`--check` in CI beside the material UI check,
-`--write` for the page), `Docs/gallery.md` generated, `tests/test_generate_gallery.py` with a finding
-per rule. Fourteen pictures are listed; the fifteenth, the wgpu `legacy-v1/metal` capture, came from a
-flag the S3 viewport retired and was removed rather than kept unreproducible. What the gallery still
-wants, as its own list on the page: the hero scene in every path (after G4), parallax with and without
-(a capture job), the S4a contact sheet. The S4 questions still wait on the owner; the A/B page is an Icebox
-row. The manual is unchanged, design-first.
+**Sit rep, 2026-10-03.** #42 and #43 are merged: the A/B page row sits in the Icebox (Copilot pointed at the
+board's own rule), and the gallery is in: `verification/README.md` carries the picture rule,
+`verification/gallery.json` the pictures that matter with the command that made each, `tools/generate_gallery.py
+--check` runs in CI, `Docs/gallery.md` is generated. A PR that changes a picture changes the page. The
+gallery's own wanted list is the next pictures: the hero scene in every path (after G4), parallax with and
+without (a capture job on the resident Maya worker), the S4a contact sheet. Nothing else is in flight. The
+owner's next call is the S4 answers (eight questions in the design); the manual stays design-first.
 
 **Sit rep, 2026-10-02, late night.** #40 merged: the S4 design is in with eight questions and the owner
 has not answered them yet; nothing of S4 is built until they do. The owner said two things worth more than
