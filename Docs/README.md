@@ -75,6 +75,9 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
   the same material to look the same in every host, and the gaps the first direction had.
 - [reference/material-types.md](reference/material-types.md): every material type's parameters, generated
   from the schema by `tools/generate_material_ui.py --write` and checked in CI; edit the schema, not the file.
+- [gallery.md](gallery.md): the pictures that are the proof, by need, with the pairs to compare; generated from
+  `verification/gallery.json` by `tools/generate_gallery.py --write` and checked in CI; the rule they obey is in
+  `verification/README.md`.
 - [design/2026-10-02-material-library.md](design/2026-10-02-material-library.md): the library of materials
   (S4, track F), Exploring: the base set as standard documents with a reverse conversion table, the
   roster of parents and children with sourced values, title and provenance in the document, the layout,
