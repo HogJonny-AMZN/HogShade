@@ -38,6 +38,15 @@ tests/test_check_content.py
 
 `textures.py`: the package exports no `textures` name (failure-modes entry 13).
 
+**Where a texture lives.** S1 refuses any `..` in a document's texture path, and a root passed to `load()`
+does not change the reference base, so a document under `content/materials/` cannot reach
+`content/textures/`. A set a document binds therefore lives **beside the document**:
+`content/materials/standard/<family>/<set>/T_<set>_BC.png`, bound by `<family>/<set>.material.json` as
+`<set>/T_<set>_BC.png`. `content/textures/<set>/` is for sets no document binds yet (the calibration
+tiles). Both are content roots; every rule below applies to each. The design's section 4 is amended by
+this. The clean scratch-corpus test loads a binding through S1 in this layout, so the first set is usable
+on arrival.
+
 ## The texture rules, as data
 
 `hogshade.material.textures`:
@@ -66,11 +75,11 @@ cook, validated by the check):
 | Field | Kind | Rule |
 | --- | --- | --- |
 | `preset` | derived | the suffix's; an override names `override_reason` |
-| `colour_space` | derived | the suffix's, which is the schema's for the parameter |
+| `colour_space` | derived | the suffix's, which is the schema's for the parameter; omitted means the suffix's (the **effective** colour space) |
 | `mips`, `runtime` | derived | the preset's |
 | `resolution` | derived | read from the file; the check compares when the file is readable (PNG header) |
 | `provenance` | **required** | `{"origin", "url", "licence", "fetched"}`, every value a non-empty string; `origin` is `"author"` or a source name |
-| `normal_convention` | **required for `_N`, `_DN`** | `"opengl+y"` or `"directx-y"`, the source's; the cooked output is always `opengl+y` |
+| `normal_convention` | **required for `_N`** | `"opengl+y"` or `"directx-y"`, the source's; the cooked output is always `opengl+y`. A derived `_DN` is the cook's and needs none |
 | `derived` | written by the cook | the list of fields it filled; informational |
 
 The check reads a sidecar with `json.loads`; a missing sidecar beside a texture is a finding, a malformed
@@ -82,17 +91,22 @@ one is a finding, and a derived field present but disagreeing with the suffix is
 `tools/check_content.py` (the shape of `generate_gallery.py`: `Finding(where, message)`, `--check` only,
 exit 1 on findings, counts in the log):
 
-- **content-name**: every image file under `content/textures/` (png, tif, tiff, exr, jpg) parses as
-  `T_<base>_<SUFFIX>[_<variant>]` with a suffix from `SUFFIXES` or `PACKED`; the base is `snake_case`.
-  A file under `cooked/` is exempt from the source rules and must be `.dds` with a name the cook wrote.
+- **content-name**: every image file under the content roots (png, tif, tiff, exr; a jpg, jpeg, bmp or tga
+  is a finding, not an authoring format) parses as `T_<base>_<SUFFIX>[_<variant>]` with a suffix from
+  `SUFFIXES` or `PACKED`; the base is `snake_case`. A file under `cooked/` (judged on the path relative to
+  the content root) is exempt from the source rules and must be `.dds` or the cook's manifest.
 - **content-sidecar**: every source texture has its sidecar with the required fields and consistent
   derived ones.
-- **content-binding**: every texture a material document under `content/materials/` binds (S1's `texture`
-  value) names a file whose suffix maps to the bound parameter (a `_N` bound to `base_color` is a finding)
-  and whose sidecar's `colour_space` equals the schema's for that parameter.
-- **content-table**: `textures.check_table()` is clean, and the standard's generated tables are current.
-- **content-licence**: every set directory under `content/textures/` carries a `LICENSE.md` (the IBL
-  pattern).
+- **content-binding**: every texture a **`hogshade-standard`** document under `content/materials/` binds
+  (S1's `texture` value) names a file whose suffix maps to the bound parameter (a `_N` bound to
+  `base_color` is a finding; a `_ORM` bound directly is a finding) and whose **effective** colour space,
+  the sidecar's when stated and the suffix's when omitted, equals the schema's for that parameter. The
+  suffix table is the standard's, so a document of another type (legacy v2's `normal_map`, say) is logged
+  at INFO with its bound-texture count and not held to it; a per-type table is a later increment if a
+  legacy document ever binds a texture. A positive test covers the legacy policy.
+- **content-table**: `textures.check_suffixes()` is clean (`check_table` is already the conversion tables'
+  name), and the standard's generated tables are current.
+- **content-licence**: every directory holding source textures carries a `LICENSE.md` (the IBL pattern).
 
 `tests/test_check_content.py` runs each on a scratch corpus (a test-built PNG, as `test_generate_gallery`
 does) and on the repository, which today has no `content/textures/` and so passes vacuously except for
