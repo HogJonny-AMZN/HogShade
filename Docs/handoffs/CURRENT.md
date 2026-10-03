@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-03: #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-03: the owner said "go" to the S4 design; it is Accepted with the eight answers, and the S4a spec and plan are drafted (`docs/s4a-spec`, PR open), the build next; before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -10,13 +10,16 @@ how much to decide alone.
 
 ## In flight
 
-**Sit rep, 2026-10-03.** #42 and #43 are merged: the A/B page row sits in the Icebox (Copilot pointed at the
-board's own rule), and the gallery is in: `verification/README.md` carries the picture rule,
-`verification/gallery.json` the pictures that matter with the command that made each, `tools/generate_gallery.py
---check` runs in CI, `Docs/gallery.md` is generated. A PR that changes a picture changes the page. The
-gallery's own wanted list is the next pictures: the hero scene in every path (after G4), parallax with and
-without (a capture job on the resident Maya worker), the S4a contact sheet. Nothing else is in flight. The
-owner's next call is the S4 answers (eight questions in the design); the manual stays design-first.
+**Sit rep, 2026-10-03, later.** The owner's "go" on the S4 design: the recommendations are the answers, written
+into the design under "The answers" (question 8, the getting-started page, had no recommendation and carries
+the agent's call: it waits for the manual's outline; the owner may pull it forward). The S4a spec and plan are
+drafted on `docs/s4a-spec`: twenty-two standard documents with sources under `content/materials/standard/`,
+the reverse table standard to legacy v2 (so the set renders in wgpu today; the losses it lists are C3's
+input), `title`/`doc`/`provenance` as optional document fields, the index as the material-UI tool's third
+output, `tools/wgpu/contact_sheet.py` as the human gate with a JSON legend (no font rasteriser in the repo).
+One known loss the table cannot state: the normal strength does not reach `bump_intensity`; a source-side
+`field` is left for S4b. The build starts on `feat/s4a-material-library` stacked on the spec branch, so the
+owner can amend the spec before or while it is built.
 
 **Sit rep, 2026-10-02, late night.** #40 merged: the S4 design is in with eight questions and the owner
 has not answered them yet; nothing of S4 is built until they do. The owner said two things worth more than

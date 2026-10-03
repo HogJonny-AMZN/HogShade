@@ -1,7 +1,9 @@
 # The library of materials (S4, track F): pre-spec design
 
-**Status:** Proposed (exploring). Drafted 2026-10-02 for the owner to lock; the questions at the end are the
-decisions, each with a recommendation. Nothing is built until it is locked, then S4 gets a spec and a plan.
+**Status:** Accepted. Drafted 2026-10-02 with a recommendation on each question; on 2026-10-03 the owner said
+"go" to the design as it stood, so the recommendations are the answers (recorded below, "The answers"), and
+S4a has a spec and a plan. A question with no recommendation (8) carries the agent's call, marked as such; the
+owner overrides any answer by saying so, and the spec amends.
 
 Date: 2026-10-02. Parent: [2026-09-27-material-schema.md](2026-09-27-material-schema.md), section 5 (locked),
 and the roadmap's track F. Decision: [ADR-009](../decisions/ADR-009-hogshade-owns-the-material-schema.md).
@@ -161,6 +163,32 @@ S4 at all; they arrive through the harness the gated-research row describes, aft
    at the risk of re-authoring? And the resolution: 2K in LFS (recommended) or 1K?
 8. **The getting-started page.** With S4 (the library makes it real), or after the comparison framework
    proves the set in every host?
+
+## The answers (2026-10-03)
+
+The owner's word was "go", one word for the eight, so each answer is the recommendation above; where the
+owner's own earlier words bear on it they are quoted.
+
+1. **Standard documents plus the reverse table.** "Whatever we make for HogShade will be the base standard
+   Material" (the parent design, question 4). The reverse table `hogshade-standard-to-hogshade-legacy-v2`
+   ships with S4a under S1's coverage rule; the set renders in wgpu through it; Maya waits on a Maya-side
+   `bind()`.
+2. **The six families and sixteen children** as listed. Skin, cloth with sheen, glass and anything needing
+   transmission or a coat layer are named deferred to the standard version that carries them, not faked.
+3. **Published values with the source on each document.** Metals from the Lagarde and de Rousiers (2014)
+   reflectance table, rounded to two decimals; dielectric indices as published; roughness and colour choices
+   the author's, and the provenance says which is which.
+4. **`title`, `doc` and `provenance` as optional top-level document fields**, validated for shape, ignored by
+   resolution (not inherited), read by the index generator and the contact sheet.
+5. **`content/materials/standard/<family>/` with `base.material.json` inside each family**; S3's three legacy
+   documents stay as the hosts' smoke documents.
+6. **The wgpu contact sheet is the human gate**: `tools/wgpu/contact_sheet.py` renders every standard
+   document through the reverse table into `verification/wgpu/library/contact-sheet.png`, listed in the
+   gallery.
+7. **The texture set after track E's conventions, at 2K in LFS** (S4b).
+8. **The getting-started page is the manual's first chapter and waits for the manual's outline** (the board's
+   `Docs/manual/` row, design-first): not in S4a. The agent's call, since no recommendation was offered; the
+   owner may pull it forward.
 
 ## Increments (each its own spec and plan once this is locked)
 

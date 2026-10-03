@@ -44,6 +44,7 @@ travels between the repos under one vocabulary.
 | **Document** | A `*.material.json` as a file on disk, before or after resolution; the library's `load()` returns it raw. |
 | **Resolved** | A Material with its parent chain followed and every default applied: the full parameter set the library's `resolve()` returns and `bind()` consumes. |
 | **Finding** | One problem `validate()` reports: the document's path, the parameter (empty for the document itself) and a message. A finding never raises; a file that cannot be used at all is a `MaterialError`. |
+| **Provenance** | The optional `provenance` list of a Document: `{"source", "note"}` per origin of its constants, a publication, a URL or `"author"`, with which values it covers and how (rounded, converted, chosen). Validated for shape, never inherited; the library's index shows it (S4a). |
 | **Loss** | A parameter a conversion dropped and the table's reason, returned beside the converted Document by `convert()`. |
 | **Host map** | A per-host JSON file beside the schema (`hogshade/material/hosts/<host>.json`) carrying only what the schema does not know for one host: identifiers, labels, UI orders, groups. A value the schema knows is a finding in the map. The generator joins schema and map. |
 | **Consulted** | A source parameter a conversion table's `when` condition reads without mapping it: it shapes the output, so it is neither a mapping nor a Loss. The coverage rule counts it as covered. |
