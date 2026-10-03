@@ -1,9 +1,10 @@
 # The library of materials (S4, track F): pre-spec design
 
-**Status:** Accepted. Drafted 2026-10-02 with a recommendation on each question; on 2026-10-03 the owner said
-"go" to the design as it stood, so the recommendations are the answers (recorded below, "The answers"), and
-S4a has a spec and a plan. A question with no recommendation (8) carries the agent's call, marked as such; the
-owner overrides any answer by saying so, and the spec amends.
+**Status:** Accepted. Drafted 2026-10-02 with a recommendation on seven of the eight questions; on 2026-10-03
+the owner said "go" to the design as it stood, so those seven recommendations are the owner's answers (recorded
+below, "The answers"), and S4a has a spec and a plan. Question 8 had no recommendation: its answer is the
+agent's call, proposed separately and marked as such, not the owner's. The owner overrides any answer by
+saying so, and the spec amends.
 
 Date: 2026-10-02. Parent: [2026-09-27-material-schema.md](2026-09-27-material-schema.md), section 5 (locked),
 and the roadmap's track F. Decision: [ADR-009](../decisions/ADR-009-hogshade-owns-the-material-schema.md).
@@ -166,8 +167,9 @@ S4 at all; they arrive through the harness the gated-research row describes, aft
 
 ## The answers (2026-10-03)
 
-The owner's word was "go", one word for the eight, so each answer is the recommendation above; where the
-owner's own earlier words bear on it they are quoted.
+The owner's word was "go", one word for the design, so answers 1 to 7 are the recommendations above, the
+owner's by that word; where the owner's own earlier words bear on one they are quoted. Answer 8 is not the
+owner's: it had no recommendation to accept, and the agent proposes it below, marked.
 
 1. **Standard documents plus the reverse table.** "Whatever we make for HogShade will be the base standard
    Material" (the parent design, question 4). The reverse table `hogshade-standard-to-hogshade-legacy-v2`

@@ -20,8 +20,8 @@ conversion table, `hogshade-standard` to `hogshade-legacy-v2`, under S1's covera
 `convert(resolve(doc), "hogshade-legacy-v2")` feeds S3's `bind()`. A document may carry a `title`, a `doc`
 and a `provenance`, validated for shape. The library's index page is generated and checked in CI like the
 material reference. A contact sheet of the whole set, one picture, is the human gate and the gallery's
-newest row. Between them the children set every factor-bearing parameter of the standard type, and a test
-says so: the library is the schema's test data.
+newest row. Between them the documents, parents and children, set every factor-bearing parameter of the
+standard type, and a test says so: the library is the schema's test data.
 
 ## Package and content layout
 
@@ -82,10 +82,18 @@ transforms. The shape, non-normative:
 | `specular_color` | dropped | v2 tints F0 only through `specular_f0_map`, a texture; a constant colour has no image |
 | `specular_anisotropy`, `specular_rotation`, `specular_occlusion` | dropped | the 2017 model has no anisotropy and no specular occlusion term |
 
-Known loss the table cannot state: the standard's normal `strength` does not reach `bump_intensity`, because
-a table entry maps a parameter, not a field of one, and `geometry_normal` is already mapped. S4a records it
-here and in `content/materials/README.md`; a `field` on the source side of an entry is a conversion-module
-change for the increment that first needs it (the texture set, S4b).
+Losses the table cannot state, recorded here and on the index (`content/materials/README.md`), both
+scheduled with the texture set (S4b), the first increment that binds a texture:
+
+- The standard's normal `strength` does not reach `bump_intensity`: a table entry maps a parameter, not a
+  field of one, and `geometry_normal` is already mapped. A `field` on the source side of an entry is the
+  conversion-module change.
+- The standard's mask cuts at 0.5; legacy v2 cuts at `opacity_mask_bias`, default 0.1, and the table cannot
+  set it: `alpha_mode` already carries its one entry per condition (`use_cutout_alpha`), and a source may not
+  carry two entries for one condition. With no opacity texture (every S4a document) the coverage is the same;
+  an opacity texture in S4b would cut differently. The fix is either a second target per condition in the
+  entry shape or a constant on the table's target side; S4b decides, since it is the increment that can see
+  the difference.
 
 The losses are a result, not a defect: they are the standard parameters no legacy host can show, which C3
 needs listed.
@@ -167,8 +175,12 @@ table and differs from the dielectric parent.
   the index; `tools/generate_gallery.py --check` current with the contact sheet listed; `check_docs.py`,
   `check_hygiene.py` clean.
 - On the owner's GPU: `uv run tools/wgpu/contact_sheet.py` writes the sheet; it is read by a human (the gate
-  the Maya check set) and the PR says what was seen: the metals tell apart, gold is gold, the emissive panel
-  is bright, the leaf renders (opacity 1 under mask).
+  the Maya check set) and the PR says what was seen: the metals tell apart, gold is gold, the leaf renders
+  (opacity 1 under mask). Not on this host: emission. The wgpu host map marks `emission_color` and
+  `emission_intensity` unsupported and `hosts/wgpu/common.wgsl` feeds zero emissive, so the emissive parent
+  and the panel render alike, as their dark base colour; the sheet's caption says so, and the emission test
+  is the document's (800 nits convert to intensity 8). Emission in wgpu is a host change outside S4a; Maya
+  carries emission and the comparison framework's sheet will show it.
 
 ## Out of scope
 
