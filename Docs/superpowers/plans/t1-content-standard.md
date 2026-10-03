@@ -33,4 +33,4 @@ with it.
 | 4 | `Docs/standards/content.md` in the spec's order (what for, textures: name, sidecar, authoring and runtime sets, sources, tangents and detail maps; materials; lighting; rendering and capture; the checks table), the owner's two answers named; `AGENTS.md` (reading order and topic table), `Docs/README.md` (standards line and the task table), `.github/copilot-instructions.md` (item 8), five glossary rows (Sidecar, Preset, Authoring set, Runtime set, Detail map); `.gitattributes` tracks PNG and TIFF under both content roots in LFS (`git check-attr` on a family path says `lfs`); `check_docs.py` clean |
 | 5 | This table; the spec's amendments; board; docs map; handoff; journal |
 
-Totals: `uv run pytest -o addopts= -q` 461 passed on the owner's machine.
+Totals: `uv run pytest -o addopts= -q` 465 passed on the owner's machine (after the review rounds).

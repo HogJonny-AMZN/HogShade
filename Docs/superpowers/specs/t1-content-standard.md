@@ -186,9 +186,10 @@ set**, **Runtime set**, **Detail map**.
 - The sidecar's `resolution`, when stated, is compared with the PNG header (the gallery's reader); other
   formats are not read.
 - The content-binding check locates a bound texture relative to the document (the texture string is
-  document-relative, S1) and does not apply the name or licence rules to it: those are the textures
-  directory's. A test says so. A document that binds a `_ORM` directly is a finding: the packed form is the
-  cook's output, never an authoring input.
+  document-relative, S1). Since the placement amendment below, a bound set is under a content root, so the
+  name, sidecar and licence rules reach it as well; a test says so (this sentence first said the opposite,
+  before the second review round). A document that binds a `_ORM` directly is a finding: the packed form
+  is the cook's output, never an authoring input.
 - The CI step is "Content", after "Gallery"; PNG and TIFF under both content roots are LFS from now (the
   second review round: a bound set under `content/materials/` must be tracked too), so the first set lands
   tracked wherever it lives.
