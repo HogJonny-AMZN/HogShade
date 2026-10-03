@@ -23,7 +23,8 @@ the phase 2 standards pass; until then these pointers are the contract.)
 6. [Docs/glossary.md](Docs/glossary.md): the canonical vocabulary. Use these exact words, no synonyms; a
    retired term fails `tools/check_docs.py`.
 7. [Docs/standards/python.md](Docs/standards/python.md) and [Docs/standards/wgsl.md](Docs/standards/wgsl.md)
-   before writing code; [Docs/decisions/README.md](Docs/decisions/README.md) before a structural change;
+   before writing code; [Docs/standards/content.md](Docs/standards/content.md) before adding a texture, a
+   material, a light rig or a capture; [Docs/decisions/README.md](Docs/decisions/README.md) before a structural change;
    [Docs/standards/failure-modes.md](Docs/standards/failure-modes.md) when something goes wrong in the process,
    and append to it in the same PR.
 
@@ -36,6 +37,7 @@ the phase 2 standards pass; until then these pointers are the contract.)
 | The journal: why, cadence, entry format, the `→ BATS:` line | [Docs/journal/README.md](Docs/journal/README.md) |
 | The vocabulary, one word per concept, retired terms struck through | [Docs/glossary.md](Docs/glossary.md) |
 | Coding standards, Python and WGSL | [Docs/standards/python.md](Docs/standards/python.md), [Docs/standards/wgsl.md](Docs/standards/wgsl.md) |
+| Content standards: texture names and sidecars, materials, lighting, rendering, for humans and agents | [Docs/standards/content.md](Docs/standards/content.md) |
 | The decisions, as ADRs | [Docs/decisions/README.md](Docs/decisions/README.md) |
 | How the process has failed here, as triggers | [Docs/standards/failure-modes.md](Docs/standards/failure-modes.md) |
 | Generated hosts and what to call in the core | [hosts/README.md](hosts/README.md), [hosts/hlsl/README.md](hosts/hlsl/README.md), [hosts/wgpu/README.md](hosts/wgpu/README.md) |

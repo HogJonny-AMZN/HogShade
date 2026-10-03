@@ -1,8 +1,7 @@
 # T1 spec: the content standard and its check
 
-**Status:** Proposed. Drafted 2026-10-03 from the accepted conventions design (the owner's "go" of the same
-day); built on `feat/t1-content-standard` once this is merged. Amendments made in the build go in the last
-section.
+**Status:** Accepted. Drafted 2026-10-03 from the accepted conventions design (the owner's "go" of the same
+day) as #50, built the same night on `feat/t1-content-standard`; the build's amendments are the last section.
 
 Date: 2026-10-03. Design:
 [../../design/2026-10-03-content-conventions.md](../../design/2026-10-03-content-conventions.md), "The shape
@@ -161,6 +160,38 @@ set**, **Runtime set**, **Detail map**.
 - Lighting and rendering rules not yet decided by track E: the standard says "undecided" rather than
   deciding.
 
-## Amendments made in the build
+## Amendments made in the build (2026-10-03)
 
-(none yet)
+- **A set lives beside the material that binds it.** The spec and the design placed sets under
+  `content/textures/<set>/`, but S1 refuses any `..` in a document's texture path, so no document under
+  `content/materials/` could bind a texture there: the placement rule and the binding rule could not both
+  hold (the pre-PR review). Decided: a bound set is a sub-directory of the family that owns it,
+  `content/materials/standard/<family>/<set>/`, bound as `<set>/T_<set>_BC.png`; `content/textures/<set>/`
+  stays for sets no document binds yet (the calibration tiles). The content roots are both; the name,
+  sidecar and licence rules apply to each; the licence is per directory of source textures. The design's
+  section 4 is amended by reference.
+- The binding check holds `hogshade-standard` documents only (the suffix table is the standard's); a document
+  of another type with bound textures is logged at INFO and not judged. `cooked/` is recognised on the path
+  relative to the content root, not the absolute path (a checkout under a directory named `cooked` is fine).
+  An LFS pointer where a PNG should be logs the resolution as unverified (CI's checkout). A JPEG, BMP or TGA
+  anywhere under the content roots is a finding: not an authoring format. A sidecar's stated `resolution`
+  may not be a bool; a partial `runtime` object agrees key by key; a derived `_DN` needs no author-stated
+  convention, it is the cook's.
+- The table check is `check_suffixes()`, not `check_table()`: the package already exports
+  `conversion.check_table`, and one name for two checks would be the synonym drift the glossary forbids.
+  `parameter_of(suffix)` was added so the binding check can ask which parameter a suffix is without
+  reaching into the table.
+- `parse_name` returns a `TextureName` for any stem that meets the grammar, with `known` saying whether the
+  suffix is in the tables; the check reports "not the grammar" and "unknown suffix" as different findings.
+- The sidecar's `resolution`, when stated, is compared with the PNG header (the gallery's reader); other
+  formats are not read.
+- The content-binding check locates a bound texture relative to the document (the texture string is
+  document-relative, S1). Since the placement amendment below, a bound set is under a content root, so the
+  name, sidecar and licence rules reach it as well; a test says so (this sentence first said the opposite,
+  before the second review round). A document that binds a `_ORM` directly is a finding: the packed form
+  is the cook's output, never an authoring input.
+- The CI step is "Content", after "Gallery"; PNG and TIFF under both content roots are LFS from now (the
+  second review round: a bound set under `content/materials/` must be tracked too), so the first set lands
+  tracked wherever it lives.
+- `.github/copilot-instructions.md` gains item 8, the content rules, so Copilot reviews a texture PR against
+  the same page.

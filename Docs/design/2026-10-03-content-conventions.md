@@ -134,7 +134,11 @@ sidecar's agree, so a wrong colour space fails in CI rather than in a viewport.
 
 ### 4. The authoring set and the runtime set, one cook
 
-`content/textures/<set>/` holds the authoring set: one map per parameter, PNG or 16-bit TIFF, EXR for
+*Amended by T1 (2026-10-03): a set a document binds lives beside that document,
+`content/materials/standard/<family>/<set>/`, because S1 refuses `..` in a texture path; `content/textures/<set>/`
+is for sets no document binds yet. The T1 spec's amendments say why.*
+
+`content/textures/<set>/` (or the family's `<set>/`) holds the authoring set: one map per parameter, PNG or 16-bit TIFF, EXR for
 height when it needs range, 2K, in LFS, with `LICENSE.md` on the IBL pattern and the sidecars.
 `tools/cook_textures.py` (a BATS job like the IBL cook) produces the runtime set beside it under
 `cooked/`: packed `_ORM`, BC-compressed DDS, mips generated in linear space, normals in the stated
