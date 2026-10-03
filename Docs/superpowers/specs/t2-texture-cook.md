@@ -89,7 +89,12 @@ written and the encoder; the manifest's `runtime.format` is the truth a host rea
 table says "BC7, or uncompressed until the encoder is present". The library the spike picks is a second
 `Encoder` behind the same seam, its own small increment; the owner's requirement for it is that it runs on
 the BATS Python worker (Python with bindings, or Python made fast), so the seam takes a callable, never only
-a subprocess.
+a subprocess. The leading candidate is Intel's ISPC Texture Compressor through `ispc_texcomp` (K0lb3's MIT
+binding on PyPI, found by the owner): `compress_blocks_bc7(RGBASurface, BC7EncSettings)`, `_bc5`, `_bc4`
+return the blocks as `bytes`, so the seam's second shape is `encode_blocks(rgba, width, height, block_format)
+-> bytes` and `dds.write_2d` gains a block-compressed form (`write_2d_blocks(path, block_mips, dxgi_format)`,
+the DXGI BC formats with the block pitch in the header). The spike confirms speed, quality against `texconv`,
+determinism and the Linux wheel before it becomes the default.
 
 The sidecar: the cook fills every derived field it has authority over (`preset`, `colour_space`, `mips`,
 `runtime` with the format actually written, `resolution`) when absent, lists them under `derived`, and
@@ -197,7 +202,8 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
    it is on the machine (recommended: no encoder in the repository, the manifest says what was written,
    the hosts read either), or make an encoder a required tool and refuse to cook without it? The owner is
    choosing the library by an evaluation spike (2026-10-04, `Spikes/bc_encode/`, the board's row); it lands
-   behind the seam. The owner's bar: it runs on the BATS Python worker.
+   behind the seam. The owner's bar: it runs on the BATS Python worker. The owner's find, `ispc_texcomp`,
+   meets the bar on paper (a Python module, MIT, on PyPI) and leads the spike.
 
 ## Amendments made in the build
 
