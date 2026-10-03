@@ -64,7 +64,7 @@ Maps a document never binds directly (the cook's packed form, the derived detail
 | `_DN` | detail normal, derived by the cook (the high frequency of a normal map) | raw | BC5 |
 | `_DH` | detail high-pass colour, derived by frequency separation; mid-grey neutral | raw | BC7 |
 
-Sidecar fields: derived from the suffix when absent: `preset`, `colour_space`, `mips`, `runtime`, `resolution`; required of the author: `provenance` (`origin`, `url`, `licence`, `fetched`) on every texture, `normal_convention` on a normal map; `override_reason` when a derived field is set against the suffix; `derived` listed by the cook.
+Sidecar fields: derived from the suffix when absent: `preset`, `colour_space`, `mips`, `runtime`, `resolution`; required of the author: `provenance` (`origin`, `url`, `licence`, `fetched`) on every texture, `normal_convention` on an authored `_N` (a derived `_DN` is the cook's); `override_reason` when a derived field is set against the suffix; `derived` listed by the cook.
 <!-- END hogshade.material.textures generated -->
 
 A map that is **not a parameter** (the packed runtime form, the derived detail pair) has its own suffix
@@ -84,9 +84,9 @@ check (O3DE's `.assetinfo` idea: a preset per suffix, overridable with a reason)
   suffix is a finding unless `override_reason` says why. The cook lists the fields it filled under
   `derived`.
 - **Required of the author**, because no suffix can know them: `provenance` (`origin`, `url`, `licence`,
-  `fetched`; `origin` is `"author"` or the source's name) on every texture, and `normal_convention` on a
-  `_N` or `_DN` (`opengl+y` or `directx-y`, **the source's**; the cook flips a DirectX source and records
-  it). A normal map with no stated convention is a finding, never a guessed flip: a guessed flip is the
+  `fetched`; `origin` is `"author"` or the source's name) on every texture, and `normal_convention` on an
+  authored `_N` (`opengl+y` or `directx-y`, **the source's**; the cook flips a DirectX source and records
+  it; a derived `_DN` is the cook's, always `opengl+y`, and needs none). A normal map with no stated convention is a finding, never a guessed flip: a guessed flip is the
   silent mismatch this page exists to end.
 
 ```json
@@ -118,7 +118,9 @@ BC-compressed DDS, mips generated in linear space, normals as `opengl+y`, with `
 (deterministic: parameters, sha256 of inputs and outputs) and `provenance.json` (volatile). **No host
 converts a texture at load**; every host reads the cooked set, as no host convolves its own IBL. The
 runtime set is reproducible from the authoring set alone. Until T2 lands there is no cooked set, and the
-check only insists that anything under `cooked/` is DDS or a manifest. On a checkout without LFS payloads
+check only insists that anything under `cooked/` is DDS, `manifest.json` or `provenance.json`, and that no
+packed or derived map (`_ORM`, `_DN`, `_DH`) sits outside it. A source wider than 2048 on a side is a
+finding (the sidecar's `resolution` and the PNG header both). On a checkout without LFS payloads
 (CI), a PNG is a pointer and the sidecar's stated resolution is logged as unverified, not judged.
 
 Colour spaces: sRGB for base colour and emission only (`_BC`, `_E`); everything else raw. Mips are
@@ -178,8 +180,8 @@ board's comparison-framework row and **undecided** until that design.
 | Check | Holds |
 | --- | --- |
 | `check_content.py` content-table | the suffix table covers the schema's texturable parameters exactly, with the schema's colour spaces |
-| `check_content.py` content-name | every image under `content/materials/` and `content/textures/` is an authoring format named `T_<snake_case>_<SUFFIX>[_<variant>]` with a known suffix; `cooked/` holds DDS or a manifest |
-| `check_content.py` content-sidecar | every source texture has its sidecar: provenance, a normal map's convention, no derived field contradicting the suffix without a reason, a stated resolution matching the PNG |
+| `check_content.py` content-name | every file under `content/materials/` and `content/textures/` that is not a record is an authoring format (lower-case extension) named `T_<snake_case>_<SUFFIX>[_<variant>]` with a parameter suffix; packed and derived maps only under `cooked/`, which holds DDS, `manifest.json` or `provenance.json` |
+| `check_content.py` content-sidecar | every source texture has its sidecar: provenance, an authored normal map's convention, no derived field contradicting the suffix without a reason, a stated resolution matching the PNG and within the 2K budget |
 | `check_content.py` content-binding | a `hogshade-standard` document binds a file whose suffix is the bound parameter's; the sidecar's colour space is the schema's; a document of another type is logged, not held |
 | `check_content.py` content-licence | every directory holding source textures carries `LICENSE.md` |
 | `generate_material_ui.py --check` | the tables above are current with `hogshade/material/textures.py` |

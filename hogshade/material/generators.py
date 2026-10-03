@@ -697,7 +697,8 @@ def content_tables() -> str:
         + ", ".join(f"`{k}`" for k in SIDECAR_DERIVED)
         + "; required of the author: `provenance` ("
         + ", ".join(f"`{k}`" for k in PROVENANCE_FIELDS)
-        + ") on every texture, `normal_convention` on a normal map; `override_reason` when a derived field is set"
+        + ") on every texture, `normal_convention` on an authored `_N` (a derived `_DN` is the cook's); "
+        "`override_reason` when a derived field is set"
         " against the suffix; `derived` listed by the cook.",
         "",
     ]

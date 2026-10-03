@@ -113,12 +113,58 @@ def test_a_misnamed_file_and_an_unknown_suffix_are_found(corpus: Path):
     assert "content-name: content/textures/grid/T_grid_XX.png: suffix '_XX' is not in the tables" in msgs
 
 
-def test_a_jpeg_is_not_an_authoring_format(corpus: Path):
+def test_a_jpeg_a_webp_and_an_upper_case_png_are_findings(corpus: Path):
     tex = corpus / "content" / "textures" / "grid"
     (tex / "T_grid_R.jpg").write_bytes(b"\xff\xd8\xff")
+    (tex / "T_grid_M.webp").write_bytes(b"RIFF")
+    _png(tex / "T_grid_AO.PNG", 8, 8)
+    _json(tex / "T_grid_AO.texture.json", {"provenance": PROVENANCE})
     msgs = _messages(corpus)
     assert any(
-        m.startswith("content-name: content/textures/grid/T_grid_R.jpg: .jpg is not an authoring format") for m in msgs
+        m.startswith("content-name: content/textures/grid/T_grid_R.jpg: '.jpg' is not an authoring format")
+        for m in msgs
+    )
+    assert any(
+        m.startswith("content-name: content/textures/grid/T_grid_M.webp: '.webp' is not an authoring format")
+        for m in msgs
+    )
+    assert (
+        "content-name: content/textures/grid/T_grid_AO.PNG: extension '.PNG' is upper-case; "
+        "LFS patterns are case-sensitive" in msgs
+    )
+    assert not any("T_grid_AO.PNG" in m and m.startswith("content-sidecar") for m in msgs), "not a source texture"
+
+
+def test_a_packed_or_derived_map_outside_cooked_is_a_finding(corpus: Path):
+    tex = corpus / "content" / "textures" / "grid"
+    _png(tex / "T_grid_ORM.png", 8, 8)
+    _json(tex / "T_grid_ORM.texture.json", {"provenance": PROVENANCE})
+    msgs = _messages(corpus)
+    assert (
+        "content-name: content/textures/grid/T_grid_ORM.png: _ORM is the cook's output; "
+        "it lives under cooked/, never authored" in msgs
+    )
+    assert len(check_content.source_textures(corpus)) == 3, "not counted as a source"
+
+
+def test_a_sidecar_that_is_not_utf8_or_not_an_object_is_a_finding(corpus: Path):
+    tex = corpus / "content" / "textures" / "grid"
+    _png(tex / "T_grid_R.png", 8, 8)
+    (tex / "T_grid_R.texture.json").write_bytes(b"\xff\xfe{}")
+    _png(tex / "T_grid_M.png", 8, 8)
+    (tex / "T_grid_M.texture.json").write_text("[]", encoding="utf-8")
+    msgs = _messages(corpus)
+    assert any(m.startswith("content-sidecar: content/textures/grid/T_grid_R.texture.json: not UTF-8") for m in msgs)
+    assert "content-sidecar: content/textures/grid/T_grid_M.texture.json: a sidecar is a JSON object, not list" in msgs
+
+
+def test_a_png_over_the_budget_is_a_finding(corpus: Path):
+    tex = corpus / "content" / "textures" / "grid"
+    _png(tex / "T_grid_H.png", 4096, 4)
+    _json(tex / "T_grid_H.texture.json", {"provenance": PROVENANCE})
+    assert (
+        "content-sidecar: content/textures/grid/T_grid_H.png: 4096x4 exceeds the repository budget of 2048"
+        in _messages(corpus)
     )
 
 
@@ -159,7 +205,8 @@ def test_a_cooked_file_that_is_not_dds_is_found(corpus: Path):
     (cooked / "T_grid_ORM.dds").write_bytes(b"DDS ")
     (cooked / "manifest.json").write_text("{}", encoding="utf-8")
     assert _messages(corpus) == [
-        "content-name: content/textures/grid/cooked/T_grid_ORM.png: a cooked file is dds, or the manifest"
+        "content-name: content/textures/grid/cooked/T_grid_ORM.png: a cooked file is dds, or one of "
+        "('manifest.json', 'provenance.json')"
     ]
 
 
@@ -213,7 +260,7 @@ def test_bindings_are_held_to_the_suffix_and_the_schema(tmp_path: Path):
                 "base_color": {"texture": "tex/T_wall_N.png"},
                 "emission_color": {"texture": "tex/T_wall_BC.png"},
                 "ambient_occlusion": {"texture": "tex/T_wall_ORM.png"},
-                "cavity": {"texture": "tex/T_wall_C.png"},
+                "cavity": {"texture": "tex/T_wall_C.webp"},
                 "height": {"texture": "tex/wall_H.png"},
             },
             "provenance": [{"source": "author", "note": "every value"}],
@@ -233,7 +280,8 @@ def test_bindings_are_held_to_the_suffix_and_the_schema(tmp_path: Path):
     assert (
         f"content-binding: {where}:ambient_occlusion: binds a _ORM map, which a document never binds directly" in msgs
     )
-    assert f"content-binding: {where}:cavity: 'tex/T_wall_C.png' does not exist" in msgs
+    assert f"content-binding: {where}:cavity: binds 'tex/T_wall_C.webp', not an authoring format" in msgs
+    assert f"content-binding: {where}:cavity: 'tex/T_wall_C.webp' does not exist" in msgs
     assert f"content-binding: {where}:height: binds 'tex/wall_H.png', not a texture of this repository" in msgs
     # a set beside a document is a content root too: the licence rule reaches it
     assert any(m.startswith("content-licence: content/materials/standard/rough/tex:") for m in all_msgs)

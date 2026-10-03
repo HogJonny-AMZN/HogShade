@@ -286,12 +286,17 @@ def test_write_is_idempotent(tmp_path, monkeypatch):
     shell = tmp_path / "hogshade.fx"
     shell.write_text(SHELL.read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
     reference = tmp_path / "material-types.md"
+    index_page = tmp_path / "README.md"
+    standard = tmp_path / "content.md"
+    standard.write_text(tool.STANDARD.read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
     monkeypatch.setattr(tool, "SHELL", shell)
     monkeypatch.setattr(tool, "REFERENCE", reference)
+    monkeypatch.setattr(tool, "INDEX", index_page)
+    monkeypatch.setattr(tool, "STANDARD", standard)
     tool.write()
-    once = shell.read_bytes(), reference.read_bytes()
+    once = shell.read_bytes(), reference.read_bytes(), index_page.read_bytes(), standard.read_bytes()
     tool.write()
-    assert (shell.read_bytes(), reference.read_bytes()) == once
+    assert (shell.read_bytes(), reference.read_bytes(), index_page.read_bytes(), standard.read_bytes()) == once
     assert tool.check() == []
     shell.write_text("no markers here\n", encoding="utf-8")
     assert tool.main(["--check"]) == 2

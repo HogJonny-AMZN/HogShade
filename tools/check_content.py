@@ -9,16 +9,17 @@ Checks (the T1 spec):
 
 - **content-table**: the suffix table in ``hogshade.material.textures`` covers the schema's texturable
   parameters exactly, with the schema's colour spaces
-- **content-name**: every image under the content roots (``content/materials/``, ``content/textures/``) is an
-  authoring format named ``T_<snake_case>_<SUFFIX>[_<variant>]`` with a known suffix; a file under a
-  ``cooked/`` directory is DDS or a manifest
+- **content-name**: every file under the content roots (``content/materials/``, ``content/textures/``) that is
+  not a record (a sidecar, a document, a README, a licence) is an authoring format with a lower-case extension,
+  named ``T_<snake_case>_<SUFFIX>[_<variant>]`` with a parameter suffix (a packed or derived suffix is the
+  cook's and lives under ``cooked/``); a file under ``cooked/`` is DDS, the manifest or the provenance record
 - **content-sidecar**: every source texture has ``<stem>.texture.json`` beside it, well formed, with its
-  provenance, its normal convention when it is a normal map, and no derived field contradicting the suffix
-  without a reason; a stated resolution matches the PNG header when the PNG is present (an LFS pointer is
-  logged as unverified, which is CI's checkout)
+  provenance, its normal convention when it is an authored normal map, and no derived field contradicting the
+  suffix without a reason; a stated resolution matches the PNG header when the PNG is present (an LFS pointer
+  is logged as unverified, which is CI's checkout); a PNG wider than the 2K budget is a finding
 - **content-binding**: every texture a ``hogshade-standard`` document under ``content/materials/`` binds names
-  a file whose suffix maps to the bound parameter and whose sidecar's colour space is the schema's; a document
-  of another type is logged and not held to the standard's table
+  a file in an authoring format whose suffix maps to the bound parameter and whose sidecar's colour space is
+  the schema's; a document of another type is logged and not held to the standard's table
 - **content-licence**: every directory holding source textures carries a ``LICENSE.md``
 
 A texture a document binds lives beside or below the document (S1 refuses ``..`` in a texture path), so a
@@ -44,9 +45,13 @@ from hogshade.material import MaterialError, load, type_of
 from hogshade.material.library import documents_under
 from hogshade.material.textures import (
     AUTHORING_FORMATS,
-    IMAGE_FORMATS,
+    MAX_RESOLUTION,
+    NON_TEXTURE_SUFFIXES,
+    PACKED,
     RUNTIME_CONTAINER,
+    SIDECAR_SUFFIX,
     STANDARD,
+    SUFFIXES,
     check_sidecar,
     check_suffixes,
     parameter_of,
@@ -54,14 +59,13 @@ from hogshade.material.textures import (
 )
 
 _MODULE_NAME = "tools.check_content"
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __updated__ = "2026-10-03"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 #: Where textures live: beside the material that binds them, or in a set no document binds yet.
 CONTENT_ROOTS = ("content/materials", "content/textures")
 MATERIALS = "content/materials"
-SIDECAR_SUFFIX = ".texture.json"
 COOKED_DIR = "cooked"
 COOKED_EXTRA = ("manifest.json", "provenance.json")
 _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
@@ -102,27 +106,34 @@ def _is_cooked(path: Path, base: Path) -> bool:
     return COOKED_DIR in path.relative_to(base).parts
 
 
+def _is_record(path: Path) -> bool:
+    """A file beside textures that is not a texture: a sidecar, a material document, a README or a licence."""
+    return path.name.endswith(NON_TEXTURE_SUFFIXES)
+
+
 def image_files(root: Path) -> list[Path]:
-    """Every image file under the content roots, outside any ``cooked/`` directory, in any image format."""
+    """
+    Every texture candidate under the content roots, outside any ``cooked/`` directory: every file that is not a
+    record, whatever its extension, so an unsupported format cannot slip past the checks by being unlisted.
+    """
     out: list[Path] = []
     for rel in CONTENT_ROOTS:
         base = root / rel
         if not base.is_dir():
             continue
-        out += [
-            p for p in base.rglob("*") if p.is_file() and p.suffix.lower() in IMAGE_FORMATS and not _is_cooked(p, base)
-        ]
+        out += [p for p in base.rglob("*") if p.is_file() and not _is_record(p) and not _is_cooked(p, base)]
     return sorted(out)
 
 
+def _is_source(path: Path) -> bool:
+    """An authoring-format file (lower-case extension), named to the grammar, with a parameter suffix (not packed)."""
+    name = parse_name(path.stem)
+    return path.suffix in AUTHORING_FORMATS and name is not None and name.suffix in SUFFIXES
+
+
 def source_textures(root: Path) -> list[Path]:
-    """The image files that are in an authoring format and named to the grammar with a known suffix."""
-    out = []
-    for p in image_files(root):
-        name = parse_name(p.stem)
-        if p.suffix.lower() in AUTHORING_FORMATS and name is not None and name.known:
-            out.append(p)
-    return out
+    """The candidates that are source textures: authoring format, the grammar, a parameter suffix."""
+    return [p for p in image_files(root) if _is_source(p)]
 
 
 def check_table() -> list[Finding]:
@@ -136,13 +147,23 @@ def check_names(root: Path) -> list[Finding]:
     out: list[Finding] = []
     for path in image_files(root):
         where = _rel(path, root)
-        if path.suffix.lower() not in AUTHORING_FORMATS:
-            out.append(Finding("content-name", where, f"{path.suffix} is not an authoring format {AUTHORING_FORMATS}"))
+        if path.suffix not in AUTHORING_FORMATS:
+            if path.suffix.lower() in AUTHORING_FORMATS:
+                message = f"extension {path.suffix!r} is upper-case; LFS patterns are case-sensitive"
+            else:
+                message = f"{path.suffix!r} is not an authoring format {AUTHORING_FORMATS}"
+            out.append(Finding("content-name", where, message))
         name = parse_name(path.stem)
         if name is None:
             out.append(Finding("content-name", where, "not T_<snake_case>_<SUFFIX>[_<variant>]"))
         elif not name.known:
             out.append(Finding("content-name", where, f"suffix {name.suffix!r} is not in the tables"))
+        elif name.suffix in PACKED:
+            out.append(
+                Finding(
+                    "content-name", where, f"{name.suffix} is the cook's output; it lives under cooked/, never authored"
+                )
+            )
     for rel in CONTENT_ROOTS:
         base = root / rel
         if not base.is_dir():
@@ -150,7 +171,11 @@ def check_names(root: Path) -> list[Finding]:
         for path in sorted(p for p in base.rglob("*") if p.is_file() and _is_cooked(p, base)):
             if path.suffix.lower() != f".{RUNTIME_CONTAINER}" and path.name not in COOKED_EXTRA:
                 out.append(
-                    Finding("content-name", _rel(path, root), f"a cooked file is {RUNTIME_CONTAINER}, or the manifest")
+                    Finding(
+                        "content-name",
+                        _rel(path, root),
+                        f"a cooked file is {RUNTIME_CONTAINER}, or one of {COOKED_EXTRA}",
+                    )
                 )
     return out
 
@@ -163,8 +188,16 @@ def _read_sidecar(path: Path, root: Path) -> tuple[dict | None, str, list[Findin
         return None, where, [Finding("content-sidecar", _rel(path, root), f"no sidecar {sidecar.name} beside it")]
     try:
         data = json.loads(sidecar.read_text(encoding="utf-8"))
+    except UnicodeDecodeError as e:
+        return None, where, [Finding("content-sidecar", where, f"not UTF-8 ({e.reason} at byte {e.start})")]
     except json.JSONDecodeError as e:
         return None, where, [Finding("content-sidecar", where, f"not JSON ({e.msg} at line {e.lineno})")]
+    if not isinstance(data, dict):
+        return (
+            None,
+            where,
+            [Finding("content-sidecar", where, f"a sidecar is a JSON object, not {type(data).__name__}")],
+        )
     return data, where, []
 
 
@@ -182,14 +215,22 @@ def check_sidecars(root: Path) -> list[Finding]:
             Finding("content-sidecar", where, f"{f.parameter}: {f.message}" if f.parameter else f.message)
             for f in check_sidecar(data, name.suffix, where)
         )
+        if path.suffix != ".png":
+            continue
+        size = png_size(path)
         stated = data.get("resolution")
-        if isinstance(stated, int) and not isinstance(stated, bool) and path.suffix.lower() == ".png":
-            size = png_size(path)
-            if size == "lfs":
-                _LOGGER.info(
-                    "resolution of %s unverified: the PNG is an LFS pointer in this checkout", _rel(path, root)
+        if size == "lfs":
+            _LOGGER.info("resolution of %s unverified: the PNG is an LFS pointer in this checkout", _rel(path, root))
+        elif isinstance(size, tuple):
+            if max(size) > MAX_RESOLUTION:
+                out.append(
+                    Finding(
+                        "content-sidecar",
+                        _rel(path, root),
+                        f"{size[0]}x{size[1]} exceeds the repository budget of {MAX_RESOLUTION}",
+                    )
                 )
-            elif isinstance(size, tuple) and max(size) != stated:
+            if isinstance(stated, int) and not isinstance(stated, bool) and max(size) != stated:
                 out.append(Finding("content-sidecar", where, f"resolution {stated} but the PNG is {size[0]}x{size[1]}"))
     return out
 
@@ -236,6 +277,8 @@ def check_bindings(root: Path) -> list[Finding]:
                     Finding("content-binding", where, f"binds {value['texture']!r}, not a texture of this repository")
                 )
                 continue
+            if texture.suffix not in AUTHORING_FORMATS:
+                out.append(Finding("content-binding", where, f"binds {value['texture']!r}, not an authoring format"))
             parameter = parameter_of(name.suffix)
             if parameter is None:
                 out.append(
@@ -293,7 +336,7 @@ def run(root: Path = ROOT) -> list[Finding]:
 
 
 def _summary(root: Path) -> dict[str, Any]:
-    return {"images": len(image_files(root)), "sources": len(source_textures(root))}
+    return {"candidates": len(image_files(root)), "sources": len(source_textures(root))}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -304,8 +347,8 @@ def main(argv: list[str] | None = None) -> int:
     root = args.root.resolve()
     counts = _summary(root)
     _LOGGER.info(
-        "checking %d image(s), %d of them source textures, under %s, and the documents under %s",
-        counts["images"],
+        "checking %d texture candidate(s), %d of them source textures, under %s, and the documents under %s",
+        counts["candidates"],
         counts["sources"],
         ", ".join(CONTENT_ROOTS),
         MATERIALS,

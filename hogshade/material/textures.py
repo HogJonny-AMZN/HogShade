@@ -31,8 +31,11 @@ PREFIX = "T_"
 STANDARD = "hogshade-standard"
 #: Source image formats the authoring set may use; the cook writes the runtime set as DDS.
 AUTHORING_FORMATS = (".png", ".tif", ".tiff", ".exr")
-#: Every image format the content check looks at: an image in a format outside AUTHORING_FORMATS is a finding.
-IMAGE_FORMATS = AUTHORING_FORMATS + (".jpg", ".jpeg", ".bmp", ".tga")
+#: The repository budget for a source texture, the longer side in pixels (the 8K masters stay outside git).
+MAX_RESOLUTION = 2048
+#: Files beside textures that are not textures: the cook's outputs and the records.
+SIDECAR_SUFFIX = ".texture.json"
+NON_TEXTURE_SUFFIXES = (SIDECAR_SUFFIX, ".material.json", ".md")
 RUNTIME_CONTAINER = "dds"
 #: The normal-map conventions a sidecar may name for a source; the cooked output is always the first.
 NORMAL_CONVENTIONS = ("opengl+y", "directx-y")
@@ -198,9 +201,12 @@ def _is_str(x: Any) -> bool:
 
 
 def _agrees(stated: Any, expected: Any) -> bool:
-    """A stated derived field agrees with the suffix: equal, or for an object, every stated key equal."""
+    """
+    A stated derived field agrees with the suffix: equal, or for an object, every stated key one the preset has,
+    with the preset's value (an unknown key, even with a null value, is a disagreement).
+    """
     if isinstance(stated, dict) and isinstance(expected, dict):
-        return all(expected.get(k) == v for k, v in stated.items())
+        return all(k in expected and expected[k] == v for k, v in stated.items())
     return stated == expected
 
 
@@ -248,6 +254,14 @@ def check_sidecar(data: Any, suffix: str, where: str = "<sidecar>") -> list[Find
     res = data.get("resolution")
     if "resolution" in data and not (isinstance(res, int) and not isinstance(res, bool) and res > 0):
         out.append(Finding(where, "resolution", "a positive integer, the longer side in pixels"))
+    elif isinstance(res, int) and not isinstance(res, bool) and res > MAX_RESOLUTION:
+        out.append(
+            Finding(
+                where,
+                "resolution",
+                f"{res} exceeds the repository budget of {MAX_RESOLUTION}; masters stay outside git",
+            )
+        )
     if "derived" in data and not (
         isinstance(data["derived"], list) and all(isinstance(d, str) for d in data["derived"])
     ):

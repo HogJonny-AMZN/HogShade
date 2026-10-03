@@ -123,5 +123,7 @@ def test_sidecar_rules():
         {**GOOD_SIDECAR, "resolution": True}, "_BC"
     )
     assert msgs({**GOOD_SIDECAR, "runtime": {"format": "bc7"}}, "_BC") == [], "a partial object agrees key by key"
+    assert any("runtime:" in m and "disagrees" in m for m in msgs({**GOOD_SIDECAR, "runtime": {"typo": None}}, "_BC"))
+    assert any("exceeds the repository budget of 2048" in m for m in msgs({**GOOD_SIDECAR, "resolution": 8192}, "_BC"))
     assert msgs(GOOD_SIDECAR, "_DN") == [], "a derived detail normal is the cook's; no convention required"
     assert check_sidecar(GOOD_SIDECAR, "_XX")[0].message == "suffix '_XX' is not in the tables"
