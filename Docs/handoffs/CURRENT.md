@@ -5,7 +5,8 @@
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
-(`Docs/superpowers/plans/s1-material-schema.md`, done; S2 is next). `Docs/standards/definition-of-done.md` says what done means and
+(none: S1 to S4a are done, their plans ticked under `Docs/superpowers/plans/`; the next increment, S4b, has no
+plan until track E's texture conventions exist). `Docs/standards/definition-of-done.md` says what done means and
 how much to decide alone.
 
 ## In flight
