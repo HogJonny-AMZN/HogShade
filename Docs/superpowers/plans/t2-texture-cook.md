@@ -11,10 +11,12 @@ Spec: [../specs/t2-texture-cook.md](../specs/t2-texture-cook.md). Test-first: ea
       RGBA, the five filters None, Sub, Up, Average and Paeth; interlaced and palette refused) and the sRGB
       transfer. Verify: round trips through a test writer that emits every filter type, for grey, grey-alpha,
       RGB and RGBA at 8 and 16 bits; the refusals name their reason.
-- [ ] 2. `mips.py`, `normals.py`, `pack.py`, and `dds.write_2d`/`read_2d` for `R8`, `R8G8`, `R8G8B8A8[_SRGB]`,
-      `R16`, plus `write_2d_blocks` for BC7, BC5 and BC4 (the block pitch in the header). Verify: the
+- [ ] 2. `mips.py`, `normals.py`, `pack.py`, `height.py`, and `dds.write_2d`/`read_2d` for `R8`, `R8G8`,
+      `R8G8B8A8[_SRGB]`, `R16_UNORM`, `R16_FLOAT`, `R32_FLOAT`, plus `write_2d_blocks` for BC7, BC5 and BC4 (the block pitch in the header). Verify: the
       linear-average mip test, the unit-length normal mips, the `directx-y` flip recorded, the ORM packing
-      with the neutral fill, DDS round trips per uncompressed format with mips, a BC4 block decoded by hand.
+      with the neutral fill, the `pack` sidecar field (alpha carriers; `SIDECAR_KEYS` gains it) with its findings,
+      DDS round trips per uncompressed format with mips (`R16_FLOAT` and `R32_FLOAT` for height among them), a BC4
+      block decoded by hand.
 - [ ] 3. `separate.py`: the wrap-padded Gaussian low-pass, the high-pass, the recombination error, the macro.
       Verify: both halves tile, `recon == source` away from clipping, the error fields are measured, the macro
       is the stated size.

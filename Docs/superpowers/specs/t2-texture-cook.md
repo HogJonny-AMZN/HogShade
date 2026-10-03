@@ -31,6 +31,7 @@ away from its runtime form.
 ```text
 hogshade/texture_cook/              # numpy; never imported by hogshade.material (which stays stdlib-only)
   png.py                            # read_png(path) -> (H, W, C) uint8 or uint16; 8/16-bit grey, RGB, RGBA, non-interlaced
+  height.py                         # the height formats: 16-bit PNG, half and float EXR, the optional normalisation with its range
   colour.py                         # srgb_to_linear, linear_to_srgb on arrays (float32), the one definition
   mips.py                           # mip chain by box average; linear space for colour, renormalised for normals
   normals.py                        # directx-y -> opengl+y flip, decode/encode, renormalise, Z reconstruction
@@ -66,17 +67,79 @@ For each source texture, by its suffix's preset (T1):
 
 | Preset | Source | Runtime (T2 writes) | Mips |
 | --- | --- | --- | --- |
-| colour (`_BC`, `_E`) | sRGB 8-bit | `R8G8B8A8_UNORM_SRGB`, alpha 255 | box average in **linear**, re-encoded per level |
-| data, one channel (`_M _SW _R _AX _AR _O _AO _C _SO`) | raw 8-bit | `R8_UNORM` (`_O` stays its own map; packing it into `_BC`'s alpha needs a sidecar field the schema does not have, a later increment) | box average |
+| colour (`_BC`, `_E`) | sRGB 8-bit | `R8G8B8A8_UNORM_SRGB`; alpha 255, or the packed single-channel map ("Packing" below) | box average in **linear**, re-encoded per level; the alpha averaged raw |
+| data, one channel (`_M _SW _R _AX _AR _O _AO _C _SO`) | raw 8-bit | `R8_UNORM`, unless a carrier's sidecar packs it into an alpha ("Packing" below), in which case no separate file is written | box average |
 | colour data (`_SC`) | raw 8-bit | `R8G8B8A8_UNORM` | box average |
 | normal (`_N`) | raw 8-bit, the sidecar's convention | `R8G8_UNORM` (X, Y; Z reconstructed by the host) | average, then renormalise, per level |
-| height (`_H`) | raw 16-bit PNG or EXR | `R16_UNORM` | box average |
+| height (`_H`) | raw: 16-bit PNG, or EXR half or float | `R16_UNORM` from a 16-bit PNG; `R16_FLOAT` from a half EXR; `R32_FLOAT` from a float EXR ("Height" below) | box average in the source's precision |
 | packed (`_ORM`) | from `_AO`, `_R`, `_M` | `R8G8B8A8_UNORM`: AO in R, roughness in G, metalness in B, 255 in A | box average |
 
 A missing channel of `_ORM` is filled with **1.0**, the identity of the `multiply` blend (S1's default), and
-the manifest says which channels were packed and which filled. A normal source stated as `directx-y` has its
+the manifest says which channels were packed and which filled.
+
+### Packing
+
+The owner's rule (2026-10-04): colour with alpha needs a packing scheme and an output type, and other
+conditioning strategies will want to pack data into an alpha channel too. So packing is one mechanism, not
+a list of special cases:
+
+- **Fixed packings** are the tables' (`_ORM`: AO, roughness, metalness in R, G, B, always).
+- **Alpha carriers**: a four-channel runtime map whose alpha is otherwise constant may carry one
+  single-channel map of the same set and base. The carriers are `_BC`, `_E`, `_SC` (the `R8G8B8A8` maps)
+  and `_ORM` (whose alpha is free). A carrier's sidecar declares it with a `pack` field, validated by the
+  content check (`SIDECAR_KEYS` gains `pack`; a T1 edit inside this build):
+
+  ```json
+  {"pack": {"a": "_O"}, "provenance": {"...": "..."}}
+  ```
+
+  `pack.a` names a suffix of the tables with one channel (`_O`, `_H`, `_AO`, `_C`, `_SO`, `_M`, `_R`, `_SW`,
+  `_AX`, `_AR`); the map `T_<base>_<that suffix>` of the same set is read, box-averaged raw per mip, and
+  written into the carrier's alpha; no separate file is written for it, and the manifest's entry for the
+  carrier records `"packed": {"A": "T_<base>_O.png"}`. A `pack` naming a suffix with no file, a
+  three-channel suffix, or a carrier that is not in the list above is a finding. The authoring set stays
+  one map per parameter (the standard); packing is the cook's and the manifest is how a host learns where a
+  parameter's channel lives.
+- **The output type for colour with alpha** is `R8G8B8A8_UNORM_SRGB` uncompressed and **BC7 with one of
+  the `alpha_*` profiles** (`ispc_texcomp`'s `alpha_basic` by default; the non-alpha profiles assume alpha
+  255 and would quantise a packed channel away) when compressed; the manifest records the profile. For
+  `_ORM`, `R8G8B8A8_UNORM` and the same BC7 alpha profile.
+- **Other conditioning strategies** (the owner's "some other texture conditioning strategies might want to
+  pack data into an alpha channel as well") extend the `pack.a` value from a suffix to an object naming an
+  operation, `{"from": "_H", "op": "invert"}` say; the shape is reserved here and no operation is built in
+  T2. A strategy that needs more than one alpha is a new packing in the tables, not a sidecar trick.
+
+The host side of reading a packed channel (a binding that says "geometry_opacity is the alpha of this
+file") is T3's host half, informed by the manifest; T2 writes the truth, it does not yet consume it. A normal source stated as `directx-y` has its
 green channel flipped before anything else, and the manifest records the flip; every runtime normal is
-`opengl+y`, as the standard promises. Mips go down to 1x1; a source that is not a power of two is cooked
+`opengl+y`, as the standard promises.
+
+### Height
+
+The owner's rule (2026-10-04): high-quality 32-bit data and half-float EXR heightmaps cook to a respectable
+format, never squeezed into 8 bits. `_H` is in T1's table (height, raw, 16-bit authoring; "R16 when the cook
+says"); the cook says:
+
+| Source | Runtime | Why |
+| --- | --- | --- |
+| 16-bit PNG | `R16_UNORM` | the source's 65536 steps kept exactly; the range is the file's |
+| EXR, half (`HALF` channel) | `R16_FLOAT` | exact for the source's precision; the range in the manifest |
+| EXR, float (`FLOAT` channel) | `R32_FLOAT` | 32-bit data kept exactly; the size is the cost, the manifest says it |
+| 8-bit PNG | `R8_UNORM`, or BC4 compressed | the source had 256 steps; the table's BC4 is for this case only |
+
+The cook never compresses a height map with a block format (BC4 is 8-bit; BC6H is three-channel HDR colour
+and its single-channel use wastes two channels) and never converts float to normalised without being
+asked: `--height normalise` writes `R16_UNORM` from an EXR with `min` and `max` recorded in the manifest
+and the sidecar, for a host that wants a fixed range, and the default keeps the float. Mips of a height
+map are box averages in the source's precision. The EXR reader is `hogshade.ibl.imageio.read_exr_rgb`
+extended with a single-channel read (`read_exr_channel(path, "R")` or the first channel), so no new
+dependency: OpenEXR is already one. A 32-bit TIFF is question 1's territory and stays out of T2.
+
+A float height is what parallax and displacement want; the Maya shell's parallax group reads `heightMap`
+through its red channel today, and whether it samples `R16_FLOAT` and `R32_FLOAT` DDS is the host half's
+to prove (T3), with the uncompressed path (`R16_UNORM`) the fallback a host is sure to read.
+
+Mips go down to 1x1; a source that is not a power of two is cooked
 as is (no resampling) and the manifest says so.
 
 **Compression** (question 2; the owner is choosing an open-source encoder through an evaluation spike,
@@ -99,7 +162,7 @@ checked on 2026-10-04 (the board's spike row); `texconv` stays the optional qual
 
 The sidecar: the cook fills every derived field it has authority over (`preset`, `colour_space`, `mips`,
 `runtime` with the format actually written, `resolution`) when absent, lists them under `derived`, and
-never touches an authored field; a derived field present and disagreeing without `override_reason` is a
+never touches an authored field (`pack` is authored); a derived field present and disagreeing without `override_reason` is a
 finding and the set is refused (T1's rule, applied before cooking).
 
 ## Frequency separation
@@ -141,7 +204,8 @@ low frequency"). Reoriented normal mapping is the host's blend, named in the sta
   "textures": {
     "T_brick_BC.dds": {"from": "T_brick_BC.png", "preset": "base_color", "format": "R8G8B8A8_UNORM_SRGB", "size": [2048, 2048], "mips": 12, "sha256": "..."},
     "T_brick_N.dds": {"from": "T_brick_N.png", "format": "R8G8_UNORM", "normal_convention_in": "directx-y", "flipped_y": true, "...": "..."},
-    "T_brick_ORM.dds": {"packed": {"R": "T_brick_AO.png", "G": "T_brick_R.png", "B": "filled 1.0"}, "...": "..."}
+    "T_brick_ORM.dds": {"packed": {"R": "T_brick_AO.png", "G": "T_brick_R.png", "B": "filled 1.0", "A": "T_brick_H.png"}, "...": "..."},
+    "T_brick_BC.dds": {"packed": {"A": "T_brick_O.png"}, "bc7_profile": "alpha_basic", "...": "..."}
   },
   "separation": {"source": "T_brick_BC.png", "radius": 16, "sigma": 8.0, "macro": 64, "error_max": 0.0039, "error_mean": 0.00002, "clipped_texels": 7},
   "compression": {"requested": false, "encoder": null}
@@ -161,15 +225,22 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
 
 ## Tests
 
-`tests/texture_cook/`:
+`tests/texture_cook/` (and `test_material_textures.py` gains the `pack` sidecar key):
 
 - `test_png.py`: round trips through a test writer and this reader for grey, grey-alpha, RGB and RGBA at 8
   and 16 bits, under each of the five filter types (the writer emits each); an interlaced or palette PNG is
   refused with its message.
 - `test_mips.py`: a 4x4 sRGB checker's first mip is the linear average re-encoded, not the sRGB average;
   the chain ends at 1x1; a normal mip is unit length.
+- `test_height.py`: a 16-bit PNG ramp cooks to `R16_UNORM` with every step kept; a half EXR to `R16_FLOAT` and
+  a float EXR to `R32_FLOAT`, both read back exactly; `--height normalise` records the range and maps the
+  extremes to 0 and 65535; an 8-bit height is `R8_UNORM` (or BC4 with `--compress`); the manifest names the
+  source's precision.
 - `test_normals.py`: a `directx-y` source flips green and the manifest says so; `opengl+y` is untouched.
-- `test_pack.py`: AO, R, M land in R, G, B; a missing channel is 1.0 and recorded.
+- `test_pack.py`: AO, R, M land in R, G, B; a missing channel is 1.0 and recorded; a `pack` sidecar puts
+  `_O` into `_BC`'s alpha and `_H` into `_ORM`'s, no separate file for them, the manifest says so, the BC7
+  profile is an `alpha_*` one; a `pack` naming a missing map, a three-channel suffix or a non-carrier is a
+  finding.
 - `test_separate.py`: on a tiling test tile, low and high both tile (the wrapped border equals the opposite
   edge within one 8-bit step), `recon == source` away from clipping, the error fields are the measured
   values, the macro is the stated size; sigma follows the radius.
