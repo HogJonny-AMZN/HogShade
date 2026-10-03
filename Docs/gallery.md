@@ -65,49 +65,49 @@ The dx11Shader shell loads the generated core and the schema-generated material 
 
 ![legacy v2, the Main technique](../verification/maya-2026/ibl-check/studio_small_09/main.png)
 
-the IBL check on the resident hogshade_maya_gui worker; after S2 the material block of the shell is generated and renders pixel-identical to the hand-written one. Made by `tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check`; the file is `verification/maya-2026/ibl-check/studio_small_09/main.png`.
+the IBL check on the resident hogshade_maya_gui worker; after S2 the material block of the shell is generated and renders pixel-identical to the hand-written one. Made by `JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=studio_small_09 (debug_modes default 18,27,28; the job's default material: base 0.5, roughness 0.2, specular 1.0, IOR 1.5)`; the file is `verification/maya-2026/ibl-check/studio_small_09/main.png`.
 
 ### legacy v2, debug view 18 (specular) (`maya-2026`)
 
 ![legacy v2, debug view 18 (specular)](../verification/maya-2026/ibl-check/studio_small_09/debug-18.png)
 
-the specular accumulator alone. Made by `the same job`; the file is `verification/maya-2026/ibl-check/studio_small_09/debug-18.png`.
+the specular accumulator alone. Made by `JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=studio_small_09 (debug_modes default 18,27,28; the job's default material: base 0.5, roughness 0.2, specular 1.0, IOR 1.5)`; the file is `verification/maya-2026/ibl-check/studio_small_09/debug-18.png`.
 
 ### legacy v2, debug view 27 (`maya-2026`)
 
 ![legacy v2, debug view 27](../verification/maya-2026/ibl-check/studio_small_09/debug-27.png)
 
-the environment term. Made by `the same job`; the file is `verification/maya-2026/ibl-check/studio_small_09/debug-27.png`.
+the environment term. Made by `JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=studio_small_09 (debug_modes default 18,27,28; the job's default material: base 0.5, roughness 0.2, specular 1.0, IOR 1.5)`; the file is `verification/maya-2026/ibl-check/studio_small_09/debug-27.png`.
 
 ### legacy v2, debug view 28 (`maya-2026`)
 
 ![legacy v2, debug view 28](../verification/maya-2026/ibl-check/studio_small_09/debug-28.png)
 
-the direct term. Made by `the same job`; the file is `verification/maya-2026/ibl-check/studio_small_09/debug-28.png`.
+the direct term. Made by `JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=studio_small_09 (debug_modes default 18,27,28; the job's default material: base 0.5, roughness 0.2, specular 1.0, IOR 1.5)`; the file is `verification/maya-2026/ibl-check/studio_small_09/debug-28.png`.
 
 ### legacy v1, the Main technique (`maya-2026`)
 
 ![legacy v1, the Main technique](../verification/maya-2026/ibl-check/legacy-v1/studio_small_09/main.png)
 
-the Shading Model dropdown at Legacy v1, sheen 0.5, clearcoat 0.5. Made by `the same job with variant=legacy-v1/studio_small_09`; the file is `verification/maya-2026/ibl-check/legacy-v1/studio_small_09/main.png`.
+the Shading Model dropdown at Legacy v1, sheen 0.5, clearcoat 0.5. Made by `JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=legacy-v1/studio_small_09 --param debug_modes=2,8 --param set=shadingModel=1,materialSpecular=0.5,materialSheen=0.5,materialClearcoat=0.5,materialClearcoatGloss=0.8`; the file is `verification/maya-2026/ibl-check/legacy-v1/studio_small_09/main.png`.
 
 ### legacy v1, debug view 2 (`maya-2026`)
 
 ![legacy v1, debug view 2](../verification/maya-2026/ibl-check/legacy-v1/studio_small_09/debug-02.png)
 
-a v1 debug view. Made by `the same job`; the file is `verification/maya-2026/ibl-check/legacy-v1/studio_small_09/debug-02.png`.
+a v1 debug view. Made by `JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=legacy-v1/studio_small_09 --param debug_modes=2,8 --param set=shadingModel=1,materialSpecular=0.5,materialSheen=0.5,materialClearcoat=0.5,materialClearcoatGloss=0.8`; the file is `verification/maya-2026/ibl-check/legacy-v1/studio_small_09/debug-02.png`.
 
 ### legacy v1, debug view 8 (`maya-2026`)
 
 ![legacy v1, debug view 8](../verification/maya-2026/ibl-check/legacy-v1/studio_small_09/debug-08.png)
 
-a v1 debug view. Made by `the same job`; the file is `verification/maya-2026/ibl-check/legacy-v1/studio_small_09/debug-08.png`.
+a v1 debug view. Made by `JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=legacy-v1/studio_small_09 --param debug_modes=2,8 --param set=shadingModel=1,materialSpecular=0.5,materialSheen=0.5,materialClearcoat=0.5,materialClearcoatGloss=0.8`; the file is `verification/maya-2026/ibl-check/legacy-v1/studio_small_09/debug-08.png`.
 
-### the E1 diffuse-term check (`maya-2026`)
+### the E1 diffuse-term check (legacy v2 shader, debug view 27) (`maya-2026`)
 
-![the E1 diffuse-term check](../verification/maya-2026/legacy-v2-ibl/studio_small_09/diffuse-term.png)
+![the E1 diffuse-term check (legacy v2 shader, debug view 27)](../verification/maya-2026/legacy-v2-ibl/studio_small_09/debug-27.png)
 
-the irradiance cube's diffuse term in the shell, the IBL cook's first proof in Maya. Made by `tools/maya/ibl_check.py (E1)`; the file is `verification/maya-2026/legacy-v2-ibl/studio_small_09/diffuse-term.png`.
+the irradiance cube's diffuse term in the legacy v2 shader itself, the IBL cook's first proof in Maya; renamed from diffuse-term.png to the name the check writes. Made by `set MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11 HOGSHADE_ROOT=D:/Depot/HogShade HOGSHADE_FX=legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx HOGSHADE_CHECK=legacy-v2-ibl HOGSHADE_DEBUG_MODES=27 HOGSHADE_SET=linearSpaceLighting=0; maya.exe -script tools/maya/ibl_check.mel (E1, 2026-09-20, before the BATS job existed; writes debug-27.png)`; the file is `verification/maya-2026/legacy-v2-ibl/studio_small_09/debug-27.png`.
 
 ### Side by side
 

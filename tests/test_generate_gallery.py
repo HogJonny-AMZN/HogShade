@@ -182,6 +182,22 @@ def test_rules_each_have_a_finding(corpus: Path):
     assert "missing or empty 'caption'" in _findings(corpus, no_caption)
 
 
+def test_check_reports_findings_without_rendering(corpus: Path):
+    """A string section, non-list pictures or a wrong format reach ``check()`` as findings, never a traceback."""
+    path = corpus / "verification" / "gallery.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["sections"].append("a string")
+    manifest["sections"][0]["pairs"] = "not a list"
+    manifest["rules"]["format"] = "jpg"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    findings, diff = gg.check(corpus)
+    messages = [f.message for f in findings]
+    assert "must be an object, not str" in messages
+    assert "pictures and pairs must be lists" in messages
+    assert "format must be 'png', the only format the rule allows, not 'jpg'" in messages
+    assert diff == ""
+
+
 def test_malformed_manifest_is_a_gallery_error(corpus: Path):
     (corpus / "verification" / "gallery.json").write_text("{not json", encoding="utf-8")
     with pytest.raises(gg.GalleryError, match="not valid JSON at line 1"):

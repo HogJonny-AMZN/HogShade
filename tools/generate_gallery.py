@@ -86,6 +86,12 @@ def check_manifest(manifest: dict, root: Path = ROOT) -> list[Finding]:
         return [Finding(where, "rules must be an object and sections a list")]
     if not isinstance(manifest.get("wanted", []), list):
         out.append(Finding(where, "wanted must be a list of strings"))
+    if rules.get("format", "png") != "png":
+        out.append(
+            Finding(
+                f"{where} rules", f"format must be 'png', the only format the rule allows, not {rules.get('format')!r}"
+            )
+        )
     limits: dict[str, int] = {}
     for key, default in (("max_side", 1024), ("max_bytes", 1 << 20)):
         value = rules.get(key, default)
@@ -106,6 +112,9 @@ def check_manifest(manifest: dict, root: Path = ROOT) -> list[Finding]:
         for key in ("title", "need", "pictures"):
             if not section.get(key):
                 out.append(Finding(s_where, f"missing or empty {key!r}"))
+        if not isinstance(section.get("pictures", []), list) or not isinstance(section.get("pairs", []), list):
+            out.append(Finding(s_where, "pictures and pairs must be lists"))
+            continue
         for p_index, picture in enumerate(section.get("pictures", [])):
             if not isinstance(picture, dict):
                 out.append(Finding(f"{s_where} picture {p_index}", f"must be an object, not {type(picture).__name__}"))
@@ -154,8 +163,8 @@ def _counts(manifest: dict) -> tuple[int, int, int, int]:
     """Sections, pictures, pairs and wanted items, for the log."""
     raw = manifest.get("sections", [])
     sections = [s for s in raw if isinstance(s, dict)] if isinstance(raw, list) else []
-    pictures = sum(len(s.get("pictures", [])) for s in sections)
-    pairs = sum(len(s.get("pairs", [])) for s in sections)
+    pictures = sum(len(s["pictures"]) for s in sections if isinstance(s.get("pictures"), list))
+    pairs = sum(len(s["pairs"]) for s in sections if isinstance(s.get("pairs"), list))
     wanted = manifest.get("wanted", [])
     return len(sections), pictures, pairs, len(wanted) if isinstance(wanted, list) else 0
 
@@ -207,12 +216,15 @@ def render(manifest: dict) -> str:
 
 
 def check(root: Path = ROOT) -> tuple[list[Finding], str]:
-    """The manifest's findings and a unified diff when the committed page is stale (empty when current)."""
+    """The manifest's findings, and a unified diff when the committed page is stale (empty when current, or when
+    there are findings: a manifest that breaks a rule is never rendered)."""
     manifest = load_manifest(root / "verification" / "gallery.json")
     _LOGGER.info(
         "checking %d sections, %d pictures, %d pairs, %d wanted from verification/gallery.json", *_counts(manifest)
     )
     findings = check_manifest(manifest, root)
+    if findings:
+        return findings, ""  # a manifest with findings is not rendered; the page cannot be judged against it
     fresh = render(manifest)
     page = root / "Docs" / "gallery.md"
     committed = page.read_text(encoding="utf-8") if page.exists() else ""

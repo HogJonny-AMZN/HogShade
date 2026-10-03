@@ -53,7 +53,7 @@ verification ran.
       shell renders both terms and the specular reflection (`verification/maya-2026/ibl-check/studio_small_09/`).
       **Partial 2026-09-20 (legacy shader):** Both DDS files decode in Maya
       (256 and 32 reported by the file nodes) and the diffuse environment term visibly lights a white
-      dielectric ball (`verification/maya-2026/legacy-v2-ibl/studio_small_09/diffuse-term.png`, debug view 27, exposure 1,
+      dielectric ball (`verification/maya-2026/legacy-v2-ibl/studio_small_09/debug-27.png`, debug view 27, exposure 1,
       gamma off). The final composite and the specular term render black, and the cause is in the
       legacy shader, not the data: the same 32-cube file that lights the diffuse slot is black in the
       specular slot across DX10 and legacy headers, with and without mips (both `TextureCube`
