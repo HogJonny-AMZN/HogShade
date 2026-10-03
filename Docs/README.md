@@ -79,11 +79,12 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
   `verification/gallery.json` by `tools/generate_gallery.py --write` and checked in CI; the rule they obey is in
   `verification/README.md`.
 - [design/2026-10-03-content-conventions.md](design/2026-10-03-content-conventions.md): content conventions for
-  textures, materials, lighting and rendering, for humans and agents, Exploring: Unreal's naming pattern with a
+  textures, materials, lighting and rendering, for humans and agents, Accepted 2026-10-03: Unreal's naming pattern with a
   suffix for each of the standard's fourteen texturable parameters plus the packed and derived maps, an
   O3DE-style sidecar with presets (derived fields and author-required ones), one cook for the authoring and runtime sets,
   frequency separation as a cook operation, the sources (Poly Haven, the owner's legacy test tiles, a showcase
-  set); eight questions for the owner; increments T1 to T4 (T3 is S4b).
+  set); the eight answers (`T_` and `_BC` in the owner's words, the rest on the owner's go); increments T1 to T4
+  (T3 is S4b).
 - [design/2026-10-02-material-library.md](design/2026-10-02-material-library.md): the library of materials
   (S4, track F), Accepted 2026-10-03 (the owner's "go"): the base set as standard documents with a reverse
   conversion table, the roster of parents and children with sourced values, title and provenance in the
@@ -114,6 +115,7 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
 | S2. The generators: the Maya shell's material UI and the docs reference from the schema | [superpowers/specs/s2-material-generators.md](superpowers/specs/s2-material-generators.md) | [superpowers/plans/s2-material-generators.md](superpowers/plans/s2-material-generators.md) | Built 2026-10-01 (`feat/s2-material-generators`, [#35](https://github.com/HogJonny-AMZN/HogShade/pull/35) open): the Maya block and the docs reference generated and checked in CI; the GUI Maya picture run met after the merge (pixel-identical to master's shell in one session) |
 | S3. The wgpu binding: a material document into the wgpu host's frame | [superpowers/specs/s3-wgpu-binding.md](superpowers/specs/s3-wgpu-binding.md) | [superpowers/plans/s3-wgpu-binding.md](superpowers/plans/s3-wgpu-binding.md) | Built 2026-10-02 (`feat/s3-wgpu-binding`, [#38](https://github.com/HogJonny-AMZN/HogShade/pull/38) open): a document is the one way a material reaches the wgpu host; the wgpu pictures recaptured with the schema's defaults |
 | S4a. The base library of materials: twenty-two standard documents with sources, the reverse table to legacy v2, `title`/`doc`/`provenance`, the generated index, the contact sheet | [superpowers/specs/s4a-material-library.md](superpowers/specs/s4a-material-library.md) | [superpowers/plans/s4a-material-library.md](superpowers/plans/s4a-material-library.md) | Done 2026-10-03 ([#45](https://github.com/HogJonny-AMZN/HogShade/pull/45) spec, [#46](https://github.com/HogJonny-AMZN/HogShade/pull/46) build): 22 documents, the reverse table, the index at `content/materials/README.md`, the contact sheet in the gallery |
+| T1. The content standard and its check: `Docs/standards/content.md` for humans and agents, the texture rules as data in `hogshade.material.textures`, `tools/check_content.py` in CI | [superpowers/specs/t1-content-standard.md](superpowers/specs/t1-content-standard.md) | [superpowers/plans/t1-content-standard.md](superpowers/plans/t1-content-standard.md) | Spec and plan drafted 2026-10-03 (`docs/t1-spec`); the build follows on `feat/t1-content-standard` |
 | E1. IBL cook | [superpowers/specs/e1-ibl-cook.md](superpowers/specs/e1-ibl-cook.md) | [superpowers/plans/e1-ibl-cook.md](superpowers/plans/e1-ibl-cook.md) | Done: cook, tests, job, Maya diffuse-term check, LFS payloads in the repo (2026-09-26) |
 | E2. Cook performance and resolution | [superpowers/specs/e2-cook-performance.md](superpowers/specs/e2-cook-performance.md) | [superpowers/plans/e2-cook-performance.md](superpowers/plans/e2-cook-performance.md) | Done except the roadmap tick: numba 140x, measured to an 8192 cube |
 | E. Parity and pipeline, rest | not yet | not yet | Design done |

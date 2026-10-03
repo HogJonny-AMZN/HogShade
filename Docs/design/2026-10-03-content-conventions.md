@@ -1,10 +1,10 @@
 # Content conventions: textures, materials, lighting and rendering, for humans and agents
 
-**Status:** Proposed (exploring). Drafted 2026-10-03 on the owner's direction ("we should put the conventions in
-place as a high priority because we are talking about making material that need textures"); the questions at
-the end are the decisions, each with a recommendation; two are answered ("The answers", below), six are open.
-When locked, the output is a standard (`Docs/standards/content.md`), a check, and the first texture set behind
-it (S4b).
+**Status:** Accepted. Drafted 2026-10-03 on the owner's direction ("we should put the conventions in place as a
+high priority because we are talking about making material that need textures"); the owner answered questions
+1 and 2 in words and said "go" to the rest the same night, so answers 3 to 8 are the recommendations ("The
+answers", below). T1 (the standard and its check) has a spec and a plan; the owner overrides any answer by
+saying so, and the spec amends.
 
 Date: 2026-10-03. Parents: [2026-09-20-wysiwyg-blindspots.md](2026-09-20-wysiwyg-blindspots.md), section 6
 ("texture packing, gamma and compression are unspecified"); the roadmap's track E boxes (texture conventions,
@@ -233,14 +233,21 @@ its source:
    rule, pointed at by `AGENTS.md` (recommended: one file both readers load), or split into a human page
    and an agent page?
 
-## The answers (2026-10-03, in progress)
+## The answers (2026-10-03)
 
 1. **The `T_` prefix stays.** Owner: "yes T_ for texture files." The recommendation to drop it inside
    `content/` is overridden: every texture file is `T_<name>_<suffix>[_<variant>]`, portable by copy, and
    the check holds the prefix as well as the suffix. The exporter argument stands only as the reason a
    target's prefix never needs translating.
 2. **`_BC` for base colour.** Owner: "we are ditching _D (diffuse), _BC is better."
-3. to 8. Open.
+3. **`_ORM` is the one runtime packing** (the owner's "go"; the recommendation). A target that wants another
+   order gets it from the cook as an export, never as a second authoring convention.
+4. **The sidecar is committed**, `<name>.texture.json` beside the source, read by the cook and the check.
+5. **Frequency separation is in the first cook increment** (T2).
+6. **The legacy `grid_*` tile set comes over** on the standard's names as the calibration tile, provenance
+   "author", in T3.
+7. **The owner authors the showcase maps** a sourced set cannot provide; the cook conditions them (T4).
+8. **One standard, `Docs/standards/content.md`**, for both readers, pointed at by `AGENTS.md`.
 
 ## Increments (each its own spec and plan once this is locked)
 
