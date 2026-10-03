@@ -49,10 +49,27 @@ UNSTATED_LOSSES = (
             "is already mapped to normal_map; a source-side field is S4b's conversion change"
         ),
     ),
+    (
+        "alpha_mode blend",
+        (
+            "becomes use_cutout_alpha false with has_alpha at its default (false), which is opaque: v2 blends only "
+            "through a base-colour texture's alpha, and a source may carry one entry per condition"
+        ),
+    ),
+    (
+        "alpha_mode mask, the standard's default",
+        (
+            "makes every converted document use_cutout_alpha true; harmless while geometry_opacity is 1 and no "
+            "opacity texture is bound, which is every document of the base set"
+        ),
+    ),
 )
 
 
 def _family_rank(family: str) -> tuple[int, str]:
+    """The root itself first, then ``FAMILY_ORDER``, then any other family alphabetically."""
+    if family == "":
+        return (-1, "")
     return (FAMILY_ORDER.index(family) if family in FAMILY_ORDER else len(FAMILY_ORDER), family)
 
 
@@ -67,8 +84,7 @@ def documents_under(root: str | Path) -> list[Path]:
         raise MaterialError(f"no such library root: {root}")
 
     def key(p: Path) -> tuple[tuple[int, str], int, str]:
-        family = p.parent.relative_to(root).as_posix() if p.parent != root else ""
-        return (_family_rank(family), 0 if p.name == PARENT_NAME else 1, p.name)
+        return (_family_rank(family_of(p, root)), 0 if p.name == PARENT_NAME else 1, p.name)
 
     return sorted((p for p in root.rglob(f"*{SUFFIX}") if p.is_file()), key=key)
 
@@ -159,10 +175,16 @@ def index(root: str | Path, table_to: str = "hogshade-legacy-v2") -> str:
     out += ["## Deferred, not faked", ""]
     out += [f"- **{name}**: {why}." for name, why in DEFERRED]
     out.append("")
-    try:
-        table = load_table(type_names[0], table_to) if len(type_names) == 1 else None
-    except MaterialError:
-        table = None
+    table = None
+    if len(type_names) != 1:
+        _LOGGER.warning(
+            "the library holds %d types; the losses section needs one type and is left out", len(type_names)
+        )
+    else:
+        try:
+            table = load_table(type_names[0], table_to)
+        except MaterialError as e:
+            _LOGGER.warning("no losses section: %s", e)
     if table is not None:
         out += [f"## What `{type_names[0]}` to `{table_to}` loses", ""]
         out += [f"- `{d['from']}`: {d['reason']}." for d in table["dropped"]]

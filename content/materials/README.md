@@ -21,14 +21,14 @@ conversion table to `hogshade-legacy-v2`; what that loses is listed at the end.
 | `gold.material.json` (child) | Gold | Gold. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: gold, rounded to two decimals |
 | `iron.material.json` (child) | Iron | Iron; the parent's values, named. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: iron, rounded to two decimals |
 | `silver.material.json` (child) | Silver | Silver. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: silver, rounded to two decimals |
-| `steel.material.json` (child) | Brushed steel | Steel with a brushed finish: iron's reflectance with the standard's anisotropy along the tangent. | `base_color`, `specular_anisotropy`, `specular_rotation` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: steel is not in the table; iron's reflectance stands for it; author: anisotropy 0.6 and rotation 0 chosen for a brushed look |
+| `steel.material.json` (child) | Brushed steel | Steel with a brushed finish: iron's reflectance with the standard's anisotropy along the tangent. | `specular_anisotropy`, `specular_rotation` | author: anisotropy 0.6 and rotation 0 chosen for a brushed look; the reflectance is the parent's (iron), steel not being in the published table |
 
 ## `dielectric`
 
 | Document | Title | What | Sets | Sources |
 | --- | --- | --- | --- | --- |
 | `base.material.json` (parent) | Dielectric | The non-metal family: full physical specular at IOR 1.5, mid roughness, a mid grey albedo. | `base_metalness`, `specular_weight`, `specular_ior`, `specular_roughness`, `base_color` | published refractive indices: IOR 1.5 is common glass, the usual dielectric reference; author: roughness 0.5 and albedo 0.5 chosen as mid values |
-| `ceramic.material.json` (child) | Ceramic | A glazed ceramic: bright, smooth, glass-like glaze. | `specular_ior`, `specular_roughness`, `base_color` | published refractive indices: a glaze is a glass, n about 1.5; author: roughness 0.15 and albedo 0.9 chosen |
+| `ceramic.material.json` (child) | Ceramic | A glazed ceramic: bright, smooth, glass-like glaze. | `specular_roughness`, `base_color` | author: roughness 0.15 and albedo 0.9 chosen; the IOR is the parent's 1.5, a glaze being a glass |
 | `plastic_glossy.material.json` (child) | Glossy plastic | A glossy plastic such as polycarbonate. | `specular_ior`, `specular_roughness` | published refractive indices: polycarbonate n = 1.58; author: roughness 0.2 chosen for a glossy finish |
 | `plastic_matte.material.json` (child) | Matte plastic | A matte plastic such as PMMA. | `specular_ior`, `specular_roughness` | published refractive indices: PMMA (acrylic) n = 1.49; author: roughness 0.7 chosen for a matte finish |
 
@@ -44,7 +44,7 @@ conversion table to `hogshade-legacy-v2`; what that loses is listed at the end.
 | Document | Title | What | Sets | Sources |
 | --- | --- | --- | --- | --- |
 | `base.material.json` (parent) | Rough | The rough dielectric family: rubber, concrete, cloth without sheen. | `base_metalness`, `specular_weight`, `specular_ior`, `specular_roughness`, `base_color` | author: roughness 0.9 chosen as the family's trait; published refractive indices: IOR 1.5 as the dielectric reference |
-| `concrete.material.json` (child) | Concrete | Concrete; the one document that sets specular occlusion. | `base_color`, `specular_occlusion` | author: albedo 0.5 and specular_occlusion 0.8 chosen for a porous surface |
+| `concrete.material.json` (child) | Concrete | Concrete; the one document that sets specular occlusion. | `specular_occlusion` | author: specular_occlusion 0.8 chosen for a porous surface; the albedo is the parent's 0.5 |
 | `rubber.material.json` (child) | Rubber | Black rubber. | `specular_ior`, `base_color` | published refractive indices: natural rubber n = 1.52; author: albedo 0.05 chosen for black rubber |
 
 ## `emissive`
@@ -59,7 +59,7 @@ conversion table to `hogshade-legacy-v2`; what that loses is listed at the end.
 | Document | Title | What | Sets | Sources |
 | --- | --- | --- | --- | --- |
 | `base.material.json` (parent) | Cutout | The masked family (foliage, fences): alpha_mode mask with opacity 1 written out, the no-texture case. | `alpha_mode`, `geometry_opacity`, `base_metalness`, `specular_roughness`, `base_color` | author: opacity 1 under mask so nothing is cut until a texture binds (below 0.5 nothing renders, S1's rule) |
-| `leaf.material.json` (child) | Leaf | A green leaf; the mask path validated without a texture. | `base_color`, `specular_roughness` | author: a leaf green chosen; roughness 0.6 |
+| `leaf.material.json` (child) | Leaf | A green leaf; the mask path validated without a texture. | `base_color` | author: a leaf green chosen; the roughness is the parent's 0.6 |
 
 ## Deferred, not faked
 
@@ -75,3 +75,5 @@ conversion table to `hogshade-legacy-v2`; what that loses is listed at the end.
 - `specular_rotation`: the 2017 model has no anisotropic lobe, so no direction to rotate.
 - `specular_occlusion`: the 2017 model has no specular occlusion term; ambient occlusion alone darkens the environment light.
 - geometry_normal strength: does not reach bump_intensity: a table entry maps a parameter, not a field of one, and geometry_normal is already mapped to normal_map; a source-side field is S4b's conversion change.
+- alpha_mode blend: becomes use_cutout_alpha false with has_alpha at its default (false), which is opaque: v2 blends only through a base-colour texture's alpha, and a source may carry one entry per condition.
+- alpha_mode mask, the standard's default: makes every converted document use_cutout_alpha true; harmless while geometry_opacity is 1 and no opacity texture is bound, which is every document of the base set.

@@ -5,13 +5,6 @@
   "doc": "Steel with a brushed finish: iron's reflectance with the standard's anisotropy along the tangent.",
   "parent": "base.material.json",
   "values": {
-    "base_color": {
-      "factor": [
-        0.56,
-        0.57,
-        0.58
-      ]
-    },
     "specular_anisotropy": {
       "factor": 0.6
     },
@@ -21,12 +14,8 @@
   },
   "provenance": [
     {
-      "source": "Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances",
-      "note": "steel is not in the table; iron's reflectance stands for it"
-    },
-    {
       "source": "author",
-      "note": "anisotropy 0.6 and rotation 0 chosen for a brushed look"
+      "note": "anisotropy 0.6 and rotation 0 chosen for a brushed look; the reflectance is the parent's (iron), steel not being in the published table"
     }
   ],
   "ext": {}

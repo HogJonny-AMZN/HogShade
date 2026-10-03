@@ -5,9 +5,6 @@
   "doc": "A glazed ceramic: bright, smooth, glass-like glaze.",
   "parent": "base.material.json",
   "values": {
-    "specular_ior": {
-      "factor": 1.5
-    },
     "specular_roughness": {
       "factor": 0.15
     },
@@ -21,12 +18,8 @@
   },
   "provenance": [
     {
-      "source": "published refractive indices",
-      "note": "a glaze is a glass, n about 1.5"
-    },
-    {
       "source": "author",
-      "note": "roughness 0.15 and albedo 0.9 chosen"
+      "note": "roughness 0.15 and albedo 0.9 chosen; the IOR is the parent's 1.5, a glaze being a glass"
     }
   ],
   "ext": {}

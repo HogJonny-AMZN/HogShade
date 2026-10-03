@@ -11,15 +11,12 @@
         0.35,
         0.08
       ]
-    },
-    "specular_roughness": {
-      "factor": 0.6
     }
   },
   "provenance": [
     {
       "source": "author",
-      "note": "a leaf green chosen; roughness 0.6"
+      "note": "a leaf green chosen; the roughness is the parent's 0.6"
     }
   ],
   "ext": {}

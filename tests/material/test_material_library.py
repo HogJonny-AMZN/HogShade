@@ -31,6 +31,8 @@ from hogshade.material import (
 )
 from hogshade.material.library import DEFERRED, FAMILY_ORDER, INDEX_HEADER, PARENT_NAME, factor_parameters
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "wgpu"))
+
 REPO = Path(__file__).resolve().parents[2]
 LIBRARY = REPO / "content" / "materials" / "standard"
 INDEX = REPO / "content" / "materials" / "README.md"
@@ -91,12 +93,9 @@ def test_every_document_carries_a_title_a_doc_and_a_source(path: Path):
 
 def test_the_roster_covers_every_factor_bearing_standard_parameter():
     cov = coverage(LIBRARY)
-    assert sorted(cov) == sorted(factor_parameters(STANDARD))
-    assert len(cov) == 13, (
-        "the standard's non-texture parameters; a schema addition fails here until a document sets it"
-    )
+    assert sorted(cov) == sorted(factor_parameters(STANDARD)), "every non-texture parameter of the schema is a key"
     uncovered = [name for name, docs in cov.items() if not docs]
-    assert uncovered == [], uncovered
+    assert uncovered == [], uncovered  # a schema addition lands here until a document sets it
 
 
 def test_children_set_only_deltas_and_the_parents_carry_the_family():
@@ -106,6 +105,17 @@ def test_children_set_only_deltas_and_the_parents_carry_the_family():
     assert set(gold.values) == {"base_color"}
     assert resolve(gold, LIBRARY).values["base_metalness"]["factor"] == 1.0
     assert resolve(gold, LIBRARY).values["base_color"]["factor"] == [1.0, 0.77, 0.34]
+    # no child restates a value its parent already sets identically; iron is the one exception, titled on purpose
+    restated = []
+    for path in DOCUMENTS:
+        if path.name == PARENT_NAME or path.name == "iron.material.json":
+            continue
+        parent = load(path.parent / PARENT_NAME, LIBRARY)
+        child = load(path, LIBRARY)
+        for name, value in child.values.items():
+            if parent.values.get(name) == value:
+                restated.append(f"{_rel(path)}:{name}")
+    assert restated == [], restated
 
 
 def test_the_cutout_parent_keeps_opacity_at_one_under_mask():
@@ -177,12 +187,19 @@ def test_record_fields_inner_shapes_are_findings():
 
 
 def test_a_title_is_never_inherited(tmp_path: Path):
-    (tmp_path / PARENT_NAME).write_text(json.dumps(_data(title="Parent", doc="p")), encoding="utf-8")
+    (tmp_path / PARENT_NAME).write_text(
+        json.dumps(_data(title="Parent", doc="p", provenance=[{"source": "s", "note": "n"}])), encoding="utf-8"
+    )
     (tmp_path / "child.material.json").write_text(json.dumps(_data(parent=PARENT_NAME)), encoding="utf-8")
+    parent = load(tmp_path / PARENT_NAME, tmp_path)
     child = load(tmp_path / "child.material.json", tmp_path)
-    assert child.title is None
+    assert parent.title == "Parent" and parent.provenance, "the parent carries the record"
+    assert child.title is None and child.doc is None and child.provenance == [], "the child does not"
     resolved = resolve(child, tmp_path)
-    assert not hasattr(resolved, "title")
+    assert len(resolved.chain) == 2, "the parent was followed"
+    assert "title" not in resolved.values and "provenance" not in resolved.values, "the record is not a value"
+    text = index(tmp_path)
+    assert "| `child.material.json` (child) |  |  |" in text, "the index shows the child's own empty record"
 
 
 # ------------------------------------------------------------------------------------------- the index
@@ -196,7 +213,7 @@ def test_the_index_equals_the_committed_page_and_lists_every_document():
         assert f"`{p.name}`" in text
     for name, _ in DEFERRED:
         assert name in text
-    assert "`specular_color`" in text and "geometry_normal strength" in text
+    assert "`specular_color`" in text and "geometry_normal strength" in text and "alpha_mode blend" in text
 
 
 def test_the_index_refuses_a_library_with_a_finding(tmp_path: Path):
@@ -217,8 +234,10 @@ def test_the_index_orders_families_and_parents_first(tmp_path: Path):
         (tmp_path / family / "a.material.json").write_text(
             json.dumps(_data(title="A", doc="a", parent=PARENT_NAME)), encoding="utf-8"
         )
+    (tmp_path / "stray.material.json").write_text(json.dumps(_data(title="S", doc="s")), encoding="utf-8")
     names = [p.relative_to(tmp_path).as_posix() for p in documents_under(tmp_path)]
     assert names == [
+        "stray.material.json",
         f"metal/{PARENT_NAME}",
         "metal/a.material.json",
         f"cutout/{PARENT_NAME}",
@@ -233,3 +252,22 @@ def test_the_tool_check_covers_the_index():
     import generate_material_ui as tool
 
     assert tool.INDEX == INDEX and tool.check() == []
+
+
+def test_the_sheet_layout_and_the_command_record():
+    import contact_sheet as sheet
+
+    assert sheet.sheet_layout(22, 192) == (960, 960) and sheet.sheet_layout(1, 32) == (160, 32)
+    with pytest.raises(ValueError):
+        sheet.sheet_layout(0, 192)
+    import argparse
+
+    defaults = argparse.Namespace(
+        library=sheet.LIBRARY, out_dir=sheet.OUT_DIR, environment="studio_small_09", tile=192, exposure_ev=0.0
+    )
+    same = argparse.Namespace(**vars(defaults))
+    assert sheet.command_line(same, defaults) == "uv run tools/wgpu/contact_sheet.py"
+    changed = argparse.Namespace(**{**vars(defaults), "tile": 128, "environment": "citrus_orchard_road_puresky"})
+    assert sheet.command_line(changed, defaults) == (
+        "uv run tools/wgpu/contact_sheet.py --environment citrus_orchard_road_puresky --tile 128"
+    )

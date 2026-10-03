@@ -108,12 +108,12 @@ colours are the author's unless a source is named.
 
 | Family | Parent sets | Children (the delta) |
 | --- | --- | --- |
-| `metal` | `base_metalness` 1, `specular_roughness` 0.4, `base_color` iron's 0.56 0.57 0.58 (the neutral conductor) | `iron` (the parent's values, titled); `steel` (iron's reflectance, `specular_anisotropy` 0.6, `specular_rotation` 0: brushed; the one anisotropic document); `aluminium` 0.91 0.92 0.93; `gold` 1.00 0.77 0.34; `copper` 0.96 0.64 0.54; `silver` 0.97 0.96 0.92; `chrome` 0.55 0.56 0.55 (chromium); `brass` 0.89 0.79 0.43 (author: between gold and copper; not in the table) |
-| `dielectric` | `base_metalness` 0, `specular_weight` 1, `specular_ior` 1.5, `specular_roughness` 0.5, `base_color` 0.5 | `plastic_matte` (IOR 1.49, PMMA; roughness 0.7); `plastic_glossy` (IOR 1.58, polycarbonate; roughness 0.2); `ceramic` (IOR 1.5, a glaze; roughness 0.15; `base_color` 0.9) |
+| `metal` | `base_metalness` 1, `specular_roughness` 0.4, `base_color` iron's 0.56 0.57 0.58 (the neutral conductor) | `iron` (the parent's values, titled); `steel` (the parent's reflectance, iron's; `specular_anisotropy` 0.6, `specular_rotation` 0: brushed; the one anisotropic document); `aluminium` 0.91 0.92 0.93; `gold` 1.00 0.77 0.34; `copper` 0.96 0.64 0.54; `silver` 0.97 0.96 0.92; `chrome` 0.55 0.56 0.55 (chromium); `brass` 0.89 0.79 0.43 (author: between gold and copper; not in the table) |
+| `dielectric` | `base_metalness` 0, `specular_weight` 1, `specular_ior` 1.5, `specular_roughness` 0.5, `base_color` 0.5 | `plastic_matte` (IOR 1.49, PMMA; roughness 0.7); `plastic_glossy` (IOR 1.58, polycarbonate; roughness 0.2); `ceramic` (the parent's IOR 1.5, a glaze being a glass; roughness 0.15; `base_color` 0.9) |
 | `coated` | the dielectric's values with `specular_roughness` 0.1, `specular_color` 1 1 1 written out (the lacquer and car-paint family until the standard has a coat layer) | `painted` (`base_color` 0.60 0.05 0.05) |
-| `rough` | the dielectric's values with `specular_roughness` 0.9 | `rubber` (IOR 1.52, natural rubber; `base_color` 0.05); `concrete` (`base_color` 0.5, `specular_occlusion` 0.8) |
+| `rough` | the dielectric's values with `specular_roughness` 0.9 | `rubber` (IOR 1.52, natural rubber; `base_color` 0.05); `concrete` (the parent's albedo; `specular_occlusion` 0.8) |
 | `emissive` | `emission_luminance` 100, `emission_color` 1 1 1, `base_color` 0.1 | `panel` (`emission_luminance` 800) |
-| `cutout` | `alpha_mode` `mask`, `geometry_opacity` 1 written out (the no-texture case; below 0.5 nothing renders, S1's rule) | `leaf` (`base_color` 0.10 0.35 0.08, `specular_roughness` 0.6) |
+| `cutout` | `alpha_mode` `mask`, `geometry_opacity` 1 written out (the no-texture case; below 0.5 nothing renders, S1's rule) | `leaf` (`base_color` 0.10 0.35 0.08; the parent's roughness 0.6) |
 
 Deferred by name, never faked: skin, cloth with sheen, glass, water (transmission, subsurface, a coat layer
 are the standard version that carries them). The index lists them under "Deferred" with the reason.
@@ -210,3 +210,18 @@ table and differs from the dielectric parent.
   (a non-string title, a non-list provenance) is `MaterialError` in `from_data`, as `ext` is.
 - The contact-sheet legend records the command, the environment, the target type and the losses beside the
   cells, so the picture's provenance is complete without the log.
+
+### After the pre-PR review (2026-10-03)
+
+- A child restates no value its parent sets identically (a test over the roster); `iron` is the one exception,
+  titled on purpose as the parent's values named. Four restated values were trimmed (steel's and concrete's
+  base colour, ceramic's IOR, the leaf's roughness) and their provenance notes say the value is the parent's.
+- Two more unstated losses on the index: `alpha_mode` `blend` lands as opaque in v2 (`has_alpha` stays false;
+  one entry per condition), and the standard's `mask` default makes every converted document
+  `use_cutout_alpha` true, harmless at opacity 1 with no opacity texture, which is every base-set document.
+- `index()` warns when it leaves the losses section out (several types in one library, or no table) instead
+  of omitting it in silence. A document directly under the root sorts before the families, as the docstring
+  said and the code now does.
+- The contact sheet refuses an empty library and a missing root (exit 2, logged) before writing anything, takes
+  the losses from the table once rather than from the loop, and records the full reproducing command (every
+  argument that differs from its default), tested without a GPU.

@@ -21,6 +21,7 @@ import logging as _logging
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -28,7 +29,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from hogshade.ibl.imageio import preview_srgb8, write_png_rgb8
-from hogshade.material import bind, convert, documents_under, load, resolve
+from hogshade.material import MaterialError, bind, convert, documents_under, load, load_table, resolve
 from hogshade.material.library import family_of
 from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
 
@@ -45,9 +46,22 @@ TO_TYPE = "hogshade-legacy-v2"
 
 
 def sheet_layout(count: int, tile: int, columns: int = COLUMNS) -> tuple[int, int]:
-    """(width, height) in pixels of a grid of ``count`` tiles, ``columns`` to a row."""
+    """(width, height) in pixels of a grid of ``count`` tiles, ``columns`` to a row; ``count`` is at least 1."""
+    if count < 1:
+        raise ValueError("a sheet needs at least one tile")
     rows = -(-count // columns)
     return columns * tile, rows * tile
+
+
+def command_line(args: argparse.Namespace, defaults: argparse.Namespace) -> str:
+    """The invocation that reproduces this run: the tool plus every argument that differs from its default."""
+    parts = ["uv run tools/wgpu/contact_sheet.py"]
+    for name in ("library", "out_dir", "environment", "tile", "exposure_ev"):
+        value, default = getattr(args, name), getattr(defaults, name)
+        if value != default:
+            shown = value.relative_to(ROOT).as_posix() if isinstance(value, Path) and ROOT in value.parents else value
+            parts.append(f"--{name.replace('_', '-')} {shown}")
+    return " ".join(parts)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -58,13 +72,21 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--tile", type=int, default=192, help="square tile size, a multiple of 32")
     ap.add_argument("--exposure-ev", type=float, default=0.0, help="display exposure for the PNG only")
     args = ap.parse_args(argv)
+    defaults = ap.parse_args([])
     _logging.basicConfig(level=_logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     if args.tile % 32 or args.tile <= 0:
         _LOGGER.error("tile %d is not a positive multiple of 32", args.tile)
         return 2
 
     t0 = time.perf_counter()
-    paths = documents_under(args.library)
+    try:
+        paths = documents_under(args.library)
+    except MaterialError as e:
+        _LOGGER.error("contact sheet: %s", e)
+        return 2
+    if not paths:
+        _LOGGER.error("no *.material.json under %s; nothing to render", args.library)
+        return 2
     width, height = sheet_layout(len(paths), args.tile)
     if max(width, height) > MAX_SIDE:
         _LOGGER.error(
@@ -89,18 +111,15 @@ def main(argv: list[str] | None = None) -> int:
     _adapter, device = request_device()
     renderer = Renderer(device, load_shader_ball(), environment=args.environment)
     sheet = np.zeros((height, width, 3), dtype=np.float32)
-    legend: list[dict] = []
-    losses_logged = False
+    legend: list[dict[str, Any]] = []
+    first = load(paths[0], args.library)
+    losses = [d["from"] for d in load_table(first.material_type, TO_TYPE)["dropped"]]
+    _LOGGER.info(
+        "the %s to %s table loses %s for every document", first.material_type, TO_TYPE, ", ".join(losses) or "nothing"
+    )
     for cell, path in enumerate(paths):
         doc = load(path, args.library)
-        converted, losses = convert(resolve(doc, args.library), TO_TYPE)
-        if not losses_logged:
-            _LOGGER.info(
-                "the %s table loses %s for every document",
-                TO_TYPE,
-                ", ".join(loss.parameter for loss in losses) or "nothing",
-            )
-            losses_logged = True
+        converted, _ = convert(resolve(doc, args.library), TO_TYPE)
         binding = bind(resolve(converted), "wgpu")
         scene = Scene(width=args.tile, height=args.tile, material=binding, environment=args.environment)
         frame = renderer.render(scene).forward
@@ -126,10 +145,10 @@ def main(argv: list[str] | None = None) -> int:
     picture = args.out_dir / "contact-sheet.png"
     write_png_rgb8(picture, preview_srgb8(sheet, args.exposure_ev))
     record = {
-        "command": "uv run tools/wgpu/contact_sheet.py" + (f" --tile {args.tile}" if args.tile != 192 else ""),
+        "command": command_line(args, defaults),
         "environment": args.environment,
         "converted_to": TO_TYPE,
-        "losses": [loss.parameter for loss in losses],
+        "losses": losses,
         "tile": args.tile,
         "columns": COLUMNS,
         "size": [width, height],
