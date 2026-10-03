@@ -15,7 +15,7 @@
   "provenance": [
     {
       "source": "author",
-      "note": "anisotropy 0.6 and rotation 0 chosen for a brushed look; the reflectance is the parent's (iron), steel not being in the published table"
+      "note": "specular_anisotropy 0.6 and specular_rotation 0 chosen for a brushed look; the reflectance is the parent's (iron), steel not being in the published table"
     }
   ],
   "ext": {}

@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging as _logging
+import shlex
 import sys
 import time
 from pathlib import Path
@@ -54,14 +55,36 @@ def sheet_layout(count: int, tile: int, columns: int = COLUMNS) -> tuple[int, in
 
 
 def command_line(args: argparse.Namespace, defaults: argparse.Namespace) -> str:
-    """The invocation that reproduces this run: the tool plus every argument that differs from its default."""
-    parts = ["uv run tools/wgpu/contact_sheet.py"]
+    """
+    The invocation that reproduces this run: the tool plus every argument that differs from its default, as
+    an argv list quoted for a POSIX shell (``shlex.join``), so a path with a space or a metacharacter survives.
+    """
+    argv = ["uv", "run", "tools/wgpu/contact_sheet.py"]
     for name in ("library", "out_dir", "environment", "tile", "exposure_ev"):
         value, default = getattr(args, name), getattr(defaults, name)
         if value != default:
             shown = value.relative_to(ROOT).as_posix() if isinstance(value, Path) and ROOT in value.parents else value
-            parts.append(f"--{name.replace('_', '-')} {shown}")
-    return " ".join(parts)
+            argv += [f"--{name.replace('_', '-')}", str(shown)]
+    return shlex.join(argv)
+
+
+def prepare(library: Path, to_type: str = TO_TYPE) -> tuple[list[tuple[Path, Any, Any]], list[str]]:
+    """
+    Every document under ``library`` loaded, converted to ``to_type`` and bound for wgpu, with the table's
+    losses, before any device exists: ``(path, document, binding)`` triples and the lost parameter names. A
+    malformed document, chain, table or binding is ``MaterialError`` here, where the tool can log it and exit.
+    """
+    paths = documents_under(library)
+    if not paths:
+        raise MaterialError(f"no *.material.json under {library}; nothing to render")
+    first = load(paths[0], library)
+    losses = [d["from"] for d in load_table(first.material_type, to_type)["dropped"]]
+    prepared = []
+    for path in paths:
+        doc = load(path, library)
+        converted, _ = convert(resolve(doc, library), to_type)
+        prepared.append((path, doc, bind(resolve(converted), "wgpu")))
+    return prepared, losses
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -80,18 +103,21 @@ def main(argv: list[str] | None = None) -> int:
 
     t0 = time.perf_counter()
     try:
-        paths = documents_under(args.library)
+        prepared, losses = prepare(args.library)
     except MaterialError as e:
         _LOGGER.error("contact sheet: %s", e)
         return 2
-    if not paths:
-        _LOGGER.error("no *.material.json under %s; nothing to render", args.library)
-        return 2
-    width, height = sheet_layout(len(paths), args.tile)
+    _LOGGER.info(
+        "the %s to %s table loses %s for every document",
+        prepared[0][1].material_type,
+        TO_TYPE,
+        ", ".join(losses) or "nothing",
+    )
+    width, height = sheet_layout(len(prepared), args.tile)
     if max(width, height) > MAX_SIDE:
         _LOGGER.error(
             "%d tiles of %d px make a %dx%d sheet, over the gallery's %d; use a smaller --tile",
-            len(paths),
+            len(prepared),
             args.tile,
             width,
             height,
@@ -100,7 +126,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     _LOGGER.info(
         "rendering %d documents under %s at %d px tiles into a %dx%d sheet (%s)",
-        len(paths),
+        len(prepared),
         args.library,
         args.tile,
         width,
@@ -112,15 +138,7 @@ def main(argv: list[str] | None = None) -> int:
     renderer = Renderer(device, load_shader_ball(), environment=args.environment)
     sheet = np.zeros((height, width, 3), dtype=np.float32)
     legend: list[dict[str, Any]] = []
-    first = load(paths[0], args.library)
-    losses = [d["from"] for d in load_table(first.material_type, TO_TYPE)["dropped"]]
-    _LOGGER.info(
-        "the %s to %s table loses %s for every document", first.material_type, TO_TYPE, ", ".join(losses) or "nothing"
-    )
-    for cell, path in enumerate(paths):
-        doc = load(path, args.library)
-        converted, _ = convert(resolve(doc, args.library), TO_TYPE)
-        binding = bind(resolve(converted), "wgpu")
+    for cell, (path, doc, binding) in enumerate(prepared):
         scene = Scene(width=args.tile, height=args.tile, material=binding, environment=args.environment)
         frame = renderer.render(scene).forward
         if not np.isfinite(frame).all():

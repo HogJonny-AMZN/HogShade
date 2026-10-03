@@ -81,14 +81,23 @@ def test_every_document_validates_resolves_converts_and_binds(path: Path):
     assert converted.title is None and converted.provenance == [], "conversion does not copy the record fields"
 
 
+CITABLE = ("Lagarde", "refractiveindex.info", "author")
+
+
 @pytest.mark.parametrize("path", DOCUMENTS, ids=_rel)
-def test_every_document_carries_a_title_a_doc_and_a_source(path: Path):
+def test_every_document_carries_a_title_a_doc_and_a_source_per_value(path: Path):
+    """Every constant has a source: each parameter the document sets is named in a provenance note, and every
+    source is a publication, a URL or the author (the spec's rule), never a placeholder."""
     doc = load(path, LIBRARY)
     assert doc.title and doc.doc, "title and doc are written"
     assert doc.provenance, "at least one source"
-    sources = " ".join(p["source"] for p in doc.provenance)
+    for entry in doc.provenance:
+        assert any(c in entry["source"] for c in CITABLE), f"not a citable source: {entry['source']!r}"
+    notes = " ".join(p["note"] for p in doc.provenance)
+    unsourced = [name for name in doc.values if name not in notes]
+    assert unsourced == [], f"set without a note naming it: {unsourced}"
     if path.parent.name == "metal" and path.name != PARENT_NAME:
-        assert "Lagarde" in sources or "author" in sources, sources
+        assert any("Lagarde" in p["source"] or p["source"] == "author" for p in doc.provenance)
 
 
 def test_the_roster_covers_every_factor_bearing_standard_parameter():
@@ -139,6 +148,14 @@ def test_the_reverse_table_is_complete_and_fans_alpha_mode_out():
     assert check_table(table, type_of(STANDARD), type_of(V2)) == []
     whens = sorted(e["when"] for e in table["map"] if e["from"] == "alpha_mode")
     assert whens == ["blend", "mask", "opaque"]
+
+
+@pytest.mark.parametrize(("mode", "cutout"), [("mask", True), ("opaque", False), ("blend", False)])
+def test_alpha_mode_fans_out_to_use_cutout_alpha(mode: str, cutout: bool):
+    res = resolve(from_data(_data(values={"alpha_mode": {"factor": mode}, "geometry_opacity": {"factor": 1.0}})))
+    converted, _ = convert(res, V2)
+    assert converted.values["use_cutout_alpha"]["factor"] is cutout
+    assert "has_alpha" not in converted.values and "opacity_mask_bias" not in converted.values, "the v2 defaults stand"
 
 
 def test_the_reverse_table_names_a_forgotten_parameter_and_a_reasonless_drop():
@@ -272,3 +289,27 @@ def test_the_sheet_layout_and_the_command_record():
     assert sheet.command_line(changed, defaults) == (
         "uv run tools/wgpu/contact_sheet.py --environment citrus_orchard_road_puresky --tile 128"
     )
+    spaced = argparse.Namespace(**{**vars(defaults), "out_dir": sheet.ROOT / "verification" / "my sheet"})
+    assert (
+        sheet.command_line(spaced, defaults) == "uv run tools/wgpu/contact_sheet.py --out-dir 'verification/my sheet'"
+    )
+
+
+def test_the_sheet_prepares_every_document_before_the_device(tmp_path: Path):
+    import contact_sheet as sheet
+
+    prepared, losses = sheet.prepare(LIBRARY)
+    assert len(prepared) == len(DOCUMENTS) and losses == [
+        "specular_color",
+        "specular_anisotropy",
+        "specular_rotation",
+        "specular_occlusion",
+    ]
+    assert all(binding.model == "legacy-v2" for _, _, binding in prepared)
+    with pytest.raises(MaterialError, match="nothing to render"):
+        sheet.prepare(tmp_path)
+    (tmp_path / "bad.material.json").write_text(
+        json.dumps(_data(values={"base_metalness": {"factor": 2.0}})), encoding="utf-8"
+    )
+    with pytest.raises(MaterialError, match="cannot convert an invalid material"):
+        sheet.prepare(tmp_path)

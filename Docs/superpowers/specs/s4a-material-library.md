@@ -224,6 +224,10 @@ table and differs from the dielectric parent.
   said and the code now does.
 - The mask threshold loss Copilot found on #45 (the standard cuts at 0.5, v2 at `opacity_mask_bias` 0.1, the
   table cannot set it) is on the index's unstated-losses list beside the other three.
+- Copilot on #46: every parameter a document sets is named in one of its provenance notes, and every source is
+  a publication, a URL (refractiveindex.info for the indices) or the author; a test holds both. The `alpha_mode`
+  fan-out is tested per choice. The sheet prepares every document (load, convert, bind) before it asks for a
+  device, so a malformed document is a logged exit 2, and records its command shell-quoted (`shlex.join`).
 - The contact sheet refuses an empty library and a missing root (exit 2, logged) before writing anything, takes
   the losses from the table once rather than from the loop, and records the full reproducing command (every
   argument that differs from its default), tested without a GPU.

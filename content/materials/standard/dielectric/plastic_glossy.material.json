@@ -14,12 +14,12 @@
   },
   "provenance": [
     {
-      "source": "published refractive indices",
-      "note": "polycarbonate n = 1.58"
+      "source": "refractiveindex.info (the refractive index database), https://refractiveindex.info",
+      "note": "specular_ior 1.58, polycarbonate"
     },
     {
       "source": "author",
-      "note": "roughness 0.2 chosen for a glossy finish"
+      "note": "specular_roughness 0.2 chosen for a glossy finish"
     }
   ],
   "ext": {}

@@ -16,7 +16,7 @@
   "provenance": [
     {
       "source": "Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances",
-      "note": "aluminium, rounded to two decimals"
+      "note": "base_color is aluminium, rounded to two decimals"
     }
   ],
   "ext": {}

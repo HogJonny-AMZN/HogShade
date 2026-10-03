@@ -12,7 +12,7 @@
   "provenance": [
     {
       "source": "author",
-      "note": "800 nits, a bright display or a backlit panel"
+      "note": "emission_luminance 800 nits, a bright display or a backlit panel"
     }
   ],
   "ext": {}

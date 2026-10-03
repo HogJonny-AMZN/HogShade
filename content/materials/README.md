@@ -13,53 +13,53 @@ conversion table to `hogshade-legacy-v2`; what that loses is listed at the end.
 
 | Document | Title | What | Sets | Sources |
 | --- | --- | --- | --- | --- |
-| `base.material.json` (parent) | Metal | The conductor family: fully metallic, mid roughness, iron's reflectance as the neutral conductor. | `base_metalness`, `specular_roughness`, `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: base_color is iron's linear F0 rounded to two decimals; author: roughness 0.4 chosen as a mid value |
-| `aluminium.material.json` (child) | Aluminium | Aluminium. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: aluminium, rounded to two decimals |
+| `base.material.json` (parent) | Metal | The conductor family: fully metallic, mid roughness, iron's reflectance as the neutral conductor. | `base_metalness`, `specular_roughness`, `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: base_color is iron's linear F0 (0.56, 0.57, 0.58) rounded to two decimals; author: base_metalness 1 by definition of the family; specular_roughness 0.4 chosen as a mid value |
+| `aluminium.material.json` (child) | Aluminium | Aluminium. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: base_color is aluminium, rounded to two decimals |
 | `brass.material.json` (child) | Brass | Brass; not in the published table, so an estimate between gold and copper. | `base_color` | author: base_color estimated between gold and copper; replace when a measured value is sourced |
-| `chrome.material.json` (child) | Chrome | Chromium plating. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: chromium, rounded to two decimals |
-| `copper.material.json` (child) | Copper | Copper. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: copper, rounded to two decimals |
-| `gold.material.json` (child) | Gold | Gold. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: gold, rounded to two decimals |
-| `iron.material.json` (child) | Iron | Iron; the parent's values, named. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: iron, rounded to two decimals |
-| `silver.material.json` (child) | Silver | Silver. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: silver, rounded to two decimals |
-| `steel.material.json` (child) | Brushed steel | Steel with a brushed finish: iron's reflectance with the standard's anisotropy along the tangent. | `specular_anisotropy`, `specular_rotation` | author: anisotropy 0.6 and rotation 0 chosen for a brushed look; the reflectance is the parent's (iron), steel not being in the published table |
+| `chrome.material.json` (child) | Chrome | Chromium plating. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: base_color is chromium, rounded to two decimals |
+| `copper.material.json` (child) | Copper | Copper. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: base_color is copper, rounded to two decimals |
+| `gold.material.json` (child) | Gold | Gold. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: base_color is gold, rounded to two decimals |
+| `iron.material.json` (child) | Iron | Iron; the parent's values, named. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: base_color is iron, rounded to two decimals |
+| `silver.material.json` (child) | Silver | Silver. | `base_color` | Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances: base_color is silver, rounded to two decimals |
+| `steel.material.json` (child) | Brushed steel | Steel with a brushed finish: iron's reflectance with the standard's anisotropy along the tangent. | `specular_anisotropy`, `specular_rotation` | author: specular_anisotropy 0.6 and specular_rotation 0 chosen for a brushed look; the reflectance is the parent's (iron), steel not being in the published table |
 
 ## `dielectric`
 
 | Document | Title | What | Sets | Sources |
 | --- | --- | --- | --- | --- |
-| `base.material.json` (parent) | Dielectric | The non-metal family: full physical specular at IOR 1.5, mid roughness, a mid grey albedo. | `base_metalness`, `specular_weight`, `specular_ior`, `specular_roughness`, `base_color` | published refractive indices: IOR 1.5 is common glass, the usual dielectric reference; author: roughness 0.5 and albedo 0.5 chosen as mid values |
-| `ceramic.material.json` (child) | Ceramic | A glazed ceramic: bright, smooth, glass-like glaze. | `specular_roughness`, `base_color` | author: roughness 0.15 and albedo 0.9 chosen; the IOR is the parent's 1.5, a glaze being a glass |
-| `plastic_glossy.material.json` (child) | Glossy plastic | A glossy plastic such as polycarbonate. | `specular_ior`, `specular_roughness` | published refractive indices: polycarbonate n = 1.58; author: roughness 0.2 chosen for a glossy finish |
-| `plastic_matte.material.json` (child) | Matte plastic | A matte plastic such as PMMA. | `specular_ior`, `specular_roughness` | published refractive indices: PMMA (acrylic) n = 1.49; author: roughness 0.7 chosen for a matte finish |
+| `base.material.json` (parent) | Dielectric | The non-metal family: full physical specular at IOR 1.5, mid roughness, a mid grey albedo. | `base_metalness`, `specular_weight`, `specular_ior`, `specular_roughness`, `base_color` | refractiveindex.info (the refractive index database), https://refractiveindex.info: specular_ior 1.5, the index of common soda-lime glass, the usual dielectric reference; author: base_metalness 0 by definition of the family; specular_weight 1 is the physical amount at the IOR, written so the family reads; specular_roughness 0.5 and base_color 0.5 chosen as mid values |
+| `ceramic.material.json` (child) | Ceramic | A glazed ceramic: bright, smooth, glass-like glaze. | `specular_roughness`, `base_color` | author: specular_roughness 0.15 and base_color 0.9 chosen; the IOR is the parent's 1.5, a glaze being a glass |
+| `plastic_glossy.material.json` (child) | Glossy plastic | A glossy plastic such as polycarbonate. | `specular_ior`, `specular_roughness` | refractiveindex.info (the refractive index database), https://refractiveindex.info: specular_ior 1.58, polycarbonate; author: specular_roughness 0.2 chosen for a glossy finish |
+| `plastic_matte.material.json` (child) | Matte plastic | A matte plastic such as PMMA. | `specular_ior`, `specular_roughness` | refractiveindex.info (the refractive index database), https://refractiveindex.info: specular_ior 1.49, PMMA (acrylic); author: specular_roughness 0.7 chosen for a matte finish |
 
 ## `coated`
 
 | Document | Title | What | Sets | Sources |
 | --- | --- | --- | --- | --- |
-| `base.material.json` (parent) | Coated | The lacquer and car-paint family until the standard has a coat layer: a smooth dielectric with a white, full specular written out. | `base_metalness`, `specular_weight`, `specular_ior`, `specular_roughness`, `specular_color`, `base_color` | author: roughness 0.1 for a lacquer; specular_color white is the physical value, written so the family reads as coated; published refractive indices: IOR 1.5, a clear coat is a glass-like polymer |
-| `painted.material.json` (child) | Painted, red | A red lacquered surface. | `base_color` | author: a saturated red chosen for the showcase |
+| `base.material.json` (parent) | Coated | The lacquer and car-paint family until the standard has a coat layer: a smooth dielectric with a white, full specular written out. | `base_metalness`, `specular_weight`, `specular_ior`, `specular_roughness`, `specular_color`, `base_color` | refractiveindex.info (the refractive index database), https://refractiveindex.info: specular_ior 1.5, a clear coat being a glass-like polymer; author: base_metalness 0 by definition; specular_weight 1 and specular_color white are the physical values, written so the family reads as coated; specular_roughness 0.1 for a lacquer; base_color 0.5 a mid value |
+| `painted.material.json` (child) | Painted, red | A red lacquered surface. | `base_color` | author: base_color a saturated red chosen for the showcase |
 
 ## `rough`
 
 | Document | Title | What | Sets | Sources |
 | --- | --- | --- | --- | --- |
-| `base.material.json` (parent) | Rough | The rough dielectric family: rubber, concrete, cloth without sheen. | `base_metalness`, `specular_weight`, `specular_ior`, `specular_roughness`, `base_color` | author: roughness 0.9 chosen as the family's trait; published refractive indices: IOR 1.5 as the dielectric reference |
+| `base.material.json` (parent) | Rough | The rough dielectric family: rubber, concrete, cloth without sheen. | `base_metalness`, `specular_weight`, `specular_ior`, `specular_roughness`, `base_color` | refractiveindex.info (the refractive index database), https://refractiveindex.info: specular_ior 1.5 as the dielectric reference, common glass; author: base_metalness 0 by definition; specular_weight 1 the physical amount; specular_roughness 0.9 chosen as the family's trait; base_color 0.5 a mid value |
 | `concrete.material.json` (child) | Concrete | Concrete; the one document that sets specular occlusion. | `specular_occlusion` | author: specular_occlusion 0.8 chosen for a porous surface; the albedo is the parent's 0.5 |
-| `rubber.material.json` (child) | Rubber | Black rubber. | `specular_ior`, `base_color` | published refractive indices: natural rubber n = 1.52; author: albedo 0.05 chosen for black rubber |
+| `rubber.material.json` (child) | Rubber | Black rubber. | `specular_ior`, `base_color` | refractiveindex.info (the refractive index database), https://refractiveindex.info: specular_ior 1.52, natural rubber (polyisoprene); author: base_color 0.05 chosen for black rubber |
 
 ## `emissive`
 
 | Document | Title | What | Sets | Sources |
 | --- | --- | --- | --- | --- |
-| `base.material.json` (parent) | Emissive | The emitting family: a dark dielectric that glows white at 100 nits. | `emission_luminance`, `emission_color`, `base_color` | author: 100 nits is a dim indoor display; the colour white; a dark base so the glow reads |
-| `panel.material.json` (child) | Light panel | A bright light panel at 800 nits. | `emission_luminance` | author: 800 nits, a bright display or a backlit panel |
+| `base.material.json` (parent) | Emissive | The emitting family: a dark dielectric that glows white at 100 nits. | `emission_luminance`, `emission_color`, `base_color` | author: emission_luminance 100 nits, a dim indoor display; emission_color white; base_color 0.1 so the glow reads |
+| `panel.material.json` (child) | Light panel | A bright light panel at 800 nits. | `emission_luminance` | author: emission_luminance 800 nits, a bright display or a backlit panel |
 
 ## `cutout`
 
 | Document | Title | What | Sets | Sources |
 | --- | --- | --- | --- | --- |
-| `base.material.json` (parent) | Cutout | The masked family (foliage, fences): alpha_mode mask with opacity 1 written out, the no-texture case. | `alpha_mode`, `geometry_opacity`, `base_metalness`, `specular_roughness`, `base_color` | author: opacity 1 under mask so nothing is cut until a texture binds (below 0.5 nothing renders, S1's rule) |
-| `leaf.material.json` (child) | Leaf | A green leaf; the mask path validated without a texture. | `base_color` | author: a leaf green chosen; the roughness is the parent's 0.6 |
+| `base.material.json` (parent) | Cutout | The masked family (foliage, fences): alpha_mode mask with opacity 1 written out, the no-texture case. | `alpha_mode`, `geometry_opacity`, `base_metalness`, `specular_roughness`, `base_color` | author: alpha_mode mask by definition of the family; geometry_opacity 1 so nothing is cut until a texture binds (below 0.5 nothing renders, S1's rule); base_metalness 0; specular_roughness 0.6 and base_color 0.5 chosen |
+| `leaf.material.json` (child) | Leaf | A green leaf; the mask path validated without a texture. | `base_color` | author: base_color a leaf green chosen; the roughness is the parent's 0.6 |
 
 ## Deferred, not faked
 

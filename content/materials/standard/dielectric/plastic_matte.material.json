@@ -14,12 +14,12 @@
   },
   "provenance": [
     {
-      "source": "published refractive indices",
-      "note": "PMMA (acrylic) n = 1.49"
+      "source": "refractiveindex.info (the refractive index database), https://refractiveindex.info",
+      "note": "specular_ior 1.49, PMMA (acrylic)"
     },
     {
       "source": "author",
-      "note": "roughness 0.7 chosen for a matte finish"
+      "note": "specular_roughness 0.7 chosen for a matte finish"
     }
   ],
   "ext": {}

@@ -21,11 +21,11 @@
   "provenance": [
     {
       "source": "Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances",
-      "note": "base_color is iron's linear F0 rounded to two decimals"
+      "note": "base_color is iron's linear F0 (0.56, 0.57, 0.58) rounded to two decimals"
     },
     {
       "source": "author",
-      "note": "roughness 0.4 chosen as a mid value"
+      "note": "base_metalness 1 by definition of the family; specular_roughness 0.4 chosen as a mid value"
     }
   ],
   "ext": {}

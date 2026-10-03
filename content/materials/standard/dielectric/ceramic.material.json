@@ -19,7 +19,7 @@
   "provenance": [
     {
       "source": "author",
-      "note": "roughness 0.15 and albedo 0.9 chosen; the IOR is the parent's 1.5, a glaze being a glass"
+      "note": "specular_roughness 0.15 and base_color 0.9 chosen; the IOR is the parent's 1.5, a glaze being a glass"
     }
   ],
   "ext": {}

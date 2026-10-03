@@ -18,12 +18,12 @@
   },
   "provenance": [
     {
-      "source": "published refractive indices",
-      "note": "natural rubber n = 1.52"
+      "source": "refractiveindex.info (the refractive index database), https://refractiveindex.info",
+      "note": "specular_ior 1.52, natural rubber (polyisoprene)"
     },
     {
       "source": "author",
-      "note": "albedo 0.05 chosen for black rubber"
+      "note": "base_color 0.05 chosen for black rubber"
     }
   ],
   "ext": {}

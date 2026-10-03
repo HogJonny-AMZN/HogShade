@@ -27,7 +27,7 @@
   "provenance": [
     {
       "source": "author",
-      "note": "opacity 1 under mask so nothing is cut until a texture binds (below 0.5 nothing renders, S1's rule)"
+      "note": "alpha_mode mask by definition of the family; geometry_opacity 1 so nothing is cut until a texture binds (below 0.5 nothing renders, S1's rule); base_metalness 0; specular_roughness 0.6 and base_color 0.5 chosen"
     }
   ],
   "ext": {}
