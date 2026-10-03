@@ -11,6 +11,7 @@ import json
 import struct
 import sys
 import zlib
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -77,7 +78,7 @@ def corpus(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def _findings(corpus: Path, edit) -> list[str]:
+def _findings(corpus: Path, edit: Callable[[dict], None]) -> list[str]:
     manifest = json.loads((corpus / "verification" / "gallery.json").read_text(encoding="utf-8"))
     manifest = copy.deepcopy(manifest)
     edit(manifest)
@@ -122,7 +123,28 @@ def test_rules_each_have_a_finding(corpus: Path):
     def outside(m):
         m["sections"][0]["pictures"][0]["path"] = "verification/../Docs/x.png"
 
-    assert "path is under verification/ with no '..'" in _findings(corpus, outside)
+    assert "path must lie under verification/, forward slashes only, no '..'" in _findings(corpus, outside)
+
+    def backslash(m):
+        m["sections"][0]["pictures"][0]["path"] = "verification/a\\..\\..\\x.png"
+
+    assert "path must lie under verification/, forward slashes only, no '..'" in _findings(corpus, backslash)
+
+    def wrong_extension(m):
+        _png(corpus / "verification" / "a" / "one.jpg", 8, 8)
+        m["sections"][0]["pictures"][0]["path"] = "verification/a/one.jpg"
+
+    assert "the format is png" in _findings(corpus, wrong_extension)
+
+    def bad_limit(m):
+        m["rules"]["max_side"] = "big"
+
+    assert "max_side must be a positive integer, not 'big'" in _findings(corpus, bad_limit)
+
+    def picture_not_an_object(m):
+        m["sections"][0]["pictures"].append("verification/a/one.png")
+
+    assert "must be an object, not str" in _findings(corpus, picture_not_an_object)
 
     def unknown_host(m):
         m["sections"][0]["pictures"][0]["host"] = "blender"
@@ -143,6 +165,26 @@ def test_rules_each_have_a_finding(corpus: Path):
         m["sections"][0]["pictures"][0]["caption"] = ""
 
     assert "missing or empty 'caption'" in _findings(corpus, no_caption)
+
+
+def test_malformed_manifest_is_a_gallery_error(corpus: Path):
+    (corpus / "verification" / "gallery.json").write_text("{not json", encoding="utf-8")
+    with pytest.raises(gg.GalleryError, match="not valid JSON at line 1"):
+        gg.check(corpus)
+    (corpus / "verification" / "gallery.json").write_text("[]", encoding="utf-8")
+    with pytest.raises(gg.GalleryError, match="JSON object at the top level"):
+        gg.write(corpus)
+
+
+def test_write_refuses_findings_and_logs_counts(corpus: Path, caplog: pytest.LogCaptureFixture):
+    with caplog.at_level("INFO", logger=gg._MODULE_NAME):
+        gg.write(corpus)
+    assert "wrote gallery.md: 1 sections, 2 pictures, 1 pairs, 1 wanted" in caplog.text
+    manifest = json.loads((corpus / "verification" / "gallery.json").read_text(encoding="utf-8"))
+    manifest["sections"][0]["pictures"][0]["path"] = "verification/a/none.png"
+    (corpus / "verification" / "gallery.json").write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(gg.GalleryError, match="no such file"):
+        gg.write(corpus)
 
 
 def test_page_links_resolve_from_docs(corpus: Path):

@@ -36,8 +36,14 @@ _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 _PICTURE_KEYS = ("path", "host", "feature", "caption", "made_by")
 
 
+class GalleryError(ValueError):
+    """The manifest cannot be used: malformed, or refused by ``--write`` with the findings in the message."""
+
+
 @dataclass(frozen=True)
 class Finding:
+    """One rule broken, located for a human reading CI output."""
+
     where: str
     message: str
 
@@ -56,7 +62,14 @@ def png_size(path: Path) -> tuple[int, int] | None:
 
 
 def load_manifest(path: Path = MANIFEST) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+    """The manifest as parsed JSON; a malformed file is a ``GalleryError`` naming the position."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        raise GalleryError(f"{path.name} is not valid JSON at line {e.lineno} column {e.colno}: {e.msg}") from e
+    if not isinstance(data, dict):
+        raise GalleryError(f"{path.name} must hold a JSON object at the top level, not {type(data).__name__}")
+    return data
 
 
 def check_manifest(manifest: dict, root: Path = ROOT) -> list[Finding]:
@@ -69,22 +82,34 @@ def check_manifest(manifest: dict, root: Path = ROOT) -> list[Finding]:
     if out:
         return out
     rules = manifest["rules"]
-    max_side, max_bytes = int(rules.get("max_side", 1024)), int(rules.get("max_bytes", 1 << 20))
+    limits: dict[str, int] = {}
+    for key, default in (("max_side", 1024), ("max_bytes", 1 << 20)):
+        value = rules.get(key, default)
+        if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+            out.append(Finding(f"{where} rules", f"{key} must be a positive integer, not {value!r}"))
+            value = default
+        limits[key] = value
+    max_side, max_bytes = limits["max_side"], limits["max_bytes"]
     hosts = manifest["hosts"]
+    if not isinstance(hosts, dict):
+        return out + [Finding(where, "hosts must be an object of host id to description")]
     seen: set[str] = set()
     for s_index, section in enumerate(manifest["sections"]):
         s_where = f"{where} section {s_index}"
         for key in ("title", "need", "pictures"):
             if not section.get(key):
                 out.append(Finding(s_where, f"missing or empty {key!r}"))
-        for picture in section.get("pictures", []):
+        for p_index, picture in enumerate(section.get("pictures", [])):
+            if not isinstance(picture, dict):
+                out.append(Finding(f"{s_where} picture {p_index}", f"must be an object, not {type(picture).__name__}"))
+                continue
             p_where = f"{s_where} picture {picture.get('path')!r}"
             for key in _PICTURE_KEYS:
                 if not isinstance(picture.get(key), str) or not picture.get(key):
                     out.append(Finding(p_where, f"missing or empty {key!r}"))
             rel = picture.get("path", "")
-            if not isinstance(rel, str) or not rel.startswith("verification/") or ".." in rel.split("/"):
-                out.append(Finding(p_where, "path is under verification/ with no '..'"))
+            if not isinstance(rel, str) or "\\" in rel or not rel.startswith("verification/") or ".." in rel.split("/"):
+                out.append(Finding(p_where, "path must lie under verification/, forward slashes only, no '..'"))
                 continue
             if rel in seen:
                 out.append(Finding(p_where, "listed twice"))
@@ -106,6 +131,9 @@ def check_manifest(manifest: dict, root: Path = ROOT) -> list[Finding]:
             if nbytes > max_bytes:
                 out.append(Finding(p_where, f"{nbytes} bytes exceeds {max_bytes}"))
         for pair in section.get("pairs", []):
+            if not isinstance(pair, dict):
+                out.append(Finding(s_where, f"a pair must be an object, not {type(pair).__name__}"))
+                continue
             pr_where = f"{s_where} pair {pair.get('left')!r} / {pair.get('right')!r}"
             for side in ("left", "right"):
                 if pair.get(side) not in seen:
@@ -115,7 +143,16 @@ def check_manifest(manifest: dict, root: Path = ROOT) -> list[Finding]:
     return out
 
 
+def _counts(manifest: dict) -> tuple[int, int, int, int]:
+    """Sections, pictures, pairs and wanted items, for the log."""
+    sections = [s for s in manifest.get("sections", []) if isinstance(s, dict)]
+    pictures = sum(len(s.get("pictures", [])) for s in sections)
+    pairs = sum(len(s.get("pairs", [])) for s in sections)
+    return len(sections), pictures, pairs, len(manifest.get("wanted", []))
+
+
 def _img(rel: str, alt: str) -> str:
+    """A markdown image whose link resolves from ``Docs/``."""
     return f"![{alt}](../{rel})"
 
 
@@ -163,6 +200,9 @@ def render(manifest: dict) -> str:
 def check(root: Path = ROOT) -> tuple[list[Finding], str]:
     """The manifest's findings and a unified diff when the committed page is stale (empty when current)."""
     manifest = load_manifest(root / "verification" / "gallery.json")
+    _LOGGER.info(
+        "checking %d sections, %d pictures, %d pairs, %d wanted from verification/gallery.json", *_counts(manifest)
+    )
     findings = check_manifest(manifest, root)
     fresh = render(manifest)
     page = root / "Docs" / "gallery.md"
@@ -181,12 +221,14 @@ def check(root: Path = ROOT) -> tuple[list[Finding], str]:
 
 
 def write(root: Path = ROOT) -> Path:
+    """Regenerate ``Docs/gallery.md``; a manifest with findings is refused as a ``GalleryError``."""
     manifest = load_manifest(root / "verification" / "gallery.json")
     findings = check_manifest(manifest, root)
     if findings:
-        raise ValueError("the manifest has findings: " + "; ".join(str(f) for f in findings))
+        raise GalleryError("the manifest has findings: " + "; ".join(str(f) for f in findings))
     page = root / "Docs" / "gallery.md"
     page.write_text(render(manifest), encoding="utf-8", newline="\n")
+    _LOGGER.info("wrote %s: %d sections, %d pictures, %d pairs, %d wanted", page.name, *_counts(manifest))
     return page
 
 
@@ -199,13 +241,16 @@ def main(argv: list[str] | None = None) -> int:
     _logging.basicConfig(level=_logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     if args.write:
         try:
-            page = write()
-        except ValueError as e:
+            write()
+        except GalleryError as e:
             _LOGGER.error("%s", e)
             return 2
-        _LOGGER.info("wrote %s", page.relative_to(ROOT))
         return 0
-    findings, diff = check()
+    try:
+        findings, diff = check()
+    except GalleryError as e:
+        _LOGGER.error("%s", e)
+        return 1
     for f in findings:
         _LOGGER.error("%s", f)
     if diff:
@@ -213,7 +258,7 @@ def main(argv: list[str] | None = None) -> int:
         _LOGGER.error("Docs/gallery.md is stale; run tools/generate_gallery.py --write")
     if findings or diff:
         return 1
-    _LOGGER.info("gallery check: the manifest obeys its rules and Docs/gallery.md is current")
+    _LOGGER.info("gallery check: every picture obeys the rules and Docs/gallery.md is current")
     return 0
 
 
