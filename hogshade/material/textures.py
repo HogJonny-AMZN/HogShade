@@ -43,7 +43,18 @@ NORMAL_CONVENTIONS = ("opengl+y", "directx-y")
 SIDECAR_DERIVED = ("preset", "colour_space", "mips", "runtime", "resolution")
 SIDECAR_REQUIRED = ("provenance",)
 PROVENANCE_FIELDS = ("origin", "url", "licence", "fetched")
-SIDECAR_KEYS = SIDECAR_DERIVED + SIDECAR_REQUIRED + ("normal_convention", "override_reason", "derived", "source")
+#: ``pack`` is the T2 alpha-carrier declaration (``{"a": "<suffix>"}``), validated by the cook that reads it.
+SIDECAR_KEYS = (
+    SIDECAR_DERIVED
+    + SIDECAR_REQUIRED
+    + (
+        "normal_convention",
+        "override_reason",
+        "derived",
+        "source",
+        "pack",
+    )
+)
 
 
 @dataclass(frozen=True)
