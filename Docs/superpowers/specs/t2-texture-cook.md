@@ -1,8 +1,8 @@
 # T2 spec: the texture cook
 
-**Status:** Proposed. Drafted 2026-10-04 from the accepted conventions design (T2) and the content standard (T1);
-built on `feat/t2-texture-cook` once this is merged. Two questions for the owner are at the end; the second
-is answered (`ispc_texcomp`), the first proceeds on its recommendation unless the owner says otherwise. Amendments made in the build go in the
+**Status:** Accepted. Drafted 2026-10-04 from the accepted conventions design (T2) and the content standard (T1)
+as #53 and #54, built the same day on `feat/t2-texture-cook`; the build's amendments are the last section. The
+second question is answered (`ispc_texcomp`), the first proceeds on its recommendation. Amendments made in the build go in the
 last section.
 
 Date: 2026-10-04. Design:
@@ -303,6 +303,29 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
    one behaviour, "Compression" above). One API fact: BC4 takes
    an R8 surface and BC5 an RG8 surface, not RGBA. The other options are logged on the board's Icebox.
 
-## Amendments made in the build
+## Amendments made in the build (2026-10-04)
 
-(none yet)
+- **Mip sizes follow the DDS convention**, `max(side // 2, 1)`: an odd trailing row or column is dropped, not
+  edge-padded as first written, because every host computes a level's size that way and the writer refused
+  a padded chain (24x16 reached 2x1 where DDS wants 1x1). The manifest still names non-power-of-two sources.
+- **The separation's error is measured through the 8-bit quantisation of the written high-pass.** In [0, 1]
+  floats the offset-and-scale cannot leave the range, so the exact recombination is a tautology; what a
+  shader sees is the quantised map, and the error is within one step (`1/255`), `clipped_texels` counting
+  where the recombination had to clip. `Separation.high` is the quantised map.
+- **The sidecars are filled before the inputs are hashed**, and the manifest's `sidecars_derived` lists every
+  derived field a sidecar carries (not only the ones this cook filled), so cooking twice gives one manifest.
+  A sidecar's derived `runtime` is the preset's token (`bc7`), the manifest carrying the exact DXGI format.
+- **`_AO`, `_R` and `_M` are not written as their own files**: `_ORM` is their runtime form. An `_ORM` alpha
+  carrier is declared on any of those three sidecars (`_ORM` has no source of its own).
+- **The DDS writers live in `hogshade/texture_cook/dds2d.py`** beside the cube writer they share constants
+  with, rather than inside `hogshade/ibl/dds.py`; `write_2d_blocks` carries the block formats.
+- **`pack` is a T1 sidecar key** now (`SIDECAR_KEYS`), validated by the cook's `check_pack`; the content check
+  accepts it as a known key.
+- **A 16-bit colour source is read as 16-bit** (Poly Haven's PNGs are) and reduced to 8 bits only at the
+  write; the mips are computed at float precision from the 16-bit samples.
+- **`--picture-size`** (default 512) halves the separation's pictures to the gallery's budget; at 1K the four
+  were 1.4 to 2.6 MB, over the 1 MiB rule.
+- `encode` takes a level and returns the block bytes; `TexconvEncoder` is found but not wired (`encode` says
+  so): with `ispc_texcomp` the default, the baseline waits for the increment that wants it.
+- The `_O`-into-alpha packing, dropped on Copilot's finding and restored by the owner's packing scheme, is
+  built as the general `pack` field: `{"a": "_O"}` on `_BC` (tested, and in the proof set `_H` in `_ORM`'s).

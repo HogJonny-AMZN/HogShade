@@ -60,6 +60,9 @@ def main(argv: list[str] | None = None) -> int:
         help="write the source, halves and recombination as PNGs here (never under content/)",
     )
     s.add_argument("--no-compress", action="store_true")
+    s.add_argument(
+        "--picture-size", type=int, default=512, help="the pictures' longer side at most this (the gallery's rule)"
+    )
     args = parser.parse_args(argv)
     _logging.basicConfig(level=_logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     if args.check_setup:
@@ -91,6 +94,7 @@ def main(argv: list[str] | None = None) -> int:
             source_suffix=args.source,
             compress=False if args.no_compress else None,
             picture_dir=args.picture,
+            picture_size=args.picture_size,
         )
         print(json.dumps(sep, indent=2))
         return 0

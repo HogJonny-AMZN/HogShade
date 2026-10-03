@@ -17,6 +17,8 @@ The comparison framework (roadmap, track E) inherits this layout as its capture 
 | --- | --- | --- |
 | `build_shaders.py` | stitch, validate and translate the WGSL core; `--check` for staleness | uv |
 | `cook_ibl.py`, `bench_cook.py` | the E1 IBL cook and its benchmarks | uv |
+| `cook_textures.py` | the T2 texture cook: an authoring set to its runtime set (`cook`), frequency separation (`separate`), `--check-setup` for the encoder | uv (`uv sync --all-extras` for the encoder) |
+| `check_content.py` | the content standard's check over every texture, sidecar and binding (the CI step "Content") | uv |
 | `maya/_session.py` | what every Maya check shares: log, shader load, file-node binding, light binding, capture, quit | Maya's Python |
 | `maya/load_check.py`, `.mel` | an effect loads and lists techniques | Maya 2026 GUI |
 | `maya/ibl_check.py`, `.mel` | the cooked cubes light the HogShade shell; main view plus debug views | Maya 2026 GUI |
