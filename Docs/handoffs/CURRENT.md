@@ -17,8 +17,8 @@ agent, the owner's two answers as rules (`T_` on every file, `_BC` never `_D`), 
 `hogshade.material.textures` (fourteen suffixes held to the schema's texturable parameters, the packed `_ORM`
 and the derived `_DN`/`_DH`, the presets, the sidecar's derived and author-required fields), the standard's
 tables generated between markers, and `tools/check_content.py` in CI holding names, sidecars, document
-bindings, the table and licences. It ships no texture; the first one lands checked. `content/textures/**`
-PNG and TIFF are LFS from now. Next: T2 the texture cook (a BATS job on the IBL cook's pattern, with
+bindings, the table and licences. It ships no texture; the first one lands checked. A set a document binds lives beside the material
+(S1 allows no `..`); PNG and TIFF under `content/materials/` and `content/textures/` are LFS from now. Next: T2 the texture cook (a BATS job on the IBL cook's pattern, with
 frequency separation; spec first), T3 the first set (S4b: Poly Haven sets and the legacy grid tile), T4 the
 showcase set with the owner. Lighting and rendering rules the standard calls "undecided, track E" wait on
 gate G4.

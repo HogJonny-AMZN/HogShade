@@ -110,7 +110,7 @@ A set lives **beside the material that binds it**: `content/materials/standard/<
 document. `content/textures/<set>/` is for sets no document binds yet (the calibration tiles). Either way
 the set directory holds the **authoring set**: one map per parameter, PNG or 16-bit TIFF, EXR for a
 height map that needs range, 2K (the LFS budget; the 8K masters stay outside the repository as the IBL
-masters do), in git LFS (`.gitattributes`), with a `LICENSE.md` in the directory on the `content/ibl`
+masters do), in git LFS (`.gitattributes`: PNG and TIFF under `content/materials/` and `content/textures/`; `content/ibl/` keeps its display previews in plain git), with a `LICENSE.md` in the directory on the `content/ibl`
 pattern (source URL, licence, fetch date, where the master lives) and the sidecars. A JPEG is not an
 authoring format and is a finding wherever it lands. The **runtime set** lives
 under `<set>/cooked/`, written only by the cook (T2, a BATS job on the IBL cook's pattern): `_ORM` packed,

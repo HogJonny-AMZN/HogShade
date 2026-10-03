@@ -189,7 +189,8 @@ set**, **Runtime set**, **Detail map**.
   document-relative, S1) and does not apply the name or licence rules to it: those are the textures
   directory's. A test says so. A document that binds a `_ORM` directly is a finding: the packed form is the
   cook's output, never an authoring input.
-- The CI step is "Content", after "Gallery"; `content/textures/**` PNG and TIFF are LFS from now, so the
-  first set lands tracked.
+- The CI step is "Content", after "Gallery"; PNG and TIFF under both content roots are LFS from now (the
+  second review round: a bound set under `content/materials/` must be tracked too), so the first set lands
+  tracked wherever it lives.
 - `.github/copilot-instructions.md` gains item 8, the content rules, so Copilot reviews a texture PR against
   the same page.

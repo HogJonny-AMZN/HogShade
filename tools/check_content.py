@@ -172,7 +172,8 @@ def check_sidecars(root: Path) -> list[Finding]:
     out: list[Finding] = []
     for path in source_textures(root):
         name = parse_name(path.stem)
-        assert name is not None  # source_textures parsed it
+        if name is None:  # source_textures parsed it; a guard, not an assertion
+            continue
         data, where, problems = _read_sidecar(path, root)
         out.extend(problems)
         if data is None:
