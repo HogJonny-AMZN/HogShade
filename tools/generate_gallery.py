@@ -82,6 +82,10 @@ def check_manifest(manifest: dict, root: Path = ROOT) -> list[Finding]:
     if out:
         return out
     rules = manifest["rules"]
+    if not isinstance(rules, dict) or not isinstance(manifest["sections"], list):
+        return [Finding(where, "rules must be an object and sections a list")]
+    if not isinstance(manifest.get("wanted", []), list):
+        out.append(Finding(where, "wanted must be a list of strings"))
     limits: dict[str, int] = {}
     for key, default in (("max_side", 1024), ("max_bytes", 1 << 20)):
         value = rules.get(key, default)
@@ -96,6 +100,9 @@ def check_manifest(manifest: dict, root: Path = ROOT) -> list[Finding]:
     seen: set[str] = set()
     for s_index, section in enumerate(manifest["sections"]):
         s_where = f"{where} section {s_index}"
+        if not isinstance(section, dict):
+            out.append(Finding(s_where, f"must be an object, not {type(section).__name__}"))
+            continue
         for key in ("title", "need", "pictures"):
             if not section.get(key):
                 out.append(Finding(s_where, f"missing or empty {key!r}"))
@@ -145,10 +152,12 @@ def check_manifest(manifest: dict, root: Path = ROOT) -> list[Finding]:
 
 def _counts(manifest: dict) -> tuple[int, int, int, int]:
     """Sections, pictures, pairs and wanted items, for the log."""
-    sections = [s for s in manifest.get("sections", []) if isinstance(s, dict)]
+    raw = manifest.get("sections", [])
+    sections = [s for s in raw if isinstance(s, dict)] if isinstance(raw, list) else []
     pictures = sum(len(s.get("pictures", [])) for s in sections)
     pairs = sum(len(s.get("pairs", [])) for s in sections)
-    return len(sections), pictures, pairs, len(manifest.get("wanted", []))
+    wanted = manifest.get("wanted", [])
+    return len(sections), pictures, pairs, len(wanted) if isinstance(wanted, list) else 0
 
 
 def _img(rel: str, alt: str) -> str:

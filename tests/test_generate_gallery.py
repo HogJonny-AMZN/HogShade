@@ -141,6 +141,21 @@ def test_rules_each_have_a_finding(corpus: Path):
 
     assert "max_side must be a positive integer, not 'big'" in _findings(corpus, bad_limit)
 
+    def section_not_an_object(m):
+        m["sections"].append("a string")
+
+    assert "must be an object, not str" in _findings(corpus, section_not_an_object)
+
+    def rules_not_an_object(m):
+        m["rules"] = "png"
+
+    assert _findings(corpus, rules_not_an_object) == ["rules must be an object and sections a list"]
+
+    def wanted_not_a_list(m):
+        m["wanted"] = 5
+
+    assert "wanted must be a list of strings" in _findings(corpus, wanted_not_a_list)
+
     def picture_not_an_object(m):
         m["sections"][0]["pictures"].append("verification/a/one.png")
 
