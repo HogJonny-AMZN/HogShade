@@ -1,0 +1,32 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Emissive",
+  "doc": "The emitting family: a dark dielectric that glows white at 100 nits.",
+  "values": {
+    "emission_luminance": {
+      "factor": 100.0
+    },
+    "emission_color": {
+      "factor": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "base_color": {
+      "factor": [
+        0.1,
+        0.1,
+        0.1
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "author",
+      "note": "emission_luminance 100 nits, a dim indoor display; emission_color white; base_color 0.1 so the glow reads"
+    }
+  ],
+  "ext": {}
+}

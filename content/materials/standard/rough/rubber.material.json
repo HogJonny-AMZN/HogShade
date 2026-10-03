@@ -1,0 +1,30 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Rubber",
+  "doc": "Black rubber.",
+  "parent": "base.material.json",
+  "values": {
+    "specular_ior": {
+      "factor": 1.52
+    },
+    "base_color": {
+      "factor": [
+        0.05,
+        0.05,
+        0.05
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "refractiveindex.info (the refractive index database), https://refractiveindex.info",
+      "note": "specular_ior 1.52, natural rubber (polyisoprene)"
+    },
+    {
+      "source": "author",
+      "note": "base_color 0.05 chosen for black rubber"
+    }
+  ],
+  "ext": {}
+}

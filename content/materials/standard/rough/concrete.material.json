@@ -1,0 +1,19 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Concrete",
+  "doc": "Concrete; the one document that sets specular occlusion.",
+  "parent": "base.material.json",
+  "values": {
+    "specular_occlusion": {
+      "factor": 0.8
+    }
+  },
+  "provenance": [
+    {
+      "source": "author",
+      "note": "specular_occlusion 0.8 chosen for a porous surface; the albedo is the parent's 0.5"
+    }
+  ],
+  "ext": {}
+}

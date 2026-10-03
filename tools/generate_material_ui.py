@@ -1,13 +1,13 @@
 """
-HogShade: regenerate or check the material UI the schema generates: the Maya shell's material block
-between its markers, and the docs reference.
+HogShade: regenerate or check what the material schema and the library generate: the Maya shell's material
+block between its markers, the docs reference, and the library's index page.
 Package: tools/generate_material_ui
 
-    uv run tools/generate_material_ui.py --check    # CI: exit 1 with a diff when either output is stale
-    uv run tools/generate_material_ui.py --write    # replace the block and the reference
+    uv run tools/generate_material_ui.py --check    # CI: exit 1 with a diff when any output is stale
+    uv run tools/generate_material_ui.py --write    # replace the block, the reference and the index
 
-The generators are hogshade.material.generators (the S2 spec); this tool only reads and writes the two
-files. Everything outside the shell's markers is untouched.
+The generators are hogshade.material.generators (the S2 spec) and hogshade.material.library (the S4a spec);
+this tool only reads and writes the three files. Everything outside the shell's markers is untouched.
 """
 
 from __future__ import annotations
@@ -29,15 +29,18 @@ from hogshade.material.generators import (
     generate,
     replace_between,
 )
+from hogshade.material.library import INDEX_HEADER, index
 from hogshade.material.model import MaterialError
 
 _MODULE_NAME = "tools.generate_material_ui"
-__version__ = "0.1.0"
-__updated__ = "2026-10-01"
+__version__ = "0.2.0"
+__updated__ = "2026-10-03"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 SHELL = ROOT / "hosts" / "maya_dx11" / "hogshade.fx"
 REFERENCE = ROOT / "Docs" / "reference" / "material-types.md"
+LIBRARY = ROOT / "content" / "materials" / "standard"
+INDEX = ROOT / "content" / "materials" / "README.md"
 
 
 def _rel(path: Path) -> str:
@@ -71,6 +74,10 @@ def check() -> list[str]:
     fresh_docs = generate("docs")
     if reference != fresh_docs:
         stale.append(_diff(_rel(REFERENCE), reference, fresh_docs))
+    committed_index = INDEX.read_text(encoding="utf-8") if INDEX.exists() else ""
+    fresh_index = index(LIBRARY)
+    if committed_index != fresh_index:
+        stale.append(_diff(_rel(INDEX), committed_index, fresh_index))
     return stale
 
 
@@ -85,7 +92,11 @@ def write() -> list[Path]:
     if not docs.startswith(DOCS_HEADER):
         raise MaterialError("the docs reference does not start with its generated-file header")
     REFERENCE.write_text(docs, encoding="utf-8", newline="\n")
-    return [SHELL, REFERENCE]
+    page = index(LIBRARY)
+    if not page.startswith(INDEX_HEADER):
+        raise MaterialError("the library index does not start with its generated-file header")
+    INDEX.write_text(page, encoding="utf-8", newline="\n")
+    return [SHELL, REFERENCE, INDEX]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -94,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
     mode.add_argument(
         "--check", action="store_true", help="fail when the committed outputs differ from the generators'"
     )
-    mode.add_argument("--write", action="store_true", help="regenerate the shell's block and the docs reference")
+    mode.add_argument("--write", action="store_true", help="regenerate the shell's block, the reference and the index")
     args = parser.parse_args(argv)
     _logging.basicConfig(level=_logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     try:
@@ -111,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
             sys.stdout.write(diff)
         _LOGGER.error("material UI check: %d stale output(s); run tools/generate_material_ui.py --write", len(stale))
         return 1
-    _LOGGER.info("material UI check: the Maya block and the docs reference are current")
+    _LOGGER.info("material UI check: the Maya block, the docs reference and the library index are current")
     return 0
 
 

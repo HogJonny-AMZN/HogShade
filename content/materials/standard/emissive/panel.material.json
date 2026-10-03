@@ -1,0 +1,19 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Light panel",
+  "doc": "A bright light panel at 800 nits.",
+  "parent": "base.material.json",
+  "values": {
+    "emission_luminance": {
+      "factor": 800.0
+    }
+  },
+  "provenance": [
+    {
+      "source": "author",
+      "note": "emission_luminance 800 nits, a bright display or a backlit panel"
+    }
+  ],
+  "ext": {}
+}

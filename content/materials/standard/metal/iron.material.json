@@ -1,0 +1,23 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Iron",
+  "doc": "Iron; the parent's values, named.",
+  "parent": "base.material.json",
+  "values": {
+    "base_color": {
+      "factor": [
+        0.56,
+        0.57,
+        0.58
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances",
+      "note": "base_color is iron, rounded to two decimals"
+    }
+  ],
+  "ext": {}
+}

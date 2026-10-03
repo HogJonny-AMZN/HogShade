@@ -1,0 +1,23 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Copper",
+  "doc": "Copper.",
+  "parent": "base.material.json",
+  "values": {
+    "base_color": {
+      "factor": [
+        0.96,
+        0.64,
+        0.54
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances",
+      "note": "base_color is copper, rounded to two decimals"
+    }
+  ],
+  "ext": {}
+}

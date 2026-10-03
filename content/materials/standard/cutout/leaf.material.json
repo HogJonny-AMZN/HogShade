@@ -1,0 +1,23 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Leaf",
+  "doc": "A green leaf; the mask path validated without a texture.",
+  "parent": "base.material.json",
+  "values": {
+    "base_color": {
+      "factor": [
+        0.1,
+        0.35,
+        0.08
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "author",
+      "note": "base_color a leaf green chosen; the roughness is the parent's 0.6"
+    }
+  ],
+  "ext": {}
+}

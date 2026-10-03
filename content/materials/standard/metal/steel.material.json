@@ -1,0 +1,22 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Brushed steel",
+  "doc": "Steel with a brushed finish: iron's reflectance with the standard's anisotropy along the tangent.",
+  "parent": "base.material.json",
+  "values": {
+    "specular_anisotropy": {
+      "factor": 0.6
+    },
+    "specular_rotation": {
+      "factor": 0.0
+    }
+  },
+  "provenance": [
+    {
+      "source": "author",
+      "note": "specular_anisotropy 0.6 and specular_rotation 0 chosen for a brushed look; the reflectance is the parent's (iron), steel not being in the published table"
+    }
+  ],
+  "ext": {}
+}

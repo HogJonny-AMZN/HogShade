@@ -1,0 +1,45 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Coated",
+  "doc": "The lacquer and car-paint family until the standard has a coat layer: a smooth dielectric with a white, full specular written out.",
+  "values": {
+    "base_metalness": {
+      "factor": 0.0
+    },
+    "specular_weight": {
+      "factor": 1.0
+    },
+    "specular_ior": {
+      "factor": 1.5
+    },
+    "specular_roughness": {
+      "factor": 0.1
+    },
+    "specular_color": {
+      "factor": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "base_color": {
+      "factor": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "refractiveindex.info (the refractive index database), https://refractiveindex.info",
+      "note": "specular_ior 1.5, a clear coat being a glass-like polymer"
+    },
+    {
+      "source": "author",
+      "note": "base_metalness 0 by definition; specular_weight 1 and specular_color white are the physical values, written so the family reads as coated; specular_roughness 0.1 for a lacquer; base_color 0.5 a mid value"
+    }
+  ],
+  "ext": {}
+}

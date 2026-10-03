@@ -30,10 +30,11 @@ PAIRS = [
     ("hogshade-legacy-v2", "hogshade-standard"),
     ("hogshade-legacy-v1", "hogshade-standard"),
     ("hogshade-lambert", "hogshade-standard"),
+    ("hogshade-standard", "hogshade-legacy-v2"),  # the reverse table (S4a)
 ]
 
 
-def test_three_tables_ship():
+def test_four_tables_ship():
     assert table_names() == [f"{a}-to-{b}" for a, b in sorted(PAIRS)]
 
 

@@ -1,0 +1,38 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Dielectric",
+  "doc": "The non-metal family: full physical specular at IOR 1.5, mid roughness, a mid grey albedo.",
+  "values": {
+    "base_metalness": {
+      "factor": 0.0
+    },
+    "specular_weight": {
+      "factor": 1.0
+    },
+    "specular_ior": {
+      "factor": 1.5
+    },
+    "specular_roughness": {
+      "factor": 0.5
+    },
+    "base_color": {
+      "factor": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "refractiveindex.info (the refractive index database), https://refractiveindex.info",
+      "note": "specular_ior 1.5, the index of common soda-lime glass, the usual dielectric reference"
+    },
+    {
+      "source": "author",
+      "note": "base_metalness 0 by definition of the family; specular_weight 1 is the physical amount at the IOR, written so the family reads; specular_roughness 0.5 and base_color 0.5 chosen as mid values"
+    }
+  ],
+  "ext": {}
+}

@@ -1,0 +1,23 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Brass",
+  "doc": "Brass; not in the published table, so an estimate between gold and copper.",
+  "parent": "base.material.json",
+  "values": {
+    "base_color": {
+      "factor": [
+        0.89,
+        0.79,
+        0.43
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "author",
+      "note": "base_color estimated between gold and copper; replace when a measured value is sourced"
+    }
+  ],
+  "ext": {}
+}

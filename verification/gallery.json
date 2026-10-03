@@ -15,39 +15,149 @@
       "title": "The shader ball in the wgpu host",
       "need": "The same material through the forward path and the deferred pair must agree; the deferred picture carries only the G-buffer's quantisation and the depth-reconstructed view vector.",
       "pictures": [
-        {"path": "verification/wgpu/shader-ball/studio_small_09/forward.png", "host": "wgpu", "feature": "legacy v2, forward path", "caption": "content/materials/legacy-v2/default.material.json under studio_small_09: the schema's defaults (roughness 0.5, IOR 1.45, base colour 0.6)", "made_by": "uv run tools/wgpu/viewport.py"},
-        {"path": "verification/wgpu/shader-ball/studio_small_09/deferred.png", "host": "wgpu", "feature": "legacy v2, deferred path", "caption": "the same material through the G-buffer fill and the deferred light pass", "made_by": "uv run tools/wgpu/viewport.py"},
-        {"path": "verification/wgpu/shader-ball/studio_small_09/metal/forward.png", "host": "wgpu", "feature": "legacy v2 metal, forward path", "caption": "content/materials/legacy-v2/metal.material.json: metalness 1, roughness 0.2", "made_by": "uv run tools/wgpu/viewport.py --material content/materials/legacy-v2/metal.material.json --variant metal"},
-        {"path": "verification/wgpu/shader-ball/studio_small_09/metal/deferred.png", "host": "wgpu", "feature": "legacy v2 metal, deferred path", "caption": "the metal through the deferred pair", "made_by": "uv run tools/wgpu/viewport.py --material content/materials/legacy-v2/metal.material.json --variant metal"},
-        {"path": "verification/wgpu/shader-ball/studio_small_09/legacy-v1/forward.png", "host": "wgpu", "feature": "legacy v1, forward path", "caption": "content/materials/legacy-v1/default.material.json: the 2015 Disney model", "made_by": "uv run tools/wgpu/viewport.py --material content/materials/legacy-v1/default.material.json --variant legacy-v1"},
-        {"path": "verification/wgpu/shader-ball/studio_small_09/legacy-v1/deferred.png", "host": "wgpu", "feature": "legacy v1, deferred path", "caption": "the v1 model through the deferred pair", "made_by": "uv run tools/wgpu/viewport.py --material content/materials/legacy-v1/default.material.json --variant legacy-v1"}
+        {
+          "path": "verification/wgpu/shader-ball/studio_small_09/forward.png",
+          "host": "wgpu",
+          "feature": "legacy v2, forward path",
+          "caption": "content/materials/legacy-v2/default.material.json under studio_small_09: the schema's defaults (roughness 0.5, IOR 1.45, base colour 0.6)",
+          "made_by": "uv run tools/wgpu/viewport.py"
+        },
+        {
+          "path": "verification/wgpu/shader-ball/studio_small_09/deferred.png",
+          "host": "wgpu",
+          "feature": "legacy v2, deferred path",
+          "caption": "the same material through the G-buffer fill and the deferred light pass",
+          "made_by": "uv run tools/wgpu/viewport.py"
+        },
+        {
+          "path": "verification/wgpu/shader-ball/studio_small_09/metal/forward.png",
+          "host": "wgpu",
+          "feature": "legacy v2 metal, forward path",
+          "caption": "content/materials/legacy-v2/metal.material.json: metalness 1, roughness 0.2",
+          "made_by": "uv run tools/wgpu/viewport.py --material content/materials/legacy-v2/metal.material.json --variant metal"
+        },
+        {
+          "path": "verification/wgpu/shader-ball/studio_small_09/metal/deferred.png",
+          "host": "wgpu",
+          "feature": "legacy v2 metal, deferred path",
+          "caption": "the metal through the deferred pair",
+          "made_by": "uv run tools/wgpu/viewport.py --material content/materials/legacy-v2/metal.material.json --variant metal"
+        },
+        {
+          "path": "verification/wgpu/shader-ball/studio_small_09/legacy-v1/forward.png",
+          "host": "wgpu",
+          "feature": "legacy v1, forward path",
+          "caption": "content/materials/legacy-v1/default.material.json: the 2015 Disney model",
+          "made_by": "uv run tools/wgpu/viewport.py --material content/materials/legacy-v1/default.material.json --variant legacy-v1"
+        },
+        {
+          "path": "verification/wgpu/shader-ball/studio_small_09/legacy-v1/deferred.png",
+          "host": "wgpu",
+          "feature": "legacy v1, deferred path",
+          "caption": "the v1 model through the deferred pair",
+          "made_by": "uv run tools/wgpu/viewport.py --material content/materials/legacy-v1/default.material.json --variant legacy-v1"
+        }
       ],
       "pairs": [
-        {"left": "verification/wgpu/shader-ball/studio_small_09/forward.png", "right": "verification/wgpu/shader-ball/studio_small_09/deferred.png", "caption": "forward against deferred, legacy v2: the tool prints the mean and max difference over the ball's pixels"},
-        {"left": "verification/wgpu/shader-ball/studio_small_09/forward.png", "right": "verification/wgpu/shader-ball/studio_small_09/legacy-v1/forward.png", "caption": "legacy v2 against legacy v1, forward path, the same lights and environment"}
+        {
+          "left": "verification/wgpu/shader-ball/studio_small_09/forward.png",
+          "right": "verification/wgpu/shader-ball/studio_small_09/deferred.png",
+          "caption": "forward against deferred, legacy v2: the tool prints the mean and max difference over the ball's pixels"
+        },
+        {
+          "left": "verification/wgpu/shader-ball/studio_small_09/forward.png",
+          "right": "verification/wgpu/shader-ball/studio_small_09/legacy-v1/forward.png",
+          "caption": "legacy v2 against legacy v1, forward path, the same lights and environment"
+        }
       ]
+    },
+    {
+      "title": "The library of materials, the contact sheet",
+      "need": "Every standard document of the base library (S4a) renders through the reverse conversion table and the wgpu host; the sheet is the human gate: the metals tell apart, gold is gold, the lacquer is red, the leaf is green. The legend beside it names every cell.",
+      "pictures": [
+        {
+          "path": "verification/wgpu/library/contact-sheet.png",
+          "host": "wgpu",
+          "feature": "the base library, 22 documents, forward path",
+          "caption": "content/materials/standard/ in roster order, five to a row: metal (base, aluminium, brass, chrome, copper, gold, iron, silver, steel), dielectric (base, ceramic, glossy plastic, matte plastic), coated (base, painted red), rough (base, concrete, rubber), emissive (base, panel), cutout (base, leaf); contact-sheet.json is the legend. The emissive pair do not glow: the wgpu host carries no emission term, so they render as their dark base colour; anisotropy, specular colour and specular occlusion are the table's losses, so brushed steel is iron here",
+          "made_by": "uv run tools/wgpu/contact_sheet.py"
+        }
+      ],
+      "pairs": []
     },
     {
       "title": "The sphere in Maya 2026",
       "need": "The dx11Shader shell loads the generated core and the schema-generated material UI, decodes the cooked cubes and the LUT, and renders under the calibration environment; the debug views prove the lobes reach the viewport.",
       "pictures": [
-        {"path": "verification/maya-2026/ibl-check/studio_small_09/main.png", "host": "maya-2026", "feature": "legacy v2, the Main technique", "caption": "the IBL check on the resident hogshade_maya_gui worker; after S2 the material block of the shell is generated and renders pixel-identical to the hand-written one", "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=studio_small_09 (debug_modes default 18,27,28; the job's default material: base 0.5, roughness 0.2, specular 1.0, IOR 1.5)"},
-        {"path": "verification/maya-2026/ibl-check/studio_small_09/debug-18.png", "host": "maya-2026", "feature": "legacy v2, debug view 18 (specular)", "caption": "the specular accumulator alone", "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=studio_small_09 (debug_modes default 18,27,28; the job's default material: base 0.5, roughness 0.2, specular 1.0, IOR 1.5)"},
-        {"path": "verification/maya-2026/ibl-check/studio_small_09/debug-27.png", "host": "maya-2026", "feature": "legacy v2, debug view 27", "caption": "the environment term", "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=studio_small_09 (debug_modes default 18,27,28; the job's default material: base 0.5, roughness 0.2, specular 1.0, IOR 1.5)"},
-        {"path": "verification/maya-2026/ibl-check/studio_small_09/debug-28.png", "host": "maya-2026", "feature": "legacy v2, debug view 28", "caption": "the direct term", "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=studio_small_09 (debug_modes default 18,27,28; the job's default material: base 0.5, roughness 0.2, specular 1.0, IOR 1.5)"},
-        {"path": "verification/maya-2026/ibl-check/legacy-v1/studio_small_09/main.png", "host": "maya-2026", "feature": "legacy v1, the Main technique", "caption": "the Shading Model dropdown at Legacy v1, sheen 0.5, clearcoat 0.5", "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=legacy-v1/studio_small_09 --param debug_modes=2,8 --param set=shadingModel=1,materialSpecular=0.5,materialSheen=0.5,materialClearcoat=0.5,materialClearcoatGloss=0.8"},
-        {"path": "verification/maya-2026/ibl-check/legacy-v1/studio_small_09/debug-02.png", "host": "maya-2026", "feature": "legacy v1, debug view 2", "caption": "a v1 debug view", "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=legacy-v1/studio_small_09 --param debug_modes=2,8 --param set=shadingModel=1,materialSpecular=0.5,materialSheen=0.5,materialClearcoat=0.5,materialClearcoatGloss=0.8"},
-        {"path": "verification/maya-2026/ibl-check/legacy-v1/studio_small_09/debug-08.png", "host": "maya-2026", "feature": "legacy v1, debug view 8", "caption": "a v1 debug view", "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=legacy-v1/studio_small_09 --param debug_modes=2,8 --param set=shadingModel=1,materialSpecular=0.5,materialSheen=0.5,materialClearcoat=0.5,materialClearcoatGloss=0.8"},
-        {"path": "verification/maya-2026/legacy-v2-ibl/studio_small_09/debug-27.png", "host": "maya-2026", "feature": "the E1 diffuse-term check (legacy v2 shader, debug view 27)", "caption": "the irradiance cube's diffuse term in the legacy v2 shader itself, the IBL cook's first proof in Maya; renamed from diffuse-term.png to the name the check writes", "made_by": "set MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11 HOGSHADE_ROOT=D:/Depot/HogShade HOGSHADE_FX=legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx HOGSHADE_CHECK=legacy-v2-ibl HOGSHADE_DEBUG_MODES=27 HOGSHADE_SET=linearSpaceLighting=0; maya.exe -script tools/maya/ibl_check.mel (E1, 2026-09-20, before the BATS job existed; writes debug-27.png)"}
+        {
+          "path": "verification/maya-2026/ibl-check/studio_small_09/main.png",
+          "host": "maya-2026",
+          "feature": "legacy v2, the Main technique",
+          "caption": "the IBL check on the resident hogshade_maya_gui worker; after S2 the material block of the shell is generated and renders pixel-identical to the hand-written one",
+          "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=studio_small_09 (debug_modes default 18,27,28; the job's default material: base 0.5, roughness 0.2, specular 1.0, IOR 1.5)"
+        },
+        {
+          "path": "verification/maya-2026/ibl-check/studio_small_09/debug-18.png",
+          "host": "maya-2026",
+          "feature": "legacy v2, debug view 18 (specular)",
+          "caption": "the specular accumulator alone",
+          "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=studio_small_09 (debug_modes default 18,27,28; the job's default material: base 0.5, roughness 0.2, specular 1.0, IOR 1.5)"
+        },
+        {
+          "path": "verification/maya-2026/ibl-check/studio_small_09/debug-27.png",
+          "host": "maya-2026",
+          "feature": "legacy v2, debug view 27",
+          "caption": "the environment term",
+          "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=studio_small_09 (debug_modes default 18,27,28; the job's default material: base 0.5, roughness 0.2, specular 1.0, IOR 1.5)"
+        },
+        {
+          "path": "verification/maya-2026/ibl-check/studio_small_09/debug-28.png",
+          "host": "maya-2026",
+          "feature": "legacy v2, debug view 28",
+          "caption": "the direct term",
+          "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=studio_small_09 (debug_modes default 18,27,28; the job's default material: base 0.5, roughness 0.2, specular 1.0, IOR 1.5)"
+        },
+        {
+          "path": "verification/maya-2026/ibl-check/legacy-v1/studio_small_09/main.png",
+          "host": "maya-2026",
+          "feature": "legacy v1, the Main technique",
+          "caption": "the Shading Model dropdown at Legacy v1, sheen 0.5, clearcoat 0.5",
+          "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=legacy-v1/studio_small_09 --param debug_modes=2,8 --param set=shadingModel=1,materialSpecular=0.5,materialSheen=0.5,materialClearcoat=0.5,materialClearcoatGloss=0.8"
+        },
+        {
+          "path": "verification/maya-2026/ibl-check/legacy-v1/studio_small_09/debug-02.png",
+          "host": "maya-2026",
+          "feature": "legacy v1, debug view 2",
+          "caption": "a v1 debug view",
+          "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=legacy-v1/studio_small_09 --param debug_modes=2,8 --param set=shadingModel=1,materialSpecular=0.5,materialSheen=0.5,materialClearcoat=0.5,materialClearcoatGloss=0.8"
+        },
+        {
+          "path": "verification/maya-2026/ibl-check/legacy-v1/studio_small_09/debug-08.png",
+          "host": "maya-2026",
+          "feature": "legacy v1, debug view 8",
+          "caption": "a v1 debug view",
+          "made_by": "JOB_ORCHESTRATOR/.venv/Scripts/python.exe tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param variant=legacy-v1/studio_small_09 --param debug_modes=2,8 --param set=shadingModel=1,materialSpecular=0.5,materialSheen=0.5,materialClearcoat=0.5,materialClearcoatGloss=0.8"
+        },
+        {
+          "path": "verification/maya-2026/legacy-v2-ibl/studio_small_09/debug-27.png",
+          "host": "maya-2026",
+          "feature": "the E1 diffuse-term check (legacy v2 shader, debug view 27)",
+          "caption": "the irradiance cube's diffuse term in the legacy v2 shader itself, the IBL cook's first proof in Maya; renamed from diffuse-term.png to the name the check writes",
+          "made_by": "set MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11 HOGSHADE_ROOT=D:/Depot/HogShade HOGSHADE_FX=legacy/v2.0/V2_uv0bn-pbs_IBLenv.fx HOGSHADE_CHECK=legacy-v2-ibl HOGSHADE_DEBUG_MODES=27 HOGSHADE_SET=linearSpaceLighting=0; maya.exe -script tools/maya/ibl_check.mel (E1, 2026-09-20, before the BATS job existed; writes debug-27.png)"
+        }
       ],
       "pairs": [
-        {"left": "verification/maya-2026/ibl-check/studio_small_09/main.png", "right": "verification/wgpu/shader-ball/studio_small_09/forward.png", "caption": "Maya against wgpu today: different mesh, camera, resolution and output space, so not yet comparable; the comparison framework (track E, gate G4) is what makes this pair a diff"}
+        {
+          "left": "verification/maya-2026/ibl-check/studio_small_09/main.png",
+          "right": "verification/wgpu/shader-ball/studio_small_09/forward.png",
+          "caption": "Maya against wgpu today: different mesh, camera, resolution and output space, so not yet comparable; the comparison framework (track E, gate G4) is what makes this pair a diff"
+        }
       ]
     }
   ],
   "wanted": [
     "the hero scene in every rendering path (the comparison framework, after gate G4)",
     "parallax occlusion: with and without, in the Maya shell (a job that captures it)",
-    "the base library's contact sheet (S4a)"
+    "the base library in Maya, the same sheet through the comparison framework (track E, after G4)"
   ]
 }
