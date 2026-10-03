@@ -7,7 +7,7 @@ edit the manifest, not this page. The pictures are the latest capture of each fi
 
 | Host | What it is |
 | --- | --- |
-| `wgpu` | the wgpu host (hosts/wgpu, hogshade/wgpu_host.py), the shader ball offscreen |
+| `wgpu` | the wgpu host (hosts/wgpu, hogshade/wgpu_host.py), the shader ball offscreen; the texture cook's pictures are written by the cook itself, no host |
 | `maya-2026` | Maya 2026 dx11Shader through hosts/maya_dx11/hogshade.fx, a sphere in the viewport |
 
 ## The shader ball in the wgpu host
@@ -124,6 +124,40 @@ the irradiance cube's diffuse term in the legacy v2 shader itself, the IBL cook'
 | Left | Right | Why |
 | --- | --- | --- |
 | ![left](../verification/maya-2026/ibl-check/studio_small_09/main.png) | ![right](../verification/wgpu/shader-ball/studio_small_09/forward.png) | Maya against wgpu today: different mesh, camera, resolution and output space, so not yet comparable; the comparison framework (track E, gate G4) is what makes this pair a diff |
+
+## The texture cook: frequency separation
+
+The owner's technique as a cook operation: the low-pass and the high-pass of a sourced colour map recombine to the source under a linear-light blend, within one 8-bit step; the macro colour can be stored at a few texels and the detail at full resolution.
+
+### the source colour map (Poly Haven cobblestone_floor_04, CC0, 1K, shown at 512) (`wgpu`)
+
+![the source colour map (Poly Haven cobblestone_floor_04, CC0, 1K, shown at 512)](../verification/wgpu/textures/cobblestone_floor_04/source.png)
+
+the post's own example set, cooked outside the repository as T2's proof; the set itself lands with T3. Made by `uv run tools/cook_textures.py separate <set> --radius 16 --macro 64 --picture verification/wgpu/textures/cobblestone_floor_04 --picture-size 512`; the file is `verification/wgpu/textures/cobblestone_floor_04/source.png`.
+
+### the low-pass (sigma 8, radius 16), wrap-padded so it tiles (`wgpu`)
+
+![the low-pass (sigma 8, radius 16), wrap-padded so it tiles](../verification/wgpu/textures/cobblestone_floor_04/low.png)
+
+what the macro colour map carries; the cook stores it at 64x64. Made by `the same command`; the file is `verification/wgpu/textures/cobblestone_floor_04/low.png`.
+
+### the high-pass about mid-grey, the detail map T_cobblestone_floor_04_DH (`wgpu`)
+
+![the high-pass about mid-grey, the detail map T_cobblestone_floor_04_DH](../verification/wgpu/textures/cobblestone_floor_04/high.png)
+
+8-bit quantised, as written; neutral grey where the source equals its low-pass. Made by `the same command`; the file is `verification/wgpu/textures/cobblestone_floor_04/high.png`.
+
+### the recombination, saturate(low + 2 * high - 1) (`wgpu`)
+
+![the recombination, saturate(low + 2 * high - 1)](../verification/wgpu/textures/cobblestone_floor_04/recombined.png)
+
+the manifest measures it: error max 0.0039 (one 8-bit step), mean 0.0020, 440 of 1048576 texels clipped. Made by `the same command`; the file is `verification/wgpu/textures/cobblestone_floor_04/recombined.png`.
+
+### Side by side
+
+| Left | Right | Why |
+| --- | --- | --- |
+| ![left](../verification/wgpu/textures/cobblestone_floor_04/source.png) | ![right](../verification/wgpu/textures/cobblestone_floor_04/recombined.png) | the source against its recombination: the difference is the 8-bit quantisation of the high-pass and nothing else |
 
 ## Wanted, not yet captured
 

@@ -438,12 +438,14 @@ def separate_set(
     encoder: Encoder | None = None,
     compress: bool | None = None,
     picture_dir: Path | None = None,
+    picture_size: int = 512,
 ) -> dict[str, Any]:
     """
     The owner's frequency separation on one map of the set: writes ``T_<base>_DH.dds`` (the high-pass) and
     ``T_<base>_<SUFFIX>_macro.dds`` (the low-pass at ``macro_size``), and for ``_N`` the detail normal ``_DN`` and
     the macro normal; the manifest's ``separation`` block carries the measured error. With ``picture_dir`` the
-    source, the halves and the recombination are written as PNGs there (the gallery's rule: never under content).
+    source, the halves and the recombination are written as PNGs there, halved until the longer side is at most
+    ``picture_size`` (the gallery's rule: at most 1024 on a side and 1 MiB; never under content).
     """
     set_dir = Path(set_dir).resolve()
     sources = read_sources(set_dir)
@@ -521,7 +523,7 @@ def separate_set(
                     ..., :3
                 ]
             )
-            png.write_png(picture_dir / f"{name}.png", colour.to_uint8(img))
+            png.write_png(picture_dir / f"{name}.png", colour.to_uint8(sep.macro(img, picture_size)))
     _LOGGER.info(
         "%s: separated %s with sigma %.2f (radius %g): error max %.5f mean %.7f over %d clipped texel(s); macro %dx%d",
         set_dir.name,
