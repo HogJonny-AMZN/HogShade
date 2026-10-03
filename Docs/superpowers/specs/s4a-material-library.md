@@ -222,6 +222,8 @@ table and differs from the dielectric parent.
 - `index()` warns when it leaves the losses section out (several types in one library, or no table) instead
   of omitting it in silence. A document directly under the root sorts before the families, as the docstring
   said and the code now does.
+- The mask threshold loss Copilot found on #45 (the standard cuts at 0.5, v2 at `opacity_mask_bias` 0.1, the
+  table cannot set it) is on the index's unstated-losses list beside the other three.
 - The contact sheet refuses an empty library and a missing root (exit 2, logged) before writing anything, takes
   the losses from the table once rather than from the loop, and records the full reproducing command (every
   argument that differs from its default), tested without a GPU.

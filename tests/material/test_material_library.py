@@ -214,6 +214,7 @@ def test_the_index_equals_the_committed_page_and_lists_every_document():
     for name, _ in DEFERRED:
         assert name in text
     assert "`specular_color`" in text and "geometry_normal strength" in text and "alpha_mode blend" in text
+    assert "the mask threshold" in text and "opacity_mask_bias" in text
 
 
 def test_the_index_refuses_a_library_with_a_finding(tmp_path: Path):

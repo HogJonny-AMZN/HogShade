@@ -63,6 +63,13 @@ UNSTATED_LOSSES = (
             "opacity texture is bound, which is every document of the base set"
         ),
     ),
+    (
+        "the mask threshold",
+        (
+            "the standard cuts at 0.5, v2 at opacity_mask_bias (default 0.1), and the table cannot set it: alpha_mode "
+            "already carries its one entry per condition; invisible until an opacity texture binds (S4b decides)"
+        ),
+    ),
 )
 
 

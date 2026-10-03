@@ -77,3 +77,4 @@ conversion table to `hogshade-legacy-v2`; what that loses is listed at the end.
 - geometry_normal strength: does not reach bump_intensity: a table entry maps a parameter, not a field of one, and geometry_normal is already mapped to normal_map; a source-side field is S4b's conversion change.
 - alpha_mode blend: becomes use_cutout_alpha false with has_alpha at its default (false), which is opaque: v2 blends only through a base-colour texture's alpha, and a source may carry one entry per condition.
 - alpha_mode mask, the standard's default: makes every converted document use_cutout_alpha true; harmless while geometry_opacity is 1 and no opacity texture is bound, which is every document of the base set.
+- the mask threshold: the standard cuts at 0.5, v2 at opacity_mask_bias (default 0.1), and the table cannot set it: alpha_mode already carries its one entry per condition; invisible until an opacity texture binds (S4b decides).
