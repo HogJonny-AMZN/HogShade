@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-03: S4a merged (#45 the spec, #46 the build); the base library of materials exists; S4b waits on track E; before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-03, evening: the owner made the content conventions the priority (textures, materials, lighting, rendering, for humans and agents); the design is drafted with eight questions (`docs/content-conventions-design`, PR open); S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -11,17 +11,18 @@ how much to decide alone.
 
 ## In flight
 
-**Sit rep, 2026-10-03, end of day.** S4a is merged: #45 (the spec and plan, the design Accepted with seven
-answers the owner's and the eighth the agent's proposal) and #46 (the build). The library of materials exists:
-22 `hogshade-standard` documents under `content/materials/standard/<family>/`, every set value named in a
-provenance note with a citable source; the reverse table standard to legacy v2 renders them in wgpu today;
-the index is generated at `content/materials/README.md` and the contact sheet is in the gallery. Known and
-written down: the wgpu host carries no emission term, so the emissive pair render dark there (Maya carries
-it); the mask threshold (standard 0.5, v2 bias 0.1) and the normal strength are losses the table cannot
-state, both scheduled with S4b. Nothing is in flight. S4b (the texture set, 2K in LFS, provenance per
-source) waits on track E's texture conventions, which wait on gate G4. The getting-started page is the
-manual's first chapter (the agent's proposal under question 8; the owner may pull it forward). The A/B
-page is an Icebox row now that its manifest exists; the owner says when.
+**Sit rep, 2026-10-03, evening.** After S4a landed the owner asked about S4b and then set the direction: the
+conventions come first, as a high priority, because materials that need textures need them. The owner named the
+inputs: the legacy `testFiles` textures (the owner's own `grid_*` tile set; the `IBLbaker` DDS files are MIT and
+superseded), Poly Haven on the IBL pattern, Unreal's asset-naming convention as the starting point, O3DE's
+texture settings (presets in a sidecar) for the cook metadata, the owner's own frequency-separation technique
+(co3dex, 2022) for detail mapping, and `PROJECT_CONVENTIONS.md` from the last prototype as the shape of a document
+written for humans and agents at once. The owner also said a basic PBR set cannot showcase every uber-material
+feature, so a showcase set needs human help. All of it is in `Docs/design/2026-10-03-content-conventions.md`
+(Proposed, exploring) with eight questions and a recommendation on each, and on the board: the design in Now,
+the showcase set in Next, three ideas in the Icebox with verdicts. Nothing is built until the owner locks the
+design; then T1 (the standard and its check) is half a day and unblocks S4b. One pushback in the design: the
+`T_` prefix says nothing a directory does not say here; recommended dropped inside `content/`.
 
 **Sit rep, 2026-10-02, late night.** #40 merged: the S4 design is in with eight questions and the owner
 has not answered them yet; nothing of S4 is built until they do. The owner said two things worth more than
