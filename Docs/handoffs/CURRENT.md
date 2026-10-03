@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-03, night: the conventions design is Accepted (answers 1 and 2 the owner's words, 3 to 8 on the owner's "go"); the T1 spec is #50 and the build #51, stacked on it, both open; #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-03, end of night: T1 merged (#50 the spec, #51 the build); the content standard exists; nothing in flight; T2 the texture cook is next, spec first; #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -11,17 +11,15 @@ how much to decide alone.
 
 ## In flight
 
-**Sit rep, 2026-10-03, late night.** T1 is built and awaiting the owner: #50 (the spec and plan) and the build
-PR stacked on it. The content standard exists (`Docs/standards/content.md`): one page for an artist and an
-agent, the owner's two answers as rules (`T_` on every file, `_BC` never `_D`), the texture rules as data in
-`hogshade.material.textures` (fourteen suffixes held to the schema's texturable parameters, the packed `_ORM`
-and the derived `_DN`/`_DH`, the presets, the sidecar's derived and author-required fields), the standard's
-tables generated between markers, and `tools/check_content.py` in CI holding names, sidecars, document
-bindings, the table and licences. It ships no texture; the first one lands checked. A set a document binds lives beside the material
-(S1 allows no `..`); PNG and TIFF under `content/materials/` and `content/textures/` are LFS from now. Next: T2 the texture cook (a BATS job on the IBL cook's pattern, with
-frequency separation; spec first), T3 the first set (S4b: Poly Haven sets and the legacy grid tile), T4 the
-showcase set with the owner. Lighting and rendering rules the standard calls "undecided, track E" wait on
-gate G4.
+**Sit rep, 2026-10-03, end of night.** T1 is merged: the content standard (`Docs/standards/content.md`) exists for
+an artist and an agent alike, the texture rules are data in `hogshade.material.textures` with the standard's
+tables generated from them, `tools/check_content.py` runs in CI, and PNG and TIFF under both content roots
+are LFS. A bound texture set lives beside its material (`content/materials/standard/<family>/<set>/`), since
+S1 allows no `..`; `content/textures/` is for sets no document binds yet. No texture exists yet; the first
+lands checked. Nothing is in flight. Next in order: T2 the texture cook (a BATS job on the IBL cook's pattern,
+with the owner's frequency separation; spec first), T3 the first set (S4b: Poly Haven sets and the legacy grid
+tile), T4 the showcase set authored with the owner. The lighting and rendering rules the standard calls
+"undecided, track E" wait on gate G4. Today's journal is `Docs/journal/2026-10-03-session-01.md`.
 
 **Sit rep, 2026-10-02, late night.** #40 merged: the S4 design is in with eight questions and the owner
 has not answered them yet; nothing of S4 is built until they do. The owner said two things worth more than
