@@ -1,8 +1,8 @@
 # T2 spec: the texture cook
 
 **Status:** Proposed. Drafted 2026-10-04 from the accepted conventions design (T2) and the content standard (T1);
-built on `feat/t2-texture-cook` once this is merged. Two questions for the owner are at the end; the build
-proceeds on their recommendations unless the owner says otherwise. Amendments made in the build go in the
+built on `feat/t2-texture-cook` once this is merged. Two questions for the owner are at the end; the second
+is answered (`ispc_texcomp`), the first proceeds on its recommendation unless the owner says otherwise. Amendments made in the build go in the
 last section.
 
 Date: 2026-10-04. Design:
@@ -54,7 +54,8 @@ runs `tools/check_content.py`'s rules on the set first and refuses a set with fi
 unsourced texture is never cooked. **TIFF is not read in T2** (question 1); a `.tif` source is a finding
 in the cook's log ("not readable in T2; convert to 16-bit PNG") rather than a silent skip.
 
-The PNG reader is this repository's (`png.py`, zlib and numpy: the four filter types, 8 and 16-bit, grey,
+The PNG reader is this repository's (`png.py`, zlib and numpy: the five filter types, None, Sub, Up, Average
+and Paeth; 8 and 16-bit; grey,
 grey-alpha, RGB, RGBA; interlaced and palette PNGs are refused with a message). No new dependency: the
 gallery already reads PNG headers, and a reader of the common cases is a page of code with a test per
 case, where Pillow would be a dependency for one function.
@@ -65,10 +66,10 @@ For each source texture, by its suffix's preset (T1):
 
 | Preset | Source | Runtime (T2 writes) | Mips |
 | --- | --- | --- | --- |
-| colour (`_BC`, `_E`) | sRGB 8-bit | `R8G8B8A8_UNORM_SRGB`, alpha 255 (or the `_O` map when the sidecar packs it) | box average in **linear**, re-encoded per level |
-| data, one channel (`_M _SW _R _AX _AR _O _AO _C _SO`) | raw 8-bit | `R8_UNORM` | box average |
+| colour (`_BC`, `_E`) | sRGB 8-bit | `R8G8B8A8_UNORM_SRGB`, alpha 255 | box average in **linear**, re-encoded per level |
+| data, one channel (`_M _SW _R _AX _AR _O _AO _C _SO`) | raw 8-bit | `R8_UNORM` (`_O` stays its own map; packing it into `_BC`'s alpha needs a sidecar field the schema does not have, a later increment) | box average |
 | colour data (`_SC`) | raw 8-bit | `R8G8B8A8_UNORM` | box average |
-| normal (`_N`, `_DN`) | raw 8-bit, the sidecar's convention | `R8G8_UNORM` (X, Y; Z reconstructed by the host) | average, then renormalise, per level |
+| normal (`_N`) | raw 8-bit, the sidecar's convention | `R8G8_UNORM` (X, Y; Z reconstructed by the host) | average, then renormalise, per level |
 | height (`_H`) | raw 16-bit PNG or EXR | `R16_UNORM` | box average |
 | packed (`_ORM`) | from `_AO`, `_R`, `_M` | `R8G8B8A8_UNORM`: AO in R, roughness in G, metalness in B, 255 in A | box average |
 
@@ -89,12 +90,12 @@ written and the encoder; the manifest's `runtime.format` is the truth a host rea
 table says "BC7, or uncompressed until the encoder is present". The library the spike picks is a second
 `Encoder` behind the same seam, its own small increment; the owner's requirement for it is that it runs on
 the BATS Python worker (Python with bindings, or Python made fast), so the seam takes a callable, never only
-a subprocess. The leading candidate is Intel's ISPC Texture Compressor through `ispc_texcomp` (K0lb3's MIT
-binding on PyPI, found by the owner): `compress_blocks_bc7(RGBASurface, BC7EncSettings)`, `_bc5`, `_bc4`
+a subprocess. The pick is Intel's ISPC Texture Compressor through `ispc_texcomp` (K0lb3's MIT binding on PyPI,
+found by the owner; question 2): `compress_blocks_bc7(RGBASurface, BC7EncSettings)`, `_bc5`, `_bc4`
 return the blocks as `bytes`, so the seam's second shape is `encode_blocks(rgba, width, height, block_format)
 -> bytes` and `dds.write_2d` gains a block-compressed form (`write_2d_blocks(path, block_mips, dxgi_format)`,
-the DXGI BC formats with the block pitch in the header). The spike confirms speed, quality against `texconv`,
-determinism and the Linux wheel before it becomes the default.
+the DXGI BC formats with the block pitch in the header). Speed, determinism, the wheels and BC7 quality were
+checked on 2026-10-04 (the board's spike row); `texconv` stays the optional quality baseline.
 
 The sidecar: the cook fills every derived field it has authority over (`preset`, `colour_space`, `mips`,
 `runtime` with the format actually written, `resolution`) when absent, lists them under `derived`, and
@@ -123,9 +124,10 @@ code (co3dex 2022, section "Basic Frequency Separation" and "Tiling Textures"):
    when `--picture` is given (the gallery's rule), never under `content/`.
 
 `_DN`, the detail normal, is the same separation on the normal's X and Y channels about their neutral
-(0.5, 0.5), Z reconstructed on write; the macro normal is not written (the standard's `_N` already carries
-the low frequency at its own mips). Reoriented normal mapping is the host's blend, named in the standard,
-not the cook's.
+(0.5, 0.5), Z reconstructed on write, written as `T_<set>_DN.dds` (`R8G8_UNORM`, the derived map of T1's
+table, no authored sidecar); the **macro normal** is written beside it as `T_<set>_N_macro.dds` at the
+`--macro` size, carrying the low frequency as the design says (section 5: "the macro normal carrying the
+low frequency"). Reoriented normal mapping is the host's blend, named in the standard, not the cook's.
 
 ## Manifest and provenance
 
@@ -151,7 +153,8 @@ already allows both beside the DDS files.
 
 ## The job
 
-`hogshade/jobs/cook_textures.py`: `MANIFEST` on the IBL job's shape (`worker_type` `python`, parameters
+`hogshade/jobs/cook_textures.py`, registered in `hogshade.jobs.JOB_MODULES` so `manifest()` enumerates it:
+`MANIFEST` on the IBL job's shape (`worker_type` `python`, parameters
 `set_dir`, `compress`, `separate`, `radius`, `macro`; inputs, outputs, returns the manifest; `spec` this
 file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator through
 `tools/cook_textures.py`; a path parameter that climbs is refused (the jobs' rule).
@@ -160,9 +163,9 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
 
 `tests/texture_cook/`:
 
-- `test_png.py`: round trips through the gallery's PNG writer and this reader for grey, RGB, RGBA at 8 and
-  16 bits and every filter type (a writer that emits each filter is in the test); an interlaced or palette
-  PNG is refused with its message.
+- `test_png.py`: round trips through a test writer and this reader for grey, grey-alpha, RGB and RGBA at 8
+  and 16 bits, under each of the five filter types (the writer emits each); an interlaced or palette PNG is
+  refused with its message.
 - `test_mips.py`: a 4x4 sRGB checker's first mip is the linear average re-encoded, not the sRGB average;
   the chain ends at 1x1; a normal mip is unit length.
 - `test_normals.py`: a `directx-y` source flips green and the manifest says so; `opengl+y` is untouched.
@@ -198,12 +201,14 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
 1. **TIFF.** Read PNG (8 and 16-bit) and EXR only, with this repository's reader and no new dependency
    (recommended: Poly Haven ships PNG; a 16-bit PNG carries what a 16-bit TIFF would; the reader is a
    page), or add Pillow as a `textures` extra and read TIFF too?
-2. **Compression.** Write uncompressed DXGI formats with an encoder seam, `texconv` the first encoder when
-   it is on the machine (recommended: no encoder in the repository, the manifest says what was written,
-   the hosts read either), or make an encoder a required tool and refuse to cook without it? The owner is
-   choosing the library by an evaluation spike (2026-10-04, `Spikes/bc_encode/`, the board's row); it lands
-   behind the seam. The owner's bar: it runs on the BATS Python worker. The owner's find, `ispc_texcomp`,
-   meets the bar on paper (a Python module, MIT, on PyPI) and leads the spike.
+2. **Compression: answered 2026-10-04.** The owner found `ispc_texcomp` (Intel's ISPC Texture Compressor,
+   K0lb3's MIT binding on PyPI) and said: "if it does everything we need, we could end the spike with it, and
+   log the other options for research and evaluation later." It does: wheels for Windows, Linux and macOS on
+   `cp311-abi3`; BC7, BC5, BC4 from Python with no subprocess (the BATS bar); deterministic; BC7 at 37 dB on a
+   noisy gradient. So T2 declares it as the `textures` extra (`uv sync --extra textures`), `IspcEncoder` is
+   the default behind the seam and `TexconvEncoder` the optional baseline, and `--compress` is the default
+   when the extra is installed (uncompressed when it is not, the manifest saying so). One API fact: BC4 takes
+   an R8 surface and BC5 an RG8 surface, not RGBA. The other options are logged on the board's Icebox.
 
 ## Amendments made in the build
 
