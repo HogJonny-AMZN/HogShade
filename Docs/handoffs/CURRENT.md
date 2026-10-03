@@ -17,7 +17,7 @@ A/B board row, awaiting merge): the picture rule in `verification/README.md`, th
 per rule. Fourteen pictures are listed; the fifteenth, the wgpu `legacy-v1/metal` capture, came from a
 flag the S3 viewport retired and was removed rather than kept unreproducible. What the gallery still
 wants, as its own list on the page: the hero scene in every path (after G4), parallax with and without
-(a capture job), the S4a contact sheet. The S4 questions still wait on the owner; the A/B page is a Next
+(a capture job), the S4a contact sheet. The S4 questions still wait on the owner; the A/B page is an Icebox
 row. The manual is unchanged, design-first.
 
 **Sit rep, 2026-10-02, late night.** #40 merged: the S4 design is in with eight questions and the owner
