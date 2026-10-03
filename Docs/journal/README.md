@@ -44,9 +44,17 @@ Append an entry:
 Batch at natural breakpoints rather than after literally every message. The test is whether someone
 reading it later could reconstruct *why*, not just *what*.
 
-**Split on the calendar day when a session outgrows one file.** SpriteJammer's session 04 reached
-1,600 lines across three days and stopped being navigable. Chain the halves with `**Preceded by:**`
-and `**Continued in:**` links.
+**A new calendar day starts a new file, always** (owner, 2026-10-03). The file is named for the day its
+entries happened on and the session number restarts at 01 within the day; a session that crosses
+midnight closes its file with `**Continued in:**` and opens the next day's with `**Preceded by:**`.
+"When it outgrows one file" was the earlier rule, and it never fired: a judgement nobody makes
+mid-session, so the file named for 2026-10-01 held three days and 27 entries before the rule became
+mechanical. SpriteJammer's session 04 reached 1,600 lines across three days the same way. A reader
+looking for a day opens the file named for it, and the weekly review reads days as a glob.
+`tools/check_docs.py` (`journal-day`) fails when the handoff's *Last updated* date has no journal file
+of that date or later, so a day that changed the state cannot pass CI without its file. The split is
+never retroactive: entries are not moved between files (history is not rewritten); a file whose date
+precedes some of its entries says so in its header.
 
 **Two sessions on the same day**: the number is the session, the date is the date. Parallel sessions
 take the next free number, share a date, and carry a `**Ran in parallel with:**` link.
@@ -104,6 +112,7 @@ Newest first. `tools/check_docs.py` fails when a session file is missing from th
 
 | Date | Session | What happened |
 | --- | --- | --- |
+| 2026-10-03 | [Session 01](2026-10-03-session-01.md) | The per-day journal rule made mechanical on the owner's go: a new day starts a new file, `journal-day` in the docs checker, the earlier entries of the day left in place in the 2026-10-01 file |
 | 2026-10-01 | [Session 01](2026-10-01-session-01.md) | #33 merged with every S1 review metric at 7 or above; the owner chose S2 over the standards PR. The S2 spec and plan drafted: the Maya shell's material block generated between markers from the schema plus a host map of names, labels and orders, the four UI macros retired, a `--check` in CI, the docs reference generated; no value may change in S2 |
 | 2026-09-27 | [Session 02](2026-09-27-session-02.md) | The LargeWorlds session, cross-repo: the owner asked what track A's "private backup repo" box meant, removed that repo, then settled `hog_color`'s history outright (their own toolbox, no approval to seek) and asked for every old reference to go. The retired identifiers became the codename `proto_color` / `proto_py` in LargeWorlds (PR #68), here and in the agent memory; the profile's `package_paths` went with them and the hygiene checker now guards the old spellings only |
 | 2026-09-27 | [Session 01](2026-09-27-session-01.md) | The v1 port closed as PR #19 with the record corrected (one BRDF, not three), a test NaN that was a seed collision, the FXC canary at 24 s, and the resident worker's open history log. The owner started the journal, the definition of done, the PR template with its Decisions table, the `local-review` skill and the docs checker, all ported from SpriteJammer with their reasoning; and asked that the case for BATS be made visible wherever it made the difference |

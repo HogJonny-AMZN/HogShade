@@ -16,7 +16,7 @@ An increment ends with the docs comprehensively updated so nothing drifts. A che
 mechanised:
 
 ```bash
-uv run python tools/check_docs.py          # links, status headers, the journal index, the ADR index
+uv run python tools/check_docs.py          # links, status headers, the journal index and day, the ADR index
 uv run python tools/check_hygiene.py       # no studio identifier outside the allowlist
 uv run pytest                              # the suite; tests/test_check_docs.py runs the checker on the corpus
 uv run python tools/build_shaders.py --check --require-compilers   # after any core change
@@ -44,6 +44,7 @@ uv run python tools/build_shaders.py --check --require-compilers   # after any c
 | `links` | A renamed file leaves every link to it dangling; a link whose case differs from the file passes on Windows and fails on Linux CI |
 | `status` | Without a status header a reader cannot tell a decision from a hypothesis or a live document from a stale one |
 | `journal-index` | A session file linked from nowhere is a session that did not happen for the next reader |
+| `journal-day` | A day that changed the handoff has a journal file of its own; one file per session *and per day* (owner, 2026-10-03) |
 | `adr-index` | An unindexed ADR is invisible to anyone browsing decisions |
 | `vocabulary` | A retired term used as if current: two names for one concept means an agent retrieves it by neither; the glossary's struck-through rows are the list |
 
@@ -86,7 +87,7 @@ part of the record, not an erasure.
 
 ## Journaling cadence
 
-Continuous, see [`../journal/README.md`](../journal/README.md). One file per session, appended as work
+Continuous, see [`../journal/README.md`](../journal/README.md). One file per session and per day, appended as work
 happens: every meaningful exchange, each step that changed or taught something, whenever a belief
 changes, and whenever the orchestrator made the difference.
 
