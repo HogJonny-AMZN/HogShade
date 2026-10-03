@@ -24,7 +24,7 @@ agents at once, with the why beside every rule.
 
 | Decision | Where |
 | --- | --- |
-| Texture colour space is declared per texture in the material, never inferred from a file name | S1 spec, `colour_space` on every texturable parameter; track E's colour-management box |
+| A texture's colour space is the schema's: `colour_space` on every texturable parameter of the material type, never inferred from a file name; a document binds a texture to a parameter and inherits the parameter's space | S1 spec; track E's colour-management box |
 | OpenGL +Y normals, ORM packing, sRGB for base colour and emissive only, linear-space mips, BC5 normals and BC7 colour; an authoring set and a runtime set with one cook tool run as a BATS job | roadmap track E, the texture-conventions box (unticked) |
 | MikkTSpace is a requirement, not a convention; a mesh with another basis fails validation | roadmap track E (owner, 2026-09-26) |
 | Scene-referred ACEScg captures, AgX default view, ACES first-class alternative; captures as EXR plus display PNG | roadmap track E (owner, 2026-09-26) |
@@ -50,24 +50,37 @@ surprise in a host.
 
 Unreal's recommended convention is the pattern `Prefix_BaseName_Descriptor_Variant`, underscores, no
 spaces, with `T_` for textures; Epic's page lists the prefix and leaves the channel descriptors to the
-project. The owner's prototype fixed them as `_D _N _R _M _E _A`. Recommended here, one suffix per
-schema parameter so the name says which parameter it binds:
+project. The owner's prototype fixed them as `_D _N _R _M _E _A`. Recommended here, one suffix for every
+texturable parameter of the standard type (the fourteen that carry a `colour_space` in the schema), so a
+name says which parameter it binds and a schema addition is a table addition; the check holds the table
+to the schema:
 
-| Suffix | Parameter (standard type) | Colour space | Runtime format |
+| Suffix | Parameter (standard type) | Colour space (the schema's) | Runtime format |
 | --- | --- | --- | --- |
 | `_BC` | `base_color` | sRGB | BC7, mips in linear |
-| `_N` | `geometry_normal` | raw, OpenGL +Y | BC5 (two channels, Z reconstructed) |
-| `_R` | `specular_roughness` | raw | BC4 |
 | `_M` | `base_metalness` | raw | BC4 |
-| `_AO` | `ambient_occlusion` | raw | BC4 |
-| `_C` | `cavity` | raw | BC4 |
-| `_H` | `height` | raw, 16-bit authoring | BC4 (8-bit) or R16 when the cook says |
+| `_SW` | `specular_weight` | raw | BC4 |
+| `_SC` | `specular_color` | raw | BC7 |
+| `_R` | `specular_roughness` | raw | BC4 |
+| `_AX` | `specular_anisotropy` | raw | BC4 |
+| `_AR` | `specular_rotation` | raw | BC4 |
 | `_E` | `emission_color` | sRGB | BC7 |
 | `_O` | `geometry_opacity` | raw | BC4, or the alpha of `_BC` when the sidecar packs it |
-| `_ORM` | packed: AO in R, roughness in G, metalness in B | raw | BC7; the runtime form of `_AO`, `_R`, `_M` |
-| `_SC` | `specular_color` | raw | BC7 |
-| `_DN` | detail normal (section 5) | raw, OpenGL +Y | BC5 |
-| `_DH` | detail high-pass colour (section 5) | raw, mid-grey neutral | BC7 |
+| `_N` | `geometry_normal` | raw, OpenGL +Y | BC5 (two channels, Z reconstructed) |
+| `_AO` | `ambient_occlusion` | raw | BC4 |
+| `_C` | `cavity` | raw | BC4 |
+| `_SO` | `specular_occlusion` | raw | BC4 |
+| `_H` | `height` | raw, 16-bit authoring | BC4 (8-bit) or R16 when the cook says |
+
+`specular_ior` and `alpha_mode` have no colour space in the schema and so no suffix: an IOR map and a
+mode are not textures. Three more suffixes name maps that are **not parameters**: the cook's packed
+runtime form and the derived detail pair (section 5), which a document never binds directly:
+
+| Suffix | What | Colour space | Runtime format |
+| --- | --- | --- | --- |
+| `_ORM` | packed: AO in R, roughness in G, metalness in B; the runtime form of `_AO`, `_R`, `_M` | raw | BC7 |
+| `_DN` | detail normal, derived (section 5) | raw, OpenGL +Y | BC5 |
+| `_DH` | detail high-pass colour, derived (section 5) | raw, mid-grey neutral | BC7 |
 
 `_BC` rather than Unreal's `_D`: the schema's parameter is `base_color` and the 2015 model's word is
 albedo; "diffuse" is the one word that means something else in a metal-roughness material. `_M` is
@@ -86,26 +99,39 @@ convention that matters; the prefix is a target's.
 
 O3DE keeps an `.assetinfo` beside each source texture: a preset chosen by the file's suffix (Albedo,
 Normal, Roughness and so on, each fixing compression, sRGB, mip generation), overridable per texture and
-per platform. Recommended here: `<name>.texture.json` beside the source, written by the cook from the
-suffix when absent, read when present, validated by the check:
+per platform. Recommended here: `<name>.texture.json` beside the source, read by the cook and validated
+by the check. Its fields are of two kinds. **Derived from the suffix** when absent, so a sidecar may omit
+them: `preset`, `colour_space`, `mips`, `runtime`; `resolution` is read from the file. **Required of the
+author**, because no suffix can know them: `provenance` (origin, URL, licence, fetch date) for every
+texture, and `normal_convention` for a `_N` or `_DN` (the source's convention, `opengl+y` or `directx-y`;
+the cook flips a DirectX source to the repo's OpenGL +Y and records that it did). A normal map with no
+stated convention is a finding, never a guessed flip, which is exactly the silent mismatch the convention
+exists to end. A sidecar the cook writes carries `"derived": true` on the fields it filled, so a reader
+knows which were authored. The example, valid JSON:
 
 ```json
 {
-  "preset": "normal",                 // chosen from the suffix table; an override says why
-  "colour_space": "raw",              // must agree with the material document that binds it
-  "normal_convention": "opengl+y",    // the cook flips a "directx-y" source and records that it did
-  "source": "cobblestone_floor_04_nor_gl_2k.png",
+  "preset": "normal",
+  "colour_space": "raw",
+  "normal_convention": "directx-y",
+  "source": "cobblestone_floor_04_nor_dx_2k.png",
   "resolution": 2048,
   "mips": "linear-box",
   "runtime": {"format": "bc5", "container": "dds"},
-  "provenance": {"origin": "polyhaven", "url": "...", "licence": "CC0-1.0", "fetched": "2026-10-03"}
+  "provenance": {"origin": "polyhaven", "url": "https://polyhaven.com/a/cobblestone_floor_04", "licence": "CC0-1.0", "fetched": "2026-10-03"}
 }
 ```
 
+`preset` is chosen from the suffix table (an override says why); `colour_space` must equal the schema's
+for the parameter the document binds; `normal_convention` is the source's, and the cooked output is
+always `opengl+y`.
+
 Presets, one per suffix row above, are a table in the standard and a dictionary in the cook; a sidecar
 that names a preset the suffix does not imply is a finding unless it carries `"override_reason"`. The
-material document binds the texture by path and declares `colour_space` itself (S1); the check asserts the
-document and the sidecar agree, so a wrong colour space fails in CI rather than in a viewport.
+material document binds the texture by path to a parameter, and the parameter's `colour_space` in the type
+schema is the colour space (S1: a document value carries `factor`, `texture`, `blend`, `strength`, nothing
+else); the check resolves the document's type and parameter and asserts the schema's space and the
+sidecar's agree, so a wrong colour space fails in CI rather than in a viewport.
 
 ### 4. The authoring set and the runtime set, one cook
 
@@ -164,8 +190,9 @@ Not new decisions; the standard gathers what is scattered so a reader finds them
 its source:
 
 - **Materials**: the document format and its rules (S1); a child's parent beside it; title, doc and
-  provenance per document with a note naming every set value (S4a); the family directories; a texture's
-  colour space declared in the document and agreeing with its sidecar; MikkTSpace required of every mesh.
+  provenance per document with a note naming every set value (S4a); the family directories; a bound
+  texture's sidecar agreeing with the colour space of the schema parameter it binds; MikkTSpace required of
+  every mesh.
 - **Lighting**: the light-rig description (HDR file, rotation axis convention, exposure in EV, punctual
   lights in one unit with the per-host conversion), the calibration environment `studio_small_09`, the
   cooked IBL as the only IBL. Owner-locked items from track E, quoted.
