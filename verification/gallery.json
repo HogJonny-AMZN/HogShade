@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "rules": {
+    "format": "png",
+    "max_side": 1024,
+    "max_bytes": 1048576,
+    "note": "Pictures that matter are listed here and rendered into Docs/gallery.md by tools/generate_gallery.py. Fixed names, overwritten in place, never a dated copy; plain git, not LFS."
+  },
+  "hosts": {
+    "wgpu": "the wgpu host (hosts/wgpu, hogshade/wgpu_host.py), the shader ball offscreen",
+    "maya-2026": "Maya 2026 dx11Shader through hosts/maya_dx11/hogshade.fx, a sphere in the viewport"
+  },
+  "sections": [
+    {
+      "title": "The shader ball in the wgpu host",
+      "need": "The same material through the forward path and the deferred pair must agree; the deferred picture carries only the G-buffer's quantisation and the depth-reconstructed view vector.",
+      "pictures": [
+        {"path": "verification/wgpu/shader-ball/studio_small_09/forward.png", "host": "wgpu", "feature": "legacy v2, forward path", "caption": "content/materials/legacy-v2/default.material.json under studio_small_09: the schema's defaults (roughness 0.5, IOR 1.45, base colour 0.6)", "made_by": "uv run tools/wgpu/viewport.py"},
+        {"path": "verification/wgpu/shader-ball/studio_small_09/deferred.png", "host": "wgpu", "feature": "legacy v2, deferred path", "caption": "the same material through the G-buffer fill and the deferred light pass", "made_by": "uv run tools/wgpu/viewport.py"},
+        {"path": "verification/wgpu/shader-ball/studio_small_09/metal/forward.png", "host": "wgpu", "feature": "legacy v2 metal, forward path", "caption": "content/materials/legacy-v2/metal.material.json: metalness 1, roughness 0.2", "made_by": "uv run tools/wgpu/viewport.py --material content/materials/legacy-v2/metal.material.json --variant metal"},
+        {"path": "verification/wgpu/shader-ball/studio_small_09/metal/deferred.png", "host": "wgpu", "feature": "legacy v2 metal, deferred path", "caption": "the metal through the deferred pair", "made_by": "uv run tools/wgpu/viewport.py --material content/materials/legacy-v2/metal.material.json --variant metal"},
+        {"path": "verification/wgpu/shader-ball/studio_small_09/legacy-v1/forward.png", "host": "wgpu", "feature": "legacy v1, forward path", "caption": "content/materials/legacy-v1/default.material.json: the 2015 Disney model", "made_by": "uv run tools/wgpu/viewport.py --material content/materials/legacy-v1/default.material.json --variant legacy-v1"},
+        {"path": "verification/wgpu/shader-ball/studio_small_09/legacy-v1/deferred.png", "host": "wgpu", "feature": "legacy v1, deferred path", "caption": "the v1 model through the deferred pair", "made_by": "uv run tools/wgpu/viewport.py --material content/materials/legacy-v1/default.material.json --variant legacy-v1"}
+      ],
+      "pairs": [
+        {"left": "verification/wgpu/shader-ball/studio_small_09/forward.png", "right": "verification/wgpu/shader-ball/studio_small_09/deferred.png", "caption": "forward against deferred, legacy v2: the tool prints the mean and max difference over the ball's pixels"},
+        {"left": "verification/wgpu/shader-ball/studio_small_09/forward.png", "right": "verification/wgpu/shader-ball/studio_small_09/legacy-v1/forward.png", "caption": "legacy v2 against legacy v1, forward path, the same lights and environment"}
+      ]
+    },
+    {
+      "title": "The sphere in Maya 2026",
+      "need": "The dx11Shader shell loads the generated core and the schema-generated material UI, decodes the cooked cubes and the LUT, and renders under the calibration environment; the debug views prove the lobes reach the viewport.",
+      "pictures": [
+        {"path": "verification/maya-2026/ibl-check/studio_small_09/main.png", "host": "maya-2026", "feature": "legacy v2, the Main technique", "caption": "the IBL check on the resident hogshade_maya_gui worker; after S2 the material block of the shell is generated and renders pixel-identical to the hand-written one", "made_by": "tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check"},
+        {"path": "verification/maya-2026/ibl-check/studio_small_09/debug-18.png", "host": "maya-2026", "feature": "legacy v2, debug view 18 (specular)", "caption": "the specular accumulator alone", "made_by": "the same job"},
+        {"path": "verification/maya-2026/ibl-check/studio_small_09/debug-27.png", "host": "maya-2026", "feature": "legacy v2, debug view 27", "caption": "the environment term", "made_by": "the same job"},
+        {"path": "verification/maya-2026/ibl-check/studio_small_09/debug-28.png", "host": "maya-2026", "feature": "legacy v2, debug view 28", "caption": "the direct term", "made_by": "the same job"},
+        {"path": "verification/maya-2026/ibl-check/legacy-v1/studio_small_09/main.png", "host": "maya-2026", "feature": "legacy v1, the Main technique", "caption": "the Shading Model dropdown at Legacy v1, sheen 0.5, clearcoat 0.5", "made_by": "the same job with variant=legacy-v1/studio_small_09"},
+        {"path": "verification/maya-2026/ibl-check/legacy-v1/studio_small_09/debug-02.png", "host": "maya-2026", "feature": "legacy v1, debug view 2", "caption": "a v1 debug view", "made_by": "the same job"},
+        {"path": "verification/maya-2026/ibl-check/legacy-v1/studio_small_09/debug-08.png", "host": "maya-2026", "feature": "legacy v1, debug view 8", "caption": "a v1 debug view", "made_by": "the same job"},
+        {"path": "verification/maya-2026/legacy-v2-ibl/studio_small_09/diffuse-term.png", "host": "maya-2026", "feature": "the E1 diffuse-term check", "caption": "the irradiance cube's diffuse term in the shell, the IBL cook's first proof in Maya", "made_by": "tools/maya/ibl_check.py (E1)"}
+      ],
+      "pairs": [
+        {"left": "verification/maya-2026/ibl-check/studio_small_09/main.png", "right": "verification/wgpu/shader-ball/studio_small_09/forward.png", "caption": "Maya against wgpu today: different mesh, camera, resolution and output space, so not yet comparable; the comparison framework (track E, gate G4) is what makes this pair a diff"}
+      ]
+    }
+  ],
+  "wanted": [
+    "the hero scene in every rendering path (the comparison framework, after gate G4)",
+    "parallax occlusion: with and without, in the Maya shell (a job that captures it)",
+    "the base library's contact sheet (S4a)"
+  ]
+}

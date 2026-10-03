@@ -52,5 +52,8 @@ jobs:
       - name: Material UI (the Maya block and the docs reference are generated)
         run: uv run tools/generate_material_ui.py --check
 
+      - name: Gallery (the picture manifest obeys its rules; Docs/gallery.md is generated)
+        run: uv run tools/generate_gallery.py --check
+
       - name: Tests
         run: uv run pytest -q
