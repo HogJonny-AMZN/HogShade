@@ -192,6 +192,27 @@ table, no authored sidecar); the **macro normal** is written beside it as `T_<se
 `--macro` size, carrying the low frequency as the design says (section 5: "the macro normal carrying the
 low frequency"). Reoriented normal mapping is the host's blend, named in the standard, not the cook's.
 
+## Setup, and where it is written down
+
+The owner's rule (2026-10-04): the encoder's setup is part of setup and getting-started documentation, not
+a surprise at first cook. `ispc_texcomp` is declared in `pyproject.toml` as the `textures` extra, and
+`uv sync --all-extras` (the one setup command the README, CI and the BATS Python worker already share; the
+worker runs on the workspace `.venv`, `tools/bats/orchestrator_config_hogshade.json`) installs it. So:
+
+- `README.md`, "Getting started", gains **The texture cook**: `uv sync --all-extras` (names the extra and
+  that it brings the ISPC encoder), `uv run tools/cook_textures.py cook <set>`, what lands under `cooked/`,
+  and that without the extra the cook writes uncompressed and says so.
+- `tools/README.md` names the cook beside the IBL cook, with the same two lines.
+- `tools/bats/README.md` and `Docs/knowledge/job-orchestrator.md` say the Python worker's venv carries the
+  `textures` extra because `--all-extras` does, and that `hogshade.jobs.cook_textures` is the job.
+- The cook itself, when `ispc_texcomp` does not import: one `WARNING` naming the command
+  (`uv sync --extra textures`), then an uncompressed cook with the manifest saying `"encoder": null`;
+  with `--compress` asked for explicitly and no encoder, exit 2 with the same message. A `--check-setup`
+  flag prints the encoder found, its version and the formats it will write, for a newcomer and for the
+  getting-started page.
+- The getting-started page proper is the manual's first chapter (the board's `Docs/manual/` row); when it
+  exists it carries this section verbatim, and the README's subsection points at it.
+
 ## Manifest and provenance
 
 `<set>/cooked/manifest.json`, deterministic, sorted keys:
@@ -249,6 +270,9 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
   authored fields are untouched, a set with a T1 finding is refused, `check_content.py` passes on the cooked
   set (DDS and the two records only under `cooked/`).
 - `test_job.py`: the job manifest's outputs match what the cook writes; a climbing `set_dir` is refused.
+- `test_setup.py`: with the encoder import patched away, `cook` warns with the `uv sync` command and writes
+  uncompressed, `--compress` exits 2 with it, `--check-setup` reports; with it present, `--check-setup` names
+  the version and the three formats.
 
 ## Acceptance gate
 
