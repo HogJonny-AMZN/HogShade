@@ -1,0 +1,26 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Glossy plastic",
+  "doc": "A glossy plastic such as polycarbonate.",
+  "parent": "base.material.json",
+  "values": {
+    "specular_ior": {
+      "factor": 1.58
+    },
+    "specular_roughness": {
+      "factor": 0.2
+    }
+  },
+  "provenance": [
+    {
+      "source": "published refractive indices",
+      "note": "polycarbonate n = 1.58"
+    },
+    {
+      "source": "author",
+      "note": "roughness 0.2 chosen for a glossy finish"
+    }
+  ],
+  "ext": {}
+}

@@ -1,6 +1,6 @@
 """
 HogShade: the material library: material-type schemas as package data, and load, validate, resolve and
-convert over material documents.
+convert over material documents; the library's roster and index (S4a).
 Package: hogshade/material
 
 Importable inside Maya's and Blender's Pythons: the standard library only; no MaterialX, no PySide6, no
@@ -17,6 +17,7 @@ from hogshade.material.binding import bind
 from hogshade.material.conversion import check_table, conditions_of, convert, load_table, table_names
 from hogshade.material.document import from_data, load
 from hogshade.material.generators import check_host_map, entries_for, generate, host_map, hosts, union_of
+from hogshade.material.library import coverage, documents_under, index
 from hogshade.material.model import (
     Binding,
     Document,
@@ -33,8 +34,8 @@ from hogshade.material.schema import check_type_data, type_of, types
 from hogshade.material.validation import validate
 
 _MODULE_NAME = "hogshade.material"
-__version__ = "0.1.0"
-__updated__ = "2026-09-27"
+__version__ = "0.2.0"
+__updated__ = "2026-10-03"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 __all__ = [
@@ -53,11 +54,14 @@ __all__ = [
     "check_type_data",
     "conditions_of",
     "convert",
+    "coverage",
+    "documents_under",
     "entries_for",
     "from_data",
     "generate",
     "host_map",
     "hosts",
+    "index",
     "load",
     "load_table",
     "resolve",

@@ -57,6 +57,16 @@ the v1 model through the deferred pair. Made by `uv run tools/wgpu/viewport.py -
 | ![left](../verification/wgpu/shader-ball/studio_small_09/forward.png) | ![right](../verification/wgpu/shader-ball/studio_small_09/deferred.png) | forward against deferred, legacy v2: the tool prints the mean and max difference over the ball's pixels |
 | ![left](../verification/wgpu/shader-ball/studio_small_09/forward.png) | ![right](../verification/wgpu/shader-ball/studio_small_09/legacy-v1/forward.png) | legacy v2 against legacy v1, forward path, the same lights and environment |
 
+## The library of materials, the contact sheet
+
+Every standard document of the base library (S4a) renders through the reverse conversion table and the wgpu host; the sheet is the human gate: the metals tell apart, gold is gold, the lacquer is red, the leaf is green. The legend beside it names every cell.
+
+### the base library, 22 documents, forward path (`wgpu`)
+
+![the base library, 22 documents, forward path](../verification/wgpu/library/contact-sheet.png)
+
+content/materials/standard/ in roster order, five to a row: metal (base, aluminium, brass, chrome, copper, gold, iron, silver, steel), dielectric (base, ceramic, glossy plastic, matte plastic), coated (base, painted red), rough (base, concrete, rubber), emissive (base, panel), cutout (base, leaf); contact-sheet.json is the legend. The emissive pair do not glow: the wgpu host carries no emission term, so they render as their dark base colour; anisotropy, specular colour and specular occlusion are the table's losses, so brushed steel is iron here. Made by `uv run tools/wgpu/contact_sheet.py`; the file is `verification/wgpu/library/contact-sheet.png`.
+
 ## The sphere in Maya 2026
 
 The dx11Shader shell loads the generated core and the schema-generated material UI, decodes the cooked cubes and the LUT, and renders under the calibration environment; the debug views prove the lobes reach the viewport.
@@ -119,4 +129,4 @@ the irradiance cube's diffuse term in the legacy v2 shader itself, the IBL cook'
 
 - the hero scene in every rendering path (the comparison framework, after gate G4)
 - parallax occlusion: with and without, in the Maya shell (a job that captures it)
-- the base library's contact sheet (S4a)
+- the base library in Maya, the same sheet through the comparison framework (track E, after G4)

@@ -1,7 +1,7 @@
 # S4a spec: the base library of materials, written against the standard, rendered through the reverse table
 
-**Status:** Proposed. Drafted 2026-10-03 from the accepted design (the owner's "go" of the same day); built on
-`feat/s4a-material-library` once this is merged. Amendments made in the build go in the last section.
+**Status:** Accepted. Drafted 2026-10-03 from the accepted design (the owner's "go" of the same day) as #45, built
+the same day on `feat/s4a-material-library`; the build's amendments are the last section.
 
 Date: 2026-10-03. Design: [../../design/2026-10-02-material-library.md](../../design/2026-10-02-material-library.md),
 "The shape proposed" and "The answers". Decision:
@@ -190,6 +190,23 @@ table and differs from the dielectric parent.
 - A `field` on the source side of a conversion entry (the normal strength loss, above).
 - Titles drawn into the contact sheet (needs a font rasteriser; the JSON legend stands in).
 
-## Amendments made in the build
+## Amendments made in the build (2026-10-03)
 
-(none yet)
+- **The emissive family does not glow in wgpu.** The acceptance gate said "the emissive panel is bright"; it is
+  not, and cannot be: the wgpu host map carries no emission parameter (`emission_color` and
+  `emission_intensity` are `unsupported` since S3, the host has no emission term). The pair render as their
+  dark base colour. The documents are right (800 nits convert to v2 intensity 8, a test says so); the Maya
+  shell carries emission, so the comparison framework's Maya sheet will show it. The gallery caption says so.
+- **Brushed steel is iron on the sheet**: anisotropy is a loss of the table, as the spec lists; the document
+  is the one that sets `specular_anisotropy` for coverage, and renders identically to iron through v2.
+- `library.py` also exports `coverage(root, type)` (parameter to the documents setting it) and
+  `factor_parameters(type)`, so the coverage test enumerates the schema rather than a hand list; a schema
+  addition fails the test until a document sets it. `family_of(path, root)` is shared with the contact sheet.
+- `documents_under` sorts the families in `FAMILY_ORDER` then alphabetically, so a new family lands after the
+  six without an edit, and the parent before its children; the index and the sheet share the order.
+- The index lists the deferred materials (`DEFERRED`) and the table's unstated loss (`UNSTATED_LOSSES`) from
+  constants in `library.py`, so the page and the spec cannot drift apart on either.
+- The record fields' inner shapes are findings on a raw document only (`_record_findings`); a wrong container
+  (a non-string title, a non-list provenance) is `MaterialError` in `from_data`, as `ext` is.
+- The contact-sheet legend records the command, the environment, the target type and the losses beside the
+  cells, so the picture's provenance is complete without the log.

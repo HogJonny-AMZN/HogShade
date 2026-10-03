@@ -1,0 +1,38 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Rough",
+  "doc": "The rough dielectric family: rubber, concrete, cloth without sheen.",
+  "values": {
+    "base_metalness": {
+      "factor": 0.0
+    },
+    "specular_weight": {
+      "factor": 1.0
+    },
+    "specular_ior": {
+      "factor": 1.5
+    },
+    "specular_roughness": {
+      "factor": 0.9
+    },
+    "base_color": {
+      "factor": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "author",
+      "note": "roughness 0.9 chosen as the family's trait"
+    },
+    {
+      "source": "published refractive indices",
+      "note": "IOR 1.5 as the dielectric reference"
+    }
+  ],
+  "ext": {}
+}

@@ -151,6 +151,23 @@ def test_documents_render_through_the_binding(renderer) -> None:
     assert np.abs(sheen - no_sheen).max() > 1e-3, "the document's lobe reached the shader through the binding"
 
 
+def test_a_standard_document_renders_through_the_reverse_table(renderer) -> None:
+    """S4a: gold converted to legacy v2 and bound differs from the dielectric parent; both render finite."""
+    from hogshade.material import bind, convert, load, resolve
+
+    library = wgpu_host.ROOT / "content" / "materials" / "standard"
+
+    def frame(rel: str):
+        doc = load(library / rel, library)
+        converted, _ = convert(resolve(doc, library), "hogshade-legacy-v2")
+        return renderer.render(wgpu_host.Scene(width=96, height=96, material=bind(resolve(converted), "wgpu"))).forward
+
+    gold, dielectric = frame("metal/gold.material.json"), frame("dielectric/base.material.json")
+    assert np.isfinite(gold).all() and np.isfinite(dielectric).all()
+    assert np.abs(gold - dielectric).max() > 0.05, "the standard document reached the shader through the table"
+    assert gold[..., 0].mean() > gold[..., 2].mean(), "gold is warmer than it is blue"
+
+
 def test_specular_view_is_nonzero_and_below_the_composite(renderer) -> None:
     full = renderer.render(wgpu_host.Scene(width=96, height=96, debug_mode=0)).forward
     spec = renderer.render(wgpu_host.Scene(width=96, height=96, debug_mode=18)).forward

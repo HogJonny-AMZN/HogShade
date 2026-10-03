@@ -1,0 +1,26 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Matte plastic",
+  "doc": "A matte plastic such as PMMA.",
+  "parent": "base.material.json",
+  "values": {
+    "specular_ior": {
+      "factor": 1.49
+    },
+    "specular_roughness": {
+      "factor": 0.7
+    }
+  },
+  "provenance": [
+    {
+      "source": "published refractive indices",
+      "note": "PMMA (acrylic) n = 1.49"
+    },
+    {
+      "source": "author",
+      "note": "roughness 0.7 chosen for a matte finish"
+    }
+  ],
+  "ext": {}
+}

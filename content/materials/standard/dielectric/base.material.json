@@ -1,0 +1,38 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Dielectric",
+  "doc": "The non-metal family: full physical specular at IOR 1.5, mid roughness, a mid grey albedo.",
+  "values": {
+    "base_metalness": {
+      "factor": 0.0
+    },
+    "specular_weight": {
+      "factor": 1.0
+    },
+    "specular_ior": {
+      "factor": 1.5
+    },
+    "specular_roughness": {
+      "factor": 0.5
+    },
+    "base_color": {
+      "factor": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "published refractive indices",
+      "note": "IOR 1.5 is common glass, the usual dielectric reference"
+    },
+    {
+      "source": "author",
+      "note": "roughness 0.5 and albedo 0.5 chosen as mid values"
+    }
+  ],
+  "ext": {}
+}

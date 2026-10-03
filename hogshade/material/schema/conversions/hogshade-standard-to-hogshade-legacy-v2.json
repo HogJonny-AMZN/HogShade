@@ -1,0 +1,40 @@
+{
+  "from": "hogshade-standard",
+  "to": "hogshade-legacy-v2",
+  "version": 1,
+  "map": [
+    {"from": "base_color", "to": "base_color", "transform": "identity"},
+    {"from": "base_metalness", "to": "metalness", "transform": "identity"},
+    {"from": "specular_weight", "to": "specular", "transform": "identity"},
+    {"from": "specular_roughness", "to": "roughness", "transform": "identity"},
+    {"from": "specular_ior", "to": "ior", "transform": "identity"},
+    {"from": "emission_luminance", "to": "emission_intensity", "transform": "scale", "by": 0.01},
+    {"from": "emission_color", "to": "emission_color", "transform": "identity"},
+    {"from": "geometry_opacity", "to": "opacity", "transform": "identity"},
+    {"from": "geometry_normal", "to": "normal_map", "transform": "identity"},
+    {"from": "ambient_occlusion", "to": "ambient_occlusion_map", "transform": "identity"},
+    {"from": "cavity", "to": "cavity_map", "transform": "identity"},
+    {"from": "height", "to": "height_map", "transform": "identity"},
+    {"from": "alpha_mode", "to": "use_cutout_alpha", "transform": "constant", "when": "mask", "value": true},
+    {"from": "alpha_mode", "to": "use_cutout_alpha", "transform": "constant", "when": "opaque", "value": false},
+    {"from": "alpha_mode", "to": "use_cutout_alpha", "transform": "constant", "when": "blend", "value": false}
+  ],
+  "dropped": [
+    {
+      "from": "specular_color",
+      "reason": "v2 tints the dielectric F0 only through specular_f0_map, a texture; a constant colour has no image in the 2017 model"
+    },
+    {
+      "from": "specular_anisotropy",
+      "reason": "the 2017 model has no anisotropic lobe; the standard's stretch cannot be shown"
+    },
+    {
+      "from": "specular_rotation",
+      "reason": "the 2017 model has no anisotropic lobe, so no direction to rotate"
+    },
+    {
+      "from": "specular_occlusion",
+      "reason": "the 2017 model has no specular occlusion term; ambient occlusion alone darkens the environment light"
+    }
+  ]
+}

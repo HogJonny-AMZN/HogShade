@@ -1,0 +1,23 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Painted, red",
+  "doc": "A red lacquered surface.",
+  "parent": "base.material.json",
+  "values": {
+    "base_color": {
+      "factor": [
+        0.6,
+        0.05,
+        0.05
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "author",
+      "note": "a saturated red chosen for the showcase"
+    }
+  ],
+  "ext": {}
+}

@@ -1,0 +1,23 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Silver",
+  "doc": "Silver.",
+  "parent": "base.material.json",
+  "values": {
+    "base_color": {
+      "factor": [
+        0.97,
+        0.96,
+        0.92
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances",
+      "note": "silver, rounded to two decimals"
+    }
+  ],
+  "ext": {}
+}

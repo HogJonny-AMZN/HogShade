@@ -1,0 +1,195 @@
+{
+  "command": "uv run tools/wgpu/contact_sheet.py",
+  "environment": "studio_small_09",
+  "converted_to": "hogshade-legacy-v2",
+  "losses": [
+    "specular_color",
+    "specular_anisotropy",
+    "specular_rotation",
+    "specular_occlusion"
+  ],
+  "tile": 192,
+  "columns": 5,
+  "size": [
+    960,
+    960
+  ],
+  "cells": [
+    {
+      "cell": 0,
+      "row": 0,
+      "column": 0,
+      "family": "metal",
+      "document": "metal/base.material.json",
+      "title": "Metal"
+    },
+    {
+      "cell": 1,
+      "row": 0,
+      "column": 1,
+      "family": "metal",
+      "document": "metal/aluminium.material.json",
+      "title": "Aluminium"
+    },
+    {
+      "cell": 2,
+      "row": 0,
+      "column": 2,
+      "family": "metal",
+      "document": "metal/brass.material.json",
+      "title": "Brass"
+    },
+    {
+      "cell": 3,
+      "row": 0,
+      "column": 3,
+      "family": "metal",
+      "document": "metal/chrome.material.json",
+      "title": "Chrome"
+    },
+    {
+      "cell": 4,
+      "row": 0,
+      "column": 4,
+      "family": "metal",
+      "document": "metal/copper.material.json",
+      "title": "Copper"
+    },
+    {
+      "cell": 5,
+      "row": 1,
+      "column": 0,
+      "family": "metal",
+      "document": "metal/gold.material.json",
+      "title": "Gold"
+    },
+    {
+      "cell": 6,
+      "row": 1,
+      "column": 1,
+      "family": "metal",
+      "document": "metal/iron.material.json",
+      "title": "Iron"
+    },
+    {
+      "cell": 7,
+      "row": 1,
+      "column": 2,
+      "family": "metal",
+      "document": "metal/silver.material.json",
+      "title": "Silver"
+    },
+    {
+      "cell": 8,
+      "row": 1,
+      "column": 3,
+      "family": "metal",
+      "document": "metal/steel.material.json",
+      "title": "Brushed steel"
+    },
+    {
+      "cell": 9,
+      "row": 1,
+      "column": 4,
+      "family": "dielectric",
+      "document": "dielectric/base.material.json",
+      "title": "Dielectric"
+    },
+    {
+      "cell": 10,
+      "row": 2,
+      "column": 0,
+      "family": "dielectric",
+      "document": "dielectric/ceramic.material.json",
+      "title": "Ceramic"
+    },
+    {
+      "cell": 11,
+      "row": 2,
+      "column": 1,
+      "family": "dielectric",
+      "document": "dielectric/plastic_glossy.material.json",
+      "title": "Glossy plastic"
+    },
+    {
+      "cell": 12,
+      "row": 2,
+      "column": 2,
+      "family": "dielectric",
+      "document": "dielectric/plastic_matte.material.json",
+      "title": "Matte plastic"
+    },
+    {
+      "cell": 13,
+      "row": 2,
+      "column": 3,
+      "family": "coated",
+      "document": "coated/base.material.json",
+      "title": "Coated"
+    },
+    {
+      "cell": 14,
+      "row": 2,
+      "column": 4,
+      "family": "coated",
+      "document": "coated/painted.material.json",
+      "title": "Painted, red"
+    },
+    {
+      "cell": 15,
+      "row": 3,
+      "column": 0,
+      "family": "rough",
+      "document": "rough/base.material.json",
+      "title": "Rough"
+    },
+    {
+      "cell": 16,
+      "row": 3,
+      "column": 1,
+      "family": "rough",
+      "document": "rough/concrete.material.json",
+      "title": "Concrete"
+    },
+    {
+      "cell": 17,
+      "row": 3,
+      "column": 2,
+      "family": "rough",
+      "document": "rough/rubber.material.json",
+      "title": "Rubber"
+    },
+    {
+      "cell": 18,
+      "row": 3,
+      "column": 3,
+      "family": "emissive",
+      "document": "emissive/base.material.json",
+      "title": "Emissive"
+    },
+    {
+      "cell": 19,
+      "row": 3,
+      "column": 4,
+      "family": "emissive",
+      "document": "emissive/panel.material.json",
+      "title": "Light panel"
+    },
+    {
+      "cell": 20,
+      "row": 4,
+      "column": 0,
+      "family": "cutout",
+      "document": "cutout/base.material.json",
+      "title": "Cutout"
+    },
+    {
+      "cell": 21,
+      "row": 4,
+      "column": 1,
+      "family": "cutout",
+      "document": "cutout/leaf.material.json",
+      "title": "Leaf"
+    }
+  ]
+}

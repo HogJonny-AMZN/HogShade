@@ -22,8 +22,8 @@ from hogshade.material.model import Document, MaterialError
 from hogshade.material.schema import type_of
 
 _MODULE_NAME = "hogshade.material.document"
-__version__ = "0.1.0"
-__updated__ = "2026-09-27"
+__version__ = "0.2.0"
+__updated__ = "2026-10-03"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 _REQUIRED = ("material_type", "material_type_version", "values")
@@ -122,6 +122,12 @@ def from_data(data: Any, path: Path | None = None, root: Path | None = None) -> 
     parent = data.get("parent")
     if parent is not None and not isinstance(parent, str):
         raise MaterialError(f"{where}: parent is a relative path")
+    for key in ("title", "doc"):
+        if key in data and not isinstance(data[key], str):
+            raise MaterialError(f"{where}: {key} is a string")
+    provenance = data.get("provenance", [])
+    if not isinstance(provenance, list):
+        raise MaterialError(f"{where}: provenance is a list of {{source, note}} objects")
     doc = Document(
         material_type=name,
         material_type_version=mtype.version,
@@ -130,6 +136,9 @@ def from_data(data: Any, path: Path | None = None, root: Path | None = None) -> 
         ext=ext,
         path=path,
         root=root,
+        title=data.get("title"),
+        doc=data.get("doc"),
+        provenance=[dict(p) if isinstance(p, dict) else p for p in provenance],
     )
     if path is not None:
         base_dir = path.parent

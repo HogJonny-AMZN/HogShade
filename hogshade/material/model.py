@@ -16,8 +16,8 @@ from pathlib import Path
 from typing import Any
 
 _MODULE_NAME = "hogshade.material.model"
-__version__ = "0.1.0"
-__updated__ = "2026-09-27"
+__version__ = "0.2.0"
+__updated__ = "2026-10-03"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 #: Parameter types a schema may declare.
@@ -122,7 +122,11 @@ class MaterialType:
 
 @dataclass
 class Document:
-    """A material document as written: raw values, the parent as a path not yet followed."""
+    """
+    A material document as written: raw values, the parent as a path not yet followed. ``title``, ``doc`` and
+    ``provenance`` are the optional record fields (S4a): a human name, one line of purpose, and where the
+    constants came from as ``{"source", "note"}`` entries. Never inherited, never converted.
+    """
 
     material_type: str
     material_type_version: int
@@ -132,6 +136,9 @@ class Document:
     path: Path | None = None
     root: Path | None = None
     parent_path: Path | None = None
+    title: str | None = None
+    doc: str | None = None
+    provenance: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass

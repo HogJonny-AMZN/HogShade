@@ -1,0 +1,23 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Gold",
+  "doc": "Gold.",
+  "parent": "base.material.json",
+  "values": {
+    "base_color": {
+      "factor": [
+        1.0,
+        0.77,
+        0.34
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances",
+      "note": "gold, rounded to two decimals"
+    }
+  ],
+  "ext": {}
+}

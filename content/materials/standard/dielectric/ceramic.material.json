@@ -1,0 +1,33 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Ceramic",
+  "doc": "A glazed ceramic: bright, smooth, glass-like glaze.",
+  "parent": "base.material.json",
+  "values": {
+    "specular_ior": {
+      "factor": 1.5
+    },
+    "specular_roughness": {
+      "factor": 0.15
+    },
+    "base_color": {
+      "factor": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "published refractive indices",
+      "note": "a glaze is a glass, n about 1.5"
+    },
+    {
+      "source": "author",
+      "note": "roughness 0.15 and albedo 0.9 chosen"
+    }
+  ],
+  "ext": {}
+}

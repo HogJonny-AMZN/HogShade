@@ -17,8 +17,8 @@ from hogshade.material.model import BLENDS, VALUE_KEYS, Document, Finding, Mater
 from hogshade.material.schema import type_of
 
 _MODULE_NAME = "hogshade.material.validation"
-__version__ = "0.1.0"
-__updated__ = "2026-09-27"
+__version__ = "0.2.0"
+__updated__ = "2026-10-03"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 _BLENDABLE_WIDGETS = ("color", "slider")
@@ -116,6 +116,27 @@ def _validate_document(doc: Document) -> list[Finding]:
     for ns, block in doc.ext.items():
         if not isinstance(ns, str) or not isinstance(block, dict):
             out.append(Finding(where, "ext", f"ext.{ns} is an object"))
+    out.extend(_record_findings(where, doc))
+    return out
+
+
+def _record_findings(where: str, doc: Document) -> list[Finding]:
+    """The record fields' inner shapes: a non-empty title, a string doc, provenance entries with source and note."""
+    out: list[Finding] = []
+    if doc.title is not None and (not isinstance(doc.title, str) or not doc.title.strip()):
+        out.append(Finding(where, "title", "title is a non-empty string"))
+    if doc.doc is not None and not isinstance(doc.doc, str):
+        out.append(Finding(where, "doc", "doc is a string"))
+    for i, entry in enumerate(doc.provenance):
+        if not isinstance(entry, dict):
+            out.append(Finding(where, "provenance", f"entry {i} is an object with source and note"))
+            continue
+        for key in ("source", "note"):
+            if not isinstance(entry.get(key), str) or not entry[key].strip():
+                out.append(Finding(where, "provenance", f"entry {i} carries a non-empty {key!r}"))
+        for key in entry:
+            if key not in ("source", "note"):
+                out.append(Finding(where, "provenance", f"entry {i} has an unknown key {key!r}"))
     return out
 
 

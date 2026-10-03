@@ -1,0 +1,32 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Metal",
+  "doc": "The conductor family: fully metallic, mid roughness, iron's reflectance as the neutral conductor.",
+  "values": {
+    "base_metalness": {
+      "factor": 1.0
+    },
+    "specular_roughness": {
+      "factor": 0.4
+    },
+    "base_color": {
+      "factor": [
+        0.56,
+        0.57,
+        0.58
+      ]
+    }
+  },
+  "provenance": [
+    {
+      "source": "Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering (SIGGRAPH 2014 course), table of measured conductor reflectances",
+      "note": "base_color is iron's linear F0 rounded to two decimals"
+    },
+    {
+      "source": "author",
+      "note": "roughness 0.4 chosen as a mid value"
+    }
+  ],
+  "ext": {}
+}
