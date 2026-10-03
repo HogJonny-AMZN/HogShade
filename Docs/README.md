@@ -78,6 +78,12 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
 - [gallery.md](gallery.md): the pictures that are the proof, by need, with the pairs to compare; generated from
   `verification/gallery.json` by `tools/generate_gallery.py --write` and checked in CI; the rule they obey is in
   `verification/README.md`.
+- [design/2026-10-03-content-conventions.md](design/2026-10-03-content-conventions.md): content conventions for
+  textures, materials, lighting and rendering, for humans and agents, Exploring: Unreal's naming pattern with a
+  suffix for each of the standard's fourteen texturable parameters plus the packed and derived maps, an
+  O3DE-style sidecar with presets (derived fields and author-required ones), one cook for the authoring and runtime sets,
+  frequency separation as a cook operation, the sources (Poly Haven, the owner's legacy test tiles, a showcase
+  set); eight questions for the owner; increments T1 to T4 (T3 is S4b).
 - [design/2026-10-02-material-library.md](design/2026-10-02-material-library.md): the library of materials
   (S4, track F), Accepted 2026-10-03 (the owner's "go"): the base set as standard documents with a reverse
   conversion table, the roster of parents and children with sourced values, title and provenance in the
