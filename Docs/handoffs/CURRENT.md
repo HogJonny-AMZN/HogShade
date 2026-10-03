@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-03, night: the conventions design is Accepted (answers 1 and 2 the owner's words, 3 to 8 on the owner's "go"); the T1 spec and plan are drafted (`docs/t1-spec`, PR open), the build next; #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-03, night: the conventions design is Accepted (answers 1 and 2 the owner's words, 3 to 8 on the owner's "go"); the T1 spec is #50 and the build is a second PR stacked on it, both open; #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -11,17 +11,17 @@ how much to decide alone.
 
 ## In flight
 
-**Sit rep, 2026-10-03, night.** The conventions design (#48) is Accepted: the owner answered 1 and 2 in words
-(`T_` stays on every texture file, overriding the pushback; `_BC` for base colour, "ditching _D") and said
-"go" to the rest, so 3 to 8 are the recommendations (one `_ORM` packing, a committed sidecar, frequency
-separation in the first cook, the legacy grid set as the calibration tile, the owner authoring the showcase
-maps, one standard for both readers). T1 is specified: `Docs/standards/content.md`, the texture rules as
-data in `hogshade.material.textures` with the standard's tables generated between markers, and
-`tools/check_content.py` in CI holding names, sidecars, document bindings, the table against the schema and
-licences. It ships no texture and makes the first one checkable on arrival. The build starts on
-`feat/t1-content-standard` stacked on the spec. After T1: T2 the cook (a BATS job, with frequency
-separation), T3 the first set (S4b), T4 the showcase set with the owner. The per-day journal rule (#49) is
-in force: today's file is `Docs/journal/2026-10-03-session-01.md`.
+**Sit rep, 2026-10-03, late night.** T1 is built and awaiting the owner: #50 (the spec and plan) and the build
+PR stacked on it. The content standard exists (`Docs/standards/content.md`): one page for an artist and an
+agent, the owner's two answers as rules (`T_` on every file, `_BC` never `_D`), the texture rules as data in
+`hogshade.material.textures` (fourteen suffixes held to the schema's texturable parameters, the packed `_ORM`
+and the derived `_DN`/`_DH`, the presets, the sidecar's derived and author-required fields), the standard's
+tables generated between markers, and `tools/check_content.py` in CI holding names, sidecars, document
+bindings, the table and licences. It ships no texture; the first one lands checked. `content/textures/**`
+PNG and TIFF are LFS from now. Next: T2 the texture cook (a BATS job on the IBL cook's pattern, with
+frequency separation; spec first), T3 the first set (S4b: Poly Haven sets and the legacy grid tile), T4 the
+showcase set with the owner. Lighting and rendering rules the standard calls "undecided, track E" wait on
+gate G4.
 
 **Sit rep, 2026-10-02, late night.** #40 merged: the S4 design is in with eight questions and the owner
 has not answered them yet; nothing of S4 is built until they do. The owner said two things worth more than

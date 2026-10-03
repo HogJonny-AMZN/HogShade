@@ -1,8 +1,7 @@
 # T1 spec: the content standard and its check
 
-**Status:** Proposed. Drafted 2026-10-03 from the accepted conventions design (the owner's "go" of the same
-day); built on `feat/t1-content-standard` once this is merged. Amendments made in the build go in the last
-section.
+**Status:** Accepted. Drafted 2026-10-03 from the accepted conventions design (the owner's "go" of the same
+day) as #50, built the same night on `feat/t1-content-standard`; the build's amendments are the last section.
 
 Date: 2026-10-03. Design:
 [../../design/2026-10-03-content-conventions.md](../../design/2026-10-03-content-conventions.md), "The shape
@@ -161,6 +160,21 @@ set**, **Runtime set**, **Detail map**.
 - Lighting and rendering rules not yet decided by track E: the standard says "undecided" rather than
   deciding.
 
-## Amendments made in the build
+## Amendments made in the build (2026-10-03)
 
-(none yet)
+- The table check is `check_suffixes()`, not `check_table()`: the package already exports
+  `conversion.check_table`, and one name for two checks would be the synonym drift the glossary forbids.
+  `parameter_of(suffix)` was added so the binding check can ask which parameter a suffix is without
+  reaching into the table.
+- `parse_name` returns a `TextureName` for any stem that meets the grammar, with `known` saying whether the
+  suffix is in the tables; the check reports "not the grammar" and "unknown suffix" as different findings.
+- The sidecar's `resolution`, when stated, is compared with the PNG header (the gallery's reader); other
+  formats are not read.
+- The content-binding check locates a bound texture relative to the document (the texture string is
+  document-relative, S1) and does not apply the name or licence rules to it: those are the textures
+  directory's. A test says so. A document that binds a `_ORM` directly is a finding: the packed form is the
+  cook's output, never an authoring input.
+- The CI step is "Content", after "Gallery"; `content/textures/**` PNG and TIFF are LFS from now, so the
+  first set lands tracked.
+- `.github/copilot-instructions.md` gains item 8, the content rules, so Copilot reviews a texture PR against
+  the same page.

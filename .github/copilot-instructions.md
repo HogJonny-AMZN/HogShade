@@ -2,7 +2,8 @@
 
 Read [`AGENTS.md`](../AGENTS.md) first: the map and the non-negotiable rules. The standards are
 [`Docs/standards/python.md`](../Docs/standards/python.md) and
-[`Docs/standards/wgsl.md`](../Docs/standards/wgsl.md); the decisions are the ADRs in
+[`Docs/standards/wgsl.md`](../Docs/standards/wgsl.md), and for textures, materials, lighting and captures
+[`Docs/standards/content.md`](../Docs/standards/content.md); the decisions are the ADRs in
 [`Docs/decisions/`](../Docs/decisions/README.md); the definition of done is
 [`Docs/standards/definition-of-done.md`](../Docs/standards/definition-of-done.md).
 
@@ -29,6 +30,9 @@ What a review here should check, in this order:
    existing concept is a finding.
 7. **Python standards**: module header with `_MODULE_NAME`, absolute imports, complete type hints,
    `pathlib`, specific exceptions, no `print()` outside a script's entry point or a DCC-side script.
+8. **Content**: a texture is `T_<snake_case>_<SUFFIX>[_<variant>]` with its `.texture.json` sidecar
+   (provenance; a normal map's convention); a document binds a map whose suffix is the parameter's;
+   `uv run tools/check_content.py` must pass.
 
 A job under `hogshade/jobs/` must also run without the orchestrator; the manifest's `outputs`
 must match what the code writes; a path built from a parameter must refuse to climb.

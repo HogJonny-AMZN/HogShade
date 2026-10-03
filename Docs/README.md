@@ -37,7 +37,7 @@ as W1 and this repo built first).
 plans with their findings, rejections and scorecards, and local code reviews when they are kept
 (the standards pass's project review is one). [decisions/](decisions/README.md) holds the ADRs,
 append-only, each with a *Revisit if*. [standards/](standards/definition-of-done.md) also carries
-[python.md](standards/python.md), [wgsl.md](standards/wgsl.md) and
+[python.md](standards/python.md), [wgsl.md](standards/wgsl.md), [content.md](standards/content.md) and
 [failure-modes.md](standards/failure-modes.md); `.github/copilot-instructions.md` points Copilot at them.
 
 Three more folders are the process, ported from SpriteJammer on 2026-09-27 with its reasoning:
@@ -57,6 +57,7 @@ link, a governed document without a status line, or a session missing from the j
 | Running anything in Maya or Blender | `knowledge/job-orchestrator.md`, then the `bats-job` and `maya-check` skills |
 | Touching the core | `standards/wgsl.md`, then `decisions/README.md` (ADR-002 to ADR-005), `superpowers/specs/phase-2-restructure.md` "Interfaces", `core/manifest.toml`, the `shader-build` and `local-review` skills |
 | Writing any Python | `standards/python.md` |
+| Adding a texture, a material, a light rig or a capture | `standards/content.md` |
 | Making a structural decision | `decisions/README.md`: read the ADRs, then add one |
 | Something went wrong in the process | `standards/failure-modes.md`: find the trigger, or add the entry in the same PR |
 
@@ -115,7 +116,7 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
 | S2. The generators: the Maya shell's material UI and the docs reference from the schema | [superpowers/specs/s2-material-generators.md](superpowers/specs/s2-material-generators.md) | [superpowers/plans/s2-material-generators.md](superpowers/plans/s2-material-generators.md) | Built 2026-10-01 (`feat/s2-material-generators`, [#35](https://github.com/HogJonny-AMZN/HogShade/pull/35) open): the Maya block and the docs reference generated and checked in CI; the GUI Maya picture run met after the merge (pixel-identical to master's shell in one session) |
 | S3. The wgpu binding: a material document into the wgpu host's frame | [superpowers/specs/s3-wgpu-binding.md](superpowers/specs/s3-wgpu-binding.md) | [superpowers/plans/s3-wgpu-binding.md](superpowers/plans/s3-wgpu-binding.md) | Built 2026-10-02 (`feat/s3-wgpu-binding`, [#38](https://github.com/HogJonny-AMZN/HogShade/pull/38) open): a document is the one way a material reaches the wgpu host; the wgpu pictures recaptured with the schema's defaults |
 | S4a. The base library of materials: twenty-two standard documents with sources, the reverse table to legacy v2, `title`/`doc`/`provenance`, the generated index, the contact sheet | [superpowers/specs/s4a-material-library.md](superpowers/specs/s4a-material-library.md) | [superpowers/plans/s4a-material-library.md](superpowers/plans/s4a-material-library.md) | Done 2026-10-03 ([#45](https://github.com/HogJonny-AMZN/HogShade/pull/45) spec, [#46](https://github.com/HogJonny-AMZN/HogShade/pull/46) build): 22 documents, the reverse table, the index at `content/materials/README.md`, the contact sheet in the gallery |
-| T1. The content standard and its check: `Docs/standards/content.md` for humans and agents, the texture rules as data in `hogshade.material.textures`, `tools/check_content.py` in CI | [superpowers/specs/t1-content-standard.md](superpowers/specs/t1-content-standard.md) | [superpowers/plans/t1-content-standard.md](superpowers/plans/t1-content-standard.md) | Spec and plan drafted 2026-10-03 (`docs/t1-spec`); the build follows on `feat/t1-content-standard` |
+| T1. The content standard and its check: `Docs/standards/content.md` for humans and agents, the texture rules as data in `hogshade.material.textures`, `tools/check_content.py` in CI | [superpowers/specs/t1-content-standard.md](superpowers/specs/t1-content-standard.md) | [superpowers/plans/t1-content-standard.md](superpowers/plans/t1-content-standard.md) | Spec drafted 2026-10-03 ([#50](https://github.com/HogJonny-AMZN/HogShade/pull/50)), built the same night on `feat/t1-content-standard` (PR open, stacked on #50): `Docs/standards/content.md`, `hogshade.material.textures`, `tools/check_content.py` in CI |
 | E1. IBL cook | [superpowers/specs/e1-ibl-cook.md](superpowers/specs/e1-ibl-cook.md) | [superpowers/plans/e1-ibl-cook.md](superpowers/plans/e1-ibl-cook.md) | Done: cook, tests, job, Maya diffuse-term check, LFS payloads in the repo (2026-09-26) |
 | E2. Cook performance and resolution | [superpowers/specs/e2-cook-performance.md](superpowers/specs/e2-cook-performance.md) | [superpowers/plans/e2-cook-performance.md](superpowers/plans/e2-cook-performance.md) | Done except the roadmap tick: numba 140x, measured to an 8192 cube |
 | E. Parity and pipeline, rest | not yet | not yet | Design done |

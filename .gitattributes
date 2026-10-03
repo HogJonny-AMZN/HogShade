@@ -1,3 +1,6 @@
 content/**/*.exr filter=lfs diff=lfs merge=lfs -text
 content/**/*.dds filter=lfs diff=lfs merge=lfs -text
 content/**/*.obj filter=lfs diff=lfs merge=lfs -text
+content/textures/**/*.png filter=lfs diff=lfs merge=lfs -text
+content/textures/**/*.tif filter=lfs diff=lfs merge=lfs -text
+content/textures/**/*.tiff filter=lfs diff=lfs merge=lfs -text

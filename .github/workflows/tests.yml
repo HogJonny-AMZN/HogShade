@@ -55,5 +55,8 @@ jobs:
       - name: Gallery (the picture manifest obeys its rules; Docs/gallery.md is generated)
         run: uv run tools/generate_gallery.py --check
 
+      - name: Content (textures, sidecars and bindings obey Docs/standards/content.md)
+        run: uv run tools/check_content.py
+
       - name: Tests
         run: uv run pytest -q

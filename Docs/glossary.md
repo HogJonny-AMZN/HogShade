@@ -65,6 +65,11 @@ travels between the repos under one vocabulary.
 | **Check** | A scripted verification in a host that writes an incremental log first and its pictures second (`tools/maya/ibl_check.py`); runs standalone or as a job. |
 | **Capture** | One directory under `verification/<host>[-<version>]/<check>/<variant>/`, files named by role only. The unit the comparison framework reads. |
 | **Variant** | A sub-directory of a check for one configuration (`legacy-v1/studio_small_09`); never encoded into a file name. |
+| **Sidecar** | The `<T_name_SUFFIX>.texture.json` beside a source texture: the fields the cook derives from the suffix and the ones only an author knows (provenance, a normal map's convention); `tools/check_content.py` holds it (`Docs/standards/content.md`). |
+| **Preset** | What a texture suffix implies for the cook: colour space, mips, runtime format; a sidecar may override one with a reason. |
+| **Authoring set** | The source textures of a set under `content/textures/<set>/`: one map per parameter, full precision, 2K in LFS, with `LICENSE.md` and sidecars. |
+| **Runtime set** | What the cook writes under `<set>/cooked/`: packed `_ORM`, BC-compressed DDS, linear mips, with `manifest.json` and `provenance.json`; every host reads it, none converts at load. |
+| **Detail map** | A derived pair from frequency separation: `_DH`, the high-pass colour blended by linear light, and `_DN`, the detail normal blended by reoriented normal mapping. |
 | **Calibration scene** | The mesh, lights, environment and test textures every host renders for comparison: the shader ball, the registered grids, the Macbeth chart. Track E. |
 | **Registered grid** | A procedural test texture with orientation marks so a capture proves per host that the up axis, the UV origin, the normal-map sign and the channel order are right. |
 | **Comparison framework** | The designed (not yet built) capture-and-diff tooling with per-feature tolerances and a pass / needs-review / fail verdict. Track E, gate G4. |
