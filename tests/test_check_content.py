@@ -204,10 +204,11 @@ def test_a_cooked_file_that_is_not_dds_is_found(corpus: Path):
     _png(cooked / "T_grid_ORM.png", 8, 8)
     (cooked / "T_grid_ORM.dds").write_bytes(b"DDS ")
     (cooked / "manifest.json").write_text("{}", encoding="utf-8")
-    assert _messages(corpus) == [
+    expected = (
         "content-name: content/textures/grid/cooked/T_grid_ORM.png: a cooked file is dds, or one of "
         "('manifest.json', 'provenance.json')"
-    ]
+    )
+    assert _messages(corpus) == [expected]
 
 
 def test_a_directory_without_a_licence_is_found(corpus: Path):
