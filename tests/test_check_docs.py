@@ -130,6 +130,14 @@ def test_handoff_day_with_its_journal_file_is_clean(corpus: Path) -> None:
     assert check_docs.run(corpus) == []
 
 
+def test_dated_handoff_with_no_journal_files_is_found(corpus: Path) -> None:
+    (corpus / "Docs" / "journal" / "2026-09-27-session-01.md").unlink()
+    _write(corpus, "Docs/journal/README.md", "**Status:** Living\n")
+    _write(corpus, "Docs/handoffs/CURRENT.md", "# Handoff\n\n**Status:** Living\n**Last updated:** 2026-09-28: x\n")
+    findings = check_docs.check_journal_day(check_docs.markdown_files(corpus), corpus)
+    assert [f.check for f in findings] == ["journal-day"] and "no journal session file" in findings[0].detail
+
+
 def test_handoff_without_a_dated_line_is_not_checked(corpus: Path) -> None:
     assert check_docs.check_journal_day(check_docs.markdown_files(corpus), corpus) == []
 

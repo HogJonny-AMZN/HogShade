@@ -266,7 +266,8 @@ def check_journal_index(files: Iterable[Path], root: Path = REPO_ROOT) -> list[F
 def check_journal_day(files: Iterable[Path], root: Path = REPO_ROOT) -> list[Finding]:
     """
     The day the handoff was last updated has a journal file: the newest session file's date is that date
-    or later. A handoff without a dated *Last updated* line is not checked (the fixture corpora have none).
+    or later, and a dated handoff with no session file at all is a finding. A handoff without a dated
+    *Last updated* line is not checked (the fixture corpora have none).
     """
     handoff = root / HANDOFF
     if not handoff.exists():
@@ -278,7 +279,7 @@ def check_journal_day(files: Iterable[Path], root: Path = REPO_ROOT) -> list[Fin
     journal_dir = root / JOURNAL_DIR
     dates = sorted(p.name[:10] for p in files if _SESSION_FILE_RE.match(p.name) and p.parent == journal_dir)
     if not dates:
-        return []
+        return [Finding("journal-day", HANDOFF, f"last updated {updated} but there is no journal session file at all")]
     newest = dates[-1]
     if newest < updated:
         return [
