@@ -147,6 +147,18 @@ committed, and five Copilot replies went out saying "Fixed in 3f105e6" (the prev
 every thread with the real commit. Entry 2 covers the claim-before-evidence class; this is the shape
 where the chain itself is the claimant.
 
+### 15 · A handoff whose header is rewritten while its reading order goes stale
+
+**Trigger:** Updating the handoff's *Last updated* line or its sit rep without reading the lines above
+them; any sentence in the handoff that names "the plan in flight" or "what is next".
+**Do:** When the state changes, re-read the handoff from the top and fix every pointer, not only the
+header and the sit rep; a pointer to a plan names the plan's status in the same breath (done, in flight,
+none). A reader who sees "S2 is next" after S4a merged is sent to obsolete work.
+**Because:** 2026-10-03, #47: the handoff said "nothing is in flight" in its sit rep while its reading order
+still pointed at the S1 plan "done; S2 is next", a line last true before #34 and rewritten past five times
+without being read. Copilot caught it. Mechanised half: none yet; a check that the handoff names no plan
+whose status line says done is the candidate.
+
 ## How to add an entry
 
 When process fails again, append in the same PR as the fix: a trigger you would notice, the action
