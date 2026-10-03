@@ -31,6 +31,8 @@ PREFIX = "T_"
 STANDARD = "hogshade-standard"
 #: Source image formats the authoring set may use; the cook writes the runtime set as DDS.
 AUTHORING_FORMATS = (".png", ".tif", ".tiff", ".exr")
+#: Every image format the content check looks at: an image in a format outside AUTHORING_FORMATS is a finding.
+IMAGE_FORMATS = AUTHORING_FORMATS + (".jpg", ".jpeg", ".bmp", ".tga")
 RUNTIME_CONTAINER = "dds"
 #: The normal-map conventions a sidecar may name for a source; the cooked output is always the first.
 NORMAL_CONVENTIONS = ("opengl+y", "directx-y")
@@ -195,6 +197,13 @@ def _is_str(x: Any) -> bool:
     return isinstance(x, str) and bool(x.strip())
 
 
+def _agrees(stated: Any, expected: Any) -> bool:
+    """A stated derived field agrees with the suffix: equal, or for an object, every stated key equal."""
+    if isinstance(stated, dict) and isinstance(expected, dict):
+        return all(expected.get(k) == v for k, v in stated.items())
+    return stated == expected
+
+
 def check_sidecar(data: Any, suffix: str, where: str = "<sidecar>") -> list[Finding]:
     """
     A parsed sidecar against its suffix: the required fields present and well formed, a derived field that
@@ -216,7 +225,7 @@ def check_sidecar(data: Any, suffix: str, where: str = "<sidecar>") -> list[Find
             if not _is_str(prov.get(key)):
                 out.append(Finding(where, "provenance", f"carries a non-empty {key!r}"))
     expected = preset_for(suffix)
-    if expected["normal"]:
+    if expected["normal"] and suffix in SUFFIXES:  # a derived _DN is the cook's, always opengl+y
         nc = data.get("normal_convention")
         if nc not in NORMAL_CONVENTIONS:
             out.append(
@@ -230,13 +239,14 @@ def check_sidecar(data: Any, suffix: str, where: str = "<sidecar>") -> list[Find
         out.append(Finding(where, "normal_convention", "only a normal map carries it"))
     overridden = _is_str(data.get("override_reason"))
     for key in ("preset", "colour_space", "mips", "runtime"):
-        if key in data and data[key] != expected[key] and not overridden:
+        if key in data and not _agrees(data[key], expected[key]) and not overridden:
             out.append(
                 Finding(
                     where, key, f"{data[key]!r} disagrees with the suffix's {expected[key]!r}; override_reason says why"
                 )
             )
-    if "resolution" in data and not (isinstance(data["resolution"], int) and data["resolution"] > 0):
+    res = data.get("resolution")
+    if "resolution" in data and not (isinstance(res, int) and not isinstance(res, bool) and res > 0):
         out.append(Finding(where, "resolution", "a positive integer, the longer side in pixels"))
     if "derived" in data and not (
         isinstance(data["derived"], list) and all(isinstance(d, str) for d in data["derived"])

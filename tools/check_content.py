@@ -9,14 +9,21 @@ Checks (the T1 spec):
 
 - **content-table**: the suffix table in ``hogshade.material.textures`` covers the schema's texturable
   parameters exactly, with the schema's colour spaces
-- **content-name**: every source image under ``content/textures/`` is ``T_<snake_case>_<SUFFIX>[_<variant>]``
-  with a known suffix; a file under a ``cooked/`` directory is DDS
+- **content-name**: every image under the content roots (``content/materials/``, ``content/textures/``) is an
+  authoring format named ``T_<snake_case>_<SUFFIX>[_<variant>]`` with a known suffix; a file under a
+  ``cooked/`` directory is DDS or a manifest
 - **content-sidecar**: every source texture has ``<stem>.texture.json`` beside it, well formed, with its
   provenance, its normal convention when it is a normal map, and no derived field contradicting the suffix
-  without a reason; a stated resolution matches the PNG header when the file is a PNG
-- **content-binding**: every texture a document under ``content/materials/`` binds names a file whose suffix
-  maps to the bound parameter, and whose sidecar's colour space is the schema's for that parameter
-- **content-licence**: every set directory under ``content/textures/`` carries a ``LICENSE.md``
+  without a reason; a stated resolution matches the PNG header when the PNG is present (an LFS pointer is
+  logged as unverified, which is CI's checkout)
+- **content-binding**: every texture a ``hogshade-standard`` document under ``content/materials/`` binds names
+  a file whose suffix maps to the bound parameter and whose sidecar's colour space is the schema's; a document
+  of another type is logged and not held to the standard's table
+- **content-licence**: every directory holding source textures carries a ``LICENSE.md``
+
+A texture a document binds lives beside or below the document (S1 refuses ``..`` in a texture path), so a
+set is a sub-directory of the material family that owns it; ``content/textures/`` is for sets no document
+binds yet, such as calibration tiles.
 """
 
 from __future__ import annotations
@@ -28,6 +35,7 @@ import struct
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -36,7 +44,9 @@ from hogshade.material import MaterialError, load, type_of
 from hogshade.material.library import documents_under
 from hogshade.material.textures import (
     AUTHORING_FORMATS,
+    IMAGE_FORMATS,
     RUNTIME_CONTAINER,
+    STANDARD,
     check_sidecar,
     check_suffixes,
     parameter_of,
@@ -44,14 +54,18 @@ from hogshade.material.textures import (
 )
 
 _MODULE_NAME = "tools.check_content"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __updated__ = "2026-10-03"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
-TEXTURES = "content/textures"
+#: Where textures live: beside the material that binds them, or in a set no document binds yet.
+CONTENT_ROOTS = ("content/materials", "content/textures")
 MATERIALS = "content/materials"
 SIDECAR_SUFFIX = ".texture.json"
+COOKED_DIR = "cooked"
+COOKED_EXTRA = ("manifest.json", "provenance.json")
 _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+_LFS_MAGIC = b"version https://git-lfs"
 
 
 @dataclass(frozen=True)
@@ -64,10 +78,12 @@ class Finding:
         return f"{self.check}: {self.where}: {self.message}"
 
 
-def png_size(path: Path) -> tuple[int, int] | None:
-    """Width and height from the PNG header, or ``None`` when the file is not a PNG."""
+def png_size(path: Path) -> tuple[int, int] | str | None:
+    """Width and height from the PNG header; ``"lfs"`` for an unhydrated LFS pointer; ``None`` when not a PNG."""
     with path.open("rb") as fh:
         head = fh.read(24)
+    if head.startswith(_LFS_MAGIC):
+        return "lfs"
     if len(head) < 24 or not head.startswith(_PNG_MAGIC) or head[12:16] != b"IHDR":
         return None
     width, height = struct.unpack(">II", head[16:24])
@@ -81,14 +97,32 @@ def _rel(path: Path, root: Path) -> str:
         return str(path)
 
 
+def _is_cooked(path: Path, base: Path) -> bool:
+    """Under a ``cooked/`` directory, judged on the path relative to the content root, never the absolute one."""
+    return COOKED_DIR in path.relative_to(base).parts
+
+
+def image_files(root: Path) -> list[Path]:
+    """Every image file under the content roots, outside any ``cooked/`` directory, in any image format."""
+    out: list[Path] = []
+    for rel in CONTENT_ROOTS:
+        base = root / rel
+        if not base.is_dir():
+            continue
+        out += [
+            p for p in base.rglob("*") if p.is_file() and p.suffix.lower() in IMAGE_FORMATS and not _is_cooked(p, base)
+        ]
+    return sorted(out)
+
+
 def source_textures(root: Path) -> list[Path]:
-    """Every authoring-format image under the textures directory, outside any ``cooked/``."""
-    base = root / TEXTURES
-    if not base.is_dir():
-        return []
-    return sorted(
-        p for p in base.rglob("*") if p.is_file() and p.suffix.lower() in AUTHORING_FORMATS and "cooked" not in p.parts
-    )
+    """The image files that are in an authoring format and named to the grammar with a known suffix."""
+    out = []
+    for p in image_files(root):
+        name = parse_name(p.stem)
+        if p.suffix.lower() in AUTHORING_FORMATS and name is not None and name.known:
+            out.append(p)
+    return out
 
 
 def check_table() -> list[Finding]:
@@ -100,58 +134,68 @@ def check_table() -> list[Finding]:
 
 def check_names(root: Path) -> list[Finding]:
     out: list[Finding] = []
-    base = root / TEXTURES
-    for path in source_textures(root):
+    for path in image_files(root):
+        where = _rel(path, root)
+        if path.suffix.lower() not in AUTHORING_FORMATS:
+            out.append(Finding("content-name", where, f"{path.suffix} is not an authoring format {AUTHORING_FORMATS}"))
         name = parse_name(path.stem)
         if name is None:
-            out.append(Finding("content-name", _rel(path, root), "not T_<snake_case>_<SUFFIX>[_<variant>]"))
+            out.append(Finding("content-name", where, "not T_<snake_case>_<SUFFIX>[_<variant>]"))
         elif not name.known:
-            out.append(Finding("content-name", _rel(path, root), f"suffix {name.suffix!r} is not in the tables"))
-    if base.is_dir():
-        for path in sorted(p for p in base.rglob("*") if p.is_file() and "cooked" in p.parts):
-            if path.suffix.lower() != f".{RUNTIME_CONTAINER}" and path.name not in ("manifest.json", "provenance.json"):
+            out.append(Finding("content-name", where, f"suffix {name.suffix!r} is not in the tables"))
+    for rel in CONTENT_ROOTS:
+        base = root / rel
+        if not base.is_dir():
+            continue
+        for path in sorted(p for p in base.rglob("*") if p.is_file() and _is_cooked(p, base)):
+            if path.suffix.lower() != f".{RUNTIME_CONTAINER}" and path.name not in COOKED_EXTRA:
                 out.append(
                     Finding("content-name", _rel(path, root), f"a cooked file is {RUNTIME_CONTAINER}, or the manifest")
                 )
     return out
 
 
-def _read_sidecar(path: Path, root: Path) -> tuple[dict | None, list[Finding]]:
+def _read_sidecar(path: Path, root: Path) -> tuple[dict | None, str, list[Finding]]:
+    """The parsed sidecar beside a texture, its repo-relative name, and the findings of reading it."""
     sidecar = path.with_name(path.stem + SIDECAR_SUFFIX)
     where = _rel(sidecar, root)
     if not sidecar.is_file():
-        return None, [Finding("content-sidecar", _rel(path, root), f"no sidecar {sidecar.name} beside it")]
+        return None, where, [Finding("content-sidecar", _rel(path, root), f"no sidecar {sidecar.name} beside it")]
     try:
         data = json.loads(sidecar.read_text(encoding="utf-8"))
     except json.JSONDecodeError as e:
-        return None, [Finding("content-sidecar", where, f"not JSON ({e.msg} at line {e.lineno})")]
-    return data, []
+        return None, where, [Finding("content-sidecar", where, f"not JSON ({e.msg} at line {e.lineno})")]
+    return data, where, []
 
 
 def check_sidecars(root: Path) -> list[Finding]:
     out: list[Finding] = []
     for path in source_textures(root):
         name = parse_name(path.stem)
-        if name is None or not name.known:
-            continue  # content-name reports it
-        data, problems = _read_sidecar(path, root)
+        assert name is not None  # source_textures parsed it
+        data, where, problems = _read_sidecar(path, root)
         out.extend(problems)
         if data is None:
             continue
-        where = _rel(path.with_name(path.stem + SIDECAR_SUFFIX), root)
         out.extend(
             Finding("content-sidecar", where, f"{f.parameter}: {f.message}" if f.parameter else f.message)
             for f in check_sidecar(data, name.suffix, where)
         )
-        if isinstance(data.get("resolution"), int) and path.suffix.lower() == ".png":
+        stated = data.get("resolution")
+        if isinstance(stated, int) and not isinstance(stated, bool) and path.suffix.lower() == ".png":
             size = png_size(path)
-            if size is not None and max(size) != data["resolution"]:
-                out.append(
-                    Finding(
-                        "content-sidecar", where, f"resolution {data['resolution']} but the PNG is {size[0]}x{size[1]}"
-                    )
+            if size == "lfs":
+                _LOGGER.info(
+                    "resolution of %s unverified: the PNG is an LFS pointer in this checkout", _rel(path, root)
                 )
+            elif isinstance(size, tuple) and max(size) != stated:
+                out.append(Finding("content-sidecar", where, f"resolution {stated} but the PNG is {size[0]}x{size[1]}"))
     return out
+
+
+def _bound_texture(doc_path: Path, value: str) -> Path:
+    """The file a document-relative texture string names (S1 confined it to the root when the document loaded)."""
+    return doc_path.parent / Path(*value.replace("\\", "/").split("/"))
 
 
 def check_bindings(root: Path) -> list[Finding]:
@@ -169,36 +213,48 @@ def check_bindings(root: Path) -> list[Finding]:
         except MaterialError as e:
             out.append(Finding("content-binding", _rel(doc_path, root), str(e)))
             continue
+        bound = {n: v for n, v in doc.values.items() if isinstance(v, dict) and v.get("texture") is not None}
+        if not bound:
+            continue
+        if doc.material_type != STANDARD:
+            _LOGGER.info(
+                "%s is %s, not %s: its %d bound texture(s) are not held to the standard's suffix table",
+                _rel(doc_path, root),
+                doc.material_type,
+                STANDARD,
+                len(bound),
+            )
+            continue
         mtype = type_of(doc.material_type)
-        for pname, value in doc.values.items():
-            if not isinstance(value, dict) or value.get("texture") is None:
-                continue
+        for pname, value in bound.items():
             where = f"{_rel(doc_path, root)}:{pname}"
-            texture = doc_path.parent / Path(*value["texture"].split("/"))
+            texture = _bound_texture(doc_path, value["texture"])
             name = parse_name(texture.stem)
             if name is None or not name.known:
                 out.append(
                     Finding("content-binding", where, f"binds {value['texture']!r}, not a texture of this repository")
                 )
                 continue
-            bound = parameter_of(name.suffix)
-            if bound is None:
+            parameter = parameter_of(name.suffix)
+            if parameter is None:
                 out.append(
                     Finding(
                         "content-binding", where, f"binds a {name.suffix} map, which a document never binds directly"
                     )
                 )
                 continue
-            if bound != pname:
+            if parameter != pname:
                 out.append(
-                    Finding("content-binding", where, f"binds a {name.suffix} map, which is {bound!r}, not {pname!r}")
+                    Finding(
+                        "content-binding", where, f"binds a {name.suffix} map, which is {parameter!r}, not {pname!r}"
+                    )
                 )
-            p = mtype.parameters.get(pname)
             if not texture.is_file():
                 out.append(Finding("content-binding", where, f"{value['texture']!r} does not exist"))
                 continue
-            data, problems = _read_sidecar(texture, root)
+            data, _, problems = _read_sidecar(texture, root)
             out.extend(Finding("content-binding", f.where, f.message) for f in problems)
+            p = mtype.parameters.get(pname)
             if isinstance(data, dict) and p is not None and data.get("colour_space") not in (None, p.colour_space):
                 out.append(
                     Finding(
@@ -213,17 +269,14 @@ def check_bindings(root: Path) -> list[Finding]:
 
 def check_licences(root: Path) -> list[Finding]:
     out: list[Finding] = []
-    sets = {p.parent for p in source_textures(root)}
-    for directory in sorted(sets):
-        top = directory
-        while top.parent != root / TEXTURES and top != root / TEXTURES:
-            top = top.parent
-        if not (top / "LICENSE.md").is_file():
+    for directory in sorted({p.parent for p in source_textures(root)}):
+        if not (directory / "LICENSE.md").is_file():
             out.append(
                 Finding(
                     "content-licence",
-                    _rel(top, root),
-                    "a set carries LICENSE.md (source, licence, fetch date, where the master lives)",
+                    _rel(directory, root),
+                    "a directory of source textures carries LICENSE.md "
+                    "(source, licence, fetch date, where the master lives)",
                 )
             )
     return out
@@ -238,15 +291,23 @@ def run(root: Path = ROOT) -> list[Finding]:
     return findings
 
 
+def _summary(root: Path) -> dict[str, Any]:
+    return {"images": len(image_files(root)), "sources": len(source_textures(root))}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("root", nargs="?", type=Path, default=ROOT, help="the repository root (default: this one)")
     args = parser.parse_args(argv)
     _logging.basicConfig(level=_logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     root = args.root.resolve()
-    textures = source_textures(root)
+    counts = _summary(root)
     _LOGGER.info(
-        "checking %d source texture(s) under %s and the documents under %s", len(textures), TEXTURES, MATERIALS
+        "checking %d image(s), %d of them source textures, under %s, and the documents under %s",
+        counts["images"],
+        counts["sources"],
+        ", ".join(CONTENT_ROOTS),
+        MATERIALS,
     )
     findings = run(root)
     for f in findings:
@@ -255,8 +316,8 @@ def main(argv: list[str] | None = None) -> int:
         _LOGGER.error("content check: %d finding(s)", len(findings))
         return 1
     _LOGGER.info(
-        "content check: the suffix table matches the schema; %d texture(s) and their bindings obey the standard",
-        len(textures),
+        "content check: the suffix table matches the schema; %d source texture(s) and their bindings obey the standard",
+        counts["sources"],
     )
     return 0
 

@@ -104,16 +104,22 @@ check (O3DE's `.assetinfo` idea: a preset per suffix, overridable with a reason)
 
 ### The authoring set and the runtime set
 
-`content/textures/<set>/` holds the **authoring set**: one map per parameter, PNG or 16-bit TIFF, EXR for a
+A set lives **beside the material that binds it**: `content/materials/standard/<family>/<set>/`, bound by
+`<family>/<set>.material.json` as `<set>/T_<set>_BC.png`, because a document's texture path may not climb
+(S1 refuses `..`, the Maya check's confinement rule) and so a texture a document binds is below the
+document. `content/textures/<set>/` is for sets no document binds yet (the calibration tiles). Either way
+the set directory holds the **authoring set**: one map per parameter, PNG or 16-bit TIFF, EXR for a
 height map that needs range, 2K (the LFS budget; the 8K masters stay outside the repository as the IBL
-masters do), in git LFS (`.gitattributes`), with a `LICENSE.md` per set on the `content/ibl` pattern
-(source URL, licence, fetch date, where the master lives) and the sidecars. The **runtime set** lives
+masters do), in git LFS (`.gitattributes`), with a `LICENSE.md` in the directory on the `content/ibl`
+pattern (source URL, licence, fetch date, where the master lives) and the sidecars. A JPEG is not an
+authoring format and is a finding wherever it lands. The **runtime set** lives
 under `<set>/cooked/`, written only by the cook (T2, a BATS job on the IBL cook's pattern): `_ORM` packed,
 BC-compressed DDS, mips generated in linear space, normals as `opengl+y`, with `manifest.json`
 (deterministic: parameters, sha256 of inputs and outputs) and `provenance.json` (volatile). **No host
 converts a texture at load**; every host reads the cooked set, as no host convolves its own IBL. The
 runtime set is reproducible from the authoring set alone. Until T2 lands there is no cooked set, and the
-check only insists that anything under `cooked/` is DDS or a manifest.
+check only insists that anything under `cooked/` is DDS or a manifest. On a checkout without LFS payloads
+(CI), a PNG is a pointer and the sidecar's stated resolution is logged as unverified, not judged.
 
 Colour spaces: sRGB for base colour and emission only (`_BC`, `_E`); everything else raw. Mips are
 generated in linear space. Normal maps are OpenGL +Y in the repository and BC5 at runtime (two channels,
@@ -172,9 +178,9 @@ board's comparison-framework row and **undecided** until that design.
 | Check | Holds |
 | --- | --- |
 | `check_content.py` content-table | the suffix table covers the schema's texturable parameters exactly, with the schema's colour spaces |
-| `check_content.py` content-name | every source texture is `T_<snake_case>_<SUFFIX>[_<variant>]` with a known suffix; `cooked/` holds DDS or a manifest |
+| `check_content.py` content-name | every image under `content/materials/` and `content/textures/` is an authoring format named `T_<snake_case>_<SUFFIX>[_<variant>]` with a known suffix; `cooked/` holds DDS or a manifest |
 | `check_content.py` content-sidecar | every source texture has its sidecar: provenance, a normal map's convention, no derived field contradicting the suffix without a reason, a stated resolution matching the PNG |
-| `check_content.py` content-binding | a document binds a file whose suffix is the bound parameter's; the sidecar's colour space is the schema's |
-| `check_content.py` content-licence | every set under `content/textures/` carries `LICENSE.md` |
+| `check_content.py` content-binding | a `hogshade-standard` document binds a file whose suffix is the bound parameter's; the sidecar's colour space is the schema's; a document of another type is logged, not held |
+| `check_content.py` content-licence | every directory holding source textures carries `LICENSE.md` |
 | `generate_material_ui.py --check` | the tables above are current with `hogshade/material/textures.py` |
 | `check_docs.py` | this page's links and status |

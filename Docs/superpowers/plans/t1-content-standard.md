@@ -9,7 +9,7 @@ with it.
 ## Tasks
 
 - [x] 1. `hogshade/material/textures.py`: `PREFIX`, `SUFFIXES`, `PACKED`, `parse_name`, `preset_for`,
-      `check_table`. Verify: the table covers the schema's fourteen texturable parameters exactly; the
+      `check_suffixes` (the spec said `check_table`; the package already exports one). Verify: the table covers the schema's fourteen texturable parameters exactly; the
       mutations and the name cases in the spec each produce the named result.
 - [x] 2. The sidecar rules and `tools/check_content.py` (name, sidecar, binding, table, licence) with
       `tests/test_check_content.py` on a scratch corpus and on the repository; the CI step "Content". Verify:

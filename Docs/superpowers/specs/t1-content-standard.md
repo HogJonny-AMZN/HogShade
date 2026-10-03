@@ -162,6 +162,21 @@ set**, **Runtime set**, **Detail map**.
 
 ## Amendments made in the build (2026-10-03)
 
+- **A set lives beside the material that binds it.** The spec and the design placed sets under
+  `content/textures/<set>/`, but S1 refuses any `..` in a document's texture path, so no document under
+  `content/materials/` could bind a texture there: the placement rule and the binding rule could not both
+  hold (the pre-PR review). Decided: a bound set is a sub-directory of the family that owns it,
+  `content/materials/standard/<family>/<set>/`, bound as `<set>/T_<set>_BC.png`; `content/textures/<set>/`
+  stays for sets no document binds yet (the calibration tiles). The content roots are both; the name,
+  sidecar and licence rules apply to each; the licence is per directory of source textures. The design's
+  section 4 is amended by reference.
+- The binding check holds `hogshade-standard` documents only (the suffix table is the standard's); a document
+  of another type with bound textures is logged at INFO and not judged. `cooked/` is recognised on the path
+  relative to the content root, not the absolute path (a checkout under a directory named `cooked` is fine).
+  An LFS pointer where a PNG should be logs the resolution as unverified (CI's checkout). A JPEG, BMP or TGA
+  anywhere under the content roots is a finding: not an authoring format. A sidecar's stated `resolution`
+  may not be a bool; a partial `runtime` object agrees key by key; a derived `_DN` needs no author-stated
+  convention, it is the cook's.
 - The table check is `check_suffixes()`, not `check_table()`: the package already exports
   `conversion.check_table`, and one name for two checks would be the synonym drift the glossary forbids.
   `parameter_of(suffix)` was added so the binding check can ask which parameter a suffix is without

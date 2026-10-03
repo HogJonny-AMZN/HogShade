@@ -100,7 +100,10 @@ def test_presets_follow_the_suffix():
 def test_sidecar_rules():
     assert check_sidecar(GOOD_SIDECAR, "_BC") == []
     assert check_sidecar({**GOOD_SIDECAR, "normal_convention": "directx-y"}, "_N") == []
-    msgs = lambda data, suffix: [f"{f.parameter}: {f.message}" for f in check_sidecar(data, suffix)]
+
+    def msgs(data, suffix):
+        return [f"{f.parameter}: {f.message}" for f in check_sidecar(data, suffix)]
+
     assert any(m.startswith("normal_convention: a normal map states") for m in msgs(GOOD_SIDECAR, "_N"))
     assert "normal_convention: only a normal map carries it" in msgs(
         {**GOOD_SIDECAR, "normal_convention": "opengl+y"}, "_BC"
@@ -116,4 +119,9 @@ def test_sidecar_rules():
         {**GOOD_SIDECAR, "resolution": "2k"}, "_BC"
     )
     assert check_sidecar([], "_BC")[0].message == "a sidecar is a JSON object"
+    assert "resolution: a positive integer, the longer side in pixels" in msgs(
+        {**GOOD_SIDECAR, "resolution": True}, "_BC"
+    )
+    assert msgs({**GOOD_SIDECAR, "runtime": {"format": "bc7"}}, "_BC") == [], "a partial object agrees key by key"
+    assert msgs(GOOD_SIDECAR, "_DN") == [], "a derived detail normal is the cook's; no convention required"
     assert check_sidecar(GOOD_SIDECAR, "_XX")[0].message == "suffix '_XX' is not in the tables"
