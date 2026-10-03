@@ -107,6 +107,41 @@ def test_indexed_session_that_does_not_exist_is_found(corpus: Path) -> None:
     assert checks == ["links", "journal-index"]
 
 
+def test_handoff_day_without_a_journal_file_is_found(corpus: Path) -> None:
+    _write(
+        corpus, "Docs/handoffs/CURRENT.md", "# Handoff\n\n**Status:** Living\n**Last updated:** 2026-09-28, noon: x\n"
+    )
+    findings = check_docs.run(corpus)
+    assert [f.check for f in findings] == ["journal-day"]
+    assert "2026-09-28" in findings[0].detail and "2026-09-27" in findings[0].detail
+
+
+def test_handoff_day_with_its_journal_file_is_clean(corpus: Path) -> None:
+    _write(corpus, "Docs/handoffs/CURRENT.md", "# Handoff\n\n**Status:** Living\n**Last updated:** 2026-09-28: x\n")
+    _write(corpus, "Docs/journal/2026-09-28-session-01.md", "# Session 01\n")
+    _write(
+        corpus,
+        "Docs/journal/README.md",
+        "**Status:** Living\n\n| [S1](2026-09-27-session-01.md) | [S2](2026-09-28-session-01.md) |\n",
+    )
+    assert check_docs.run(corpus) == []
+    # a journal file newer than the handoff is fine: the handoff lags a journal, never the reverse
+    _write(corpus, "Docs/handoffs/CURRENT.md", "# Handoff\n\n**Status:** Living\n**Last updated:** 2026-09-27: x\n")
+    assert check_docs.run(corpus) == []
+
+
+def test_dated_handoff_with_no_journal_files_is_found(corpus: Path) -> None:
+    (corpus / "Docs" / "journal" / "2026-09-27-session-01.md").unlink()
+    _write(corpus, "Docs/journal/README.md", "**Status:** Living\n")
+    _write(corpus, "Docs/handoffs/CURRENT.md", "# Handoff\n\n**Status:** Living\n**Last updated:** 2026-09-28: x\n")
+    findings = check_docs.check_journal_day(check_docs.markdown_files(corpus), corpus)
+    assert [f.check for f in findings] == ["journal-day"] and "no journal session file" in findings[0].detail
+
+
+def test_handoff_without_a_dated_line_is_not_checked(corpus: Path) -> None:
+    assert check_docs.check_journal_day(check_docs.markdown_files(corpus), corpus) == []
+
+
 def test_unindexed_adr_is_found(corpus: Path) -> None:
     _write(corpus, "Docs/decisions/ADR-001-core-in-wgsl.md", "**Status:** Accepted\n")
     _write(corpus, "Docs/decisions/README.md", "# ADRs\n")

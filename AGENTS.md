@@ -71,7 +71,7 @@ matching one before improvising; add one when a procedure has been done twice.
   or when it is smaller than the conversation about it.
 - **Journal continuously**, not retrospectively: every meaningful exchange, every step that changed
   or taught something, whenever a belief changes, and whenever the orchestrator made the difference
-  (a `→ BATS:` line). One file per session under `Docs/journal/`; `tools/check_docs.py` fails when a
+  (a `→ BATS:` line). One file per session and per day under `Docs/journal/`; `tools/check_docs.py` fails when a
   session is missing from the index.
 - Two-way doors: decide, record in the PR's *Decisions* table, continue; more than eight means split
   the PR. One-way doors: stop and ask. The owner's merge is the review.

@@ -2,8 +2,9 @@
 
 **Status:** Proposed (exploring). Drafted 2026-10-03 on the owner's direction ("we should put the conventions in
 place as a high priority because we are talking about making material that need textures"); the questions at
-the end are the decisions, each with a recommendation. When locked, the output is a standard
-(`Docs/standards/content.md`), a check, and the first texture set behind it (S4b).
+the end are the decisions, each with a recommendation; two are answered ("The answers", below), six are open.
+When locked, the output is a standard (`Docs/standards/content.md`), a check, and the first texture set behind
+it (S4b).
 
 Date: 2026-10-03. Parents: [2026-09-20-wysiwyg-blindspots.md](2026-09-20-wysiwyg-blindspots.md), section 6
 ("texture packing, gamma and compression are unspecified"); the roadmap's track E boxes (texture conventions,
@@ -90,10 +91,8 @@ base name is `snake_case`, as a Poly Haven slug already is (`cobblestone_floor_0
 keeps its origin's name. A name that ends in a digit is fine here (no `MakeUniqueObjectName`); the
 prototype's warning about that is Unreal's, recorded as not applying.
 
-The `T_` prefix is question 1: in a repo with no content browser it only says "this is a texture" where
-the directory already does, so the recommendation is to drop it in `content/` and let an exporter add it
-for a target that wants it (the glTF export names textures as the engine expects). The suffix table is the
-convention that matters; the prefix is a target's.
+The `T_` prefix was question 1, recommended dropped inside `content/` (a directory already says "texture");
+the owner kept it ("The answers"): every texture file carries `T_`, and the check holds it.
 
 ### 3. The texture sidecar: O3DE's idea, this repo's file
 
@@ -233,6 +232,15 @@ its source:
 8. **Where the human-and-agent instructions live.** One `Docs/standards/content.md` with the why on every
    rule, pointed at by `AGENTS.md` (recommended: one file both readers load), or split into a human page
    and an agent page?
+
+## The answers (2026-10-03, in progress)
+
+1. **The `T_` prefix stays.** Owner: "yes T_ for texture files." The recommendation to drop it inside
+   `content/` is overridden: every texture file is `T_<name>_<suffix>[_<variant>]`, portable by copy, and
+   the check holds the prefix as well as the suffix. The exporter argument stands only as the reason a
+   target's prefix never needs translating.
+2. **`_BC` for base colour.** Owner: "we are ditching _D (diffuse), _BC is better."
+3. to 8. Open.
 
 ## Increments (each its own spec and plan once this is locked)
 

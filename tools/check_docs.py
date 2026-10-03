@@ -13,6 +13,8 @@ Checks:
 - **status**: every document in the governed directories carries ``**Status:**`` in its first 12 lines,
   with one of `STATUS_WORDS`; a ``Superseded`` document says by what
 - **journal-index**: every ``Docs/journal/YYYY-MM-DD-session-NN.md`` has a row in ``Docs/journal/README.md``
+- **journal-day**: the handoff's ``**Last updated:** YYYY-MM-DD`` date has a journal file of that date or later;
+  a day that changed the state has its own file (the per-day rule, owner, 2026-10-03)
 - **adr-index**: every ``Docs/decisions/ADR-*.md`` has a row in ``Docs/decisions/README.md`` (none yet)
 - **board**: ``Docs/plan/BOARD.md`` exists and keeps its five sections (Gates, Now, Next, Blocked, Icebox),
   so the tracker cannot be deleted or quietly collapsed into a list
@@ -74,6 +76,8 @@ STATUS_EXEMPT = {"Docs/decisions/README.md"}
 
 ADR_INDEX = "Docs/decisions/README.md"
 JOURNAL_INDEX = "Docs/journal/README.md"
+JOURNAL_DIR = "Docs/journal"
+HANDOFF = "Docs/handoffs/CURRENT.md"
 BOARD = "Docs/plan/BOARD.md"
 BOARD_SECTIONS = ("## Gates", "## Now", "## Next", "## Blocked", "## Icebox")
 GLOSSARY = "Docs/glossary.md"
@@ -86,6 +90,7 @@ _FENCE_OPEN_RE = re.compile(r"^[ \t]{0,3}(`{3,}|~{3,})")
 _STATUS_RE = re.compile(r"^\*\*Status:\*\*\s*(\S+)", re.MULTILINE)
 _ADR_FILE_RE = re.compile(r"^ADR-(\d{3})-")
 _SESSION_FILE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-session-\d{2}\.md$")
+_LAST_UPDATED_RE = re.compile(r"^\*\*Last updated:\*\*\s*(\d{4}-\d{2}-\d{2})", re.MULTILINE)
 _SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")  # any URL scheme, not a path
 
 
@@ -258,6 +263,35 @@ def check_journal_index(files: Iterable[Path], root: Path = REPO_ROOT) -> list[F
     return _check_index(list(files), root, JOURNAL_INDEX, _SESSION_FILE_RE, "journal-index")
 
 
+def check_journal_day(files: Iterable[Path], root: Path = REPO_ROOT) -> list[Finding]:
+    """
+    The day the handoff was last updated has a journal file: the newest session file's date is that date
+    or later, and a dated handoff with no session file at all is a finding. A handoff without a dated
+    *Last updated* line is not checked (the fixture corpora have none).
+    """
+    handoff = root / HANDOFF
+    if not handoff.exists():
+        return []
+    match = _LAST_UPDATED_RE.search(strip_fences(_read(handoff)))
+    if match is None:
+        return []
+    updated = match.group(1)
+    journal_dir = root / JOURNAL_DIR
+    dates = sorted(p.name[:10] for p in files if _SESSION_FILE_RE.match(p.name) and p.parent == journal_dir)
+    if not dates:
+        return [Finding("journal-day", HANDOFF, f"last updated {updated} but there is no journal session file at all")]
+    newest = dates[-1]
+    if newest < updated:
+        return [
+            Finding(
+                "journal-day",
+                HANDOFF,
+                f"last updated {updated} but the newest journal file is {newest}; a new day starts a new session file",
+            )
+        ]
+    return []
+
+
 def check_board(files: Iterable[Path], root: Path = REPO_ROOT) -> list[Finding]:
     """The board exists and keeps every section a reader looks for; a section missing is a tracker degrading."""
     path = root / BOARD
@@ -311,6 +345,7 @@ CHECKS: tuple[Check, ...] = (
     check_links,
     check_status_headers,
     check_journal_index,
+    check_journal_day,
     check_adr_index,
     check_board,
     check_vocabulary,
