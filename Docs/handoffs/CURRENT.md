@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-03, end of night: T1 merged (#50 the spec, #51 the build); the content standard exists; nothing in flight; T2 the texture cook is next, spec first; #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-04: the T2 spec and plan drafted (`docs/t2-spec`, PR open); the BC encoder evaluation spike boarded on the owner's ask (BATS-runnable, Python or bindings); T1 merged (#50, #51); #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -11,15 +11,18 @@ how much to decide alone.
 
 ## In flight
 
-**Sit rep, 2026-10-03, end of night.** T1 is merged: the content standard (`Docs/standards/content.md`) exists for
-an artist and an agent alike, the texture rules are data in `hogshade.material.textures` with the standard's
-tables generated from them, `tools/check_content.py` runs in CI, and PNG and TIFF under both content roots
-are LFS. A bound texture set lives beside its material (`content/materials/standard/<family>/<set>/`), since
-S1 allows no `..`; `content/textures/` is for sets no document binds yet. No texture exists yet; the first
-lands checked. Nothing is in flight. Next in order: T2 the texture cook (a BATS job on the IBL cook's pattern,
-with the owner's frequency separation; spec first), T3 the first set (S4b: Poly Haven sets and the legacy grid
-tile), T4 the showcase set authored with the owner. The lighting and rendering rules the standard calls
-"undecided, track E" wait on gate G4. Today's journal is `Docs/journal/2026-10-03-session-01.md`.
+**Sit rep, 2026-10-04.** The owner said "go" on T2; its spec and plan are drafted: the texture cook turns an
+authoring set into its runtime set (mips in linear, normals to the repository's convention, `_ORM` packed,
+uncompressed DDS with mips), fills the sidecars' derived fields, writes a deterministic manifest and a
+volatile provenance on the IBL cook's pattern, and carries the owner's frequency separation as `separate`
+with the reconstruction error measured into the manifest. Two questions: TIFF (recommended not in T2; the
+PNG reader is this repository's, no Pillow) and compression. On the second the owner wants an open-source
+encoder that runs on the BATS Python worker (Python but fast, or bindings) and asked for an evaluation
+spike: boarded, with the candidates and the measurements named; the cook has an encoder seam with `texconv`
+as the first implementation and writes uncompressed when none is present, so the spike's pick lands behind
+the seam without reshaping the cook. The owner also shared an explainer of BC1 to BC7 (connburanicz.com):
+the author's own Python encoder is not distributed, so it is background, not a candidate. Nothing is built
+until the spec merges; the spike can run beside it.
 
 **Sit rep, 2026-10-02, late night.** #40 merged: the S4 design is in with eight questions and the owner
 has not answered them yet; nothing of S4 is built until they do. The owner said two things worth more than
