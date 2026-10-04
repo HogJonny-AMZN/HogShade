@@ -73,7 +73,8 @@ class Source:
     variant: str | None
     sidecar_path: Path
     sidecar: dict[str, Any]
-    samples: NDArray  # as read: uint8/uint16 (H, W, C) or float16/float32 (H, W) for an EXR height
+    samples: NDArray[np.uint8] | NDArray[np.uint16] | NDArray[np.float16] | NDArray[np.float32]
+    """As read: integer ``(H, W, C)`` from a PNG, float ``(H, W)`` from an EXR height."""
 
     @property
     def stem(self) -> str:
@@ -139,7 +140,7 @@ def _git_hash() -> str:
 
 
 def _dump(data: dict[str, Any]) -> str:
-    """The one JSON spelling every record of the cook is written in, so hashes compare."""
+    """The one JSON spelling every record of the cook is written in (LF, written as bytes), so hashes compare."""
     return json.dumps(data, indent=2, sort_keys=True) + "\n"
 
 
@@ -180,8 +181,10 @@ def _read_samples(p: Path, suffix: str, problems: list[str]) -> NDArray | None:
 def _check_shapes(sources: list[Source], problems: list[str]) -> None:
     """
     The shape rules a set must meet before anything is written: every map of one base and variant at one size (a
-    pack target or an ``_ORM`` part of another size cannot be packed), no grey-alpha source where RGB is meant
-    (grey is broadcast, RGBA loses its alpha), and every ``pack`` target present in the carrier's own variant.
+    pack target or an ``_ORM`` part of another size cannot be packed), one base per directory (the packing matches
+    by suffix and variant), the ``_ORM`` alpha declared on at most one of its parts per variant, no grey-alpha
+    source where RGB is meant (grey is broadcast, RGBA loses its alpha), and every ``pack`` target present in the
+    carrier's own variant.
     """
     by_group: dict[tuple[str, str | None], list[Source]] = {}
     for s in sources:
@@ -190,6 +193,20 @@ def _check_shapes(sources: list[Source], problems: list[str]) -> None:
         if len({s.size for s in group}) > 1:
             listed = ", ".join(f"{s.path.name} {s.size[0]}x{s.size[1]}" for s in group)
             problems.append(f"one size per set and variant (the packing needs it): {listed}")
+    bases = sorted({s.base for s in sources})
+    if len(bases) > 1:
+        problems.append(f"one base per set directory (the packing matches by suffix and variant): {', '.join(bases)}")
+    for variant in sorted({s.variant for s in sources if s.suffix in pack.ORM_SOURCES}, key=lambda v: v or ""):
+        declared = {
+            s.sidecar["pack"]["a"]: s.sidecar_path.name
+            for s in sources
+            if s.suffix in pack.ORM_SOURCES and s.variant == variant and "pack" in s.sidecar
+        }
+        if len(declared) > 1:
+            problems.append(
+                "the _ORM alpha is declared once per variant; "
+                + ", ".join(f"{where} names {a}" for a, where in sorted(declared.items()))
+            )
     for s in sources:
         if s.suffix in COLOUR_SUFFIXES + DATA_RGB_SUFFIXES + ("_N",) and s.channels == 2:
             problems.append(
@@ -281,11 +298,13 @@ def _rgb(s: Source) -> NDArray[np.float32]:
         _LOGGER.info("%s: a grey map, broadcast to RGB", s.path.name)
         return np.repeat(unit, 3, axis=-1)
     if unit.shape[-1] > 3:
-        _LOGGER.info(
-            "%s: the source alpha is dropped (the runtime alpha is %s)",
-            s.path.name,
-            f"packed from {s.sidecar['pack']['a']}" if "pack" in s.sidecar else "1.0",
-        )
+        if s.suffix == "_N":
+            runtime_alpha = "the runtime map has two channels"
+        elif "pack" in s.sidecar:
+            runtime_alpha = f"the runtime alpha is packed from {s.sidecar['pack']['a']}"
+        else:
+            runtime_alpha = "the runtime alpha is 1.0"
+        _LOGGER.info("%s: the source alpha is dropped (%s)", s.path.name, runtime_alpha)
     return np.ascontiguousarray(unit[..., :3])
 
 
@@ -304,10 +323,17 @@ def _single(sources: list[Source], suffix: str, variant: str | None) -> Source |
     return None
 
 
+def _note_alpha_precision(packed: Source) -> None:
+    """A map riding in an 8-bit alpha keeps 8 bits: said once when its source had more."""
+    if packed.samples.dtype != np.uint8:
+        _LOGGER.info("%s: %s reduced to 8 bits in the alpha", packed.path.name, packed.samples.dtype.name)
+
+
 def _with_alpha(levels_rgb: list[NDArray[np.float32]], packed: Source | None) -> list[NDArray[np.float32]]:
     """The RGB chain with its alpha: the packed map's own chain, or 1.0."""
     if packed is None:
         return [np.concatenate([lvl, np.ones(lvl.shape[:2] + (1,), np.float32)], axis=-1) for lvl in levels_rgb]
+    _note_alpha_precision(packed)
     a_levels = mips.data_chain(_one_channel(packed))
     return [np.concatenate([lvl, a], axis=-1) for lvl, a in zip(levels_rgb, a_levels, strict=True)]
 
@@ -430,6 +456,7 @@ def _cook_orm(oven: _Oven, variant: str | None) -> None:
     # an _ORM alpha carrier is declared on any of its sources' sidecars as {"pack": {"a": "_H"}}; the first found
     extra = next((oven.pack_target(src) for src in parts.values() if src is not None and "pack" in src.sidecar), None)
     if extra is not None:
+        _note_alpha_precision(extra)
         a_levels = mips.data_chain(_one_channel(extra))
         levels = [pack.put_alpha(lvl, a[..., 0]) for lvl, a in zip(levels, a_levels, strict=True)]
         oven.consumed.add(extra.stem)
@@ -467,33 +494,38 @@ def _sidecar_fill(s: Source) -> tuple[dict[str, Any], list[str]]:
 
 def _keep_separation(out_dir: Path, textures: dict[str, Any]) -> dict[str, Any] | None:
     """
-    An earlier ``separate_set``'s record, kept when every file it names is still there (a re-cook rebuilds the
-    manifest and must not orphan them); dropped with a warning otherwise. Other ``.dds`` files under ``cooked/``
-    that no record names are warned about, never deleted.
+    The earlier ``separate_set`` records (one per separated suffix), each kept when every file it names is still
+    there (a re-cook rebuilds the manifest and must not orphan them) and dropped with a warning otherwise; the
+    dict is empty when none survives. Other ``.dds`` files under ``cooked/`` that no record names are warned
+    about, never deleted.
     """
     manifest_path = out_dir / MANIFEST_NAME
-    separation: dict[str, Any] | None = None
+    previous: dict[str, Any] = {}
     if manifest_path.is_file():
         try:
-            previous = json.loads(manifest_path.read_text(encoding="utf-8"))
-            separation = previous.get("separation") if isinstance(previous, dict) else None
+            loaded = json.loads(manifest_path.read_text(encoding="utf-8"))
+            block = loaded.get("separation", {}) if isinstance(loaded, dict) else {}
+            previous = block if isinstance(block, dict) and "source" not in block else {}
         except (UnicodeDecodeError, json.JSONDecodeError) as e:
             _LOGGER.warning("%s: the earlier manifest is unreadable and is replaced (%s)", manifest_path, e)
-    if separation is not None:
-        outputs = separation.get("outputs", {}) if isinstance(separation, dict) else {}
+    kept: dict[str, Any] = {}
+    for suffix, record in sorted(previous.items()):
+        outputs = record.get("outputs", {}) if isinstance(record, dict) else {}
         missing = [name for name in outputs if not (out_dir / name).is_file()]
         if missing or not outputs:
-            _LOGGER.warning("the earlier separation record is dropped: its files are gone (%s)", ", ".join(missing))
-            separation = None
+            _LOGGER.warning(
+                "the earlier %s separation record is dropped: its files are gone (%s)", suffix, ", ".join(missing)
+            )
         else:
-            _LOGGER.info("the earlier separation record is kept (%s)", ", ".join(sorted(outputs)))
-    named = set(textures) | (set(separation["outputs"]) if separation else set())
+            kept[suffix] = record
+            _LOGGER.info("the earlier %s separation record is kept (%s)", suffix, ", ".join(sorted(outputs)))
+    named = set(textures) | {name for record in kept.values() for name in record["outputs"]}
     stale = sorted(p.name for p in out_dir.glob("*.dds") if p.name not in named)
     if stale:
         _LOGGER.warning(
             "%s holds %d .dds file(s) no record names, left alone: %s", out_dir, len(stale), ", ".join(stale)
         )
-    return separation
+    return kept
 
 
 def cook_set(
@@ -533,7 +565,11 @@ def cook_set(
     # the sidecars as they will be written, hashed now so the manifest is one whether this cook fills them or not
     sidecars = {s.stem: _sidecar_fill(s) for s in sources}
     inputs = {s.path.name: sha256_file(s.path) for s in sources}
-    inputs.update({s.sidecar_path.name: _sha256_bytes(_dump(sidecars[s.stem][0]).encode("utf-8")) for s in sources})
+    for s in sources:  # a sidecar this cook rewrites is hashed as it will be written; one it leaves alone, as it is
+        data, filled = sidecars[s.stem]
+        inputs[s.sidecar_path.name] = (
+            _sha256_bytes(_dump(data).encode("utf-8")) if filled else sha256_file(s.sidecar_path)
+        )
     inputs["LICENSE.md"] = sha256_file(set_dir / "LICENSE.md")
     for s in sources:
         packed = oven.pack_target(s)
@@ -557,11 +593,11 @@ def cook_set(
     for s in sources:
         data, filled = sidecars[s.stem]
         if filled:
-            s.sidecar_path.write_text(_dump(data), encoding="utf-8")
+            s.sidecar_path.write_bytes(_dump(data).encode("utf-8"))
             s.sidecar = data
             _LOGGER.info("wrote %s: derived %s", s.sidecar_path.name, ", ".join(filled))
         derived.extend(f"{s.sidecar_path.name}:{k}" for k in data.get("derived", []))
-    separation = _keep_separation(out_dir, oven.textures)
+    separations = _keep_separation(out_dir, oven.textures)
     manifest = {
         "tool": _MODULE_NAME,
         "tool_version": __version__,
@@ -574,9 +610,10 @@ def cook_set(
         "sidecars_derived": sorted(derived),
         "not_power_of_two": sorted(s.path.name for s in sources if any((d & (d - 1)) for d in s.samples.shape[:2])),
     }
-    if separation is not None:
-        manifest["separation"] = separation
-    (out_dir / MANIFEST_NAME).write_text(_dump(manifest), encoding="utf-8")
+    if separations:
+        manifest["separation"] = separations
+    (out_dir / MANIFEST_NAME).write_bytes(_dump(manifest).encode("utf-8"))
+    _LOGGER.info("wrote %s: %d texture record(s)", MANIFEST_NAME, len(oven.textures))
     provenance = {
         "cooked_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "wall_seconds": round(time.time() - started, 2),
@@ -587,7 +624,8 @@ def cook_set(
         "git_hash": _git_hash(),
         "encoder_version": encoder.version if encoder else None,
     }
-    (out_dir / PROVENANCE_NAME).write_text(_dump(provenance), encoding="utf-8")
+    (out_dir / PROVENANCE_NAME).write_bytes(_dump(provenance).encode("utf-8"))
+    _LOGGER.info("wrote %s", PROVENANCE_NAME)
     _LOGGER.info(
         "%s: %d texture(s) written under %s in %.2f s (%d sidecar field(s) derived; %s)",
         set_dir.name,
@@ -618,7 +656,8 @@ def separate_set(
     """
     The owner's frequency separation on one map of the set: writes ``T_<base>_DH.dds`` (the high-pass) and
     ``T_<base>_<SUFFIX>_macro.dds`` (the low-pass at ``macro_size``), and for ``_N`` the detail normal ``_DN`` and
-    the macro normal; the manifest's ``separation`` block carries the measured error. With ``picture_dir`` the
+    the macro normal; the manifest's ``separation`` block carries the measured error under the source's suffix
+    (a ``_BC`` and an ``_N`` separation coexist). With ``picture_dir`` the
     source, the halves and the recombination are written as PNGs there, halved until the longer side is at most
     ``picture_size`` (the gallery's rule: at most 1024 on a side and 1 MiB; never under content).
     """
@@ -670,9 +709,11 @@ def separate_set(
     manifest = (
         json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else {"set": set_dir.name}
     )
-    manifest["separation"] = separation
-    manifest_path.write_text(_dump(manifest), encoding="utf-8")
-    _LOGGER.info("wrote %s: the separation record", manifest_path.name)
+    block = manifest.get("separation")
+    earlier = block if isinstance(block, dict) and "source" not in block else {}
+    manifest["separation"] = {**earlier, source_suffix: separation}
+    manifest_path.write_bytes(_dump(manifest).encode("utf-8"))
+    _LOGGER.info("wrote %s: the %s separation record", manifest_path.name, source_suffix)
     if picture_dir is not None:
         picture_dir = Path(picture_dir)
         picture_dir.mkdir(parents=True, exist_ok=True)

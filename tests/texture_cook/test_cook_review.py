@@ -57,6 +57,54 @@ def test_a_pack_target_in_another_variant_is_a_finding(tmp_path: Path, texture_w
         cook.cook_set(s, compress=False)
 
 
+def test_a_pack_declared_on_two_orm_parts_is_a_finding(tmp_path: Path, texture_writer):
+    s = _set(tmp_path, "two")
+    texture_writer(s, "T_two_AO", np.zeros((4, 4, 1), np.uint8), {"pack": {"a": "_H"}})
+    texture_writer(s, "T_two_M", np.zeros((4, 4, 1), np.uint8), {"pack": {"a": "_O"}})
+    texture_writer(s, "T_two_H", np.zeros((4, 4, 1), np.uint8))
+    texture_writer(s, "T_two_O", np.zeros((4, 4, 1), np.uint8))
+    with pytest.raises(cook.CookError, match="the _ORM alpha is declared once per variant") as e:
+        cook.cook_set(s, compress=False)
+    assert "T_two_AO.texture.json names _H" in str(e.value) and "T_two_M.texture.json names _O" in str(e.value)
+    # the same suffix declared twice is one declaration
+    texture_writer(s, "T_two_M", np.zeros((4, 4, 1), np.uint8), {"pack": {"a": "_H"}})
+    m = cook.cook_set(s, compress=False).manifest
+    assert m["textures"]["T_two_ORM.dds"]["packed"]["A"] == "T_two_H.png" and "T_two_O.dds" in m["textures"]
+
+
+def test_two_bases_in_one_directory_are_a_finding(tmp_path: Path, texture_writer):
+    s = _set(tmp_path, "pair")
+    texture_writer(s, "T_a_AO", np.zeros((4, 4, 1), np.uint8))
+    texture_writer(s, "T_b_R", np.zeros((4, 4, 1), np.uint8))
+    with pytest.raises(cook.CookError, match="one base per set directory.*a, b"):
+        cook.cook_set(s, compress=False)
+
+
+def test_a_complete_sidecar_in_another_spelling_is_hashed_as_it_is(tmp_path: Path, texture_writer):
+    s = _set(tmp_path, "hand")
+    texture_writer(s, "T_hand_O", np.zeros((4, 4, 1), np.uint8))
+    first = cook.cook_set(s, compress=False).manifest
+    side = s / "T_hand_O.texture.json"
+    data = json.loads(side.read_text(encoding="utf-8"))
+    side.write_text(json.dumps(data), encoding="utf-8")  # complete, one line: nothing to derive
+    before = side.read_bytes()
+    second = cook.cook_set(s, compress=False).manifest
+    assert side.read_bytes() == before, "a complete sidecar is left alone"
+    assert second["inputs"]["T_hand_O.texture.json"] == cook.sha256_file(side), "hashed as it is on disk"
+    assert second["inputs"]["T_hand_O.texture.json"] != first["inputs"]["T_hand_O.texture.json"]
+
+
+def test_a_short_ihdr_is_a_finding_not_a_traceback(tmp_path: Path, texture_writer):
+    import struct
+
+    s = _set(tmp_path, "ihdr")
+    texture_writer(s, "T_ihdr_O", np.zeros((4, 4, 1), np.uint8))
+    chunk = struct.pack(">I4s", 5, b"IHDR") + bytes(5) + bytes(4)
+    (s / "T_ihdr_O.png").write_bytes(b"\x89PNG\r\n\x1a\n" + chunk)
+    with pytest.raises(cook.CookError, match="IHDR is 5 bytes"):
+        cook.cook_set(s, compress=False)
+
+
 def test_a_grey_alpha_colour_map_is_a_finding(tmp_path: Path, texture_writer):
     s = _set(tmp_path, "ga")
     texture_writer(s, "T_ga_BC", np.zeros((4, 4, 2), np.uint8))
@@ -74,6 +122,7 @@ def test_a_grey_colour_map_is_broadcast_and_an_rgba_one_logs_its_dropped_alpha(t
         m = cook.cook_set(s, compress=False).manifest
     assert "T_grey_BC.png: a grey map, broadcast to RGB" in caplog.text
     assert "T_grey_E.png: the source alpha is dropped (the runtime alpha is 1.0)" in caplog.text
+    assert "wrote manifest.json: 2 texture record(s)" in caplog.text and "wrote provenance.json" in caplog.text
     bc = dds2d.read_2d(s / "cooked" / "T_grey_BC.dds").levels[0]
     assert bc.shape[-1] == 4 and np.all(bc[..., :3] == 100) and np.all(bc[..., 3] == 255)
     e = dds2d.read_2d(s / "cooked" / "T_grey_E.dds").levels[0]
@@ -102,8 +151,9 @@ def test_a_recook_keeps_the_separation_record_and_the_manifest_stays_one(brick: 
     cook.separate_set(brick, radius=4, macro_size=8, compress=False)
     with caplog.at_level(logging.INFO, logger=cook._MODULE_NAME):
         second = cook.cook_set(brick, compress=False).manifest
-    assert second["separation"]["source"] == "T_brick_BC.png" and "T_brick_DH.dds" in second["separation"]["outputs"]
-    assert "the earlier separation record is kept" in caplog.text
+    bc = second["separation"]["_BC"]
+    assert bc["source"] == "T_brick_BC.png" and "T_brick_DH.dds" in bc["outputs"]
+    assert "the earlier _BC separation record is kept" in caplog.text
     on_disk = json.loads((brick / "cooked" / "manifest.json").read_text(encoding="utf-8"))
     assert on_disk == second
     third = cook.cook_set(brick, compress=False).manifest
@@ -118,7 +168,7 @@ def test_a_separation_whose_files_are_gone_is_dropped_and_a_stray_dds_is_warned_
     with caplog.at_level(logging.WARNING, logger=cook._MODULE_NAME):
         m = cook.cook_set(brick, compress=False).manifest
     assert "separation" not in m
-    assert "separation record is dropped" in caplog.text and "T_brick_DH.dds" in caplog.text
+    assert "_BC separation record is dropped" in caplog.text and "T_brick_DH.dds" in caplog.text
     assert "no record names, left alone: T_brick_BC_macro.dds, T_brick_stray.dds" in caplog.text
     assert (brick / "cooked" / "T_brick_stray.dds").exists(), "the cook never deletes"
 

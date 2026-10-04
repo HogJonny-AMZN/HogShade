@@ -160,7 +160,7 @@ class Dds2d:
     format: Format
     width: int
     height: int
-    levels: list  # uncompressed: arrays (H_m, W_m, C); block: bytes per level
+    levels: list[NDArray] | list[bytes]  # uncompressed: arrays (H_m, W_m, C); block: the bytes of each level
 
 
 def read_2d(path: Path) -> Dds2d:

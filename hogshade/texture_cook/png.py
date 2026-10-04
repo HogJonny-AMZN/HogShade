@@ -15,7 +15,9 @@ from __future__ import annotations
 import logging as _logging
 import struct
 import zlib
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -38,8 +40,8 @@ try:
 except ImportError:  # pragma: no cover - exercised on a machine without the jit extra
     HAVE_NUMBA = False
 
-    def njit(*args, **kwargs):  # type: ignore[misc]
-        def wrap(fn):
+    def njit(*args: Any, **kwargs: Any) -> Any:  # type: ignore[misc]
+        def wrap(fn: Callable[..., Any]) -> Callable[..., Any]:
             return fn
 
         return wrap if not (args and callable(args[0])) else args[0]
@@ -152,6 +154,8 @@ def read_png(path: Path, backend: str = "auto") -> NDArray[np.uint8] | NDArray[n
         chunk = data[pos + 8 : pos + 8 + length]
         pos += 12 + length
         if kind == b"IHDR":
+            if len(chunk) != 13:
+                raise PngError(f"{path}: IHDR is {len(chunk)} bytes, not 13")
             ihdr = struct.unpack(">IIBBBBB", chunk)
         elif kind == b"IDAT":
             idat.append(chunk)

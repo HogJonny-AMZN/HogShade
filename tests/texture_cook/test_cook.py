@@ -143,10 +143,14 @@ def test_separation_writes_the_detail_pair_and_records_the_error(brick: Path, tm
     assert set(sep["outputs"]) == {"T_brick_DH.dds", "T_brick_BC_macro.dds"}
     assert sep["sigma"] == 2.0 and sep["macro_size"] == [6, 4], "24x16 halved until the longer side is at most 8"
     assert sep["error_max"] <= 1.0 / 255.0 + 1e-6
-    assert _manifest(brick)["separation"]["source"] == "T_brick_BC.png"
+    assert _manifest(brick)["separation"]["_BC"]["source"] == "T_brick_BC.png"
     assert sorted(p.name for p in pictures.iterdir()) == ["high.png", "low.png", "recombined.png", "source.png"]
     dn = cook.separate_set(brick, radius=4, macro_size=8, source_suffix="_N", compress=False)
     assert set(dn["outputs"]) == {"T_brick_DN.dds", "T_brick_N_macro.dds"}
+    assert set(_manifest(brick)["separation"]) == {"_BC", "_N"}, "one record per separated suffix"
+    rg = dds2d.read_2d(brick / "cooked" / "T_brick_DN.dds").levels[1].astype(np.float32) / 255.0
+    xyz = cook.normals.reconstruct_z(rg)
+    assert np.allclose(np.linalg.norm(xyz, axis=-1), 1.0, atol=0.02), "the detail normal's mips are unit length"
     with pytest.raises(cook.CookError, match="no _E map"):
         cook.separate_set(brick, source_suffix="_E")
 
