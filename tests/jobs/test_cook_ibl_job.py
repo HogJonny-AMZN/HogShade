@@ -17,7 +17,7 @@ from hogshade.ibl.imageio import write_exr_rgb
 
 def test_library_manifest_lists_the_job() -> None:
     entries = jobs.manifest()
-    assert [e["name"] for e in entries] == ["hogshade.cook_ibl", "hogshade.maya_ibl_check"]
+    assert [e["name"] for e in entries] == ["hogshade.cook_ibl", "hogshade.maya_ibl_check", "hogshade.cook_textures"]
     e = entries[0]
     assert e["module_path"] == "hogshade.jobs.cook_ibl" and e["entry_point"] == "main"
     assert e["worker_type"] == "python" and "env_dir" in e["parameters"]

@@ -117,9 +117,13 @@ under `<set>/cooked/`, written only by the cook (T2, a BATS job on the IBL cook'
 BC-compressed DDS, mips generated in linear space, normals as `opengl+y`, with `manifest.json`
 (deterministic: parameters, sha256 of inputs and outputs) and `provenance.json` (volatile). **No host
 converts a texture at load**; every host reads the cooked set, as no host convolves its own IBL. The
-runtime set is reproducible from the authoring set alone. Until T2 lands there is no cooked set, and the
-check only insists that anything under `cooked/` is DDS, `manifest.json` or `provenance.json`, and that no
-packed or derived map (`_ORM`, `_DN`, `_DH`) sits outside it. A source wider than 2048 on a side is a
+runtime set is reproducible from the authoring set alone (`uv run tools/cook_textures.py cook <set>`; the
+encoder is `ispc_texcomp`, the `textures` extra under `uv sync --all-extras`, and without it the cook writes
+uncompressed and says so). The check insists that anything under `cooked/` is DDS, `manifest.json` or
+`provenance.json`, and that no packed or derived map (`_ORM`, `_DN`, `_DH`) sits outside it. A sidecar's
+`pack` field (`{"a": "_O"}` on `_BC`, `_E`, `_SC` or an `_ORM` source) puts a single-channel map in that
+carrier's alpha; the manifest records where every channel lives. Height keeps its source precision: a 16-bit
+PNG to `R16_UNORM`, a half EXR to `R16_FLOAT`, a float EXR to `R32_FLOAT`; BC4 only for an 8-bit source. A source wider than 2048 on a side is a
 finding (the sidecar's `resolution` and the PNG header both). On a checkout without LFS payloads
 (CI), a PNG is a pointer and the sidecar's stated resolution is logged as unverified, not judged.
 

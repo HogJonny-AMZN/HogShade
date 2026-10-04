@@ -33,7 +33,7 @@ Named types are the orchestrator's pattern for variants; nothing in HogShade tar
 | `hogshade_maya_env.json` | generated: the Maya worker environment; HogShade root on `PYTHONPATH`, the DirectX 11 override |
 | `hogshade_blender_env.json` | generated: the Blender worker environment with `HOGSHADE_ROOT` |
 | `run_hogshade_orchestrator.bat` | the launcher: copies the profile into the orchestrator's config folder, starts orchestrator and tray with `--config hogshade` |
-| `submit.py` | submit a job and wait for its result; `--pool` prints the swarm |
+| `submit.py` | submit a job and wait for its result; `--pool` prints the swarm. The jobs: `hogshade.jobs.cook_ibl`, `hogshade.jobs.cook_textures` (the Python worker runs on the workspace `.venv`, so `uv sync --all-extras` gives it the texture encoder) and `hogshade.jobs.maya_ibl_check` |
 | `kill_hogshade_orchestrator.bat` | the kill switch for a wedged orchestrator; see the warning below |
 
 ## Running it

@@ -87,6 +87,7 @@ and a `main(parameters) -> dict`. `hogshade.jobs.manifest()` lists them. Current
 | Module | Worker | What |
 | --- | --- | --- |
 | `hogshade.jobs.cook_ibl` | `hogshade_python` | the E1 IBL cook |
+| `hogshade.jobs.cook_textures` | `hogshade_python` | the T2 texture cook; the worker's venv is the workspace `.venv`, so `uv sync --all-extras` brings its encoder (`ispc_texcomp`) |
 | `hogshade.jobs.maya_ibl_check` | `hogshade_maya_gui`, main thread | load the Maya shell, bind the cooked cubes and a light, playblast, log |
 
 A job is a thin adapter over code that also runs without the orchestrator (the cook CLI, the
