@@ -61,11 +61,11 @@ the v1 model through the deferred pair. Made by `uv run tools/wgpu/viewport.py -
 
 Every standard document of the base library (S4a) renders through the reverse conversion table and the wgpu host; the sheet is the human gate: the metals tell apart, gold is gold, the lacquer is red, the leaf is green. The legend beside it names every cell.
 
-### the base library, 22 documents, forward path (`wgpu`)
+### the base library, 26 documents, forward path (`wgpu`)
 
-![the base library, 22 documents, forward path](../verification/wgpu/library/contact-sheet.png)
+![the base library, 26 documents, forward path](../verification/wgpu/library/contact-sheet.png)
 
-content/materials/standard/ in roster order, five to a row: metal (base, aluminium, brass, chrome, copper, gold, iron, silver, steel), dielectric (base, ceramic, glossy plastic, matte plastic), coated (base, painted red), rough (base, concrete, rubber), emissive (base, panel), cutout (base, leaf); contact-sheet.json is the legend. The emissive pair do not glow: the wgpu host carries no emission term, so they render as their dark base colour; anisotropy, specular colour and specular occlusion are the table's losses, so brushed steel is iron here. Made by `uv run tools/wgpu/contact_sheet.py`; the file is `verification/wgpu/library/contact-sheet.png`.
+content/materials/standard/ in roster order, six to a row, each cell labelled with its family and title (a long title is cut with a dot; contact-sheet.json has it whole): metal (base, aluminium, brass, chrome, copper, gold, iron, metal plate, silver, brushed steel), dielectric (base, brown planks, ceramic, glossy plastic, matte plastic), coated (base, painted red), rough (base, brick wall, cobblestone floor, concrete, rubber), emissive (base, panel), cutout (base, leaf); contact-sheet.json is the legend. The emissive pair do not glow: the wgpu host carries no emission term, so they render as their dark base colour; anisotropy, specular colour and specular occlusion are the table's losses, so brushed steel is iron here; the four T3 documents show their families' constants, since this host samples no texture yet (T3b). Made by `uv run tools/wgpu/contact_sheet.py`; the file is `verification/wgpu/library/contact-sheet.png`.
 
 ## The sphere in Maya 2026
 
