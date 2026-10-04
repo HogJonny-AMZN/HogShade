@@ -241,8 +241,12 @@ All five valid and folded into the text above:
   on every corner (20,628 mirrored on both sides), the direction agrees to a median of 0.8 degrees, 98 percent
   within 5 degrees, the worst corner 35 degrees; uniform or area weighting instead of MikkTSpace's angle weighting
   moves none of those numbers, so the gap is Maya's smoothing rule, not ours. Where Maya's MikkTSpace lives (the
-  owner's "supported in Maya now"; the exporters, the viewport preference, a newer attribute) is a question for
-  the owner; the generator is held to the reference either way.
+  owner's "supported in Maya now") is answered by the owner (2026-10-04, a screenshot of the preferences): it is
+  Preferences > Modeling > Polygon Tangent Space > "Use MikkTSpace tangents", the optionVar
+  `polyUseMikkTSpaceTangents`, off by default, not the mesh attribute. The fixture was dumped with it off. The
+  orchestrator's Maya workers now set it at every boot (Job_Orchestrator PR 73, `maya_default_prefs`); the next
+  dump after that merge and the worker restart is the parity row against Maya's MikkTSpace itself. The generator
+  is held to the reference either way.
 - **Group 2 is per pipeline layout**, and the fill pass had no group 1: it now carries the environment layout
   unused at group 1 so `material.wgsl` can say `@group(2)` once for both mesh passes. The light pass keeps its
   G-buffer at group 2 and defines a `host_samples` of unbound defaults, since `host_inputs()` in `common.wgsl`
