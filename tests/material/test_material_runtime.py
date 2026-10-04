@@ -196,3 +196,18 @@ def test_a_manifest_key_that_is_not_a_dds_under_cooked_is_refused(family):
     manifest["textures"]["../../outside.dds"] = dict(manifest["textures"]["T_plate_BC.dds"])
     with pytest.raises(CookedSetError, match="is not a .dds file name under cooked/"):
         locate(manifest, s, "T_plate_BC.png")
+
+
+def test_a_text_input_hashes_the_same_with_crlf_and_lf(tmp_path: Path):
+    from hogshade.material.runtime import input_digest
+
+    lf = tmp_path / "a.texture.json"
+    crlf = tmp_path / "b.texture.json"
+    lf.write_bytes(b'{\n  "provenance": {}\n}\n')
+    crlf.write_bytes(b'{\r\n  "provenance": {}\r\n}\r\n')
+    assert input_digest(lf) == input_digest(crlf), "git normalises line endings per platform; the hash must not care"
+    png_lf = tmp_path / "x.png"
+    png_crlf = tmp_path / "y.png"
+    png_lf.write_bytes(b"\x89PNG\r\n\x1a\n" + b"\n")
+    png_crlf.write_bytes(b"\x89PNG\r\n\x1a\n" + b"\r\n")
+    assert input_digest(png_lf) != input_digest(png_crlf), "an image is bytes; nothing is normalised"

@@ -175,6 +175,18 @@ the worker's cwd and loaded no effect. Entry 7's scene rule was kept and was not
 `tools/bats/submit.py` reloads the module, `hogshade.jobs.maya_texture_check` drops its library imports and
 clears its keys; the board's environment row remains for the orchestrator side.
 
+### 17 · A hash of a file git rewrites
+
+**Trigger:** Recording the SHA-256 of a text file (a sidecar, a licence, a manifest) as an identity, or
+comparing one across machines.
+**Do:** Hash text inputs with line endings normalised (`hogshade.material.runtime.input_digest`), and pin
+the files a cook or a host reads to `eol=lf` in `.gitattributes`; hash images and DDS as bytes. A hash that
+passes locally and fails on the Windows runner is this, not a stale cook.
+**Because:** 2026-10-04, #58: the T3 build's `content-runtime` passed on the author's machine (files written
+LF by the tools) and failed on CI's Windows runner, where `core.autocrlf` checks every sidecar and
+`LICENSE.md` out as CRLF, so twenty-nine inputs "changed since the cook" without a byte of content changing.
+Mechanised: `input_digest` in the cook and the check, the `.gitattributes` rules, a test with CRLF inputs.
+
 ## How to add an entry
 
 When process fails again, append in the same PR as the fix: a trigger you would notice, the action

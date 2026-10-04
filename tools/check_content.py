@@ -34,7 +34,6 @@ binds yet, such as calibration tiles.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import logging as _logging
 import struct
@@ -48,7 +47,7 @@ sys.path.insert(0, str(ROOT))
 
 from hogshade.material import MaterialError, load, type_of
 from hogshade.material.library import documents_under
-from hogshade.material.runtime import COOKED_DIR, MANIFEST_NAME, CookedSetError, locate, manifest_for
+from hogshade.material.runtime import COOKED_DIR, MANIFEST_NAME, CookedSetError, input_digest, locate, manifest_for
 from hogshade.material.textures import (
     AUTHORING_FORMATS,
     MAX_RESOLUTION,
@@ -331,14 +330,6 @@ def check_licences(root: Path) -> list[Finding]:
     return out
 
 
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as f:
-        for block in iter(lambda: f.read(1 << 20), b""):
-            digest.update(block)
-    return digest.hexdigest()
-
-
 def _is_lfs_pointer(path: Path) -> bool:
     try:
         with path.open("rb") as f:
@@ -392,7 +383,7 @@ def check_runtime(root: Path) -> list[Finding]:
             if _is_lfs_pointer(path):
                 unverified += 1
                 continue
-            if sha256_file(path) != digest:
+            if input_digest(path) != digest:  # text inputs with line endings normalised, as the cook hashed them
                 out.append(Finding("content-runtime", where, f"{name} changed since the cook; cook the set again"))
         if unverified:
             _LOGGER.info(

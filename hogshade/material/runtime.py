@@ -12,6 +12,7 @@ only, so every DCC Python can import it (the T3 spec, section 3).
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging as _logging
 from dataclasses import dataclass
@@ -47,6 +48,28 @@ class RuntimeTexture:
     channels: str  #: ``rgb``, ``rg``, ``r``, ``g``, ``b`` or ``a``: the channels of ``path`` that hold the map
     format: str  #: the DXGI format the cook wrote (``BC7_UNORM_SRGB``, ``R16_UNORM``, ...)
     packed: bool  #: the map shares its file with others (an ``_ORM`` channel or a carrier's alpha)
+
+
+#: Inputs git treats as text: hashed with line endings normalised, so a Windows checkout (CRLF) and a Linux
+#: checkout (LF) of the same file agree with the manifest the cook wrote.
+TEXT_INPUT_SUFFIXES = (".json", ".md")
+
+
+def input_digest(path: Path) -> str:
+    """
+    The SHA-256 the manifest records for one input: the raw bytes of an image, the bytes of a text file with
+    every ``\r\n`` read as ``\n``. Git normalises line endings per platform (``core.autocrlf``), so a text
+    input's bytes on disk are not a stable identity; its lines are.
+    """
+    path = Path(path)
+    digest = hashlib.sha256()
+    if path.suffix.lower() in TEXT_INPUT_SUFFIXES:
+        digest.update(path.read_bytes().replace(b"\r\n", b"\n"))
+        return digest.hexdigest()
+    with path.open("rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def manifest_for(set_dir: Path) -> dict[str, Any]:

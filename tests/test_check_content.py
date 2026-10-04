@@ -354,3 +354,12 @@ def test_a_missing_dds_a_missing_input_hash_and_an_input_outside_the_set_are_fou
     del data["inputs"]
     manifest.write_text(json.dumps(data), encoding="utf-8")
     assert any("no inputs record" in m for m in _messages(corpus))
+
+
+def test_a_checkout_with_crlf_text_inputs_still_matches_the_manifest(corpus: Path):
+    tex = corpus / "content" / "materials" / "standard" / "rough" / "brick"
+    _cook(tex)
+    for name in ("T_brick_BC.texture.json", "T_brick_N.texture.json", "LICENSE.md"):
+        p = tex / name
+        p.write_bytes(p.read_bytes().replace(b"\n", b"\r\n"))  # what a Windows runner with autocrlf checks out
+    assert _messages(corpus) == [], "line endings are not a change to a text input"
