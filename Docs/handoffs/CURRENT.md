@@ -11,6 +11,13 @@ how much to decide alone.
 
 ## In flight
 
+**Owner, 2026-10-04 (late):** f-strings in log calls for readability, `%s` only on a measured hot path and a tight
+loop never logs (collect, log once); logging is for the human troubleshooting an AI's confident error and for the
+agent spelunking later. In python.md; the conversion pass is a board row. The owner also has a **three-tier
+logging architecture for apps**; it is recorded nowhere yet and must be confirmed with the owner before it is written
+into a standard (the guess: a stream handler for the terminal, a per-run file, and the in-app console handler,
+configured at the entry point only).
+
 **Sit rep, 2026-10-04, evening.** T2 is built and awaiting the owner: #54 (the spec's setup section, a
 commit that missed #53's merge) and the build PR #55 stacked on it (local review: three rounds, pass at 7+). The texture cook exists: an authoring set to its
 runtime set (DDS with mips in linear at DDS sizes, normals to `opengl+y`, `_ORM` and alpha carriers through
