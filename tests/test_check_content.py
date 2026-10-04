@@ -361,5 +361,6 @@ def test_a_checkout_with_crlf_text_inputs_still_matches_the_manifest(corpus: Pat
     _cook(tex)
     for name in ("T_brick_BC.texture.json", "T_brick_N.texture.json", "LICENSE.md"):
         p = tex / name
-        p.write_bytes(p.read_bytes().replace(b"\n", b"\r\n"))  # what a Windows runner with autocrlf checks out
+        lf = p.read_bytes().replace(b"\r\n", b"\n")  # the fixture may already be CRLF (write_text on Windows)
+        p.write_bytes(lf.replace(b"\n", b"\r\n"))  # what a Windows runner with autocrlf checks out
     assert _messages(corpus) == [], "line endings are not a change to a text input"
