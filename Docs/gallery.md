@@ -153,11 +153,81 @@ what the macro colour map carries; the cook stores it at 64x64. Made by `the sam
 
 the manifest measures it: error max 0.0039 (one 8-bit step), mean 0.0020, 440 of 1048576 texels clipped. Made by `the same command`; the file is `verification/wgpu/textures/cobblestone_floor_04/recombined.png`.
 
+### the brick wall's source colour map (brick_wall_001, 2K, shown at 512) (`wgpu`)
+
+![the brick wall's source colour map (brick_wall_001, 2K, shown at 512)](../verification/wgpu/textures/brick_wall_001/source.png)
+
+the committed set, separated with --compress. Made by `uv run tools/cook_textures.py separate content/materials/standard/rough/brick_wall_001 --radius 16 --macro 64 --compress --picture verification/wgpu/textures/brick_wall_001 --picture-size 512`; the file is `verification/wgpu/textures/brick_wall_001/source.png`.
+
+### the brick wall's high-pass about mid-grey (`wgpu`)
+
+![the brick wall's high-pass about mid-grey](../verification/wgpu/textures/brick_wall_001/high.png)
+
+the mortar lines and the brick texture; the low frequency is in the macro. Made by `uv run tools/cook_textures.py separate content/materials/standard/rough/brick_wall_001 --radius 16 --macro 64 --compress --picture verification/wgpu/textures/brick_wall_001 --picture-size 512`; the file is `verification/wgpu/textures/brick_wall_001/high.png`.
+
 ### Side by side
 
 | Left | Right | Why |
 | --- | --- | --- |
 | ![left](../verification/wgpu/textures/cobblestone_floor_04/source.png) | ![right](../verification/wgpu/textures/cobblestone_floor_04/recombined.png) | the source against its recombination: the difference is the 8-bit quantisation of the high-pass and nothing else |
+
+## The first texture set
+
+T3: the repository's first texture content, four Poly Haven sets and the legacy grid tile, cooked block-compressed and rendered on the Maya shell from their standard documents; the probe that decided the encoding is in the same directory.
+
+### the ground: T2's proof set at 2K, height as R16_UNORM; BC7 colour, BC5 normal, the packed ORM through ormMap (`maya-2026`)
+
+![the ground: T2's proof set at 2K, height as R16_UNORM; BC7 colour, BC5 normal, the packed ORM through ormMap](../verification/maya-2026/textures/cobblestone_floor_04/main.png)
+
+the standard document cobblestone_floor_04.material.json converted to legacy v2 and bound; every DDS connected through the set's manifest. Made by `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_texture_check --param set_dir=content/materials/standard/rough/cobblestone_floor_04 --param document=content/materials/standard/rough/cobblestone_floor_04.material.json --param check=textures --param variant=cobblestone_floor_04`; the file is `verification/maya-2026/textures/cobblestone_floor_04/main.png`.
+
+### the brick: strong relief in the normal and the height; BC7 colour, BC5 normal, the packed ORM through ormMap (`maya-2026`)
+
+![the brick: strong relief in the normal and the height; BC7 colour, BC5 normal, the packed ORM through ormMap](../verification/maya-2026/textures/brick_wall_001/main.png)
+
+the standard document brick_wall_001.material.json converted to legacy v2 and bound; every DDS connected through the set's manifest. Made by `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_texture_check --param set_dir=content/materials/standard/rough/brick_wall_001 --param document=content/materials/standard/rough/brick_wall_001.material.json --param check=textures --param variant=brick_wall_001`; the file is `verification/maya-2026/textures/brick_wall_001/main.png`.
+
+### the wood: a plain dielectric, the grain's anisotropy left to a later standard; BC7 colour, BC5 normal, the packed ORM through ormMap (`maya-2026`)
+
+![the wood: a plain dielectric, the grain's anisotropy left to a later standard; BC7 colour, BC5 normal, the packed ORM through ormMap](../verification/maya-2026/textures/brown_planks_03/main.png)
+
+the standard document brown_planks_03.material.json converted to legacy v2 and bound; every DDS connected through the set's manifest. Made by `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_texture_check --param set_dir=content/materials/standard/dielectric/brown_planks_03 --param document=content/materials/standard/dielectric/brown_planks_03.material.json --param check=textures --param variant=brown_planks_03`; the file is `verification/maya-2026/textures/brown_planks_03/main.png`.
+
+### the metal: the one set with a metalness map, so the ORM carries all three channels; BC7 colour, BC5 normal, the packed ORM through ormMap (`maya-2026`)
+
+![the metal: the one set with a metalness map, so the ORM carries all three channels; BC7 colour, BC5 normal, the packed ORM through ormMap](../verification/maya-2026/textures/metal_plate/main.png)
+
+the standard document metal_plate.material.json converted to legacy v2 and bound; every DDS connected through the set's manifest. Made by `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_texture_check --param set_dir=content/materials/standard/metal/metal_plate --param document=content/materials/standard/metal/metal_plate.material.json --param check=textures --param variant=metal_plate`; the file is `verification/maya-2026/textures/metal_plate/main.png`.
+
+### the calibration tile, the owner's legacy grid at 1K: colour, normal, height, roughness, metalness, AO, emission and cavity (`maya-2026`)
+
+![the calibration tile, the owner's legacy grid at 1K: colour, normal, height, roughness, metalness, AO, emission and cavity](../verification/maya-2026/textures/grid/main.png)
+
+no document binds it; the check builds one from the set's maps (hogshade.material.sets). Made by `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_texture_check --param set_dir=content/textures/grid --param check=textures --param variant=grid`; the file is `verification/maya-2026/textures/grid/main.png`.
+
+### the metalness debug view of the metal plate: the ORM's blue channel read through ormMap (`maya-2026`)
+
+![the metalness debug view of the metal plate: the ORM's blue channel read through ormMap](../verification/maya-2026/textures/metal_plate/debug-07.png)
+
+the first draft of the shell read metalness from green; the packed map made that visible. Made by `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_texture_check --param set_dir=content/materials/standard/metal/metal_plate --param document=content/materials/standard/metal/metal_plate.material.json --param check=textures --param variant=metal_plate`; the file is `verification/maya-2026/textures/metal_plate/debug-07.png`.
+
+### the S2 gate, left: master's shell on the untextured shader ball (`maya-2026`)
+
+![the S2 gate, left: master's shell on the untextured shader ball](../verification/maya-2026/ibl-check/gate/master/main.png)
+
+rendered in the same Maya session as the right-hand picture, minutes apart. Made by `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param check=ibl-check --param variant=gate/master --param fx=<absolute path of a copy of master's hosts/maya_dx11/hogshade.fx>`; the file is `verification/maya-2026/ibl-check/gate/master/main.png`.
+
+### the S2 gate, right: the regenerated shell with ormMap, untextured (`maya-2026`)
+
+![the S2 gate, right: the regenerated shell with ormMap, untextured](../verification/maya-2026/ibl-check/gate/ormmap/main.png)
+
+pixel-identical to the left: the packed map changes no picture for a document without textures. Made by `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param check=ibl-check --param variant=gate/ormmap --param fx=<absolute path of hosts/maya_dx11/hogshade.fx>`; the file is `verification/maya-2026/ibl-check/gate/ormmap/main.png`.
+
+### Side by side
+
+| Left | Right | Why |
+| --- | --- | --- |
+| ![left](../verification/maya-2026/ibl-check/gate/master/main.png) | ![right](../verification/maya-2026/ibl-check/gate/ormmap/main.png) | the S2 gate for the shell change: master's shell and the regenerated one (with ormMap) rendered untextured in one Maya session; pixel-identical |
 
 ## Wanted, not yet captured
 
