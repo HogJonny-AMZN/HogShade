@@ -18,7 +18,9 @@ Found on the first run (Maya 2026.3): the mesh's ``tangentSpace`` enum offers de
 rightHanded, detectWindingLeftHanded and leftHanded and no MikkTSpace entry; MikkTSpace is the preference
 ``polyUseMikkTSpaceTangents`` (Preferences > Modeling > Polygon Tangent Space, off by default), which the
 orchestrator's Maya workers set at boot. The meta records it as ``basis``: ``mikktspace`` when it was on,
-``maya-default`` when it was off, and the parity test reads that to pick its bars.
+``maya-default`` when it was off. The parity test (``tests/host/test_mikktspace.py``) requires ``mikktspace``
+and holds one set of bars against it; a ``maya-default`` fixture fails that test by design (it is a record of what
+a bare Maya does, not a supported alternative), so dump on a worker or with the preference set.
 """
 
 from __future__ import annotations
@@ -141,7 +143,7 @@ def dump(obj: Path, out: Path) -> dict:
         "tangent_spaces": names,
         "selected": selected,
         "polyUseMikkTSpaceTangents": mikk_pref,
-        "basis": "mikktspace" if mikk_pref else "maya-default",
+        "basis": "mikktspace" if mikk_pref else "maya-default",  # the parity test requires mikktspace
         "vertices": len(pts),
         "faces": fn.numPolygons,
         "corners": len(faces),

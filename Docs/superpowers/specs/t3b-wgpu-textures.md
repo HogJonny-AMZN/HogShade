@@ -280,8 +280,9 @@ All five valid and folded into the text above:
   per-corner output made indexed), `with_tangents` splits before it generates, `tangents` warns when it still
   meets one, and `load_obj` keys a corner on its face's UV handedness as well, so it never builds one. The shader
   ball has none (the fixture's handedness agreed on every corner before the split and the pictures did not move);
-  a two-quad seam is the test. The parity fixture remains Maya's default basis: a fixture from the reference
-  implementation itself is a board row, not this increment.
+  a two-quad seam is the test. The parity fixture is Maya's MikkTSpace (re-dumped with the preference on, the
+  entry above); a fixture from the reference implementation itself is still a board row, a second column rather
+  than the only way to the claim.
 - **`tangent_basis="unknown"` has its path**: `with_tangents(..., tangents=, tangent_basis=)` takes a source's
   tangents, uses a `mikktspace` basis as given, flags `unknown` with a WARNING and regenerates, and refuses any
   other basis (the content standard's validation failure). No loader here passes tangents yet (the OBJ carries
