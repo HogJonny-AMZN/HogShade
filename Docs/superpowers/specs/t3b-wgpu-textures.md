@@ -242,17 +242,16 @@ All five valid and folded into the text above:
 - **Maya 2026.3 exposes no MikkTSpace choice on a mesh.** The job that dumps the fixture
   (`hogshade.jobs.maya_mikktspace_dump`, headless) asks the mesh's `tangentSpace` enum and gets
   `detectWindingRightHanded`, `rightHanded`, `detectWindingLeftHanded`, `leftHanded`; it records the names and
-  selects nothing. So the fixture is Maya's default basis and the parity test (`tests/host/test_mikktspace.py`)
-  states the measured distance rather than identity: on the shader ball's 135,792 corners the handedness agrees
-  on every corner (20,628 mirrored on both sides), the direction agrees to a median of 0.8 degrees, 98 percent
-  within 5 degrees, the worst corner 35 degrees; uniform or area weighting instead of MikkTSpace's angle weighting
-  moves none of those numbers, so the gap is Maya's smoothing rule, not ours. Where Maya's MikkTSpace lives (the
-  owner's "supported in Maya now") is answered by the owner (2026-10-04, a screenshot of the preferences): it is
+  selects nothing. The first fixture was therefore Maya's default basis (handedness exact on every corner, the
+  direction to a median of 0.8 degrees, 98 percent within 5, worst 35; uniform or area weighting instead of
+  MikkTSpace's angle weighting moved none of those numbers). Where Maya's MikkTSpace lives (the owner's
+  "supported in Maya now") was answered by the owner the same day with a screenshot of the preferences:
   Preferences > Modeling > Polygon Tangent Space > "Use MikkTSpace tangents", the optionVar
-  `polyUseMikkTSpaceTangents`, off by default, not the mesh attribute. The fixture was dumped with it off. The
-  orchestrator's Maya workers now set it at every boot (Job_Orchestrator PR 73, `maya_default_prefs`); the next
-  dump after that merge and the worker restart is the parity row against Maya's MikkTSpace itself. The generator
-  is held to the reference either way.
+  `polyUseMikkTSpaceTangents`, off by default, not the mesh attribute. The orchestrator's Maya workers now set it
+  at every boot (Job_Orchestrator PR 73, `maya_default_prefs`), the dump job records it in the fixture's meta
+  (`basis`), and the fixture re-dumped after the worker restart is Maya's MikkTSpace: the handedness agrees on every one of the 135,792 corners (20,628 mirrored on both sides), the direction to a median of 0.000 degrees, 96 percent within 0.5, 98.8 percent within 1, every corner within 7.1 (the fixture is float16, worth 0.02 degrees). The parity test
+  reads the meta and holds those bars. The generator matches the reference; the board row for a fixture from the
+  reference implementation itself stays open as a second column, no longer the only way to the claim.
 - **Group 2 is per pipeline layout**, and the fill pass had no group 1: it now carries the environment layout
   unused at group 1 so `material.wgsl` can say `@group(2)` once for both mesh passes. The light pass keeps its
   G-buffer at group 2 and defines a `host_samples` of unbound defaults, since `host_inputs()` in `common.wgsl`

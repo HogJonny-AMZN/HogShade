@@ -15,8 +15,10 @@ then ``maya_mikktspace_dump.main({"obj": "content/shaderball/shaderBall.obj"})``
 with ``tools/bats/submit.py --module hogshade.jobs.maya_mikktspace_dump --param obj=<the OBJ>``.
 
 Found on the first run (Maya 2026.3): the mesh's ``tangentSpace`` enum offers detectWindingRightHanded,
-rightHanded, detectWindingLeftHanded and leftHanded, no MikkTSpace entry, so the fixture is Maya's default basis
-and the parity test says how close that is to MikkTSpace, not that the two are one.
+rightHanded, detectWindingLeftHanded and leftHanded and no MikkTSpace entry; MikkTSpace is the preference
+``polyUseMikkTSpaceTangents`` (Preferences > Modeling > Polygon Tangent Space, off by default), which the
+orchestrator's Maya workers set at boot. The meta records it as ``basis``: ``mikktspace`` when it was on,
+``maya-default`` when it was off, and the parity test reads that to pick its bars.
 """
 
 from __future__ import annotations
@@ -95,7 +97,17 @@ def dump(obj: Path, out: Path) -> dict:
         if mikk:
             cmds.setAttr(f"{shape}.tangentSpace", mikk[0])
         selected = names[cmds.getAttr(f"{shape}.tangentSpace")] if names else ""
-    _LOGGER.info(f"{shape}: tangentSpace names {names or 'none'}; selected {selected or 'the default'}")
+    # the preference that makes Maya compute MikkTSpace (Preferences > Modeling > Polygon Tangent Space; the owner,
+    # 2026-10-04); the orchestrator's Maya workers set it at boot, a bare mayapy has it off
+    mikk_pref = (
+        bool(cmds.optionVar(query="polyUseMikkTSpaceTangents"))
+        if cmds.optionVar(exists="polyUseMikkTSpaceTangents")
+        else False
+    )
+    _LOGGER.info(
+        f"{shape}: tangentSpace names {names or 'none'}; selected {selected or 'the default'}; "
+        f"polyUseMikkTSpaceTangents {'on' if mikk_pref else 'off'}"
+    )
 
     sel = om.MSelectionList()
     sel.add(shape)
@@ -128,6 +140,8 @@ def dump(obj: Path, out: Path) -> dict:
         "maya": cmds.about(installedVersion=True),
         "tangent_spaces": names,
         "selected": selected,
+        "polyUseMikkTSpaceTangents": mikk_pref,
+        "basis": "mikktspace" if mikk_pref else "maya-default",
         "vertices": len(pts),
         "faces": fn.numPolygons,
         "corners": len(faces),
@@ -147,7 +161,11 @@ def dump(obj: Path, out: Path) -> dict:
         f"wrote {out} ({out.stat().st_size} bytes): {len(faces)} corners of {fn.numPolygons} faces, "
         f"{sum(1 for s in signs if s < 0)} mirrored, in {time.perf_counter() - t0:.1f} s"
     )
-    return {"ok": True, "out": str(out), **{k: meta[k] for k in ("corners", "tangent_spaces", "selected", "maya")}}
+    return {
+        "ok": True,
+        "out": str(out),
+        **{k: meta[k] for k in ("corners", "tangent_spaces", "selected", "basis", "maya")},
+    }
 
 
 def main(parameters: dict) -> dict:
