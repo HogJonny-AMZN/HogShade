@@ -48,6 +48,7 @@ sys.path.insert(0, str(ROOT))
 
 from hogshade.material import MaterialError, load, type_of
 from hogshade.material.library import documents_under
+from hogshade.material.runtime import COOKED_DIR, MANIFEST_NAME, CookedSetError, locate, manifest_for
 from hogshade.material.textures import (
     AUTHORING_FORMATS,
     MAX_RESOLUTION,
@@ -71,7 +72,6 @@ _LOGGER = _logging.getLogger(_MODULE_NAME)
 #: Where textures live: beside the material that binds them, or in a set no document binds yet.
 CONTENT_ROOTS = ("content/materials", "content/textures")
 MATERIALS = "content/materials"
-COOKED_DIR = "cooked"
 COOKED_EXTRA = ("manifest.json", "provenance.json")
 _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 _LFS_MAGIC = b"version https://git-lfs"
@@ -349,8 +349,6 @@ def _is_lfs_pointer(path: Path) -> bool:
 
 def check_runtime(root: Path) -> list[Finding]:
     """Every committed set with a ``cooked/`` has a manifest that accounts for its maps and matches its inputs."""
-    from hogshade.material.runtime import COOKED_DIR, MANIFEST_NAME, CookedSetError, locate, manifest_for
-
     out: list[Finding] = []
     sets: dict[Path, list[Path]] = {}
     for texture in source_textures(root):

@@ -620,7 +620,7 @@ def maya_block(hmap: dict[str, Any], params: dict[str, ParameterDef]) -> str:
     maps = sorted(((e["map"], params[n]) for n, e in entries.items() if "map" in e), key=lambda t: t[0]["order"])
     for m, p in maps:
         lines.extend(_maya_map(p, m))
-    for key, pm in sorted(packed_maps(hmap).items(), key=lambda kv: kv[1]["order"]):
+    for _, pm in sorted(packed_maps(hmap).items(), key=lambda kv: kv[1]["order"]):
         lines.extend(_maya_packed_map(pm))
     for group, _ in sorted(hmap["groups"].items(), key=lambda t: t[1]):
         rows: list[tuple[int, list[str]]] = []

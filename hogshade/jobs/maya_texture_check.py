@@ -25,9 +25,9 @@ ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = {
     "name": "hogshade.maya_texture_check",
     "version": __version__,
-    "worker_type": "maya",
-    "execution_mode": "gui",
-    "main_thread": True,
+    "worker_type": "hogshade_maya_gui",
+    "execution_mode": "GUI",
+    "execute_on_main_thread": True,
     "description": (
         "Render one cooked texture set on the HogShade shell in the resident GUI Maya: the set's document (or one "
         "built from its maps) converted to legacy v2 and bound for the Maya host, every map's cooked DDS connected "
@@ -69,6 +69,9 @@ MANIFEST = {
     "spec": "Docs/superpowers/specs/t3-first-texture-set.md",
 }
 
+#: The parameters that name a path; each is screened for a climb before it reaches the check.
+PATH_PARAMETERS = tuple(k for k, v in MANIFEST["parameters"].items() if v["type"] == "path")
+
 _ENV_KEYS = {
     "set_dir": "HOGSHADE_SET_DIR",
     "document": "HOGSHADE_DOCUMENT",
@@ -86,8 +89,10 @@ def main(parameters: dict) -> dict:
     raw = str(parameters.get("set_dir", ""))
     if not raw:
         raise ValueError("set_dir is required")
-    if ".." in Path(raw).parts:  # the one check: a climb is refused; an absolute path is the worker's to allow
-        raise ValueError(f"set_dir {raw!r} climbs with '..'; a job path stays inside the workspace")
+    for key in PATH_PARAMETERS:  # every path-typed parameter: a climb is refused (failure modes 9)
+        value = str(parameters.get(key) or "")
+        if ".." in Path(value).parts:
+            raise ValueError(f"{key} {value!r} climbs with '..'; a job path stays inside the workspace")
     os.environ["HOGSHADE_ROOT"] = str(ROOT).replace("\\", "/")
     os.environ["HOGSHADE_AS_JOB"] = "1"
     for key, var in _ENV_KEYS.items():

@@ -24,7 +24,7 @@ from hogshade.material.validation import validate
 
 _MODULE_NAME = "hogshade.material.binding"
 __version__ = "0.1.0"
-__updated__ = "2026-10-02"
+__updated__ = "2026-10-04"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 #: The wgpu host's model per material type (HOGSHADE_MODEL_* in the core; MODELS in hogshade.wgpu_host).
@@ -103,8 +103,10 @@ def maya_attributes(
         if factor is None or p.type == "texture":
             continue
         if "components" in entry:
+            positive, negative = str(entry["component_choices"]).split(":")  # the shell's two-choice int per axis
+            choices = [positive, negative]
             for component, value in zip(entry["components"], factor):
-                out[component["name"]] = [0.0 if float(value) > 0 else 1.0]
+                out[component["name"]] = [float(choices.index(positive if float(value) > 0 else negative))]
         elif "name" in entry:
             if p.type == "enum":
                 out[entry["name"]] = [float(list(p.choices).index(factor))]

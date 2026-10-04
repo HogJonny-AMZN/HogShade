@@ -32,7 +32,7 @@ from numpy.typing import NDArray
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from hogshade.material.textures import MAX_RESOLUTION, PREFIX, SUFFIXES
+from hogshade.material.textures import MAX_RESOLUTION, PREFIX, SUFFIXES, parse_name
 from hogshade.texture_cook import colour, png
 
 _MODULE_NAME = "tools.fetch_polyhaven"
@@ -79,6 +79,10 @@ def plan(files: dict[str, Any], maps: tuple[str, ...], res: str) -> list[dict[st
             f = files[key][res]["png"]
         except KeyError as e:
             raise ValueError(f"{key}: no {res} PNG on Poly Haven (available: {sorted(files[key])})") from e
+        if not isinstance(f, dict) or not all(isinstance(f.get(k), (str, int)) for k in ("url", "size", "md5")):
+            raise ValueError(f"{key}: the API row lacks url, size or md5: {f!r}")
+        if not str(f["url"]).startswith("https://"):
+            raise ValueError(f"{key}: the download url is not https: {f['url']!r}")
         out.append({"key": key, "suffix": MAP_SUFFIX[key], "url": f["url"], "size": int(f["size"]), "md5": f["md5"]})
     return out
 
@@ -141,6 +145,8 @@ def fetch(
 ) -> list[Path]:
     """Fetch and write one set; returns the files written. Logs every download, conversion and file."""
     base = base or asset
+    if parse_name(f"{PREFIX}{base}_BC") is None:
+        raise ValueError(f"base {base!r} is not snake_case (T_<base>_<SUFFIX> must parse)")
     set_dir = Path(set_dir)
     files = api(f"files/{asset}")
     info = api(f"info/{asset}")

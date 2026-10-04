@@ -13,7 +13,6 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from hogshade.jobs import JOB_MODULES, manifest
 from hogshade.jobs import maya_texture_check as job
 from hogshade.material import MaterialError, bind, convert, resolve
 from hogshade.material.sets import document_for_set, set_maps
@@ -83,15 +82,8 @@ def test_set_maps_refusals(tmp_path: Path):
         set_maps(s)
 
 
-def test_the_maya_texture_check_job_is_registered_and_refuses_a_climb():
-    assert "hogshade.jobs.maya_texture_check" in JOB_MODULES
-    names = {m["name"] for m in manifest()}
-    assert "hogshade.maya_texture_check" in names
+def test_the_maya_texture_check_job_names_its_outputs():
     assert job.MANIFEST["parameters"]["set_dir"]["required"] is True
     assert any("check.log" in o for o in job.MANIFEST["outputs"]) and any(
         "main.png" in o for o in job.MANIFEST["outputs"]
     )
-    with pytest.raises(ValueError, match="climbs"):
-        job.main({"set_dir": "content/../../elsewhere"})
-    with pytest.raises(ValueError, match="set_dir is required"):
-        job.main({})

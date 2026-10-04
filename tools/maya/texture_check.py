@@ -42,12 +42,21 @@ _LOGGER = _logging.getLogger(_MODULE_NAME)
 if str(s.ROOT) not in sys.path:  # the hogshade package (standard library only) for the binding
     sys.path.insert(0, str(s.ROOT))
 
+
+def _under_root(value: str, default: Path | None = None) -> Path | None:
+    """A path parameter as the job spelled it: absolute as given, relative under the repository, never the cwd."""
+    if not value:
+        return default
+    path = Path(value)
+    return path if path.is_absolute() else s.ROOT / path
+
+
 ENV = os.environ.get("HOGSHADE_ENV", "studio_small_09")
-SHADER = Path(os.environ.get("HOGSHADE_FX", str(s.ROOT / "hosts" / "maya_dx11" / "hogshade.fx")))
+SHADER = _under_root(os.environ.get("HOGSHADE_FX", ""), s.ROOT / "hosts" / "maya_dx11" / "hogshade.fx")
 IBL = s.ROOT / "content" / "ibl" / ENV / "cooked"
 LUT = s.ROOT / "content" / "ibl" / "brdf_lut.dds"
-SET_DIR = Path(os.environ.get("HOGSHADE_SET_DIR", ""))
-DOCUMENT = os.environ.get("HOGSHADE_DOCUMENT", "")
+SET_DIR = _under_root(os.environ.get("HOGSHADE_SET_DIR", ""), Path(""))
+DOCUMENT = _under_root(os.environ.get("HOGSHADE_DOCUMENT", ""))
 OUT = s.output_dir(os.environ.get("HOGSHADE_CHECK", "textures"), os.environ.get("HOGSHADE_VARIANT", SET_DIR.name))
 LOG = OUT / "check.log"
 PNG = OUT / "main.png"
@@ -71,12 +80,11 @@ def build_material() -> tuple:
     from hogshade.material import bind, convert, load, resolve, runtime_textures
     from hogshade.material.sets import document_for_set
 
-    if DOCUMENT:
-        doc_path = Path(DOCUMENT) if Path(DOCUMENT).is_absolute() else s.ROOT / DOCUMENT
-        doc = load(doc_path)
-        doc_dir = doc_path.parent
+    if DOCUMENT is not None:
+        doc = load(DOCUMENT)
+        doc_dir = DOCUMENT.parent
     else:
-        doc = document_for_set(SET_DIR if SET_DIR.is_absolute() else s.ROOT / SET_DIR)
+        doc = document_for_set(SET_DIR)
         doc_dir = doc.root
     resolved = resolve(doc)
     converted, losses = convert(resolved, "hogshade-legacy-v2")

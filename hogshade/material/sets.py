@@ -16,7 +16,7 @@ from pathlib import Path
 
 from hogshade.material.model import Document, MaterialError
 from hogshade.material.schema import type_of
-from hogshade.material.textures import AUTHORING_FORMATS, PACKED, STANDARD, parse_name
+from hogshade.material.textures import AUTHORING_FORMATS, PACKED, STANDARD, parameter_of, parse_name
 
 _MODULE_NAME = "hogshade.material.sets"
 __version__ = "0.1.0"
@@ -37,6 +37,7 @@ def set_maps(set_dir: Path, variant: str | None = None) -> dict[str, Path]:
     if not set_dir.is_dir():
         raise MaterialError(f"no such set directory: {set_dir}")
     out: dict[str, Path] = {}
+    parameters = type_of(STANDARD).parameters
     for path in sorted(set_dir.iterdir()):
         if not path.is_file() or path.suffix not in AUTHORING_FORMATS:
             continue
@@ -45,23 +46,13 @@ def set_maps(set_dir: Path, variant: str | None = None) -> dict[str, Path]:
             continue
         if name.suffix in PACKED:
             raise MaterialError(f"{path.name}: a packed or derived map is the cook's output, not a source")
-        parameter = type_of(STANDARD).parameters  # the standard's parameter names, for the key below
-        pname = _parameter_of(name.suffix)
-        if pname not in parameter:
+        pname = parameter_of(name.suffix)
+        if pname is None or pname not in parameters:
             raise MaterialError(f"{path.name}: suffix {name.suffix} binds {pname!r}, not a standard parameter")
         if pname in out:
             raise MaterialError(f"{path.name} and {out[pname].name}: two sources for {pname}")
         out[pname] = path
     return out
-
-
-def _parameter_of(suffix: str) -> str:
-    from hogshade.material.textures import parameter_of  # the table module; a plain import, kept local for order
-
-    pname = parameter_of(suffix)
-    if pname is None:
-        raise MaterialError(f"suffix {suffix} binds no parameter")
-    return pname
 
 
 def document_for_set(set_dir: Path, variant: str | None = None, title: str | None = None) -> Document:
