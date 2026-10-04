@@ -43,20 +43,26 @@ if str(s.ROOT) not in sys.path:  # the hogshade package (standard library only) 
     sys.path.insert(0, str(s.ROOT))
 
 
-def _under_root(value: str, default: Path | None = None) -> Path | None:
+def _under_root(value: str) -> Path:
     """A path parameter as the job spelled it: absolute as given, relative under the repository, never the cwd."""
-    if not value:
-        return default
     path = Path(value)
     return path if path.is_absolute() else s.ROOT / path
 
 
+def _required(var: str) -> Path:
+    """A path the check cannot run without; the job refuses the empty case, this is the standalone launcher's."""
+    value = os.environ.get(var, "")
+    if not value:
+        raise ValueError(f"{var} is required: the set directory to render (e.g. content/textures/grid)")
+    return _under_root(value)
+
+
 ENV = os.environ.get("HOGSHADE_ENV", "studio_small_09")
-SHADER = _under_root(os.environ.get("HOGSHADE_FX", ""), s.ROOT / "hosts" / "maya_dx11" / "hogshade.fx")
+SHADER = _under_root(os.environ.get("HOGSHADE_FX", "") or "hosts/maya_dx11/hogshade.fx")
 IBL = s.ROOT / "content" / "ibl" / ENV / "cooked"
 LUT = s.ROOT / "content" / "ibl" / "brdf_lut.dds"
-SET_DIR = _under_root(os.environ.get("HOGSHADE_SET_DIR", ""), Path(""))
-DOCUMENT = _under_root(os.environ.get("HOGSHADE_DOCUMENT", ""))
+SET_DIR = _required("HOGSHADE_SET_DIR")
+DOCUMENT = _under_root(os.environ["HOGSHADE_DOCUMENT"]) if os.environ.get("HOGSHADE_DOCUMENT") else None
 OUT = s.output_dir(os.environ.get("HOGSHADE_CHECK", "textures"), os.environ.get("HOGSHADE_VARIANT", SET_DIR.name))
 LOG = OUT / "check.log"
 PNG = OUT / "main.png"
