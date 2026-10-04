@@ -252,7 +252,7 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
   the chain ends at 1x1; a normal mip is unit length.
 - `test_height.py`: a 16-bit PNG ramp cooks to `R16_UNORM` with every step kept; a half EXR to `R16_FLOAT` and
   a float EXR to `R32_FLOAT`, both read back exactly; `--height normalise` records the range and maps the
-  extremes to 0 and 65535; an 8-bit height is `R8_UNORM` (or BC4 with `--compress`); the manifest names the
+  extremes to 0 and 65535; an 8-bit height is `R8_UNORM` (BC4 when an encoder is present); the manifest names the
   source's precision.
 - `test_normals.py`: a `directx-y` source flips green and the manifest says so; `opengl+y` is untouched.
 - `test_pack.py`: AO, R, M land in R, G, B; a missing channel is 1.0 and recorded; a `pack` sidecar puts
