@@ -45,6 +45,7 @@ from hogshade.material import (
     runtime_textures,
 )
 from hogshade.material.library import family_of
+from hogshade.material.runtime import RuntimeTexture
 from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
 
 _MODULE_NAME = "tools.wgpu.contact_sheet"
@@ -97,7 +98,9 @@ def command_line(args: argparse.Namespace, defaults: argparse.Namespace) -> str:
     return shlex.join(argv)
 
 
-def prepare(library: Path, to_type: str = TO_TYPE) -> tuple[list[tuple[Path, Any, Any, dict]], list[str]]:
+def prepare(
+    library: Path, to_type: str = TO_TYPE
+) -> tuple[list[tuple[Path, Any, Any, dict[str, RuntimeTexture]]], list[str]]:
     """
     Every document under ``library`` loaded, converted to ``to_type`` and bound for wgpu, with its runtime textures
     (empty for a constants-only document) and the table's losses, before any device exists: ``(path, document,

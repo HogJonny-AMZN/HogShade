@@ -16,6 +16,19 @@ import pytest
 from hogshade import wgpu_host
 
 
+def test_read_obj_names_the_file_and_line_of_a_malformed_record(tmp_path) -> None:
+    bad = tmp_path / "bad.obj"
+    bad.write_text("v 0 0 0\nv 1 0\nv 0 1 0\nf 1 2 3\n", encoding="utf-8")
+    with pytest.raises(ValueError, match=r"bad\.obj:2: malformed OBJ record 'v 1 0': 3 numbers expected, 2 given"):
+        wgpu_host.read_obj(bad)
+    good = tmp_path / "good.obj"
+    good.write_text("v 0 0 0\nv 1 0 0\nv 0 1 0\nvt 0 0\nvt 1 0\nvt 0 1\nf 1/1 2/2 3/3\n", encoding="utf-8")
+    mesh = wgpu_host.load_obj(good)
+    face, vertex, rows = wgpu_host.obj_corners(good)
+    assert mesh.vertices.shape == (3, 12) and mesh.tangent_basis == "mikktspace"
+    assert face.tolist() == [0, 0, 0] and vertex.tolist() == [0, 1, 2] and rows.tolist() == [0, 1, 2]
+
+
 def test_frame_layout_matches_the_wgsl_struct() -> None:
     assert wgpu_host.FRAME_DTYPE.itemsize == wgpu_host.FRAME_BYTES
     assert len(wgpu_host.Scene(width=32, height=32).frame_bytes(9)) == wgpu_host.FRAME_BYTES

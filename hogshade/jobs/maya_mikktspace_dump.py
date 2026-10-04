@@ -25,6 +25,7 @@ import hashlib
 import json
 import logging as _logging
 import time
+from collections.abc import Sequence
 from pathlib import Path
 
 _MODULE_NAME = "hogshade.jobs.maya_mikktspace_dump"
@@ -56,7 +57,13 @@ MANIFEST = {
 }
 
 
-def _positions_digest(points) -> str:
+def _maya_path(path: Path) -> str:
+    """The one str() at the Maya boundary, forward slashes (``tools/maya/_session.maya_path``, which a job cannot
+    import)."""
+    return str(path).replace("\\", "/")
+
+
+def _positions_digest(points: Sequence[Sequence[float]]) -> str:
     """sha256 of the vertex positions in index order, rounded to 1e-5: the test recomputes it from the OBJ."""
     import numpy as np
 
@@ -75,7 +82,7 @@ def dump(obj: Path, out: Path) -> dict:
     if not cmds.pluginInfo("objExport", query=True, loaded=True):
         cmds.loadPlugin("objExport")
     # mo=0: one mesh for the whole file, so the OBJ's global v indices and face order survive the import
-    cmds.file(str(obj).replace("\\", "/"), i=True, type="OBJ", ignoreVersion=True, options="mo=0", namespace=":")
+    cmds.file(_maya_path(obj), i=True, type="OBJ", ignoreVersion=True, options="mo=0", namespace=":")
     shapes = cmds.ls(type="mesh", long=True, noIntermediate=True)
     if len(shapes) != 1:
         raise RuntimeError(f"{obj.name} imported as {len(shapes)} meshes; the dump expects one (mo=0)")
@@ -153,9 +160,11 @@ def main(parameters: dict) -> dict:
             raise ValueError(f"{key} climbs with '..'; a job path stays inside the workspace")
     obj = Path(raw)
     obj = obj if obj.is_absolute() else ROOT / obj
-    out_raw = str(parameters.get("out") or DEFAULT_OUT).format(stem=obj.stem)
+    out_raw = str(parameters.get("out") or DEFAULT_OUT).replace("{stem}", obj.stem)
     out = Path(out_raw)
     out = out if out.is_absolute() else ROOT / out
+    if not out.resolve().is_relative_to(ROOT.resolve()):
+        raise ValueError(f"out {out_raw!r} resolves outside the workspace {ROOT}; the fixture stays in the repository")
     _LOGGER.info(f"maya_mikktspace_dump: {obj} -> {out}")
     return dump(obj, out)
 

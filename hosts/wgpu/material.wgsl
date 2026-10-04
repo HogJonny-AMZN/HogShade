@@ -26,7 +26,7 @@ fn host_scalar(texels: array<vec4<f32>, 4>, sel: vec2<u32>, bound: bool) -> f32 
 // convention, what the tangents were built from); the DDS's first row is the top, so V is flipped here, as the
 // Maya shell negates it.
 fn host_samples(uv_in: vec2<f32>) -> legacy_v2_Samples {
-    var s: legacy_v2_Samples;
+    var s = host_samples_unbound();
     let uv = vec2<f32>(uv_in.x, 1.0 - uv_in.y);
     let b = host_textures.bound;
     var texels: array<vec4<f32>, 4>;
@@ -41,8 +41,5 @@ fn host_samples(uv_in: vec2<f32>) -> legacy_v2_Samples {
     s.metalness = host_scalar(texels, host_textures.sel_a.zw, (b & 8u) != 0u);
     s.ao = host_scalar(texels, host_textures.sel_b.xy, (b & 16u) != 0u);
     s.cavity = host_scalar(texels, host_textures.sel_b.zw, (b & 32u) != 0u);
-    s.specular_f0 = vec3<f32>(0.0);
-    s.specular_amount = 1.0;
-    s.emissive = vec3<f32>(0.0);
-    return s;
+    return s;  // specular F0, specular amount and emissive stay at their unbound defaults: no slot in T3b
 }

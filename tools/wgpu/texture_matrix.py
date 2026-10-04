@@ -31,9 +31,10 @@ sys.path.insert(0, str(ROOT))
 
 from hogshade.ibl.imageio import preview_srgb8, write_png_rgb8
 from hogshade.material import MaterialError, bind, convert, load, resolve, runtime_textures
+from hogshade.material.runtime import RuntimeTexture
 from hogshade.material.sets import document_for_set
 from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
-from hogshade.wgpu_textures import TextureError
+from hogshade.wgpu_textures import PARAMETER_SLOT, TextureError
 
 _MODULE_NAME = "tools.wgpu.texture_matrix"
 __version__ = "0.1.0"
@@ -53,7 +54,7 @@ SETS: tuple[tuple[str, Path | None, Path], ...] = (
 )
 
 
-def prepare(name: str, document: Path | None, where: Path) -> tuple[Any, dict, list[str]]:
+def prepare(name: str, document: Path | None, where: Path) -> tuple[Any, dict[str, RuntimeTexture], list[str]]:
     """The wgpu binding, the runtime textures and the table's losses for one set; ``MaterialError`` on any fault."""
     if document is not None:
         doc = load(document, LIBRARY)
@@ -115,7 +116,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         try:
             plan = scene.plan()
-            frames = renderer.render(scene, plan)
+            frames = renderer.render(scene)
         except TextureError as e:
             _LOGGER.error(f"{name}: {e}")
             return 1
@@ -136,9 +137,7 @@ def main(argv: list[str] | None = None) -> int:
             ).forward
             write_png_rgb8(out / f"debug-{mode:02d}.png", preview_srgb8(debug, args.exposure_ev))
         mean_diff, max_diff = frames.difference()
-        unslotted = sorted(
-            set(textures) - {p for p in textures if p in plan.selectors or p in ("base_color", "normal_map")}
-        )
+        unslotted = sorted(p for p in textures if p not in PARAMETER_SLOT)
         legend["sets"][name] = {
             "set": where.relative_to(ROOT).as_posix() if where.is_relative_to(ROOT) else str(where),
             "slots": sorted(plan.sources),

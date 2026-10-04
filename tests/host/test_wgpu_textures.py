@@ -92,4 +92,6 @@ def test_a_format_without_a_slot_and_a_slot_conflict_are_refused():
                 "metalness": _rt("metalness", "T_y_ORM.dds", "b", "BC7_UNORM", True),
             }
         )
+    with pytest.raises(TextureError, match="a scalar parameter reads one channel"):
+        material_plan({"roughness": _rt("roughness", "T_x_R.dds", "rgb", "BC7_UNORM")})
     assert MaterialPlan().uniform_bytes()[:4] == b"\x00\x00\x00\x00"

@@ -52,8 +52,22 @@ fn host_material() -> legacy_v2_Material {
     return m;
 }
 
-// host_samples(uv) -> legacy_v2_Samples comes from the pass's stitch: material.wgsl (the texture slots of
-// group 2) in the passes that run the material half, the unbound defaults in deferred_light.wgsl.
+// The legacy v2 samples with nothing bound: what a pass without textures returns, and what material.wgsl
+// starts from before the bound slots overwrite their fields. host_samples(uv) itself comes from the pass's
+// stitch: material.wgsl in the passes that run the material half, deferred_light.wgsl for the light pass.
+fn host_samples_unbound() -> legacy_v2_Samples {
+    var s: legacy_v2_Samples;
+    s.base_color = vec4<f32>(1.0);
+    s.roughness = 1.0;
+    s.metalness = 1.0;
+    s.specular_f0 = vec3<f32>(0.0);
+    s.specular_amount = 1.0;
+    s.ao = 1.0;
+    s.cavity = 1.0;
+    s.emissive = vec3<f32>(0.0);
+    s.normal_ts = vec3<f32>(0.0, 0.0, 1.0);
+    return s;
+}
 
 // Any orthonormal frame around n: with a flat tangent-space normal the tangent choice cannot matter.
 fn host_tangent_frame(n: vec3<f32>) -> mat3x3<f32> {
@@ -69,7 +83,11 @@ fn host_frame_of(n: vec3<f32>, tangent_ws: vec4<f32>) -> mat3x3<f32> {
     if (dot(tangent_ws.xyz, tangent_ws.xyz) < 1e-8) {
         return host_tangent_frame(n);
     }
-    let t = normalize(tangent_ws.xyz - n * dot(n, tangent_ws.xyz));
+    let projected = tangent_ws.xyz - n * dot(n, tangent_ws.xyz);
+    if (dot(projected, projected) < 1e-8) {   // the interpolated tangent fell onto the normal: no direction left
+        return host_tangent_frame(n);
+    }
+    let t = normalize(projected);
     let b = cross(n, t) * select(1.0, -1.0, tangent_ws.w < 0.0);
     return mat3x3<f32>(t, b, n);
 }

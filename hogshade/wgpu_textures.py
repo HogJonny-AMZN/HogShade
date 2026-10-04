@@ -22,6 +22,7 @@ from typing import Any
 import numpy as np
 
 from hogshade.material.runtime import RuntimeTexture
+from hogshade.material.textures import PACKED
 from hogshade.texture_cook import dds2d
 
 _MODULE_NAME = "hogshade.wgpu_textures"
@@ -77,7 +78,7 @@ class TextureError(ValueError):
 
 @dataclass(frozen=True)
 class SlotSource:
-    """One slot's file and format, as the manifest named them."""
+    """One slot's file (resolved once, here, so a key or a cache lookup touches no filesystem) and format."""
 
     path: Path
     format: str
@@ -93,8 +94,8 @@ class MaterialPlan:
 
     @property
     def key(self) -> tuple:
-        """What identifies a bind group: the slot files, the bits and the selectors two documents over
-        one set differ."""
+        """What identifies a bind group: the slot files (resolved, so two spellings of one DDS are one), the bits
+        and the selectors, which is everything two documents over one set can differ in."""
         return (
             tuple(sorted((slot, str(src.path)) for slot, src in self.sources.items())),
             self.bound,
@@ -131,11 +132,15 @@ def material_plan(runtime: dict[str, RuntimeTexture]) -> MaterialPlan:
             raise TextureError(f"{parameter}: {rt.path.name} is {rt.format}, which this host has no slot for")
         slot = _slot_for(parameter, rt)
         existing = plan.sources.get(slot)
-        if existing is not None and existing.path != rt.path:
+        if existing is not None and existing.path != rt.path.resolve():
             raise TextureError(f"{parameter}: {rt.path.name} and {existing.path.name} both want the {slot} slot")
-        plan.sources[slot] = SlotSource(rt.path, rt.format)
+        plan.sources[slot] = SlotSource(rt.path.resolve(), rt.format)
         plan.bound |= BITS[parameter]
         if parameter in SCALARS:
+            if rt.channels not in CHANNEL_INDEX:
+                raise TextureError(
+                    f"{parameter}: {rt.path.name} holds {rt.channels!r}; a scalar parameter reads one channel"
+                )
             plan.selectors[parameter] = (SLOTS.index(slot), CHANNEL_INDEX[rt.channels])
         _LOGGER.debug(f"  {parameter}: slot {slot}, channels {rt.channels}, {rt.format}")
     _LOGGER.info(
@@ -147,21 +152,17 @@ def material_plan(runtime: dict[str, RuntimeTexture]) -> MaterialPlan:
 def _slot_for(parameter: str, rt: RuntimeTexture) -> str:
     """The slot a runtime texture occupies: its parameter's, or the carrier's when the map rides in its alpha."""
     if rt.packed and rt.channels == "a":  # a single channel in a carrier's alpha: the carrier's slot
+        from hogshade.texture_cook.cook import COLOUR_SUFFIXES, DATA_RGB_SUFFIXES  # the cook owns the carrier names
+
         stem = rt.path.stem
-        if stem.endswith("_ORM"):
+        if stem.endswith(tuple(s for s, p in PACKED.items() if p.channels)):  # the channel-packed carrier: _ORM
             return "orm"
-        if stem.endswith(("_BC", "_E", "_SC")):
+        if stem.endswith(COLOUR_SUFFIXES + DATA_RGB_SUFFIXES):
             return "base_color"
     return PARAMETER_SLOT[parameter]
 
 
-def formats_available(device) -> set[str]:
-    """The DXGI names the device can take: the uncompressed ones always, the block formats with the feature."""
-    have_bc = BC_FEATURE in set(getattr(device, "features", ()))
-    return {k for k in WGPU_FORMATS if have_bc or not k.startswith("BC")}
-
-
-def upload_dds(device, path: Path, usage=None):
+def upload_dds(device: Any, path: Path, usage: int | None = None) -> tuple[Any, str, int]:
     """
     One cooked DDS on the device with every mip: ``(texture, wgpu format, mip count)``. A block format without
     ``texture-compression-bc`` is ``TextureError`` naming the cook's uncompressed form.
@@ -204,7 +205,7 @@ def upload_dds(device, path: Path, usage=None):
     return texture, fmt, mips
 
 
-def neutral_texture(device, slot: str):
+def neutral_texture(device: Any, slot: str) -> Any:
     """A 1x1 RGBA8 texture with the slot's neutral value (white, a flat normal, white ORM, white cavity)."""
     import wgpu
 
@@ -225,7 +226,7 @@ def neutral_texture(device, slot: str):
     return texture
 
 
-def material_sampler(device):
+def material_sampler(device: Any) -> Any:
     """The one sampler the material slots share: linear, mipmap linear, repeat, anisotropy 8."""
     return device.create_sampler(
         address_mode_u="repeat",
@@ -237,7 +238,9 @@ def material_sampler(device):
     )
 
 
-def bind_group_entries(device, plan: MaterialPlan, cache: dict[str, Any], neutral: dict[str, Any]) -> list[dict]:
+def bind_group_entries(
+    device: Any, plan: MaterialPlan, cache: dict[str, Any], neutral: dict[str, Any]
+) -> list[dict[str, Any]]:
     """
     The bind-group entries for a plan: slots 0 to 3 as texture views (an upload per distinct path, cached by
     path in ``cache``; the neutral texture where the plan has no source), 4 the sampler (``neutral["sampler"]``),
@@ -249,7 +252,7 @@ def bind_group_entries(device, plan: MaterialPlan, cache: dict[str, Any], neutra
         if src is None:
             tex = neutral[slot]
         else:
-            key = str(src.path)
+            key = str(src.path)  # resolved at plan time: one upload per file, however a document spells it
             if key not in cache:
                 cache[key] = upload_dds(device, src.path)[0]
             tex = cache[key]

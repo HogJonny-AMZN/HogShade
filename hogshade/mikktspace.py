@@ -18,8 +18,9 @@ the shape every host and exporter here agrees on:
    UV area (a degenerate triangle) falls back to any tangent perpendicular to its normal, sign +1.
 
 The normals are consumed, never recomputed: custom normals survive (the owner's point), and the frame is built
-around whatever the source provides. Welding is by exact equality of position, normal and UV, the reference's
-rule; a mesh whose corners were already de-duplicated that way (``wgpu_host.load_obj``) welds to itself.
+around whatever the source provides. Welding is by equality of position, normal and UV rounded to nine decimals
+(the reference's rule, with float noise forgiven); a mesh whose corners were already de-duplicated that way
+(``wgpu_host.load_obj``) welds to itself.
 """
 
 from __future__ import annotations
@@ -39,30 +40,37 @@ _LOGGER = _logging.getLogger(_MODULE_NAME)
 TANGENT_BASES = ("mikktspace", "unknown", "none")
 
 
-def _normalise(v: NDArray, eps: float = 1e-12) -> NDArray:
+def _normalise(v: NDArray[np.floating], eps: float = 1e-12) -> NDArray[np.float64]:
     n = np.linalg.norm(v, axis=-1, keepdims=True)
     return v / np.maximum(n, eps)
 
 
-def _any_perpendicular(n: NDArray) -> NDArray:
+def _any_perpendicular(n: NDArray[np.floating]) -> NDArray[np.float64]:
     """A unit vector perpendicular to each unit normal (the fallback for a corner with no UV area)."""
     helper = np.where(np.abs(n[:, :1]) > 0.9, np.array([[0.0, 0.0, 1.0]]), np.array([[1.0, 0.0, 0.0]]))
     t = np.cross(helper, n)
     return _normalise(t)
 
 
-def corner_angles(p0: NDArray, p1: NDArray, p2: NDArray) -> NDArray:
-    """The interior angle at ``p0`` of each triangle ``(p0, p1, p2)``, in radians; 0 for a degenerate corner."""
-    a = _normalise(p1 - p0)
-    b = _normalise(p2 - p0)
-    return np.arccos(np.clip(np.sum(a * b, axis=-1), -1.0, 1.0))
+def corner_angles(
+    p0: NDArray[np.floating], p1: NDArray[np.floating], p2: NDArray[np.floating], eps: float = 1e-12
+) -> NDArray[np.float64]:
+    """
+    The interior angle at ``p0`` of each triangle ``(p0, p1, p2)``, in radians; 0 for a degenerate corner (an
+    edge shorter than ``eps``, whose direction is undefined).
+    """
+    e1, e2 = p1 - p0, p2 - p0
+    ok = (np.linalg.norm(e1, axis=-1) > eps) & (np.linalg.norm(e2, axis=-1) > eps)
+    a = _normalise(e1)
+    b = _normalise(e2)
+    return np.where(ok, np.arccos(np.clip(np.sum(a * b, axis=-1), -1.0, 1.0)), 0.0)
 
 
 def tangents(
-    positions: NDArray,
-    normals: NDArray,
-    uvs: NDArray,
-    indices: NDArray,
+    positions: NDArray[np.floating],
+    normals: NDArray[np.floating],
+    uvs: NDArray[np.floating],
+    indices: NDArray[np.integer],
 ) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
     """
     MikkTSpace tangents for ``(n, 3)`` positions, ``(n, 3)`` normals (as given), ``(n, 2)`` UVs and ``(m, 3)`` or
@@ -114,12 +122,8 @@ def tangents(
     # handednesses takes the one its first corner has: the reference splits such a vertex, and so does a loader
     # that keys corners on position, uv and normal)
     vertex_group = np.full(n_vertices, -1, dtype=np.int64)
-    first = {}
-    for c, v in enumerate(corner_vertex):
-        if v not in first:
-            first[v] = corner_group[c]
-    for v, g in first.items():
-        vertex_group[v] = g
+    _, first_corner = np.unique(corner_vertex, return_index=True)  # each vertex's first corner, in one pass
+    vertex_group[corner_vertex[first_corner]] = corner_group[first_corner]
     t_out = np.zeros((n_vertices, 3))
     b_out = np.zeros((n_vertices, 3))
     has = vertex_group >= 0

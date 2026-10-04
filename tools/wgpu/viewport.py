@@ -35,7 +35,7 @@ _MODULE_NAME = "tools.wgpu.viewport"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 DEFAULT_MATERIAL = ROOT / "content" / "materials" / "legacy-v2" / "default.material.json"
 __version__ = "0.1.0"
-__updated__ = "2026-10-02"
+__updated__ = "2026-10-04"
 
 
 def main(argv: list[str] | None = None) -> int:

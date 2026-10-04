@@ -68,7 +68,7 @@ def test_sphere_tangents_are_unit_tangent_to_the_surface_and_follow_u():
     equator = np.isclose(uv[:, 1], 0.5) & np.isclose(uv[:, 0], 0.0)
     assert equator.any()
     assert np.allclose(t[equator], [[0, 0, -1]], atol=1e-3), t[equator]
-    assert np.all(s[~np.isin(np.arange(len(p)), [])] != 0)
+    assert np.all(np.abs(s) == 1.0), "every sign is +1 or -1"
 
 
 def test_custom_normals_are_consumed_not_recomputed():
@@ -94,6 +94,25 @@ def test_a_degenerate_corner_falls_back_to_a_perpendicular_and_shapes_are_checke
     with pytest.raises(ValueError, match="outside the vertex array"):
         tangents(p, n, uv, np.array([[0, 1, 7]]))
     assert TANGENT_BASES == ("mikktspace", "unknown", "none")
+
+
+def test_a_source_basis_is_used_flagged_or_refused(caplog):
+    """A source's own tangents: mikktspace as given, unknown flagged and regenerated, another basis refused."""
+    from hogshade.wgpu_host import with_tangents
+
+    p, n, uv, tri = _quad()
+    given = np.tile([0.0, 1.0, 0.0, -1.0], (4, 1))  # deliberately not what the UVs say: +Y, left-handed
+    kept = with_tangents(p, n, uv, tri, tangents=given, tangent_basis="mikktspace")
+    assert kept.tangent_basis == "mikktspace" and np.allclose(kept.vertices[:, 8:12], given), "used as given"
+    with caplog.at_level("WARNING", logger="hogshade.wgpu_host"):
+        redone = with_tangents(p, n, uv, tri, tangents=given, tangent_basis="unknown")
+    assert "unknown basis: regenerated as MikkTSpace" in caplog.text
+    assert redone.tangent_basis == "mikktspace" and np.allclose(redone.vertices[:, 8:11], [[1, 0, 0]], atol=1e-6)
+    assert np.all(redone.vertices[:, 11] == 1.0)
+    with pytest.raises(ValueError, match="requires MikkTSpace"):
+        with_tangents(p, n, uv, tri, tangents=given, tangent_basis="maya-right-handed")
+    with pytest.raises(ValueError, match=r"\(n, 4\)"):
+        with_tangents(p, n, uv, tri, tangents=given[:, :3], tangent_basis="mikktspace")
 
 
 # ----------------------------------------------------------------------------- parity with Maya on the shader ball

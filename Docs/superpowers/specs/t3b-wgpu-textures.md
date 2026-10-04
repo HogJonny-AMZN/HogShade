@@ -259,5 +259,14 @@ All five valid and folded into the text above:
   alpha (the grid's is its own BC4), so the selector is proven at the plan level (`tests/host/test_wgpu_textures.py`)
   and the GPU test reads the grid's own cavity through debug view 10. T4's set, with the alpha carrier, closes it.
 - **The contact sheet's twenty-two constant documents are pixel-identical** to the committed sheet (compared cell
-  by cell before overwriting it); only the four T3 documents changed, which is the gate.
+  by cell before overwriting it); only the four T3 documents changed, which is the gate. The untextured shader
+  ball (`shader-ball/studio_small_09/forward.png`) re-rendered to one pixel one step off the committed capture,
+  the GPU's run-to-run jitter the Maya gate also sees; the committed picture stands.
+- **A carrier in the base-colour slot is one carrier.** A map packed into `_E`'s or `_SC`'s alpha maps that carrier
+  onto the `base_color` slot, so a document binding it beside `_BC` is a slot conflict (`TextureError`), not a
+  render. No committed set does this; T4's alpha carrier decides whether the host grows a fifth slot.
+- **`tangent_basis="unknown"` has its path**: `with_tangents(..., tangents=, tangent_basis=)` takes a source's
+  tangents, uses a `mikktspace` basis as given, flags `unknown` with a WARNING and regenerates, and refuses any
+  other basis (the content standard's validation failure). No loader here passes tangents yet (the OBJ carries
+  none); the first that does gets the rule for free.
 

@@ -14,6 +14,7 @@ import logging as _logging
 import math
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -37,7 +38,7 @@ from hogshade.wgpu_textures import (
 
 _MODULE_NAME = "hogshade.wgpu_host"
 __version__ = "0.1.0"
-__updated__ = "2026-09-26"
+__updated__ = "2026-10-04"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -115,8 +116,8 @@ class Mesh:
     regenerates), or ``none`` while a mesh has no UVs (the shaders fall back to an arbitrary frame).
     """
 
-    vertices: NDArray
-    indices: NDArray
+    vertices: NDArray[np.float32]
+    indices: NDArray[np.uint32]
     tangent_basis: str = "mikktspace"
 
 
@@ -124,12 +125,28 @@ VERTEX_FLOATS = 12
 VERTEX_STRIDE = VERTEX_FLOATS * 4
 
 
-def with_tangents(positions: NDArray, normals: NDArray, uvs: NDArray | None, indices: NDArray) -> Mesh:
+def with_tangents(
+    positions: NDArray[np.floating],
+    normals: NDArray[np.floating],
+    uvs: NDArray[np.floating] | None,
+    indices: NDArray[np.integer],
+    tangents: NDArray[np.floating] | None = None,
+    tangent_basis: str = "none",
+) -> Mesh:
     """
     The host's mesh from arrays: MikkTSpace tangents generated when UVs are present (the standard's requirement,
-    the normals as given), a zero tangent with sign +1 and ``tangent_basis="none"`` when they are not.
+    the normals as given), a zero tangent with sign +1 and ``tangent_basis="none"`` when they are not. A source
+    that carries tangents passes them as ``(n, 4)`` with the sign in ``w`` and names their basis: ``mikktspace``
+    is used as given; ``unknown`` (baked tangents nobody vouched for) is flagged with a WARNING and regenerated,
+    the owner's rule; any other basis is a validation failure (``ValueError``), the content standard's.
     """
     n = positions.shape[0]
+    if tangent_basis not in mikktspace.TANGENT_BASES:
+        raise ValueError(
+            f"tangent basis {tangent_basis!r} is not one of {mikktspace.TANGENT_BASES}; the project requires MikkTSpace"
+        )
+    if tangents is not None and np.asarray(tangents).shape != (n, 4):
+        raise ValueError(f"tangents are (n, 4) with the sign in w; got {np.asarray(tangents).shape} for {n} vertices")
     if uvs is None:
         uv = np.zeros((n, 2), dtype=np.float32)
         tangent = np.zeros((n, 4), dtype=np.float32)
@@ -137,7 +154,16 @@ def with_tangents(positions: NDArray, normals: NDArray, uvs: NDArray | None, ind
         basis = "none"
     else:
         uv = np.asarray(uvs, dtype=np.float32)
-        t, s = mikktspace.tangents(positions, normals, uv, indices)
+        if tangents is not None and tangent_basis == "mikktspace":
+            given = np.asarray(tangents, dtype=np.float32)
+            t, s = given[:, :3], given[:, 3]
+        else:
+            if tangents is not None:
+                _LOGGER.warning(
+                    f"{n} vertices carry tangents of {tangent_basis} basis: regenerated as MikkTSpace, the "
+                    f"basis every host here assumes (the content standard)"
+                )
+            t, s = mikktspace.tangents(positions, normals, uv, indices)
         tangent = np.concatenate([t, s[:, None]], axis=1)
         basis = "mikktspace"
     verts = np.concatenate(
@@ -146,45 +172,76 @@ def with_tangents(positions: NDArray, normals: NDArray, uvs: NDArray | None, ind
     return Mesh(np.ascontiguousarray(verts, dtype=np.float32), np.asarray(indices, dtype=np.uint32).reshape(-1), basis)
 
 
+@dataclass
+class ObjRecords:
+    """An OBJ's records as read: the v, vt and vn arrays and each face as its corners' 1-based (v, vt, vn)."""
+
+    positions: list[list[float]]
+    texcoords: list[list[float]]
+    normals: list[list[float]]
+    faces: list[list[tuple[int, int, int]]]
+
+
+def _floats(line: str, count: int) -> list[float]:
+    """The first ``count`` numbers of a v, vt or vn record; fewer is a malformed record."""
+    values = [float(x) for x in line.split()[1 : 1 + count]]
+    if len(values) < count:
+        raise ValueError(f"{count} numbers expected, {len(values)} given")
+    return values
+
+
+def read_obj(path: Path) -> ObjRecords:
+    """The v, vt, vn and f (v/vt/vn) records of an OBJ; a malformed record names the file and its line."""
+    records = ObjRecords([], [], [], [])
+    with Path(path).open(encoding="utf-8", errors="replace") as fh:
+        for number, line in enumerate(fh, start=1):
+            try:
+                if line.startswith("v "):
+                    records.positions.append(_floats(line, 3))
+                elif line.startswith("vt "):
+                    records.texcoords.append(_floats(line, 2))
+                elif line.startswith("vn "):
+                    records.normals.append(_floats(line, 3))
+                elif line.startswith("f "):
+                    face: list[tuple[int, int, int]] = []
+                    for token in line.split()[1:]:
+                        parts = token.split("/")
+                        vi = int(parts[0])
+                        ti = int(parts[1]) if len(parts) > 1 and parts[1] else 0
+                        ni = int(parts[2]) if len(parts) > 2 and parts[2] else 0
+                        face.append((vi, ti, ni))
+                    records.faces.append(face)
+            except (ValueError, IndexError) as e:
+                raise ValueError(f"{path}:{number}: malformed OBJ record {line.strip()!r}: {e}") from e
+    return records
+
+
 def load_obj(path: Path) -> Mesh:
     """
     A minimal OBJ reader: v, vt, vn and f (v/vt/vn) records; quads and fans are triangulated; a corner is keyed
     on (v, vt, vn), the weld MikkTSpace uses. Tangents are generated (an OBJ carries none); a file without ``vt``
     gives a mesh with ``tangent_basis="none"``.
     """
-    positions: list[list[float]] = []
-    texcoords: list[list[float]] = []
-    normals: list[list[float]] = []
+    records = read_obj(path)
+    positions, texcoords, normals = records.positions, records.texcoords, records.normals
     corners: dict[tuple[int, int, int], int] = {}
     vertices: list[tuple[float, ...]] = []
     tris: list[int] = []
-    with path.open(encoding="utf-8", errors="replace") as fh:
-        for line in fh:
-            if line.startswith("v "):
-                positions.append([float(x) for x in line.split()[1:4]])
-            elif line.startswith("vt "):
-                texcoords.append([float(x) for x in line.split()[1:3]])
-            elif line.startswith("vn "):
-                normals.append([float(x) for x in line.split()[1:4]])
-            elif line.startswith("f "):
-                face: list[int] = []
-                for token in line.split()[1:]:
-                    parts = token.split("/")
-                    vi = int(parts[0])
-                    ti = int(parts[1]) if len(parts) > 1 and parts[1] else 0
-                    ni = int(parts[2]) if len(parts) > 2 and parts[2] else 0
-                    key = (vi, ti, ni)
-                    idx = corners.get(key)
-                    if idx is None:
-                        idx = len(vertices)
-                        corners[key] = idx
-                        p = positions[vi - 1]
-                        n = normals[ni - 1] if ni else [0.0, 1.0, 0.0]
-                        t = texcoords[ti - 1] if ti else [0.0, 0.0]
-                        vertices.append((*p, *n, *t))
-                    face.append(idx)
-                for k in range(1, len(face) - 1):
-                    tris.extend((face[0], face[k], face[k + 1]))
+    for face_keys in records.faces:
+        face: list[int] = []
+        for key in face_keys:
+            idx = corners.get(key)
+            if idx is None:
+                idx = len(vertices)
+                corners[key] = idx
+                vi, ti, ni = key
+                p = positions[vi - 1]
+                n = normals[ni - 1] if ni else [0.0, 1.0, 0.0]
+                t = texcoords[ti - 1] if ti else [0.0, 0.0]
+                vertices.append((*p, *n, *t))
+            face.append(idx)
+        for k in range(1, len(face) - 1):
+            tris.extend((face[0], face[k], face[k + 1]))
     verts = np.asarray(vertices, dtype=np.float32)
     if len(verts) == 0:
         raise ValueError(f"no faces in {path}")
@@ -340,14 +397,23 @@ class Scene:
     #: The document's textures in their runtime form (``hogshade.material.runtime.runtime_textures`` of the
     #: binding's ``textures`` against the document's directory); None or empty renders every slot neutral (T3b).
     textures: dict[str, RuntimeTexture] | None = None
+    _plan: tuple[dict[str, RuntimeTexture], MaterialPlan] | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
 
     @property
     def model(self) -> str:
         return self.material.model  # both kinds of material carry it
 
     def plan(self) -> MaterialPlan:
-        """The material plan the textures become: bits, selectors and a source per slot; empty when untextured."""
-        return material_plan(self.textures or {})
+        """
+        The material plan the textures become: bits, selectors and a source per slot; empty when untextured.
+        Built once per distinct ``textures`` content (so a scene rendered many times logs its plan once).
+        """
+        textures = dict(self.textures or {})
+        if self._plan is None or self._plan[0] != textures:
+            self._plan = (textures, material_plan(textures))
+        return self._plan[1]
 
     def view_proj(self) -> tuple[NDArray, NDArray]:
         eye = orbit_eye(self.yaw_deg, self.pitch_deg, self.distance)
@@ -609,7 +675,7 @@ class Renderer:
             },
         )
 
-    def _material_group(self, plan: MaterialPlan):
+    def _material_group(self, plan: MaterialPlan) -> Any:
         """
         The bind group for a plan, built once per distinct key (two documents over one set that bind different
         subsets get two groups; the DDS uploads behind them are shared by path).
@@ -700,19 +766,13 @@ class Renderer:
         raw = np.frombuffer(self.device.queue.read_buffer(out), dtype=np.uint8).reshape(height, stride)
         return np.frombuffer(raw[:, : width * bytes_per_pixel].tobytes(), dtype=dtype).reshape(height, -1)
 
-    def render(self, scene: Scene, plan: MaterialPlan | None = None) -> Frames:
-        """
-        Render the scene through both paths and read the results back as linear float32 images. ``plan`` is the
-        scene's material plan when the caller already built it (``scene.plan()``), else it is built here.
-        """
+    def render(self, scene: Scene) -> Frames:
+        """Render the scene through both paths and read the results back as linear float32 images."""
         w, h = scene.width, scene.height
         if w % 32:
             raise ValueError("width must be a multiple of 32 so the readback rows are 256-byte aligned")
         t = self._ensure_targets(w, h)
-        if scene.textures:
-            bind_material = self._material_group(plan if plan is not None else scene.plan())
-        else:
-            bind_material = self.bind_material_none
+        bind_material = self._material_group(scene.plan()) if scene.textures else self.bind_material_none
         self.device.queue.write_buffer(self.frame_buffer, 0, scene.frame_bytes(self.specular_mip_count))
         encoder = self.device.create_command_encoder()
         self._draw_mesh(
@@ -784,22 +844,11 @@ def obj_corners(path: Path) -> tuple[NDArray[np.int32], NDArray[np.int32], NDArr
     faces: list[int] = []
     verts: list[int] = []
     rows: list[int] = []
-    face_index = 0
-    with Path(path).open(encoding="utf-8", errors="replace") as fh:
-        for line in fh:
-            if not line.startswith("f "):
-                continue
-            for token in line.split()[1:]:
-                parts = token.split("/")
-                vi = int(parts[0])
-                ti = int(parts[1]) if len(parts) > 1 and parts[1] else 0
-                ni = int(parts[2]) if len(parts) > 2 and parts[2] else 0
-                key = (vi, ti, ni)
-                idx = corners.setdefault(key, len(corners))
-                faces.append(face_index)
-                verts.append(vi - 1)
-                rows.append(idx)
-            face_index += 1
+    for face_index, face_keys in enumerate(read_obj(path).faces):  # the same records and keying as load_obj
+        for key in face_keys:
+            faces.append(face_index)
+            verts.append(key[0] - 1)
+            rows.append(corners.setdefault(key, len(corners)))
     return np.asarray(faces, dtype=np.int32), np.asarray(verts, dtype=np.int32), np.asarray(rows, dtype=np.int32)
 
 

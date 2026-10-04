@@ -11,17 +11,7 @@
 // This pass runs the lighting half only; group 2 is its G-buffer, not the material slots of material.wgsl.
 // host_inputs() in common.wgsl still names host_samples, so the unbound defaults stand in for it here.
 fn host_samples(uv: vec2<f32>) -> legacy_v2_Samples {
-    var s: legacy_v2_Samples;
-    s.base_color = vec4<f32>(1.0);
-    s.roughness = 1.0;
-    s.metalness = 1.0;
-    s.specular_f0 = vec3<f32>(0.0);
-    s.specular_amount = 1.0;
-    s.ao = 1.0;
-    s.cavity = 1.0;
-    s.emissive = vec3<f32>(0.0);
-    s.normal_ts = vec3<f32>(0.0, 0.0, 1.0);
-    return s;
+    return host_samples_unbound();
 }
 
 struct host_ScreenOut {

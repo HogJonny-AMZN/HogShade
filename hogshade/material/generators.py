@@ -25,7 +25,7 @@ from hogshade.material.schema import read_json, type_of, types
 
 _MODULE_NAME = "hogshade.material.generators"
 __version__ = "0.1.0"
-__updated__ = "2026-10-01"
+__updated__ = "2026-10-04"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 #: The types whose union the Maya shell declares (the shell is one effect with a model selector).
