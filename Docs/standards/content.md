@@ -157,8 +157,9 @@ mesh) and regenerated; a declared basis other than MikkTSpace is the validation 
 the material bind group, V flipped at the sample as the Maya shell negates it, `texture-compression-bc` asked of
 the device, the cook's `--no-compress` output as the fallback). Maya's MikkTSpace is the preference Preferences >
 Modeling > Polygon Tangent Space > "Use MikkTSpace tangents" (`polyUseMikkTSpaceTangents`, off by default; the
-orchestrator's Maya workers set it at boot), not the mesh's `tangentSpace` attribute; against Maya's default basis
-the handedness agrees everywhere and the direction to a median of a degree (the T3b spec's "what the build found"). Detail mapping
+orchestrator's Maya workers set it at boot), not the mesh's `tangentSpace` attribute; against Maya's MikkTSpace the
+handedness agrees on every corner and the direction to a median of 0.000 degrees, 98.8 percent within 1 (the T3b
+spec's "what the build found"). Detail mapping
 uses a derived pair: `_DH`, the high-pass colour of a map, blended by **linear light** and nothing else
 (O3DE's `TextureBlend_LinearLight`, `saturate(base + 2 * mask - 1)` in display space); and `_DN`, the
 detail normal, blended by reoriented normal mapping. Both come from the cook's **frequency separation**

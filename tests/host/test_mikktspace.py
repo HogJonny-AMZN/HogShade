@@ -185,15 +185,17 @@ def test_the_fixture_lines_up_with_load_obj_corner_for_corner(shader_ball_and_ma
 
 def test_parity_with_maya_on_the_shader_ball(shader_ball_and_maya):
     """
-    Maya 2026.3 exposes no MikkTSpace choice on the mesh (its ``tangentSpace`` enum: detectWindingRightHanded,
-    rightHanded, detectWindingLeftHanded, leftHanded), so this is MikkTSpace against Maya's default basis, measured
-    on 2026-10-04: the handedness agrees on every one of the 135,792 corners (20,628 mirrored on both sides), the
-    direction agrees to a median of 0.8 degrees, 98 percent within 5 degrees, the worst corner 35 degrees (the two
-    weight shared corners differently); the bars below hold those numbers with a little room.
+    Maya's MikkTSpace is the preference ``polyUseMikkTSpaceTangents`` (Preferences > Modeling > Polygon Tangent
+    Space; the orchestrator's Maya workers set it at boot), and the fixture's meta says it was on. Measured
+    2026-10-04 against it: the handedness agrees on every one of the 135,792 corners (20,628 mirrored on both
+    sides), the direction to a median of 0.000 degrees, 96 percent within 0.5, 98.8 percent within 1, every corner
+    within 7.1 (the fixture is float16, worth 0.02 degrees); the bars below hold those numbers with a little room.
+    With the preference off the same fixture was Maya's default basis: median 0.8, 98 percent within 5, worst 35.
     """
     from hogshade import wgpu_host
 
-    mesh, data, _meta = shader_ball_and_maya
+    mesh, data, meta = shader_ball_and_maya
+    assert meta.get("basis") == "mikktspace", f"the fixture was dumped with the MikkTSpace preference off: {meta}"
     _face, _vertex, rows = wgpu_host.obj_corners(wgpu_host.SHADER_BALL)
     ours_t = mesh.vertices[rows, 8:11]
     ours_sign = mesh.vertices[rows, 11]
@@ -206,7 +208,8 @@ def test_parity_with_maya_on_the_shader_ball(shader_ball_and_maya):
     )
     assert (ours_sign < 0).sum() == 20628 == (data["sign"] < 0).sum()
     angle = np.degrees(np.arccos(np.clip(np.sum(ours_t * maya_t, axis=1), -1.0, 1.0)))
-    assert np.median(angle) < 1.0, np.median(angle)
-    assert (angle <= 5.0).mean() > 0.97, (angle <= 5.0).mean()
-    assert angle.max() < 45.0, angle.max()
+    assert np.median(angle) < 0.05, np.median(angle)
+    assert (angle <= 0.5).mean() > 0.95, (angle <= 0.5).mean()
+    assert (angle <= 1.0).mean() > 0.98, (angle <= 1.0).mean()
+    assert angle.max() < 10.0, angle.max()
     assert not (angle > 90.0).any(), "no corner points the other way"
