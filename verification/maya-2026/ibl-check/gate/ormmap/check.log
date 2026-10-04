@@ -1,9 +1,9 @@
-started Sat Oct  3 23:53:18 2026
+started Sun Oct  4 00:41:31 2026
 shader D:\Depot\HogShade\hosts\maya_dx11\hogshade.fx
 cooked D:\Depot\HogShade\content\ibl\studio_small_09\cooked
 log is incremental
 HISTORY D:\Depot\HogShade\verification\maya-2026\ibl-check\gate\ormmap\maya-history.log
-TECHNIQUES: ['Main'] (shader load 40.0 s)
+TECHNIQUES: ['Main'] (shader load 34.1 s)
 CONNECTED specularEnvTextureCube_file (D:\Depot\HogShade\content\ibl\studio_small_09\cooked\specular.dds) -> specularEnvTextureCube; loaded size [(256.0, 256.0)]
 CONNECTED diffuseEnvTextureCube_file (D:\Depot\HogShade\content\ibl\studio_small_09\cooked\irradiance.dds) -> diffuseEnvTextureCube; loaded size [(32.0, 32.0)]
 CONNECTED brdfTextureMap_file (D:\Depot\HogShade\content\ibl\brdf_lut.dds) -> brdfTextureMap; loaded size [(256.0, 256.0)]

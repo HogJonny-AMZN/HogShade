@@ -221,13 +221,13 @@ rendered in the same Maya session as the right-hand picture, minutes apart. Made
 
 ![the S2 gate, right: the regenerated shell with ormMap, untextured](../verification/maya-2026/ibl-check/gate/ormmap/main.png)
 
-pixel-identical to the left: the packed map changes no picture for a document without textures. Made by `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param check=ibl-check --param variant=gate/ormmap --param fx=<absolute path of hosts/maya_dx11/hogshade.fx>`; the file is `verification/maya-2026/ibl-check/gate/ormmap/main.png`.
+identical to the left on the main view (0 differing pixels); two debug views differ on at most two pixels by one 8-bit step between any two renders, master against itself included. Made by `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_ibl_check --param check=ibl-check --param variant=gate/ormmap --param fx=<absolute path of hosts/maya_dx11/hogshade.fx>`; the file is `verification/maya-2026/ibl-check/gate/ormmap/main.png`.
 
 ### Side by side
 
 | Left | Right | Why |
 | --- | --- | --- |
-| ![left](../verification/maya-2026/ibl-check/gate/master/main.png) | ![right](../verification/maya-2026/ibl-check/gate/ormmap/main.png) | the S2 gate for the shell change: master's shell and the regenerated one (with ormMap) rendered untextured in one Maya session; pixel-identical |
+| ![left](../verification/maya-2026/ibl-check/gate/master/main.png) | ![right](../verification/maya-2026/ibl-check/gate/ormmap/main.png) | the S2 gate for the shell change: master's shell and the regenerated one (with ormMap) rendered untextured in one Maya session; the main view pixel-identical, the debug views within one 8-bit step on at most two pixels (the viewport's own run-to-run jitter) |
 
 ## Wanted, not yet captured
 
