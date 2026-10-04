@@ -159,6 +159,22 @@ still pointed at the S1 plan "done; S2 is next", a line last true before #34 and
 without being read. Copilot caught it. Mechanised half: none yet; a check that the handoff names no plan
 whose status line says done is the candidate.
 
+### 16 · A resident worker that remembers more than its scene
+
+**Trigger:** Submitting a job to the resident GUI Maya after changing any Python the job imports, or
+after another job ran with different environment variables, or with a relative path as a parameter.
+**Do:** Treat the worker as a process that already ran yesterday's code: the submit stub reloads a job
+module it already holds, a job drops the library modules it imports (`hogshade.material.*`) before the
+check imports them, a job sets every environment key it owns and clears the ones it does not, and every
+path parameter is absolute (the worker's cwd is not the repository).
+**Because:** 2026-10-04, T3's build: the first gate run landed under `textures/gate/` because `HOGSHADE_CHECK`
+leaked from the texture job; the five texture checks failed twice on `cannot import name maya_packed_slots`,
+first because the worker held the previous job's `hogshade.material.binding`, then because it held the
+previous job module itself, so the fix inside the job never ran; the gate's `fx=hosts/...` resolved against
+the worker's cwd and loaded no effect. Entry 7's scene rule was kept and was not enough. Mechanised:
+`tools/bats/submit.py` reloads the module, `hogshade.jobs.maya_texture_check` drops its library imports and
+clears its keys; the board's environment row remains for the orchestrator side.
+
 ## How to add an entry
 
 When process fails again, append in the same PR as the fix: a trigger you would notice, the action

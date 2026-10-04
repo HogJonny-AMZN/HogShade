@@ -130,6 +130,10 @@ accepted. Publishing BATS is not a task in this repo.
   to use them. `taskkill /IM maya.exe` took down a worker on 2026-09-26.
 - **One orchestrator, one Maya GUI at a time.** Two GUI Mayas crash each other; a standalone
   `maya.exe -script` launch beside a running GUI worker is the same collision.
+- **The resident worker remembers code and environment, not only the scene** (ledger entry 16, T3): the
+  submit stub reloads a job module the worker already holds, a job drops the `hogshade.material` modules
+  before importing its check and clears the environment keys it does not set, and a path parameter is
+  absolute. A check that fails on a name the code plainly has is this, not the code.
 - **Maya's own errors are in its Script Editor**, not on stdout: the session helper mirrors the
   history to a file beside the log so a job result carries the effect compile error, and turns the
   mirroring off at the end of the check: a resident worker otherwise keeps appending to the committed
