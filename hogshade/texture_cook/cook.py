@@ -2,11 +2,12 @@
 HogShade: the cook itself: one authoring set in, its runtime set out, with the manifest and the provenance.
 Package: hogshade/texture_cook/cook
 
-``cook_set`` reads every source texture of a set (T1's rules applied first; a set with a finding is refused),
-builds each one's mip chain in the right space, flips a DirectX normal, packs ``_ORM`` and any alpha carrier the
-sidecars declare, writes DDS (block-compressed through the encoder seam when one is present, uncompressed
-otherwise), fills the sidecars' derived fields, and writes ``manifest.json`` (deterministic) and
-``provenance.json`` (volatile) under ``<set>/cooked/``. ``separate_set`` is the owner's frequency separation.
+``cook_set`` reads every source texture of a set (T1's rules applied first, then the shapes: a set with a finding
+is refused before anything is written), builds each one's mip chain in the right space, flips a DirectX normal,
+packs ``_ORM`` and any alpha carrier the sidecars declare, writes DDS (block-compressed through the encoder seam
+when one is present, uncompressed otherwise), and only then writes the sidecars' derived fields, ``manifest.json``
+(deterministic) and ``provenance.json`` (volatile) under ``<set>/cooked/``. ``separate_set`` is the owner's
+frequency separation. Every artifact written and every decision taken on the caller's behalf is one INFO line.
 """
 
 from __future__ import annotations
@@ -43,12 +44,19 @@ from hogshade.texture_cook import separate as sep
 from hogshade.texture_cook.encoders import BC7_PROFILES, INSTALL_HINT, Encoder, default_encoder
 
 _MODULE_NAME = "hogshade.texture_cook.cook"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __updated__ = "2026-10-04"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 COOKED_DIR = "cooked"
+MANIFEST_NAME = "manifest.json"
+PROVENANCE_NAME = "provenance.json"
 TO_TYPE_NOTE = "hogshade-standard suffixes (Docs/standards/content.md)"
+#: The suffixes cooked as colour (sRGB, mips in linear) and as plain RGB data.
+COLOUR_SUFFIXES = ("_BC", "_E")
+DATA_RGB_SUFFIXES = ("_SC",)
+BLOCK_NAMES = {"bc7": "BC7_UNORM", "bc5": "BC5_UNORM", "bc4": "BC4_UNORM"}
+ORM_CHANNEL_SOURCE = dict(zip("RGB", pack.ORM_SOURCES))
 
 
 class CookError(ValueError):
@@ -57,6 +65,8 @@ class CookError(ValueError):
 
 @dataclass
 class Source:
+    """One source texture of a set as read, with its parsed name and its sidecar."""
+
     path: Path
     base: str
     suffix: str
@@ -69,14 +79,46 @@ class Source:
     def stem(self) -> str:
         return self.path.stem
 
+    @property
+    def size(self) -> tuple[int, int]:
+        """``(width, height)``."""
+        return int(self.samples.shape[1]), int(self.samples.shape[0])
+
+    @property
+    def channels(self) -> int:
+        return int(self.samples.shape[2]) if self.samples.ndim == 3 else 1
+
 
 @dataclass
 class CookResult:
+    """What ``cook_set`` returns: the manifest as written and every file the cook wrote."""
+
     manifest: dict[str, Any] = field(default_factory=dict)
     written: list[Path] = field(default_factory=list)
 
 
+@dataclass
+class _Oven:
+    """The per-cook state the suffix cooks share: where to write, how to compress, what was consumed."""
+
+    sources: list[Source]
+    out_dir: Path
+    encoder: Encoder | None
+    bc7_profile: str
+    height_normalise: bool = False
+    consumed: set[str] = field(default_factory=set)  # stems packed into another map, never written on their own
+    textures: dict[str, Any] = field(default_factory=dict)
+    written: list[Path] = field(default_factory=list)
+
+    def pack_target(self, s: Source) -> Source | None:
+        """The map a source's ``pack`` field puts in its carrier's alpha, in the source's variant."""
+        if "pack" not in s.sidecar:
+            return None
+        return _single(self.sources, s.sidecar["pack"]["a"], s.variant)
+
+
 def sha256_file(path: Path) -> str:
+    """The hex SHA-256 of a file, read in 1 MiB blocks."""
     digest = hashlib.sha256()
     with path.open("rb") as f:
         for block in iter(lambda: f.read(1 << 20), b""):
@@ -84,11 +126,21 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _sha256_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
 def _git_hash() -> str:
+    """The repository's HEAD for the provenance, ``"unknown"`` without git."""
     try:
         return subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
+
+
+def _dump(data: dict[str, Any]) -> str:
+    """The one JSON spelling every record of the cook is written in, so hashes compare."""
+    return json.dumps(data, indent=2, sort_keys=True) + "\n"
 
 
 def _read_sidecar(path: Path) -> dict[str, Any]:
@@ -103,11 +155,59 @@ def _read_sidecar(path: Path) -> dict[str, Any]:
     return data
 
 
+def _read_samples(p: Path, suffix: str, problems: list[str]) -> NDArray | None:
+    """The samples of one source, or ``None`` with the finding appended; an EXR is a height map, one channel read."""
+    if p.suffix == ".exr":
+        if suffix != "_H":
+            problems.append(f"{p.name}: an EXR source is a height map (_H) in T2")
+            return None
+        try:
+            samples, _precision = height_mod.read_exr_channel(p)
+        except ImportError as e:
+            problems.append(f"{p.name}: reading an EXR needs OpenEXR ({e}); uv sync installs it")
+            return None
+        except (OSError, ValueError, RuntimeError) as e:
+            problems.append(f"{p.name}: not a readable EXR ({e})")
+            return None
+        return samples
+    try:
+        return png.read_png(p)
+    except png.PngError as e:
+        problems.append(str(e))
+        return None
+
+
+def _check_shapes(sources: list[Source], problems: list[str]) -> None:
+    """
+    The shape rules a set must meet before anything is written: every map of one base and variant at one size (a
+    pack target or an ``_ORM`` part of another size cannot be packed), no grey-alpha source where RGB is meant
+    (grey is broadcast, RGBA loses its alpha), and every ``pack`` target present in the carrier's own variant.
+    """
+    by_group: dict[tuple[str, str | None], list[Source]] = {}
+    for s in sources:
+        by_group.setdefault((s.base, s.variant), []).append(s)
+    for _key, group in sorted(by_group.items(), key=lambda kv: (kv[0][0], kv[0][1] or "")):
+        if len({s.size for s in group}) > 1:
+            listed = ", ".join(f"{s.path.name} {s.size[0]}x{s.size[1]}" for s in group)
+            problems.append(f"one size per set and variant (the packing needs it): {listed}")
+    for s in sources:
+        if s.suffix in COLOUR_SUFFIXES + DATA_RGB_SUFFIXES + ("_N",) and s.channels == 2:
+            problems.append(
+                f"{s.path.name}: a grey-alpha PNG is neither a colour map nor a grey one; RGB, RGBA or grey"
+            )
+        if "pack" in s.sidecar and _single(sources, s.sidecar["pack"]["a"], s.variant) is None:
+            where = f"variant {s.variant!r}" if s.variant else "the unvarianted set"
+            problems.append(
+                f"{s.sidecar_path.name}: pack.a names {s.sidecar['pack']['a']}, and {where} has no such map "
+                "(a pack target lives in its carrier's variant)"
+            )
+
+
 def read_sources(set_dir: Path) -> list[Source]:
     """
-    Every source texture of a set, read and checked against T1's rules; ``CookError`` listing every finding when
-    one exists (a misnamed, unsourced or contradictory texture is never cooked). A ``.tif`` is a finding naming
-    the T2 limit.
+    Every source texture of a set, read and checked against T1's rules and the shape rules; ``CookError`` listing
+    every finding when one exists (a misnamed, unsourced, contradictory or mis-sized texture is never cooked). A
+    ``.tif`` is a finding naming the T2 limit.
     """
     set_dir = Path(set_dir)
     if not set_dir.is_dir():
@@ -144,17 +244,9 @@ def read_sources(set_dir: Path) -> list[Source]:
         problems.extend(str(f) for f in findings)
         if findings:
             continue
-        if p.suffix == ".exr":
-            if name.suffix != "_H":
-                problems.append(f"{p.name}: an EXR source is a height map (_H) in T2")
-                continue
-            samples, _precision = height_mod.read_exr_channel(p)
-        else:
-            try:
-                samples = png.read_png(p)
-            except png.PngError as e:
-                problems.append(str(e))
-                continue
+        samples = _read_samples(p, name.suffix, problems)
+        if samples is None:
+            continue
         if max(samples.shape[:2]) > MAX_RESOLUTION:
             problems.append(
                 f"{p.name}: {samples.shape[1]}x{samples.shape[0]} exceeds the repository budget of {MAX_RESOLUTION}"
@@ -168,6 +260,8 @@ def read_sources(set_dir: Path) -> list[Source]:
             # an _AO, _R or _M sidecar declares the _ORM alpha, since _ORM itself has no source
             carrier = "_ORM" if s.suffix in pack.ORM_SOURCES else s.suffix
             problems.extend(pack.check_pack(s.sidecar["pack"], carrier, available, s.sidecar_path.name))
+    if not problems:
+        _check_shapes(sources, problems)
     if problems:
         raise CookError(f"{set_dir.name} has findings: " + "; ".join(problems))
     if not sources:
@@ -176,7 +270,31 @@ def read_sources(set_dir: Path) -> list[Source]:
 
 
 def _unit(s: Source) -> NDArray[np.float32]:
+    """A source's samples as [0, 1] float32 ``(H, W, C)``."""
     return colour.to_unit(s.samples if s.samples.ndim == 3 else s.samples[..., None])
+
+
+def _rgb(s: Source) -> NDArray[np.float32]:
+    """The three colour channels of a source: a grey map broadcast, a fourth channel dropped; both logged."""
+    unit = _unit(s)
+    if unit.shape[-1] == 1:
+        _LOGGER.info("%s: a grey map, broadcast to RGB", s.path.name)
+        return np.repeat(unit, 3, axis=-1)
+    if unit.shape[-1] > 3:
+        _LOGGER.info(
+            "%s: the source alpha is dropped (the runtime alpha is %s)",
+            s.path.name,
+            f"packed from {s.sidecar['pack']['a']}" if "pack" in s.sidecar else "1.0",
+        )
+    return np.ascontiguousarray(unit[..., :3])
+
+
+def _one_channel(s: Source) -> NDArray[np.float32]:
+    """The single channel of a one-channel map ``(H, W, 1)``; the first channel of a wider one, logged."""
+    unit = _unit(s)
+    if unit.shape[-1] > 1:
+        _LOGGER.info("%s: %d channels in a single-channel map; R is taken", s.path.name, unit.shape[-1])
+    return np.ascontiguousarray(unit[..., :1])
 
 
 def _single(sources: list[Source], suffix: str, variant: str | None) -> Source | None:
@@ -184,6 +302,14 @@ def _single(sources: list[Source], suffix: str, variant: str | None) -> Source |
         if s.suffix == suffix and s.variant == variant:
             return s
     return None
+
+
+def _with_alpha(levels_rgb: list[NDArray[np.float32]], packed: Source | None) -> list[NDArray[np.float32]]:
+    """The RGB chain with its alpha: the packed map's own chain, or 1.0."""
+    if packed is None:
+        return [np.concatenate([lvl, np.ones(lvl.shape[:2] + (1,), np.float32)], axis=-1) for lvl in levels_rgb]
+    a_levels = mips.data_chain(_one_channel(packed))
+    return [np.concatenate([lvl, a], axis=-1) for lvl, a in zip(levels_rgb, a_levels, strict=True)]
 
 
 def _write(
@@ -198,22 +324,130 @@ def _write(
     """One texture's DDS: block-compressed when an encoder and a block format are given, else uncompressed."""
     if encoder is not None and block is not None:
         block_mips = [encoder.encode(colour.to_uint8(lvl), block, alpha=alpha, profile=profile) for lvl in levels_unit]
-        name = {
-            "bc7": "BC7_UNORM_SRGB" if uncompressed.endswith("_SRGB") else "BC7_UNORM",
-            "bc5": "BC5_UNORM",
-            "bc4": "BC4_UNORM",
-        }[block]
+        name = BLOCK_NAMES[block] + ("_SRGB" if block == "bc7" and uncompressed.endswith("_SRGB") else "")
         dds2d.write_2d_blocks(out_path, block_mips, levels_unit[0].shape[1], levels_unit[0].shape[0], name)
-        record = {"format": name, "encoder": encoder.name}
+        record: dict[str, Any] = {"format": name, "encoder": encoder.name}
         if block == "bc7":
             record["bc7_profile"] = f"alpha_{profile}" if alpha else profile
-        return record
-    dds2d.write_2d(out_path, [colour.to_uint8(lvl) for lvl in levels_unit], uncompressed)
-    return {"format": uncompressed, "encoder": None}
+    else:
+        dds2d.write_2d(out_path, [colour.to_uint8(lvl) for lvl in levels_unit], uncompressed)
+        record = {"format": uncompressed, "encoder": None}
+    _LOGGER.info("wrote %s: %s, %d mip(s)", out_path.name, record["format"], len(levels_unit))
+    return record
 
 
-def _fill_sidecar(s: Source, derived: list[str]) -> None:
-    """The derived fields the cook has authority over, filled when absent and listed; authored fields untouched."""
+def _finish(oven: _Oven, out_path: Path, entry: dict[str, Any], levels: int) -> None:
+    """The record every written texture gets: the mip count and the hash of the file."""
+    entry["mips"] = levels
+    entry["sha256"] = sha256_file(out_path)
+    oven.textures[out_path.name] = entry
+    oven.written.append(out_path)
+
+
+def _entry(s: Source) -> dict[str, Any]:
+    return {"from": s.path.name, "preset": SUFFIXES[s.suffix].parameter, "size": list(s.size)}
+
+
+def _cook_colour(oven: _Oven, s: Source) -> None:
+    """``_BC`` and ``_E`` (sRGB, mips in linear) and ``_SC`` (plain RGB data), with a packed or 1.0 alpha, as BC7."""
+    out_path = oven.out_dir / f"{s.stem}.dds"
+    entry = _entry(s)
+    rgb = _rgb(s)
+    packed = oven.pack_target(s)
+    srgb = s.suffix in COLOUR_SUFFIXES
+    levels = _with_alpha(mips.colour_chain(rgb) if srgb else mips.data_chain(rgb), packed)
+    fmt = "R8G8B8A8_UNORM_SRGB" if srgb else "R8G8B8A8_UNORM"
+    entry.update(_write(out_path, levels, fmt, "bc7", oven.encoder, packed is not None, oven.bc7_profile))
+    if packed is not None:
+        entry["packed"] = {"A": packed.path.name}
+        _LOGGER.info("%s: %s rides in the alpha", out_path.name, packed.path.name)
+    _finish(oven, out_path, entry, len(levels))
+
+
+def _cook_normal(oven: _Oven, s: Source) -> None:
+    """``_N``: decoded, brought to ``opengl+y``, mips renormalised, the X and Y channels as BC5."""
+    out_path = oven.out_dir / f"{s.stem}.dds"
+    entry = _entry(s)
+    convention = s.sidecar["normal_convention"]
+    xyz = normals.to_opengl(normals.decode(_rgb(s)), convention)
+    if convention != "opengl+y":
+        _LOGGER.info("%s: normal convention %s, Y flipped to opengl+y", s.path.name, convention)
+    levels = [normals.to_rg(normals.encode(lvl)) for lvl in mips.normal_chain(xyz)]
+    entry.update(_write(out_path, levels, "R8G8_UNORM", "bc5", oven.encoder, False, oven.bc7_profile))
+    entry["normal_convention_in"] = convention
+    entry["flipped_y"] = convention == "directx-y"
+    _finish(oven, out_path, entry, len(levels))
+
+
+def _cook_height(oven: _Oven, s: Source) -> None:
+    """``_H`` at the source's precision; BC4 only for an 8-bit source with an encoder; normalised when asked."""
+    out_path = oven.out_dir / f"{s.stem}.dds"
+    entry = _entry(s)
+    h = height_mod.from_array(s.samples)
+    if oven.height_normalise:
+        h, rng = height_mod.normalise(h)
+        if rng:
+            entry["normalised"] = rng
+    levels = height_mod.chain(h)
+    if h.runtime == "R8_UNORM" and oven.encoder is not None:
+        block_mips = [oven.encoder.encode(lvl[..., None], "bc4") for lvl in levels]
+        dds2d.write_2d_blocks(out_path, block_mips, levels[0].shape[1], levels[0].shape[0], "BC4_UNORM")
+        entry.update({"format": "BC4_UNORM", "encoder": oven.encoder.name})
+    else:
+        dds2d.write_2d(out_path, [lvl[..., None] for lvl in levels], h.runtime)
+        entry.update({"format": h.runtime, "encoder": None})
+    _LOGGER.info("wrote %s: %s (%s source), %d mip(s)", out_path.name, entry["format"], h.precision, len(levels))
+    entry["precision"] = h.precision
+    _finish(oven, out_path, entry, len(levels))
+
+
+def _cook_single(oven: _Oven, s: Source) -> None:
+    """A one-channel map on its own: R8, or BC4 with an encoder."""
+    out_path = oven.out_dir / f"{s.stem}.dds"
+    entry = _entry(s)
+    levels = mips.data_chain(_one_channel(s))
+    entry.update(_write(out_path, levels, "R8_UNORM", "bc4", oven.encoder, False, oven.bc7_profile))
+    _finish(oven, out_path, entry, len(levels))
+
+
+def _cook_orm(oven: _Oven, variant: str | None) -> None:
+    """The fixed packing: ``_ORM`` from ``_AO``, ``_R``, ``_M`` (any present, 1.0 fills the rest), per variant."""
+    parts = {suf: _single(oven.sources, suf, variant) for suf in pack.ORM_SOURCES}
+    shape_src = next(s for s in parts.values() if s is not None)
+    w, h = shape_src.size
+    packed, record = pack.pack_orm(
+        _one_channel(parts["_AO"]) if parts["_AO"] else None,
+        _one_channel(parts["_R"]) if parts["_R"] else None,
+        _one_channel(parts["_M"]) if parts["_M"] else None,
+        (h, w),
+    )
+    stem = f"T_{shape_src.base}_ORM" + (f"_{variant}" if variant else "")
+    out_path = oven.out_dir / f"{stem}.dds"
+    for channel, what in record.items():
+        if what.startswith("filled"):
+            _LOGGER.info("%s: channel %s %s (no %s source)", out_path.name, channel, what, ORM_CHANNEL_SOURCE[channel])
+    levels = mips.data_chain(packed)
+    # an _ORM alpha carrier is declared on any of its sources' sidecars as {"pack": {"a": "_H"}}; the first found
+    extra = next((oven.pack_target(src) for src in parts.values() if src is not None and "pack" in src.sidecar), None)
+    if extra is not None:
+        a_levels = mips.data_chain(_one_channel(extra))
+        levels = [pack.put_alpha(lvl, a[..., 0]) for lvl, a in zip(levels, a_levels, strict=True)]
+        oven.consumed.add(extra.stem)
+        _LOGGER.info("%s: %s rides in the alpha", out_path.name, extra.path.name)
+    entry = {"from": [p.path.name for p in parts.values() if p is not None], "preset": "orm", "size": [w, h]}
+    entry.update(_write(out_path, levels, "R8G8B8A8_UNORM", "bc7", oven.encoder, extra is not None, oven.bc7_profile))
+    rec = dict(record)
+    if extra is not None:
+        rec["A"] = extra.path.name
+    entry["packed"] = rec
+    _finish(oven, out_path, entry, len(levels))
+
+
+def _sidecar_fill(s: Source) -> tuple[dict[str, Any], list[str]]:
+    """
+    The sidecar with the derived fields the cook has authority over filled when absent (authored fields untouched),
+    and the keys this cook filled. Nothing is written here.
+    """
     data = dict(s.sidecar)
     preset = preset_for(s.suffix)
     fills = {
@@ -221,20 +455,45 @@ def _fill_sidecar(s: Source, derived: list[str]) -> None:
         "colour_space": preset["colour_space"],
         "mips": preset["mips"],
         "runtime": preset["runtime"],  # the preset's token; the manifest carries the exact format written
-        "resolution": int(max(s.samples.shape[:2])),
+        "resolution": int(max(s.size)),
     }
-    filled = []
-    for key in SIDECAR_DERIVED:
-        if key not in data:
-            data[key] = fills[key]
-            filled.append(key)
+    filled = [key for key in SIDECAR_DERIVED if key not in data]
+    for key in filled:
+        data[key] = fills[key]
     if filled:
         data["derived"] = sorted(set(data.get("derived", [])) | set(filled))
-        s.sidecar_path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        s.sidecar = data
-    # the manifest lists every derived field the sidecar carries, whether this cook filled it or an earlier one
-    # did, so cooking twice gives one manifest
-    derived.extend(f"{s.sidecar_path.name}:{k}" for k in data.get("derived", []))
+    return data, filled
+
+
+def _keep_separation(out_dir: Path, textures: dict[str, Any]) -> dict[str, Any] | None:
+    """
+    An earlier ``separate_set``'s record, kept when every file it names is still there (a re-cook rebuilds the
+    manifest and must not orphan them); dropped with a warning otherwise. Other ``.dds`` files under ``cooked/``
+    that no record names are warned about, never deleted.
+    """
+    manifest_path = out_dir / MANIFEST_NAME
+    separation: dict[str, Any] | None = None
+    if manifest_path.is_file():
+        try:
+            previous = json.loads(manifest_path.read_text(encoding="utf-8"))
+            separation = previous.get("separation") if isinstance(previous, dict) else None
+        except (UnicodeDecodeError, json.JSONDecodeError) as e:
+            _LOGGER.warning("%s: the earlier manifest is unreadable and is replaced (%s)", manifest_path, e)
+    if separation is not None:
+        outputs = separation.get("outputs", {}) if isinstance(separation, dict) else {}
+        missing = [name for name in outputs if not (out_dir / name).is_file()]
+        if missing or not outputs:
+            _LOGGER.warning("the earlier separation record is dropped: its files are gone (%s)", ", ".join(missing))
+            separation = None
+        else:
+            _LOGGER.info("the earlier separation record is kept (%s)", ", ".join(sorted(outputs)))
+    named = set(textures) | (set(separation["outputs"]) if separation else set())
+    stale = sorted(p.name for p in out_dir.glob("*.dds") if p.name not in named)
+    if stale:
+        _LOGGER.warning(
+            "%s holds %d .dds file(s) no record names, left alone: %s", out_dir, len(stale), ", ".join(stale)
+        )
+    return separation
 
 
 def cook_set(
@@ -246,7 +505,9 @@ def cook_set(
 ) -> CookResult:
     """
     Cook one set. ``compress`` None means "when an encoder is present"; True requires one (``CookError`` with the
-    install hint otherwise); False writes uncompressed. Returns the manifest and the files written.
+    install hint otherwise); False writes uncompressed. Returns the manifest and the files written. The sidecars'
+    derived fields and the manifest are written only after every DDS is, so a failure leaves the authoring set as
+    it was.
     """
     started = time.time()
     set_dir = Path(set_dir).resolve()
@@ -268,132 +529,39 @@ def cook_set(
         encoder.name if encoder else "none (uncompressed)",
         bc7_profile,
     )
-    textures: dict[str, Any] = {}
-    written: list[Path] = []
-    derived: list[str] = []
-    for s in sources:  # every source's sidecar, the packed ones included, before the inputs are hashed
-        _fill_sidecar(s, derived)
+    oven = _Oven(sources, out_dir, encoder, bc7_profile, height_normalise)
+    # the sidecars as they will be written, hashed now so the manifest is one whether this cook fills them or not
+    sidecars = {s.stem: _sidecar_fill(s) for s in sources}
     inputs = {s.path.name: sha256_file(s.path) for s in sources}
-    inputs.update({s.sidecar_path.name: sha256_file(s.sidecar_path) for s in sources})
+    inputs.update({s.sidecar_path.name: _sha256_bytes(_dump(sidecars[s.stem][0]).encode("utf-8")) for s in sources})
     inputs["LICENSE.md"] = sha256_file(set_dir / "LICENSE.md")
-    consumed: set[str] = set()  # sources packed into another map, not written on their own
-
-    # alpha carriers first, so the packed sources are known
-    carriers: dict[str, Source] = {}
     for s in sources:
-        if "pack" in s.sidecar:
-            packed = _single(sources, s.sidecar["pack"]["a"], s.variant)
-            if packed is not None:
-                carriers[s.stem] = packed
-                consumed.add(packed.stem)
-
-    def alpha_of(s: Source, levels_rgb: list[NDArray[np.float32]]) -> tuple[list[NDArray[np.float32]], str | None]:
-        packed = carriers.get(s.stem)
-        if packed is None:
-            return [
-                np.concatenate([lvl, np.ones(lvl.shape[:2] + (1,), np.float32)], axis=-1) for lvl in levels_rgb
-            ], None
-        a_levels = mips.data_chain(_unit(packed))
-        return [np.concatenate([lvl, a[..., :1]], axis=-1) for lvl, a in zip(levels_rgb, a_levels)], packed.path.name
-
+        packed = oven.pack_target(s)
+        if packed is not None:
+            oven.consumed.add(packed.stem)
     for s in sources:
-        if s.stem in consumed or s.suffix in pack.ORM_SOURCES:
+        if s.stem in oven.consumed or s.suffix in pack.ORM_SOURCES:
             continue  # packed into a carrier's alpha, or into _ORM: the runtime form, no file of its own
-        spec = SUFFIXES[s.suffix]
-        out_path = out_dir / f"{s.stem}.dds"
-        entry: dict[str, Any] = {
-            "from": s.path.name,
-            "preset": spec.parameter,
-            "size": [int(s.samples.shape[1]), int(s.samples.shape[0])],
-        }
-        if s.suffix in ("_BC", "_E"):
-            unit = _unit(s)[..., :3]
-            levels, packed_name = alpha_of(s, mips.colour_chain(unit))
-            entry.update(
-                _write(out_path, levels, "R8G8B8A8_UNORM_SRGB", "bc7", encoder, packed_name is not None, bc7_profile)
-            )
-            if packed_name:
-                entry["packed"] = {"A": packed_name}
-        elif s.suffix == "_SC":
-            unit = _unit(s)[..., :3]
-            levels, packed_name = alpha_of(s, mips.data_chain(unit))
-            entry.update(
-                _write(out_path, levels, "R8G8B8A8_UNORM", "bc7", encoder, packed_name is not None, bc7_profile)
-            )
-            if packed_name:
-                entry["packed"] = {"A": packed_name}
+        if s.suffix in COLOUR_SUFFIXES + DATA_RGB_SUFFIXES:
+            _cook_colour(oven, s)
         elif s.suffix == "_N":
-            convention = s.sidecar["normal_convention"]
-            xyz = normals.to_opengl(normals.decode(_unit(s)), convention)
-            levels = [normals.to_rg(normals.encode(lvl)) for lvl in mips.normal_chain(xyz)]
-            entry.update(_write(out_path, levels, "R8G8_UNORM", "bc5", encoder, False, bc7_profile))
-            entry["normal_convention_in"] = convention
-            entry["flipped_y"] = convention == "directx-y"
+            _cook_normal(oven, s)
         elif s.suffix == "_H":
-            h = height_mod.from_array(s.samples)
-            if height_normalise:
-                h, rng = height_mod.normalise(h)
-                if rng:
-                    entry["normalised"] = rng
-            levels = height_mod.chain(h)
-            if h.runtime == "R8_UNORM" and encoder is not None:
-                block_mips = [encoder.encode(lvl[..., None], "bc4") for lvl in levels]
-                dds2d.write_2d_blocks(out_path, block_mips, levels[0].shape[1], levels[0].shape[0], "BC4_UNORM")
-                entry.update({"format": "BC4_UNORM", "encoder": encoder.name})
-            else:
-                dds2d.write_2d(out_path, [lvl[..., None] for lvl in levels], h.runtime)
-                entry.update({"format": h.runtime, "encoder": None})
-            entry["precision"] = h.precision
-        else:  # one channel, its own R8 map
-            levels = [lvl[..., :1] for lvl in mips.data_chain(_unit(s)[..., :1])]
-            entry.update(_write(out_path, levels, "R8_UNORM", "bc4", encoder, False, bc7_profile))
-        entry["mips"] = len(levels)
-        entry["sha256"] = sha256_file(out_path)
-        textures[out_path.name] = entry
-        written.append(out_path)
-
-    # the fixed packing: _ORM from _AO, _R, _M (any present), per variant
-    variants = sorted({s.variant for s in sources if s.suffix in pack.ORM_SOURCES}, key=lambda v: v or "")
-    for variant in variants:
-        parts = {suf: _single(sources, suf, variant) for suf in pack.ORM_SOURCES}
-        shape_src = next(s for s in parts.values() if s is not None)
-        h, w = shape_src.samples.shape[:2]
-        try:
-            packed, record = pack.pack_orm(
-                _unit(parts["_AO"]) if parts["_AO"] else None,
-                _unit(parts["_R"]) if parts["_R"] else None,
-                _unit(parts["_M"]) if parts["_M"] else None,
-                (h, w),
-            )
-        except ValueError as e:
-            raise CookError(f"{set_dir.name}: {e}") from e
-        base = shape_src.base
-        stem = f"T_{base}_ORM" + (f"_{variant}" if variant else "")
-        levels = mips.data_chain(packed)
-        packed_name = None
-        # an _ORM alpha carrier is declared on any of its sources' sidecars as {"pack": {"a": "_H"}}; the first found
-        for suf in pack.ORM_SOURCES:
-            src = parts[suf]
-            if src is not None and "pack" in src.sidecar and src.sidecar["pack"]["a"] != suf:
-                extra = _single(sources, src.sidecar["pack"]["a"], variant)
-                if extra is not None:
-                    a_levels = mips.data_chain(_unit(extra))
-                    levels = [pack.put_alpha(lvl, a[..., 0]) for lvl, a in zip(levels, a_levels)]
-                    packed_name = extra.path.name
-                    consumed.add(extra.stem)
-                    break
-        out_path = out_dir / f"{stem}.dds"
-        entry = {"from": [p.path.name for p in parts.values() if p is not None], "preset": "orm", "size": [w, h]}
-        entry.update(_write(out_path, levels, "R8G8B8A8_UNORM", "bc7", encoder, packed_name is not None, bc7_profile))
-        rec = dict(record)
-        if packed_name:
-            rec["A"] = packed_name
-        entry["packed"] = rec
-        entry["mips"] = len(levels)
-        entry["sha256"] = sha256_file(out_path)
-        textures[out_path.name] = entry
-        written.append(out_path)
-
+            _cook_height(oven, s)
+        else:
+            _cook_single(oven, s)
+    for variant in sorted({s.variant for s in sources if s.suffix in pack.ORM_SOURCES}, key=lambda v: v or ""):
+        _cook_orm(oven, variant)
+    # every DDS is on disk: now the sidecars, the manifest, the provenance
+    derived: list[str] = []
+    for s in sources:
+        data, filled = sidecars[s.stem]
+        if filled:
+            s.sidecar_path.write_text(_dump(data), encoding="utf-8")
+            s.sidecar = data
+            _LOGGER.info("wrote %s: derived %s", s.sidecar_path.name, ", ".join(filled))
+        derived.extend(f"{s.sidecar_path.name}:{k}" for k in data.get("derived", []))
+    separation = _keep_separation(out_dir, oven.textures)
     manifest = {
         "tool": _MODULE_NAME,
         "tool_version": __version__,
@@ -401,12 +569,14 @@ def cook_set(
         "set": set_dir.name,
         "suffix_table": TO_TYPE_NOTE,
         "inputs": dict(sorted(inputs.items())),
-        "textures": dict(sorted(textures.items())),
+        "textures": dict(sorted(oven.textures.items())),
         "compression": {"encoder": encoder.name if encoder else None, "bc7_profile": bc7_profile if encoder else None},
         "sidecars_derived": sorted(derived),
         "not_power_of_two": sorted(s.path.name for s in sources if any((d & (d - 1)) for d in s.samples.shape[:2])),
     }
-    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if separation is not None:
+        manifest["separation"] = separation
+    (out_dir / MANIFEST_NAME).write_text(_dump(manifest), encoding="utf-8")
     provenance = {
         "cooked_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "wall_seconds": round(time.time() - started, 2),
@@ -417,17 +587,22 @@ def cook_set(
         "git_hash": _git_hash(),
         "encoder_version": encoder.version if encoder else None,
     }
-    (out_dir / "provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (out_dir / PROVENANCE_NAME).write_text(_dump(provenance), encoding="utf-8")
     _LOGGER.info(
         "%s: %d texture(s) written under %s in %.2f s (%d sidecar field(s) derived; %s)",
         set_dir.name,
-        len(textures),
+        len(oven.textures),
         COOKED_DIR,
         provenance["wall_seconds"],
         len(derived),
         manifest["compression"]["encoder"] or "uncompressed",
     )
-    return CookResult(manifest=manifest, written=written + [out_dir / "manifest.json", out_dir / "provenance.json"])
+    return CookResult(manifest=manifest, written=oven.written + [out_dir / MANIFEST_NAME, out_dir / PROVENANCE_NAME])
+
+
+def _normal_levels(xy_unit: NDArray[np.float32]) -> list[NDArray[np.float32]]:
+    """The two-channel runtime chain of an encoded X, Y image: Z reconstructed, mips renormalised."""
+    return [normals.to_rg(normals.encode(lvl)) for lvl in mips.normal_chain(normals.reconstruct_z(xy_unit))]
 
 
 def separate_set(
@@ -458,37 +633,21 @@ def separate_set(
         encoder = None
     out_dir = set_dir / COOKED_DIR
     out_dir.mkdir(exist_ok=True)
-    unit = _unit(src)[..., :3]
+    unit = _rgb(src)
     if source_suffix == "_N":
         xyz = normals.to_opengl(normals.decode(unit), src.sidecar["normal_convention"])
-        enc = normals.encode(xyz)
-        result = sep.separate(enc[..., :2], radius)  # X and Y about their neutral 0.5
-        detail = np.concatenate([result.high, np.ones(result.high.shape[:2] + (1,), np.float32)], axis=-1)
-        high_levels = [normals.to_rg(lvl) for lvl in mips.data_chain(detail)]
+        result = sep.separate(normals.encode(xyz)[..., :2], radius)  # X and Y about their neutral 0.5
         high_path = out_dir / f"T_{src.base}_DN.dds"
-        high_rec = _write(high_path, high_levels, "R8G8_UNORM", "bc5", encoder, False, "basic")
-        macro_low = sep.macro(result.low, macro_size)
-        macro_levels = [
-            normals.to_rg(lvl)
-            for lvl in mips.data_chain(
-                np.concatenate([macro_low, np.ones(macro_low.shape[:2] + (1,), np.float32)], axis=-1)
-            )
-        ]
+        high_rec = _write(high_path, _normal_levels(result.high), "R8G8_UNORM", "bc5", encoder, False, "basic")
+        macro_levels = _normal_levels(sep.macro(result.low, macro_size))
         macro_path = out_dir / f"T_{src.base}_N_macro.dds"
         macro_rec = _write(macro_path, macro_levels, "R8G8_UNORM", "bc5", encoder, False, "basic")
     else:
         result = sep.separate(unit, radius)
-        high_rgba = [
-            np.concatenate([lvl, np.ones(lvl.shape[:2] + (1,), np.float32)], axis=-1)
-            for lvl in mips.data_chain(result.high)
-        ]
         high_path = out_dir / f"T_{src.base}_DH.dds"
-        high_rec = _write(high_path, high_rgba, "R8G8B8A8_UNORM", "bc7", encoder, False, "basic")
-        macro_rgb = sep.macro(result.low, macro_size)
-        macro_levels = [
-            np.concatenate([lvl, np.ones(lvl.shape[:2] + (1,), np.float32)], axis=-1)
-            for lvl in mips.colour_chain(macro_rgb)
-        ]
+        high_levels = _with_alpha(mips.data_chain(result.high), None)
+        high_rec = _write(high_path, high_levels, "R8G8B8A8_UNORM", "bc7", encoder, False, "basic")
+        macro_levels = _with_alpha(mips.colour_chain(sep.macro(result.low, macro_size)), None)
         macro_path = out_dir / f"T_{src.base}{source_suffix}_macro.dds"
         macro_rec = _write(macro_path, macro_levels, "R8G8B8A8_UNORM_SRGB", "bc7", encoder, False, "basic")
     separation = {
@@ -500,30 +659,28 @@ def separate_set(
         "error_max": round(result.error_max, 6),
         "error_mean": round(result.error_mean, 8),
         "clipped_texels": result.clipped_texels,
-        "blend": "linear light: saturate(low + 2 * high - 1), in the stored encoding",
+        "blend": "linear light: saturate(low + 2 * high - 1), in the stored encoding; the macro is box-downsampled "
+        "in that encoding, its own mips then follow the map's rule",
         "outputs": {
             high_path.name: {**high_rec, "sha256": sha256_file(high_path)},
             macro_path.name: {**macro_rec, "sha256": sha256_file(macro_path)},
         },
     }
-    manifest_path = out_dir / "manifest.json"
+    manifest_path = out_dir / MANIFEST_NAME
     manifest = (
         json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else {"set": set_dir.name}
     )
     manifest["separation"] = separation
-    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    manifest_path.write_text(_dump(manifest), encoding="utf-8")
+    _LOGGER.info("wrote %s: the separation record", manifest_path.name)
     if picture_dir is not None:
         picture_dir = Path(picture_dir)
         picture_dir.mkdir(parents=True, exist_ok=True)
         for name, arr in (("source", unit), ("low", result.low), ("high", result.high), ("recombined", result.recon)):
-            img = (
-                arr
-                if arr.shape[-1] == 3
-                else np.concatenate([arr, np.full(arr.shape[:2] + (3 - arr.shape[-1],), 1.0, np.float32)], axis=-1)[
-                    ..., :3
-                ]
-            )
-            png.write_png(picture_dir / f"{name}.png", colour.to_uint8(sep.macro(img, picture_size)))
+            img = arr if arr.shape[-1] == 3 else np.concatenate([arr, np.ones(arr.shape[:2] + (1,), np.float32)], -1)
+            path = picture_dir / f"{name}.png"
+            png.write_png(path, colour.to_uint8(sep.macro(img[..., :3], picture_size)))
+            _LOGGER.info("wrote %s", path)
     _LOGGER.info(
         "%s: separated %s with sigma %.2f (radius %g): error max %.5f mean %.7f over %d clipped texel(s); macro %dx%d",
         set_dir.name,

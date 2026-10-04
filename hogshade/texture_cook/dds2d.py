@@ -42,6 +42,8 @@ DDSD_LINEARSIZE = 0x80000
 
 @dataclass(frozen=True)
 class Format:
+    """One DXGI format the writer and reader know: its code, channels, sample dtype or block size."""
+
     name: str
     dxgi: int
     channels: int
@@ -100,11 +102,11 @@ def _header(width: int, height: int, mips: int, pitch_or_size: int, linear: bool
         0,
         0,
     )
-    assert len(header) == 128
-    return header
+    return header  # 128 bytes: the struct format fixes it
 
 
 def _dx10(dxgi: int) -> bytes:
+    """The DX10 extension header: the DXGI format, a 2D texture, one array slice."""
     return struct.pack("<5I", dxgi, D3D10_RESOURCE_DIMENSION_TEXTURE2D, 0, 1, 0)
 
 
@@ -153,6 +155,8 @@ def write_2d_blocks(path: Path, block_mips: list[bytes], width: int, height: int
 
 @dataclass(frozen=True)
 class Dds2d:
+    """A 2D DDS as read: the format, the size, and the levels (arrays uncompressed, bytes per level for blocks)."""
+
     format: Format
     width: int
     height: int

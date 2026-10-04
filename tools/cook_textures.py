@@ -101,6 +101,9 @@ def main(argv: list[str] | None = None) -> int:
     except CookError as e:
         _LOGGER.error("texture cook: %s", e)
         return 2
+    except (ValueError, OSError) as e:  # a defect or a disk problem past the checks: the two-part message, no traceback
+        _LOGGER.error("texture cook failed on %s: %s: %s", args.set_dir, type(e).__name__, e)
+        return 2
 
 
 if __name__ == "__main__":

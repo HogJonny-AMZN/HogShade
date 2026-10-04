@@ -12,6 +12,7 @@ carries data. A level smaller than a block is edge-padded to 4x4.
 
 from __future__ import annotations
 
+import importlib.metadata
 import logging as _logging
 import os
 import shutil
@@ -64,9 +65,10 @@ class IspcEncoder:
         import ispc_texcomp
 
         self._module = ispc_texcomp
-        self.version = getattr(ispc_texcomp, "__version__", None) or str(
-            getattr(ispc_texcomp, "version", lambda: "?")()
-        )
+        try:
+            self.version = importlib.metadata.version("ispc_texcomp")
+        except importlib.metadata.PackageNotFoundError:
+            self.version = str(getattr(ispc_texcomp, "__version__", "unknown"))
 
     def encode(self, level: NDArray[np.uint8], block_format: str, alpha: bool = False, profile: str = "basic") -> bytes:
         t = self._module
@@ -78,8 +80,6 @@ class IspcEncoder:
             if profile not in BC7_PROFILES:
                 raise ValueError(f"bc7 profile {profile!r} is not one of {BC7_PROFILES}")
             name = f"alpha_{profile}" if alpha else profile
-            if alpha and profile == "veryfast":
-                name = "alpha_veryfast"
             surface = t.RGBASurface(padded.tobytes(), w, h, w * 4)
             return t.compress_blocks_bc7(surface, t.BC7EncSettings.from_profile(name))
         if block_format == "bc5":
@@ -118,11 +118,19 @@ class TexconvEncoder:
 
 
 def default_encoder() -> Encoder | None:
-    """The ISPC encoder when the extra is installed, else ``None`` (the cook logs the hint and writes uncompressed)."""
+    """
+    The ISPC encoder when the extra is installed, else ``None`` (the cook logs the hint and writes uncompressed).
+    A wheel that imports but cannot load its native library (``OSError``) counts as absent, with the reason logged.
+    """
     try:
         return IspcEncoder()
     except ImportError:
         _LOGGER.warning("no block encoder: ispc_texcomp is not installed; %s", INSTALL_HINT)
+        return None
+    except OSError as e:
+        _LOGGER.warning(
+            "no block encoder: ispc_texcomp is installed but its library did not load (%s); %s", e, INSTALL_HINT
+        )
         return None
 
 

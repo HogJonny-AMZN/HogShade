@@ -34,7 +34,7 @@ MANIFEST = {
         "set_dir": {
             "type": "path",
             "required": True,
-            "description": "the set directory, e.g. content/materials/standard/rough/brick",
+            "description": "the set directory, e.g. content/materials/standard/rough/brick ('..' in it is refused)",
         },
         "compress": {
             "type": "str",
@@ -70,15 +70,17 @@ MANIFEST = {
 def main(parameters: dict) -> dict:
     """Entry point the Python worker calls. ``parameters`` are strings from the job request plus ``_job_*`` context."""
     from hogshade.texture_cook.cook import CookError, cook_set, separate_set
+    from hogshade.texture_cook.encoders import default_encoder
 
     raw = str(parameters["set_dir"])
     set_dir = Path(raw)
-    if ".." in set_dir.parts:
+    if ".." in set_dir.parts:  # the one check: a climb is refused; an absolute path is the worker's to allow
         raise CookError(f"set_dir {raw!r} climbs with '..'; a job path stays inside the workspace")
     compress_param = str(parameters.get("compress", "auto")).lower()
-    compress = {"auto": None, "yes": True, "true": True, "1": True, "no": False, "false": False, "0": False}.get(
-        compress_param, None
-    )
+    compress_values = {"auto": None, "yes": True, "true": True, "1": True, "no": False, "false": False, "0": False}
+    if compress_param not in compress_values:
+        _LOGGER.warning("compress=%r is not one of %s; treated as auto", compress_param, sorted(compress_values))
+    compress = compress_values.get(compress_param, None)
     _LOGGER.info(
         "cook_textures job: %s compress=%s bc7=%s height=%s",
         set_dir,
@@ -86,9 +88,13 @@ def main(parameters: dict) -> dict:
         parameters.get("bc7_profile", "basic"),
         parameters.get("height", "keep"),
     )
+    encoder = None if compress is False else default_encoder()
+    if encoder is None and compress is None:
+        compress = False  # already warned once by default_encoder(); neither call asks again
     result = cook_set(
         set_dir,
         compress=compress,
+        encoder=encoder,
         bc7_profile=str(parameters.get("bc7_profile", "basic")),
         height_normalise=str(parameters.get("height", "keep")) == "normalise",
     )
@@ -99,6 +105,7 @@ def main(parameters: dict) -> dict:
             radius=float(parameters.get("radius", 16.0)),
             macro_size=int(parameters.get("macro", 64)),
             compress=compress,
+            encoder=encoder,
         )
     _LOGGER.info("cook_textures job done: %s, %d texture(s)", set_dir, len(manifest.get("textures", {})))
     return manifest
