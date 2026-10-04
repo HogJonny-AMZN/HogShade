@@ -66,7 +66,8 @@ PARAMETER_SLOT = {
 }
 SCALARS = ("roughness", "metalness", "ambient_occlusion_map", "cavity_map")
 CHANNEL_INDEX = {"r": 0, "g": 1, "b": 2, "a": 3}
-#: ``host_Textures`` as WGSL lays it out: bound u32, then four (slot, channel) pairs of u32, padded to 48 bytes.
+#: ``host_Textures`` as WGSL lays it out: ``bound`` u32 at 0, then ``sel_a`` vec4<u32> at 16 (roughness slot and
+#: channel, metalness slot and channel) and ``sel_b`` vec4<u32> at 32 (AO, cavity): 48 bytes.
 UNIFORM_BYTES = 48
 
 
@@ -101,13 +102,17 @@ class MaterialPlan:
         )
 
     def uniform_bytes(self) -> bytes:
-        """The ``host_Textures`` uniform: bound, then roughness, metalness, AO, cavity selectors as (slot, channel)."""
-        values = [self.bound]
+        """
+        The ``host_Textures`` uniform: ``bound`` and its padding to 16, then roughness, metalness, AO, cavity as
+        (slot, channel) pairs in two vec4<u32>.
+        """
+        values = [self.bound, 0, 0, 0]
         for name in SCALARS:
             slot, channel = self.selectors.get(name, (SLOTS.index(PARAMETER_SLOT[name]), 0))
             values += [slot, channel]
-        raw = struct.pack("<9I", *values)
-        return raw + bytes(UNIFORM_BYTES - len(raw))
+        raw = struct.pack("<12I", *values)
+        assert len(raw) == UNIFORM_BYTES, len(raw)
+        return raw
 
 
 def material_plan(runtime: dict[str, RuntimeTexture]) -> MaterialPlan:

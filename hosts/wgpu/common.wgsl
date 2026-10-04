@@ -52,19 +52,8 @@ fn host_material() -> legacy_v2_Material {
     return m;
 }
 
-fn host_samples() -> legacy_v2_Samples {
-    var s: legacy_v2_Samples;
-    s.base_color = vec4<f32>(1.0);
-    s.roughness = 1.0;
-    s.metalness = 1.0;
-    s.specular_f0 = vec3<f32>(0.0);
-    s.specular_amount = 1.0;
-    s.ao = 1.0;
-    s.cavity = 1.0;
-    s.emissive = vec3<f32>(0.0);
-    s.normal_ts = vec3<f32>(0.0, 0.0, 1.0);
-    return s;
-}
+// host_samples(uv) -> legacy_v2_Samples comes from the pass's stitch: material.wgsl (the texture slots of
+// group 2) in the passes that run the material half, the unbound defaults in deferred_light.wgsl.
 
 // Any orthonormal frame around n: with a flat tangent-space normal the tangent choice cannot matter.
 fn host_tangent_frame(n: vec3<f32>) -> mat3x3<f32> {
@@ -164,7 +153,7 @@ fn host_inputs(position_ws: vec3<f32>, normal_ws: vec3<f32>, tangent_ws: vec4<f3
         let g = host_geometry(position_ws, normal_ws, tangent_ws, front_face);
         return lambert_inputs(host_frame.base_color.rgb, 1.0, vec3<f32>(0.0), g.normal_ws, g.view_ws, position_ws);
     }
-    return legacy_v2_inputs(host_material(), host_samples(), host_geometry(position_ws, normal_ws, tangent_ws, front_face));
+    return legacy_v2_inputs(host_material(), host_samples(uv), host_geometry(position_ws, normal_ws, tangent_ws, front_face));
 }
 
 fn host_environment_ibl() -> EnvironmentIBL {

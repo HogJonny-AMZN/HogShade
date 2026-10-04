@@ -6,6 +6,8 @@ Package: tools/wgpu/viewport
     uv run tools/wgpu/viewport.py                      # verification/wgpu/shader-ball/<env>/{forward,deferred}.png
     uv run tools/wgpu/viewport.py --debug-mode 18      # the v2 specular accumulator
     uv run tools/wgpu/viewport.py --material content/materials/legacy-v1/default.material.json --variant legacy-v1
+    uv run tools/wgpu/viewport.py --material content/materials/standard/rough/brick_wall_001.material.json \\
+        --out-dir verification/wgpu/textures/brick_wall_001      # a textured document: its cooked set on the slots
 
 Both paths render every time; the tool prints the mean and max difference between them over the
 pixels the ball covers, which is the deferred path's quantisation cost in scene-linear units.
@@ -26,7 +28,7 @@ sys.path.insert(0, str(ROOT))
 import logging as _logging
 
 from hogshade.ibl.imageio import preview_srgb8, write_png_rgb8
-from hogshade.material import bind, load, resolve
+from hogshade.material import bind, convert, load, resolve, runtime_textures
 from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
 
 _MODULE_NAME = "tools.wgpu.viewport"
@@ -68,7 +70,21 @@ def main(argv: list[str] | None = None) -> int:
         args.size,
         args.debug_mode,
     )
-    binding = bind(resolve(load(args.material)), "wgpu")
+    resolved = resolve(load(args.material))
+    if resolved.material_type == "hogshade-standard":  # the host carries legacy v2; the reverse table gets us there
+        converted, losses = convert(resolved, "hogshade-legacy-v2")
+        resolved = resolve(converted)
+        _LOGGER.info(
+            f"standard document converted to legacy v2; the table drops "
+            f"{', '.join(loss.parameter for loss in losses) or 'nothing'}"
+        )
+    binding = bind(resolved, "wgpu")
+    textures = runtime_textures(binding.textures, Path(args.material).parent) if binding.textures else None
+    if textures:
+        _LOGGER.info(
+            f"{len(textures)} texture(s) in their runtime form: "
+            + ", ".join(f"{k} <- {v.path.name}[{v.channels}]" for k, v in textures.items())
+        )
     _adapter, device = request_device()
     mesh = load_shader_ball()
     renderer = Renderer(device, mesh, environment=args.environment)
@@ -79,6 +95,7 @@ def main(argv: list[str] | None = None) -> int:
         debug_mode=args.debug_mode,
         hemisphere_mode=args.hemisphere_mode,
         environment=args.environment,
+        textures=textures,
     )
     frames = renderer.render(scene)
     elapsed = time.perf_counter() - t0

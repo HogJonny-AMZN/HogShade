@@ -23,6 +23,17 @@ from hogshade.ibl.dds import read_2d_rgba16f, read_cube_rgba16f
 from hogshade.material.binding import WGPU_MODEL_IDS, WGPU_MODELS, pack_fields
 from hogshade.material.generators import host_map
 from hogshade.material.model import Binding
+from hogshade.material.runtime import RuntimeTexture
+from hogshade.wgpu_textures import (
+    BC_FEATURE,
+    SLOTS,
+    UNIFORM_BYTES,
+    MaterialPlan,
+    bind_group_entries,
+    material_plan,
+    material_sampler,
+    neutral_texture,
+)
 
 _MODULE_NAME = "hogshade.wgpu_host"
 __version__ = "0.1.0"
@@ -35,6 +46,8 @@ CORE_WGSL = HOSTS_WGPU / "generated" / "hogshade_core.wgsl"
 SHADER_BALL = ROOT / "content" / "shaderball" / "shaderBall.obj"
 IBL_ROOT = ROOT / "content" / "ibl"
 PASSES = ("lit_mesh", "gbuffer_fill", "deferred_light")
+#: The passes that run the material half and so stitch material.wgsl (the texture slots at group 2, T3b).
+MATERIAL_PASSES = ("lit_mesh", "gbuffer_fill")
 
 # The host_Frame uniform in hosts/wgpu/common.wgsl, field for field, std140: matrices column-major.
 FRAME_DTYPE = np.dtype(
@@ -76,10 +89,16 @@ def lfs_hydrated(path: Path) -> bool:
 
 
 def stitch_pass(name: str) -> str:
-    """Core, then common.wgsl, then the pass file: what a wgpu pipeline compiles for pass ``name``."""
+    """
+    Core, then common.wgsl, then material.wgsl for a pass that runs the material half, then the pass file: what a
+    wgpu pipeline compiles for pass ``name``.
+    """
     if name not in PASSES:
         raise ValueError(f"unknown pass {name!r}; one of {PASSES}")
-    parts = [CORE_WGSL, HOSTS_WGPU / "common.wgsl", HOSTS_WGPU / f"{name}.wgsl"]
+    parts = [CORE_WGSL, HOSTS_WGPU / "common.wgsl"]
+    if name in MATERIAL_PASSES:
+        parts.append(HOSTS_WGPU / "material.wgsl")
+    parts.append(HOSTS_WGPU / f"{name}.wgsl")
     return "\n".join(p.read_text(encoding="utf-8") for p in parts)
 
 
@@ -318,10 +337,17 @@ class Scene:
     ground: tuple[float, float, float] = (0.2, 0.15, 0.1)
     environment: str = "studio_small_09"
     sh9: NDArray = field(default_factory=lambda: np.zeros((9, 3)))
+    #: The document's textures in their runtime form (``hogshade.material.runtime.runtime_textures`` of the
+    #: binding's ``textures`` against the document's directory); None or empty renders every slot neutral (T3b).
+    textures: dict[str, RuntimeTexture] | None = None
 
     @property
     def model(self) -> str:
         return self.material.model  # both kinds of material carry it
+
+    def plan(self) -> MaterialPlan:
+        """The material plan the textures become: bits, selectors and a source per slot; empty when untextured."""
+        return material_plan(self.textures or {})
 
     def view_proj(self) -> tuple[NDArray, NDArray]:
         eye = orbit_eye(self.yaw_deg, self.pitch_deg, self.distance)
@@ -394,6 +420,11 @@ class Renderer:
         self._build_layouts()
         self._build_pipelines()
         self._targets: dict = {}
+        self._texture_cache: dict[str, object] = {}  # DDS path -> texture, shared by every document over a set
+        self._material_groups: dict[tuple, object] = {}  # MaterialPlan.key -> bind group
+        self._neutral = {slot: neutral_texture(device, slot) for slot in SLOTS}
+        self._neutral["sampler"] = material_sampler(device)
+        self.bind_material_none = self._material_group(MaterialPlan())
         _LOGGER.info(
             "wgpu host ready: mesh %d vertices, environment %s (%d specular mips), GB3 %s",
             len(mesh.vertices),
@@ -489,6 +520,14 @@ class Renderer:
                 {"binding": 4, "visibility": frag, "texture": tex("depth", "2d")},
             ]
         )
+        # T3b: the material slots (material.wgsl), group 2 of the two passes that run the material half
+        self.layout_material = self.device.create_bind_group_layout(
+            entries=[{"binding": k, "visibility": frag, "texture": tex("float", "2d")} for k in range(len(SLOTS))]
+            + [
+                {"binding": 4, "visibility": frag, "sampler": {"type": "filtering"}},
+                {"binding": 5, "visibility": frag, "buffer": {"type": "uniform"}},
+            ]
+        )
         self.bind_frame = self.device.create_bind_group(
             layout=self.layout_frame,
             entries=[{"binding": 0, "resource": {"buffer": self.frame_buffer, "offset": 0, "size": FRAME_BYTES}}],
@@ -534,15 +573,20 @@ class Renderer:
         }
         depth = {"format": DEPTH_FORMAT, "depth_write_enabled": True, "depth_compare": wgpu.CompareFunction.less}
         self.pipe_forward = d.create_render_pipeline(
-            layout=d.create_pipeline_layout(bind_group_layouts=[self.layout_frame, self.layout_env]),
+            layout=d.create_pipeline_layout(
+                bind_group_layouts=[self.layout_frame, self.layout_env, self.layout_material]
+            ),
             vertex=self._mesh_vertex_state(modules["lit_mesh"]),
             primitive=primitive,
             depth_stencil=depth,
             fragment={"module": modules["lit_mesh"], "entry_point": "fs_main", "targets": [{"format": COLOR_FORMAT}]},
         )
         gb_formats = list(GBUFFER_FORMATS[:3]) + [self.gb3_format]
+        # the fill pass reads no environment, but material.wgsl puts the slots at group 2 for both mesh passes
         self.pipe_fill = d.create_render_pipeline(
-            layout=d.create_pipeline_layout(bind_group_layouts=[self.layout_frame]),
+            layout=d.create_pipeline_layout(
+                bind_group_layouts=[self.layout_frame, self.layout_env, self.layout_material]
+            ),
             vertex=self._mesh_vertex_state(modules["gbuffer_fill"]),
             primitive=primitive,
             depth_stencil=depth,
@@ -564,6 +608,27 @@ class Renderer:
                 "targets": [{"format": COLOR_FORMAT}],
             },
         )
+
+    def _material_group(self, plan: MaterialPlan):
+        """
+        The bind group for a plan, built once per distinct key (two documents over one set that bind different
+        subsets get two groups; the DDS uploads behind them are shared by path).
+        """
+        group = self._material_groups.get(plan.key)
+        if group is not None:
+            return group
+        wgpu = self.wgpu
+        uniform = self.device.create_buffer_with_data(data=plan.uniform_bytes(), usage=wgpu.BufferUsage.UNIFORM)
+        entries = bind_group_entries(self.device, plan, self._texture_cache, self._neutral)
+        entries.append({"binding": 5, "resource": {"buffer": uniform, "offset": 0, "size": UNIFORM_BYTES}})
+        group = self.device.create_bind_group(layout=self.layout_material, entries=entries)
+        self._material_groups[plan.key] = group
+        _LOGGER.info(
+            f"material bind group {len(self._material_groups)}: {len(plan.sources)} slot(s) from files "
+            f"({', '.join(sorted(plan.sources)) or 'none'}), bits {plan.bound:#x}, "
+            f"{len(self._texture_cache)} texture(s) resident"
+        )
+        return group
 
     def _ensure_targets(self, width: int, height: int) -> dict:
         wgpu = self.wgpu
@@ -641,6 +706,7 @@ class Renderer:
         if w % 32:
             raise ValueError("width must be a multiple of 32 so the readback rows are 256-byte aligned")
         t = self._ensure_targets(w, h)
+        bind_material = self._material_group(scene.plan()) if scene.textures else self.bind_material_none
         self.device.queue.write_buffer(self.frame_buffer, 0, scene.frame_bytes(self.specular_mip_count))
         encoder = self.device.create_command_encoder()
         self._draw_mesh(
@@ -648,14 +714,14 @@ class Renderer:
             self.pipe_forward,
             [t["forward"].create_view()],
             t["depth_forward"].create_view(),
-            [self.bind_frame, self.bind_env],
+            [self.bind_frame, self.bind_env, bind_material],
         )
         self._draw_mesh(
             encoder,
             self.pipe_fill,
             [g.create_view() for g in t["gbuffer"]],
             t["depth"].create_view(),
-            [self.bind_frame],
+            [self.bind_frame, self.bind_env, bind_material],
         )
         wgpu = self.wgpu
         rpass = encoder.begin_render_pass(
@@ -683,14 +749,20 @@ class Renderer:
 
 
 def request_device(power_preference: str = "high-performance"):
-    """An adapter and device with the optional G-buffer feature when the adapter has it."""
+    """
+    An adapter and device with the optional features the adapter has: the G-buffer's rg11b10 target and, for the
+    cooked block-compressed sets (T3b), ``texture-compression-bc``.
+    """
     import wgpu
 
     adapter = wgpu.gpu.request_adapter_sync(power_preference=power_preference)
-    features = ["rg11b10ufloat-renderable"] if "rg11b10ufloat-renderable" in adapter.features else []
+    wanted = ("rg11b10ufloat-renderable", BC_FEATURE)
+    features = [f for f in wanted if f in adapter.features]
+    missing = [f for f in wanted if f not in adapter.features]
     info = adapter.info
     _LOGGER.info(
-        "adapter %s (%s), features requested: %s", info.get("device"), info.get("backend_type"), features or "none"
+        f"adapter {info.get('device')} ({info.get('backend_type')}), features requested: {features or 'none'}"
+        + (f"; not offered: {missing}" if missing else "")
     )
     return adapter, adapter.request_device_sync(required_features=features)
 

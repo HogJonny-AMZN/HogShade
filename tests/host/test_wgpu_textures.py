@@ -56,8 +56,9 @@ def test_a_full_plan_sets_every_bit_and_selector():
         "ambient_occlusion_map": (SLOTS.index("orm"), 0),
         "cavity_map": (SLOTS.index("cavity"), 0),
     }
-    values = struct.unpack("<9I", plan.uniform_bytes()[:36])
-    assert values == (plan.bound, 2, 1, 2, 2, 2, 0, 3, 0) and len(plan.uniform_bytes()) == UNIFORM_BYTES
+    values = struct.unpack("<12I", plan.uniform_bytes())
+    assert values[0] == plan.bound and values[4:] == (2, 1, 2, 2, 2, 0, 3, 0), "sel_a at 16, sel_b at 32"
+    assert len(plan.uniform_bytes()) == UNIFORM_BYTES
 
 
 def test_roughness_alone_leaves_metalness_and_ao_unbound():
