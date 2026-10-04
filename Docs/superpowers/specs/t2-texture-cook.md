@@ -263,8 +263,8 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
   profile is an `alpha_*` one; a `pack` naming a missing map, a three-channel suffix or a non-carrier is a
   finding.
 - `test_separate.py`: on a tiling test tile, low and high both tile (the wrapped border equals the opposite
-  edge within one 8-bit step), `recon == source` away from clipping, the error fields are the measured
-  values, the macro is the stated size; sigma follows the radius.
+  edge within one 8-bit step), `|recon - source|` within one 8-bit step everywhere, the error fields are the
+  measured values, the macro is the stated size; sigma follows the radius.
 - `test_cook.py`: a scratch set (the T1 test corpus's shape) cooks to the expected files, the manifest's
   sha256 match the files, cooking twice is byte-identical, the sidecars gain their derived fields and the
   authored fields are untouched, a set with a T1 finding is refused, `check_content.py` passes on the cooked
