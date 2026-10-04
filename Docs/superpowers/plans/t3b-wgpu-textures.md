@@ -17,7 +17,7 @@ Spec: [../specs/t3b-wgpu-textures.md](../specs/t3b-wgpu-textures.md).
       deliberately tilted normals keeps them); **parity with Maya's MikkTSpace** on the shader ball (a BATS job
       dumps the tangents once, `tests/host/fixtures/shaderball_mikktspace.npz`; direction within 1 degree, sign
       exact, seams and mirrored islands included) and on a hand-made seam mesh; the shader ball's vertex count
-      equals its distinct corners; the untextured render unchanged (the arbitrary frame kept where the tangent
+      equals its distinct `(v, vt, vn, handedness)` corners and a seam both handednesses share is split; the untextured render unchanged (the arbitrary frame kept where the tangent
       is zero).
 - [x] 2. **`hogshade/wgpu_textures.py`**: `upload_dds` (every mip, block pitch for BC, row pitch otherwise, the
       DXGI to wgpu format table), `neutral_texture`, `material_textures` from `runtime_textures` with the

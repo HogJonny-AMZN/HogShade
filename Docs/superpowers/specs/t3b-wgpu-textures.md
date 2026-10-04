@@ -18,9 +18,11 @@ The wgpu host reads a cooked texture set the way the Maya shell does since T3: a
 textures renders on the shader ball through the forward and deferred paths with its colour, normal, roughness,
 metalness and ambient occlusion sampled from the DDS the cook wrote, and the gallery's first comparison matrix
 puts the five committed sets on both hosts side by side. After T3b the wgpu host map carries no texture
-parameter as `unsupported` except height (parallax is not in this host) and emission (no emission term), and
-the two hosts render the same material from the same files, which is the floor the comparison framework (G4)
-stands on.
+parameter as `unsupported` except height (parallax is not in this host), emission (no emission term) and the
+specular F0 map (no slot; the six textured inputs are base colour, normal, roughness, metalness, AO and
+cavity), and the two hosts render the same material from the same files, which is the floor the comparison
+framework (G4) stands on. A standard document is converted to legacy v2 (`convert`, the reverse table) before it
+is bound, in the viewport, the contact sheet and the matrix tool alike; T3b adds no shading model.
 
 ## What the host lacks today, read from the code
 
@@ -42,9 +44,13 @@ stands on.
 
 `Mesh.vertices` becomes `(n, 12)` float32: position, normal, uv, tangent with its sign in `w`
 (`float32x3, float32x3, float32x2, float32x4`; stride 48). `load_obj` reads `vt` and keys a vertex on
-`(v, vt, vn)`. Tangents come from a MikkTSpace implementation (question 1): the standard says every host
-generates MikkTSpace tangents when a file carries none, the OBJ carries none, and a normal map baked in Maya
-(MikkTSpace by default since 2026) decodes correctly only in that frame. The shaders' `host_VertexIn` gains
+`(v, vt, vn)` **and its face's UV handedness**: the reference returns tangents per face corner and warns against
+writing them back through an existing index list, because a vertex that faces of both handednesses share (a
+mirrored island's seam) needs two signs; keying on the handedness splits that vertex at load, and
+`mikktspace.split_mixed_handedness` does the same for arrays from any other source before the tangents are
+generated. Tangents come from a MikkTSpace implementation (question 1): the standard says every host generates
+MikkTSpace tangents when a file carries none, the OBJ carries none, and a normal map baked in Maya (MikkTSpace
+when the Polygon Tangent Space preference says so) decodes correctly only in that frame. The shaders' `host_VertexIn` gains
 `uv` and `tangent`; `host_geometry` builds the frame from the interpolated tangent, bitangent (`cross(n, t) *
 sign`) and normal, and keeps the arbitrary frame only when the tangent is zero (a mesh without UVs).
 
