@@ -1,6 +1,6 @@
 # T3b plan: the wgpu host samples the runtime set
 
-**Status:** Proposed. Drafted 2026-10-04 with the spec; question 1 (tangents) answered by the owner the same
+**Status:** Accepted (owner, 2026-10-04: "go"). Drafted 2026-10-04 with the spec; question 1 (tangents) answered by the owner the same
 day (a generator of our own, the normals as given, a flag for an unknown basis); built after approval. Test-first: each task's test lands with it; the GPU tests run on the owner's machine and are skipped on
 CI, which the PR states.
 

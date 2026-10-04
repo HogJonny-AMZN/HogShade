@@ -1,6 +1,6 @@
 # T3b spec: the wgpu host samples the runtime set
 
-**Status:** Proposed. Drafted 2026-10-04 from the T3 spec's "out of scope" (wgpu samples no texture), the content
+**Status:** Accepted (owner, 2026-10-04: "go"; question 2 on its recommendation). Drafted 2026-10-04 from the T3 spec's "out of scope" (wgpu samples no texture), the content
 standard and the T2 cook. Question 1 (tangents) is answered by the owner the same day: a MikkTSpace generator of our
 own on arbitrary data, the source's normals taken as given, and a flag for assets that arrive with baked tangents of
 an unknown basis; question 2 proceeds on its recommendation.
