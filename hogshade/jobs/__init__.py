@@ -21,7 +21,12 @@ __version__ = "0.1.0"
 __updated__ = "2026-09-27"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
-JOB_MODULES = ("hogshade.jobs.cook_ibl", "hogshade.jobs.maya_ibl_check", "hogshade.jobs.cook_textures")
+JOB_MODULES = (
+    "hogshade.jobs.cook_ibl",
+    "hogshade.jobs.maya_ibl_check",
+    "hogshade.jobs.cook_textures",
+    "hogshade.jobs.maya_texture_check",
+)
 
 
 def manifest() -> list[dict]:

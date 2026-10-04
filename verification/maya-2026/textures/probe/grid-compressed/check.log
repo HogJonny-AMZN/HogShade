@@ -1,0 +1,8 @@
+started Sat Oct  3 23:38:40 2026
+shader D:\Depot\HogShade\hosts\maya_dx11\hogshade.fx
+set C:\Users\hogjo\AppData\Local\Temp\claude\d--Depot-LargeWorlds\c9687869-d0bb-4072-8ba2-08a8f45ed7e9\scratchpad\probe\compressed\grid
+document <built from the set>
+log is incremental
+MENUS 63: File, Edit, Create, Select, Modify, Display, Windows, Mesh, Edit Mesh, Mesh Tools, Mesh Display, Curves, Surfaces, Deform, UV, Generate, Recent Commands, Hotbox Controls, Key, Playback, Audio, Visualize, Deform, Constrain, nParticles, Fluids, nCloth, nHair, nConstraint, nCache, Fields/Solvers, Effects, Lighting/Shading, Texturing, Render, Toon, Stereo, Skeleton, Skin, Deform, Constrain, Control, Cache, Bifrost Rigging, Flow, Arnold, Hotbox North 1, Hotbox North 2, Hotbox North 3, Hotbox South 1, Hotbox South 2, Hotbox South 3, Hotbox East 1, Hotbox East 2, Hotbox East 3, Hotbox West 1, Hotbox West 2, Hotbox West 3, Hotbox Center 1, Hotbox Center 2, Hotbox Center 3, MASH, Help 
+BOUND hogshade-legacy-v2 as legacy-v2: 8 texture(s); losses ['specular_color', 'specular_anisotropy', 'specular_rotation', 'specular_occlusion']
+HISTORY D:\Depot\HogShade\verification\maya-2026\textures\probe\grid-compressed\maya-history.log
