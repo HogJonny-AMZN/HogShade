@@ -9,7 +9,7 @@ Package: tools/wgpu/contact_sheet
 Each document is resolved, converted to hogshade-legacy-v2 (the table lists what that loses, once), bound for
 wgpu and rendered on the forward path under the calibration environment; the tiles are laid out in roster
 order (families in the index's order, a family's parent first), six to a row, each with a label strip under it
-naming the family and the document's title (``tools/wgpu/bitmap_font.py``; the owner, 2026-10-04: "they need
+naming the family and the document's title (``hogshade.bitmap_font``; the owner, 2026-10-04: "they need
 context"). The JSON beside the picture is the legend, one entry per cell with its title and document. The
 picture stays within the gallery's rule (at most 1024 on a side).
 """
@@ -30,8 +30,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from bitmap_font import draw_text, fit
-
+from hogshade.bitmap_font import draw_text, fit
 from hogshade.ibl.imageio import preview_srgb8, write_png_rgb8
 from hogshade.material import MaterialError, bind, convert, documents_under, load, load_table, resolve
 from hogshade.material.library import family_of

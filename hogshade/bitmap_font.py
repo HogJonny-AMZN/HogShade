@@ -1,6 +1,6 @@
 """
 HogShade: a 5x7 bitmap font for labels on verification pictures, with no font rasteriser in the repository.
-Package: tools/wgpu/bitmap_font
+Package: hogshade/bitmap_font
 
 ``draw_text(image, text, x, y)`` paints ``text`` into a float RGB image at an integer scale; letters are upper
 case (a lower-case letter maps to its capital), digits and a few marks (space, ``_ - . , ' / : ( )``) are drawn, any
@@ -16,7 +16,7 @@ import logging as _logging
 import numpy as np
 from numpy.typing import NDArray
 
-_MODULE_NAME = "tools.wgpu.bitmap_font"
+_MODULE_NAME = "hogshade.bitmap_font"
 __version__ = "0.1.0"
 __updated__ = "2026-10-04"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
@@ -92,9 +92,11 @@ def fit(text: str, width: int, scale: int = 1) -> str:
     """``text`` cut to what fits in ``width`` pixels, the cut marked with a trailing dot when it happened."""
     if text_width(text, scale) <= width:
         return text
-    per = ADVANCE * scale
-    n = max(width // per - 1, 0)
-    return text[:n] + "." if n else ""
+    for n in range(len(text) - 1, -1, -1):  # the longest prefix whose rendered width, dot included, fits
+        cut = text[:n] + "."
+        if text_width(cut, scale) <= width:
+            return cut
+    return ""
 
 
 def draw_text(

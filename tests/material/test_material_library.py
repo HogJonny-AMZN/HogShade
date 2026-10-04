@@ -312,9 +312,8 @@ def test_the_sheet_layout_and_the_command_record():
 
     assert sheet.sheet_layout(22, 192) == (1152, 4 * (192 + sheet.LABEL_H))
     assert sheet.sheet_layout(1, 32) == (192, 32 + sheet.LABEL_H)
-    assert (
-        sheet.sheet_layout(26, 160) <= (960, 5 * (160 + sheet.LABEL_H)) and 5 * (160 + sheet.LABEL_H) <= sheet.MAX_SIDE
-    )
+    width, height = sheet.sheet_layout(26, 160)
+    assert (width, height) == (960, 5 * (160 + sheet.LABEL_H)) and max(width, height) <= sheet.MAX_SIDE
     assert sheet.label_for("metal", "Gold", 160) == ("metal", "Gold")
     assert sheet.label_for("dielectric", "Glossy plastic, the long one", 64)[1].endswith(".")
     assert sheet.label_for("metal", "Metal plate", 160)[1] == "Metal plate", "thirteen characters fit at scale 2"
@@ -359,7 +358,7 @@ def test_the_sheet_prepares_every_document_before_the_device(tmp_path: Path):
 
 
 def test_the_bitmap_font_draws_every_label_character_and_boxes_the_unknown():
-    import bitmap_font as font
+    from hogshade import bitmap_font as font
     import numpy as np
 
     for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _-.,'/:()":
@@ -368,7 +367,8 @@ def test_the_bitmap_font_draws_every_label_character_and_boxes_the_unknown():
     assert font.glyph("a").tolist() == font.glyph("A").tolist(), "lower case draws its capital"
     assert font.glyph("%").tolist() == font.glyph("\u00e9").tolist(), "the unknown is one box, never dropped"
     assert font.text_width("abc", 1) == 17 and font.text_width("", 3) == 0
-    assert font.fit("metal / aluminium", 40, 1) == "metal."  # five characters fit in 40 px, the sixth is the dot
+    assert font.fit("metal / aluminium", 40, 1) == "metal ."  # six characters are 35 px, seven would be 41
+    assert font.fit("abcd", 17, 1) == "ab." and font.fit("abcd", 5, 1) == "." and font.fit("abcd", 4, 1) == ""
     canvas = np.zeros((20, 60, 3), dtype=np.float32)
     font.draw_text(canvas, "AB", 1, 1, scale=1, colour=(1.0, 0.5, 0.0))
     assert canvas[..., 0].sum() > 0 and canvas[1, 2, 0] == 1.0 and canvas[1, 2, 1] == 0.5, (
