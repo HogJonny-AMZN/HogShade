@@ -358,8 +358,9 @@ def test_the_sheet_prepares_every_document_before_the_device(tmp_path: Path):
 
 
 def test_the_bitmap_font_draws_every_label_character_and_boxes_the_unknown():
-    from hogshade import bitmap_font as font
     import numpy as np
+
+    from hogshade import bitmap_font as font
 
     for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _-.,'/:()":
         g = font.glyph(ch)
@@ -367,7 +368,9 @@ def test_the_bitmap_font_draws_every_label_character_and_boxes_the_unknown():
     assert font.glyph("a").tolist() == font.glyph("A").tolist(), "lower case draws its capital"
     assert font.glyph("%").tolist() == font.glyph("\u00e9").tolist(), "the unknown is one box, never dropped"
     assert font.text_width("abc", 1) == 17 and font.text_width("", 3) == 0
-    assert font.fit("metal / aluminium", 40, 1) == "metal ."  # six characters are 35 px, seven would be 41
+    assert (
+        font.fit("metal / aluminium", 40, 1) == "metal."
+    )  # six characters, the dot included, are 35 px; seven would be 41
     assert font.fit("abcd", 17, 1) == "ab." and font.fit("abcd", 5, 1) == "." and font.fit("abcd", 4, 1) == ""
     canvas = np.zeros((20, 60, 3), dtype=np.float32)
     font.draw_text(canvas, "AB", 1, 1, scale=1, colour=(1.0, 0.5, 0.0))
