@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-04, evening: T2 built (`feat/t2-texture-cook`, PR #55 open after three local-review rounds, stacked on #54 which carries the spec's setup section); the spec merged as #53; T1 merged (#50, #51); #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-04, late: T2 merged (#53 spec, #54 setup section, #55 the build; bookkeeping PR `docs/t2-landed`); nothing in flight; T1 merged (#50, #51); #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -18,18 +18,19 @@ logging architecture for apps**; it is recorded nowhere yet and must be confirme
 into a standard (the guess: a stream handler for the terminal, a per-run file, and the in-app console handler,
 configured at the entry point only).
 
-**Sit rep, 2026-10-04, evening.** T2 is built and awaiting the owner: #54 (the spec's setup section, a
-commit that missed #53's merge) and the build PR #55 stacked on it (local review: three rounds, pass at 7+). The texture cook exists: an authoring set to its
-runtime set (DDS with mips in linear at DDS sizes, normals to `opengl+y`, `_ORM` and alpha carriers through
-the `pack` sidecar field, height at the source's precision), block-compressed through `ispc_texcomp` (the
-owner's pick, the `textures` extra under `uv sync --all-extras`, uncompressed with a warning without it),
-the owner's frequency separation with its error measured, manifest and provenance, a BATS job, the setup in
-every getting-started place. The proof: Poly Haven's `cobblestone_floor_04` cooked in 3.3 s and separated
-outside the repository, four pictures in the gallery. Two things learned: BC4 and BC5 take R8 and RG8
-surfaces (in the spec), and mips must follow the DDS size rule, not pad. No set is committed; T3 commits the
-first. Open on #54: Copilot's two findings (the T2 board row and handoff said the encoder was undecided; the
-spec's compression paragraph had two behaviours), fixed on that branch. Next: T3 the first set (S4b) with its
-host half (a Maya bind or the wgpu texture bind group), T4 the showcase set with the owner.
+**Sit rep, 2026-10-04, late.** T2 is merged: the texture cook exists on master (#53 spec and plan, #54 the
+spec's setup section, #55 the build). An authoring set cooks to its runtime set under `cooked/` (DDS with mips in
+linear at DDS sizes, normals to `opengl+y`, `_ORM` and alpha carriers through the `pack` sidecar field, height
+at the source's precision), block-compressed through `ispc_texcomp` (the `textures` extra under `uv sync
+--all-extras`, uncompressed with a warning without it), the owner's frequency separation with its error
+measured, a deterministic manifest and a volatile provenance, a BATS job, the setup in every getting-started
+place, the proof pictures (Poly Haven `cobblestone_floor_04`) in the gallery. What the reviews taught, now rules
+in the cook: validate every shape before writing anything, write the records after every artifact and as LF
+bytes, never let a re-cook drop a record whose files exist, and say in the log what was decided on the caller's
+behalf. Not covered: TIFF (recommended no), `texconv` found but unwired, no host samples a texture yet. Nothing
+is in flight. Next: T3 the first committed set (S4b) with its host half (a Maya bind or the wgpu texture bind
+group; spec first), then T4 the showcase set authored with the owner. Open with the owner: the three-tier
+logging architecture for apps (the owner will find it); the f-string conversion pass is a board row.
 
 **Sit rep, 2026-10-02, late night.** #40 merged: the S4 design is in with eight questions and the owner
 has not answered them yet; nothing of S4 is built until they do. The owner said two things worth more than
