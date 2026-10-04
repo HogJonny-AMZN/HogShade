@@ -211,8 +211,8 @@ renders the shader ball forward and deferred to `verification/wgpu/shader-ball/<
 ```text
 uv sync --all-extras                      # brings ispc_texcomp, the BC7/BC5/BC4 encoder (the `textures` extra)
 uv run tools/cook_textures.py --check-setup
-uv run tools/cook_textures.py cook content/materials/standard/rough/brick
-uv run tools/cook_textures.py separate content/materials/standard/rough/brick --radius 16 --macro 64
+uv run tools/cook_textures.py cook <set_dir>                                  # T3 commits the first set
+uv run tools/cook_textures.py separate <set_dir> --radius 16 --macro 64
 ```
 
 turns an authoring set (`T_<set>_<SUFFIX>.png` or `.exr` with its `.texture.json` sidecar and the directory's

@@ -56,6 +56,8 @@ TO_TYPE_NOTE = "hogshade-standard suffixes (Docs/standards/content.md)"
 COLOUR_SUFFIXES = ("_BC", "_E")
 DATA_RGB_SUFFIXES = ("_SC",)
 BLOCK_NAMES = {"bc7": "BC7_UNORM", "bc5": "BC5_UNORM", "bc4": "BC4_UNORM"}
+#: The maps ``separate_set`` knows how to split: colour to ``_DH`` and a macro, the normal to ``_DN`` and a macro.
+SEPARABLE_SUFFIXES = ("_BC", "_N")
 ORM_CHANNEL_SOURCE = dict(zip("RGB", pack.ORM_SOURCES))
 
 
@@ -92,7 +94,8 @@ class Source:
 
 @dataclass
 class CookResult:
-    """What ``cook_set`` returns: the manifest as written and every file the cook wrote."""
+    """What ``cook_set`` returns: the manifest as written and every file the cook wrote, the sidecars it filled
+    included (a second cook of the same set writes no sidecar, so the list is shorter)."""
 
     manifest: dict[str, Any] = field(default_factory=dict)
     written: list[Path] = field(default_factory=list)
@@ -181,10 +184,10 @@ def _read_samples(p: Path, suffix: str, problems: list[str]) -> NDArray | None:
 def _check_shapes(sources: list[Source], problems: list[str]) -> None:
     """
     The shape rules a set must meet before anything is written: every map of one base and variant at one size (a
-    pack target or an ``_ORM`` part of another size cannot be packed), one base per directory (the packing matches
-    by suffix and variant), the ``_ORM`` alpha declared on at most one of its parts per variant, no grey-alpha
-    source where RGB is meant (grey is broadcast, RGBA loses its alpha), and every ``pack`` target present in the
-    carrier's own variant.
+    pack target or an ``_ORM`` part of another size cannot be packed), one source per parameter (a ``.png`` and an
+    ``.exr`` of one stem would write one DDS), one base per directory (the packing matches by suffix and variant),
+    the ``_ORM`` alpha declared on at most one of its parts per variant, no grey-alpha source where RGB is meant
+    (grey is broadcast, RGBA loses its alpha), and every ``pack`` target present in the carrier's own variant.
     """
     by_group: dict[tuple[str, str | None], list[Source]] = {}
     for s in sources:
@@ -193,6 +196,13 @@ def _check_shapes(sources: list[Source], problems: list[str]) -> None:
         if len({s.size for s in group}) > 1:
             listed = ", ".join(f"{s.path.name} {s.size[0]}x{s.size[1]}" for s in group)
             problems.append(f"one size per set and variant (the packing needs it): {listed}")
+    seen: dict[str, Source] = {}
+    for s in sources:
+        other = seen.setdefault(s.stem, s)
+        if other is not s:
+            problems.append(
+                f"{other.path.name} and {s.path.name}: one source per parameter; both would write {s.stem}.dds"
+            )
     bases = sorted({s.base for s in sources})
     if len(bases) > 1:
         problems.append(f"one base per set directory (the packing matches by suffix and variant): {', '.join(bases)}")
@@ -601,6 +611,7 @@ def cook_set(
         if filled:
             s.sidecar_path.write_bytes(_dump(data).encode("utf-8"))
             s.sidecar = data
+            oven.written.append(s.sidecar_path)
             _LOGGER.info("wrote %s: derived %s", s.sidecar_path.name, ", ".join(filled))
         derived.extend(f"{s.sidecar_path.name}:{k}" for k in data.get("derived", []))
     separations = _keep_separation(out_dir, oven.textures)
@@ -645,8 +656,13 @@ def cook_set(
 
 
 def _normal_levels(xy_unit: NDArray[np.float32]) -> list[NDArray[np.float32]]:
-    """The two-channel runtime chain of an encoded X, Y image: Z reconstructed, mips renormalised."""
-    return [normals.to_rg(normals.encode(lvl)) for lvl in mips.normal_chain(normals.reconstruct_z(xy_unit))]
+    """
+    The two-channel runtime chain of an encoded X, Y image: Z reconstructed and level 0 renormalised (a separated
+    X, Y can leave the unit disk, where ``reconstruct_z`` clamps Z to zero), then every mip renormalised.
+    """
+    xyz = normals.reconstruct_z(xy_unit)
+    unit = normals.decode(normals.encode(xyz))  # decode renormalises; a flat texel stays (0, 0, 1)
+    return [normals.to_rg(normals.encode(lvl)) for lvl in mips.normal_chain(unit)]
 
 
 def separate_set(
@@ -668,12 +684,21 @@ def separate_set(
     ``picture_size`` (the gallery's rule: at most 1024 on a side and 1 MiB; never under content).
     """
     set_dir = Path(set_dir).resolve()
+    if source_suffix not in SEPARABLE_SUFFIXES:
+        raise CookError(f"separate takes one of {SEPARABLE_SUFFIXES}, not {source_suffix!r}")
+    if radius <= 0 or macro_size < 1 or picture_size < 1:
+        raise CookError(
+            f"separate: radius is positive and macro and picture sizes at least 1 (got {radius}, {macro_size}, "
+            f"{picture_size})"
+        )
     sources = read_sources(set_dir)
     src = _single(sources, source_suffix, None)
     if src is None:
         raise CookError(f"{set_dir.name}: no {source_suffix} map to separate")
     if compress is not False and encoder is None:
         encoder = default_encoder()
+    if compress is True and encoder is None:
+        raise CookError(f"--compress asked for and no encoder is installed; {INSTALL_HINT}")
     if compress is False:
         encoder = None
     out_dir = set_dir / COOKED_DIR

@@ -62,9 +62,15 @@ def test_the_packed_alpha_and_the_flip_reach_the_pixels(brick: Path):
 def test_cooking_twice_is_byte_identical_and_sidecars_gain_only_derived_fields(brick: Path):
     before = json.loads((brick / "T_brick_BC.texture.json").read_text(encoding="utf-8"))
     first = cook.cook_set(brick, compress=False)
-    hashes = {p.name: cook.sha256_file(p) for p in first.written if p.name != "provenance.json"}
+    assert {p.name for p in first.written if p.name.endswith(".texture.json")} == {
+        p.name for p in brick.glob("*.texture.json")
+    }, "the first cook filled every sidecar and lists them"
+    hashes = {p.name: cook.sha256_file(p) for p in first.written if p.suffix == ".dds" or p.name == "manifest.json"}
     second = cook.cook_set(brick, compress=False)
-    assert {p.name: cook.sha256_file(p) for p in second.written if p.name != "provenance.json"} == hashes
+    assert not [p for p in second.written if p.name.endswith(".texture.json")], "nothing left to fill"
+    assert {
+        p.name: cook.sha256_file(p) for p in second.written if p.suffix == ".dds" or p.name == "manifest.json"
+    } == hashes
     after = json.loads((brick / "T_brick_BC.texture.json").read_text(encoding="utf-8"))
     assert after["provenance"] == before["provenance"] and after["pack"] == before["pack"], "authored fields untouched"
     assert set(after["derived"]) == {"preset", "colour_space", "mips", "runtime", "resolution"}
@@ -148,11 +154,14 @@ def test_separation_writes_the_detail_pair_and_records_the_error(brick: Path, tm
     dn = cook.separate_set(brick, radius=4, macro_size=8, source_suffix="_N", compress=False)
     assert set(dn["outputs"]) == {"T_brick_DN.dds", "T_brick_N_macro.dds"}
     assert set(_manifest(brick)["separation"]) == {"_BC", "_N"}, "one record per separated suffix"
-    rg = dds2d.read_2d(brick / "cooked" / "T_brick_DN.dds").levels[1].astype(np.float32) / 255.0
-    xyz = cook.normals.reconstruct_z(rg)
-    assert np.allclose(np.linalg.norm(xyz, axis=-1), 1.0, atol=0.02), "the detail normal's mips are unit length"
-    with pytest.raises(cook.CookError, match="no _E map"):
+    for level in dds2d.read_2d(brick / "cooked" / "T_brick_DN.dds").levels[:2]:
+        xyz = cook.normals.reconstruct_z(level.astype(np.float32) / 255.0)
+        assert np.allclose(np.linalg.norm(xyz, axis=-1), 1.0, atol=0.02), "the detail normal's levels are unit length"
+    with pytest.raises(cook.CookError, match="separate takes one of"):
         cook.separate_set(brick, source_suffix="_E")
+    for bad in ({"macro_size": 0}, {"radius": 0}, {"picture_size": 0}):
+        with pytest.raises(cook.CookError, match="at least 1|positive"):
+            cook.separate_set(brick, **bad)
 
 
 def test_the_content_check_passes_on_a_cooked_set(brick: Path, tmp_path: Path):

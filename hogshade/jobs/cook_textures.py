@@ -81,6 +81,9 @@ def main(parameters: dict) -> dict:
     if compress_param not in compress_values:
         _LOGGER.warning("compress=%r is not one of %s; treated as auto", compress_param, sorted(compress_values))
     compress = compress_values.get(compress_param, None)
+    height_param = str(parameters.get("height", "keep"))
+    if height_param not in ("keep", "normalise"):
+        raise CookError(f"height={height_param!r} is not 'keep' or 'normalise'")
     _LOGGER.info(
         "cook_textures job: %s compress=%s bc7=%s height=%s",
         set_dir,
@@ -96,7 +99,7 @@ def main(parameters: dict) -> dict:
         compress=compress,
         encoder=encoder,
         bc7_profile=str(parameters.get("bc7_profile", "basic")),
-        height_normalise=str(parameters.get("height", "keep")) == "normalise",
+        height_normalise=height_param == "normalise",
     )
     manifest = dict(result.manifest)
     if str(parameters.get("separate", "0")) in ("1", "true", "yes"):

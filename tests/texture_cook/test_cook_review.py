@@ -72,6 +72,39 @@ def test_a_pack_declared_on_two_orm_parts_is_a_finding(tmp_path: Path, texture_w
     assert m["textures"]["T_two_ORM.dds"]["packed"]["A"] == "T_two_H.png" and "T_two_O.dds" in m["textures"]
 
 
+def test_two_sources_of_one_parameter_are_a_finding(tmp_path: Path, texture_writer):
+    s = _set(tmp_path, "dup")
+    texture_writer(s, "T_dup_H", np.zeros((4, 4, 1), np.uint16))
+    import OpenEXR
+
+    header = {"compression": OpenEXR.ZIP_COMPRESSION, "type": OpenEXR.scanlineimage}
+    with OpenEXR.File(header, {"R": np.zeros((4, 4), np.float32)}) as f:
+        f.write(str(s / "T_dup_H.exr"))  # a real EXR of the same stem, beside the PNG and its sidecar
+    with pytest.raises(cook.CookError, match="one source per parameter") as e:
+        cook.cook_set(s, compress=False)
+    assert "T_dup_H.exr" in str(e.value) and "T_dup_H.png" in str(e.value)
+
+
+def test_separate_with_compress_required_and_no_encoder_is_an_error(brick: Path, monkeypatch):
+    monkeypatch.setattr(cook, "default_encoder", lambda: None)
+    cook.cook_set(brick, compress=False)
+    with pytest.raises(cook.CookError, match="uv sync --extra textures"):
+        cook.separate_set(brick, radius=4, macro_size=8, compress=True)
+    assert not (brick / "cooked" / "T_brick_DH.dds").exists(), "refused before anything was written"
+
+
+def test_a_detail_normal_from_x_y_outside_the_unit_disk_is_unit_at_level_0():
+    xy = np.full((4, 4, 2), 1.0, np.float32)  # X = Y = +1 after decoding: far outside the disk
+    rg = cook._normal_levels(xy)[0]
+    xyz = cook.normals.reconstruct_z(rg)
+    assert np.allclose(np.linalg.norm(xyz, axis=-1), 1.0, atol=0.01)
+
+
+def test_the_job_refuses_an_unknown_height_value(brick: Path):
+    with pytest.raises(cook.CookError, match="height='normalise ' is not"):
+        job.main({"set_dir": str(brick), "compress": "no", "height": "normalise "})
+
+
 def test_two_bases_in_one_directory_are_a_finding(tmp_path: Path, texture_writer):
     s = _set(tmp_path, "pair")
     texture_writer(s, "T_a_AO", np.zeros((4, 4, 1), np.uint8))

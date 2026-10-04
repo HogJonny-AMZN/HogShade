@@ -177,8 +177,10 @@ code (co3dex 2022, section "Basic Frequency Separation" and "Tiling Textures"):
 3. `high = clip((source - low) * 0.5 + 0.5)`: the post's "subtract, offset 128, scale 2" in [0, 1]; mid-grey
    is neutral.
 4. Recombination `recon = clip(low + 2 * high - 1)` (linear light, O3DE's `TextureBlend_LinearLight`); the
-   **reconstruction error** `max |recon - source|` and its mean over the tile go into the manifest. The
-   error is zero except where the high-pass clipped; the manifest also counts clipped texels.
+   **reconstruction error** `max |recon - source|` and its mean over the tile go into the manifest, measured
+   through the 8-bit quantisation of the written high-pass (what a shader samples), so it is within one 8-bit
+   step (`1/255`) everywhere and the manifest also counts the texels where the recombination had to clip
+   (amended in the build; the first draft said zero except where clipped, a tautology in floats).
 5. Outputs under `cooked/`: `T_<set>_DH.dds` (the high-pass, raw, full resolution, `R8G8B8A8_UNORM`) and
    `T_<set>_BC_macro.dds` (the low-pass box-downsampled to `--macro` texels on its longer side, sRGB;
    `macro` is a variant, so the name meets the grammar); and a display PNG pair under `verification/`
