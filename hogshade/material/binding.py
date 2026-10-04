@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging as _logging
 from typing import Any
 
-from hogshade.material.generators import MAYA_TYPES, entries_for, host_map
+from hogshade.material.generators import MAYA_TYPES, entries_for, host_map, packed_maps
 from hogshade.material.model import Binding, MaterialError, Resolved, Unbound
 from hogshade.material.schema import type_of
 from hogshade.material.validation import validate
@@ -91,6 +91,8 @@ def maya_attributes(
     """
     out: dict[str, list[float]] = {}
     mtype = type_of(type_name)
+    for pm in packed_maps(hmap).values():
+        out[pm["flag"]] = [0.0]  # a packed map is the job's to connect from the runtime set
     for pname, entry in entries_for(hmap, type_name).items():
         if "unsupported" in entry:
             continue
@@ -120,6 +122,18 @@ def maya_map_slots(type_name: str) -> dict[str, tuple[str, str]]:
         pname: (entry["map"]["name"], entry["map"]["flag"])
         for pname, entry in entries_for(hmap, type_name).items()
         if "map" in entry
+    }
+
+
+def maya_packed_slots() -> dict[str, dict[str, Any]]:
+    """
+    The Maya shell's packed maps (T3: ``orm``): short name to ``{"name", "flag", "channels"}``, where ``channels``
+    maps a legacy parameter to the letter the shell samples. A job connects one cooked ``_ORM`` here and turns the
+    parameters' own ``use<Map>`` flags off.
+    """
+    return {
+        k: {"name": v["name"], "flag": v["flag"], "channels": dict(v["channels"])}
+        for k, v in packed_maps(host_map("maya_dx11")).items()
     }
 
 

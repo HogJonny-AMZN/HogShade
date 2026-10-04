@@ -473,7 +473,52 @@ def check_host_map(hmap: dict[str, Any], params: dict[str, ParameterDef], where:
     for pname, e in entries.items():
         if pname in params:
             out.extend(_check_entry(where, pname, params[pname], e, groups, orders, names))
+    out.extend(_check_packed(where, hmap.get("packed", {}), entries, orders, names))
     return out
+
+
+#: A packed map's record: one texture the shell samples for several parameters, a channel each (T3).
+_PACKED_KEYS = ("name", "flag", "label", "order", "channels")
+
+
+def _check_packed(
+    where: str, packed: Any, entries: dict[str, Any], orders: dict[int, str], names: dict[str, str]
+) -> list[Finding]:
+    """The map's ``packed`` section: each entry a map record plus ``channels``, parameter to one of r, g, b, a."""
+    if packed in ({}, None):
+        return []
+    if not isinstance(packed, dict):
+        return [Finding(where, "packed", "packed is an object keyed by the packed map's short name")]
+    out: list[Finding] = []
+    for key, e in packed.items():
+        pname = f"packed:{key}"
+        if not isinstance(e, dict):
+            out.append(Finding(where, pname, "a packed entry is an object"))
+            continue
+        for k in _PACKED_KEYS:
+            if k not in e:
+                out.append(Finding(where, pname, f"missing {k!r}"))
+        for k in e:
+            if k not in _PACKED_KEYS:
+                out.append(Finding(where, pname, f"unknown key {k!r}"))
+        record = {k: e.get(k) for k in _MAP_KEYS}
+        out.extend(_check_map_entry(where, pname, record, orders, names))
+        channels = e.get("channels")
+        if not isinstance(channels, dict) or not channels:
+            out.append(Finding(where, pname, "channels is an object of parameter name to a channel letter"))
+            continue
+        for p, c in channels.items():
+            if p not in entries or "map" not in entries[p]:
+                out.append(Finding(where, pname, f"channels names {p!r}, which has no map entry of its own"))
+            if c not in ("r", "g", "b", "a"):
+                out.append(Finding(where, pname, f"channel for {p!r} is one of r, g, b, a, got {c!r}"))
+    return out
+
+
+def packed_maps(hmap: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """The host map's packed maps (``{}`` when the host has none): short name to its record."""
+    packed = hmap.get("packed") or {}
+    return {k: dict(v) for k, v in packed.items()} if isinstance(packed, dict) else {}
 
 
 # ------------------------------------------------------------------------------------------------- Maya
@@ -546,6 +591,24 @@ def _maya_map(p: ParameterDef, m: dict[str, Any]) -> list[str]:
     ]
 
 
+def _maya_packed_map(pm: dict[str, Any]) -> list[str]:
+    """A packed map's declaration: raw, with the channel assignment in its label (the shell samples by channel)."""
+    return [
+        f"Texture2D {pm['name']}",
+        "<",
+        f'    string UIGroup = "Material Maps"; string UIName = "{pm["label"]}"; string ResourceType = "2D";',
+        (
+            f'    string ResourceName = ""; int mipmaplevels = 0; int UIOrder = {pm["order"]}; '
+            f'string ColorSpace = "{MAYA_COLOUR_SPACES["raw"]}";'
+        ),
+        ">;",
+        f"bool {pm['flag']}",
+        "<",
+        f'    string UIGroup = "Material Maps"; string UIName = "Use {pm["label"]}"; int UIOrder = {pm["order"] + 1};',
+        "> = false;",
+    ]
+
+
 def maya_block(hmap: dict[str, Any], params: dict[str, ParameterDef]) -> str:
     """The text between the shell's markers: the maps, then each group in the map's group order."""
     where = hmap.get("host", "<host map>") if isinstance(hmap, dict) else "<host map>"
@@ -557,6 +620,8 @@ def maya_block(hmap: dict[str, Any], params: dict[str, ParameterDef]) -> str:
     maps = sorted(((e["map"], params[n]) for n, e in entries.items() if "map" in e), key=lambda t: t[0]["order"])
     for m, p in maps:
         lines.extend(_maya_map(p, m))
+    for key, pm in sorted(packed_maps(hmap).items(), key=lambda kv: kv[1]["order"]):
+        lines.extend(_maya_packed_map(pm))
     for group, _ in sorted(hmap["groups"].items(), key=lambda t: t[1]):
         rows: list[tuple[int, list[str]]] = []
         for pname, e in entries.items():

@@ -70,3 +70,7 @@ PNG D:\Depot\HogShade\verification\maya-2026\textures\probe\cobblestone_floor_04
 PNG D:\Depot\HogShade\verification\maya-2026\textures\probe\cobblestone_floor_04-uncompressed\debug-07.png exists=True
 PNG D:\Depot\HogShade\verification\maya-2026\textures\probe\cobblestone_floor_04-uncompressed\debug-08.png exists=True
 PNG D:\Depot\HogShade\verification\maya-2026\textures\probe\cobblestone_floor_04-uncompressed\debug-09.png exists=True
+PNG D:\Depot\HogShade\verification\maya-2026\textures\probe\cobblestone_floor_04-uncompressed\debug-11.png exists=True
+FORMATS ['R16_UNORM', 'R8G8B8A8_UNORM', 'R8G8B8A8_UNORM_SRGB', 'R8G8_UNORM']; decoded 5/5; failed []
+RESULT: OK
+MAYA: 2026

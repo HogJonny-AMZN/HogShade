@@ -21,6 +21,10 @@ Checks (the T1 spec):
   a file in an authoring format whose suffix maps to the bound parameter and whose sidecar's colour space is
   the schema's; a document of another type is logged and not held to the standard's table
 - **content-licence**: every directory holding source textures carries a ``LICENSE.md``
+- **content-runtime** (T3): every committed set with a ``cooked/`` directory, under either root, has a readable
+  ``cooked/manifest.json`` whose records account for every source map of the set (its own entry, an ``_ORM``
+  channel or a carrier's alpha), and whose input hashes match the authoring files when the LFS payloads are
+  present (a pointer is logged as unverified, like the sidecar's resolution)
 
 A texture a document binds lives beside or below the document (S1 refuses ``..`` in a texture path), so a
 set is a sub-directory of the material family that owns it; ``content/textures/`` is for sets no document
@@ -30,6 +34,7 @@ binds yet, such as calibration tiles.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging as _logging
 import struct
@@ -326,12 +331,72 @@ def check_licences(root: Path) -> list[Finding]:
     return out
 
 
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _is_lfs_pointer(path: Path) -> bool:
+    try:
+        with path.open("rb") as f:
+            return f.read(40).startswith(b"version https://git-lfs")
+    except OSError:
+        return False
+
+
+def check_runtime(root: Path) -> list[Finding]:
+    """Every committed set with a ``cooked/`` has a manifest that accounts for its maps and matches its inputs."""
+    from hogshade.material.runtime import COOKED_DIR, MANIFEST_NAME, CookedSetError, locate, manifest_for
+
+    out: list[Finding] = []
+    sets: dict[Path, list[Path]] = {}
+    for texture in source_textures(root):
+        sets.setdefault(texture.parent, []).append(texture)
+    for set_dir, textures in sorted(sets.items()):
+        cooked = set_dir / COOKED_DIR
+        if not cooked.is_dir():
+            continue
+        where = _rel(cooked / MANIFEST_NAME, root)
+        try:
+            manifest = manifest_for(set_dir)
+        except CookedSetError as e:
+            out.append(Finding("content-runtime", where, str(e)))
+            continue
+        for texture in sorted(textures):
+            try:
+                locate(manifest, set_dir, texture.name)
+            except CookedSetError:
+                out.append(Finding("content-runtime", where, f"no record of {texture.name}; cook the set again"))
+        inputs = manifest.get("inputs", {})
+        unverified = 0
+        for name, digest in sorted(inputs.items()) if isinstance(inputs, dict) else []:
+            path = set_dir / name
+            if not path.is_file():
+                out.append(Finding("content-runtime", where, f"input {name} is gone"))
+                continue
+            if _is_lfs_pointer(path):
+                unverified += 1
+                continue
+            if sha256_file(path) != digest:
+                out.append(Finding("content-runtime", where, f"{name} changed since the cook; cook the set again"))
+        if unverified:
+            _LOGGER.info(
+                f"{_rel(set_dir, root)}: {unverified} input(s) are LFS pointers on this checkout; "
+                "their hashes are unverified"
+            )
+    return out
+
+
 def run(root: Path = ROOT) -> list[Finding]:
     findings = check_table()
     findings += check_names(root)
     findings += check_sidecars(root)
     findings += check_bindings(root)
     findings += check_licences(root)
+    findings += check_runtime(root)
     return findings
 
 

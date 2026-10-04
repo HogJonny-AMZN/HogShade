@@ -293,5 +293,18 @@
       "group": "Parallax Occlusion",
       "order": 196
     }
+  },
+  "packed": {
+    "orm": {
+      "name": "ormMap",
+      "flag": "useOrmMap",
+      "label": "ORM Map (AO red, roughness green, metalness blue)",
+      "order": 120,
+      "channels": {
+        "ambient_occlusion_map": "r",
+        "roughness": "g",
+        "metalness": "b"
+      }
+    }
   }
 }

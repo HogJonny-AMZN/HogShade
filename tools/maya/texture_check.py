@@ -87,11 +87,34 @@ def build_material() -> tuple:
 
 def connect_textures(node: str, binding, runtime: dict, out: s.Log) -> dict:
     """Every runtime texture into its shell slot; returns {parameter: (format, loaded)}."""
-    from hogshade.material.binding import maya_map_slots
+    from hogshade.material.binding import maya_map_slots, maya_packed_slots
 
     slots = maya_map_slots(binding.material_type)
     decoded = {}
+    done: set = set()
+    for key, pm in maya_packed_slots().items():
+        members = {p: runtime[p] for p in pm["channels"] if p in runtime}
+        files = {rt.path for rt in members.values()}
+        if not members or len(files) != 1 or not all(rt.packed for rt in members.values()):
+            continue
+        path = files.pop()
+        fmt = next(iter(members.values())).format
+        loaded = s.connect_file(node, pm["name"], path, _space_for(fmt), out)
+        cmds.setAttr(f"{node}.{pm['flag']}", True)
+        for p, rt in members.items():
+            if rt.channels != pm["channels"][p]:
+                out.append(
+                    f"CHANNEL MISMATCH {p}: the cook put it in {rt.channels}, the shell reads {pm['channels'][p]}"
+                )
+                loaded = False
+            if p in slots:
+                cmds.setAttr(f"{node}.{slots[p][1]}", False)  # the separate map's flag off: the packed one is read
+            out.append(f"TEXTURE {p}: {path.name} [{rt.channels}] {fmt} -> {pm['name']} ({key}); decoded={loaded}")
+            decoded[p] = (fmt, loaded)
+            done.add(p)
     for parameter, rt in runtime.items():
+        if parameter in done:
+            continue
         if parameter not in slots:
             out.append(f"NO SLOT for {parameter} ({rt.path.name}); the shell has no map attribute for it")
             continue

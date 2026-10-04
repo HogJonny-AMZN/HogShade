@@ -1,4 +1,14 @@
 {
+  "colour_space": "raw",
+  "derived": [
+    "colour_space",
+    "mips",
+    "preset",
+    "resolution",
+    "runtime"
+  ],
+  "mips": "linear-box",
+  "preset": "height",
   "provenance": {
     "download": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/cobblestone_floor_04/cobblestone_floor_04_disp_2k.png",
     "fetched": "2026-10-03",
@@ -6,5 +16,10 @@
     "md5": "f6424009d1a0e1c1a1a68d0180a65db8",
     "origin": "polyhaven",
     "url": "https://polyhaven.com/a/cobblestone_floor_04"
+  },
+  "resolution": 2048,
+  "runtime": {
+    "container": "dds",
+    "format": "bc4"
   }
 }

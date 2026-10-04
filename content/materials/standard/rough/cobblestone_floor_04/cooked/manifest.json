@@ -1,0 +1,115 @@
+{
+  "compression": {
+    "bc7_profile": "basic",
+    "encoder": "ispc_texcomp"
+  },
+  "hogshade_version": "0.2.0",
+  "inputs": {
+    "LICENSE.md": "a346c4c7c5cc00be695fcbf66b2b005ca6f82c29f7838749625251ee39dd37fc",
+    "T_cobblestone_floor_04_AO.png": "2f84bd8a16d2673f28339a7b259fd92698399f908603938de78cc84bf608130a",
+    "T_cobblestone_floor_04_AO.texture.json": "aa0bf2544dac2f9649e445f1ca6482bf13742c21796073da3ac0cf2f1bc5ec46",
+    "T_cobblestone_floor_04_BC.png": "17a882dc3cb0202bf6fb4bde8593106878a274808ea01fc89538e2841459c852",
+    "T_cobblestone_floor_04_BC.texture.json": "ce44e4d331e4ea4b6600a998483bb96d0e19681fd0cd45a38008afff6d42920d",
+    "T_cobblestone_floor_04_H.png": "c0028ed594ca9a53779cf474cfac36a1bc5800632349ccaa3d89835d495c5e99",
+    "T_cobblestone_floor_04_H.texture.json": "47bd7fea3b0d40bc073748a4cd6f3f5bd92045010030c93f6b96bbb3aa728d66",
+    "T_cobblestone_floor_04_N.png": "7136f39dcdf4c3c7fbb8157e17f148a5ceaadbbd739c50859bf2f505cbddd47f",
+    "T_cobblestone_floor_04_N.texture.json": "abf9973b250a713d336e8e394668b1ac9fee4666f909f5caac221dcc75799a68",
+    "T_cobblestone_floor_04_R.png": "00cc4b176ab165e66d27494216e66415a74337c588b20ae9c1dd358666b46254",
+    "T_cobblestone_floor_04_R.texture.json": "7ad49649759921c41b3b18f334289455878661639d7c0a18ef2a35b1177d4d64"
+  },
+  "not_power_of_two": [],
+  "set": "cobblestone_floor_04",
+  "sidecars_derived": [
+    "T_cobblestone_floor_04_AO.texture.json:colour_space",
+    "T_cobblestone_floor_04_AO.texture.json:mips",
+    "T_cobblestone_floor_04_AO.texture.json:preset",
+    "T_cobblestone_floor_04_AO.texture.json:resolution",
+    "T_cobblestone_floor_04_AO.texture.json:runtime",
+    "T_cobblestone_floor_04_BC.texture.json:colour_space",
+    "T_cobblestone_floor_04_BC.texture.json:mips",
+    "T_cobblestone_floor_04_BC.texture.json:preset",
+    "T_cobblestone_floor_04_BC.texture.json:resolution",
+    "T_cobblestone_floor_04_BC.texture.json:runtime",
+    "T_cobblestone_floor_04_H.texture.json:colour_space",
+    "T_cobblestone_floor_04_H.texture.json:mips",
+    "T_cobblestone_floor_04_H.texture.json:preset",
+    "T_cobblestone_floor_04_H.texture.json:resolution",
+    "T_cobblestone_floor_04_H.texture.json:runtime",
+    "T_cobblestone_floor_04_N.texture.json:colour_space",
+    "T_cobblestone_floor_04_N.texture.json:mips",
+    "T_cobblestone_floor_04_N.texture.json:preset",
+    "T_cobblestone_floor_04_N.texture.json:resolution",
+    "T_cobblestone_floor_04_N.texture.json:runtime",
+    "T_cobblestone_floor_04_R.texture.json:colour_space",
+    "T_cobblestone_floor_04_R.texture.json:mips",
+    "T_cobblestone_floor_04_R.texture.json:preset",
+    "T_cobblestone_floor_04_R.texture.json:resolution",
+    "T_cobblestone_floor_04_R.texture.json:runtime"
+  ],
+  "suffix_table": "hogshade-standard suffixes (Docs/standards/content.md)",
+  "textures": {
+    "T_cobblestone_floor_04_BC.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM_SRGB",
+      "from": "T_cobblestone_floor_04_BC.png",
+      "mips": 12,
+      "preset": "base_color",
+      "sha256": "cf368f3f37f6f43227920dd61b6de25946d56e413c6ebcde1b1cfaa29150dcc0",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "T_cobblestone_floor_04_H.dds": {
+      "encoder": null,
+      "format": "R16_UNORM",
+      "from": "T_cobblestone_floor_04_H.png",
+      "mips": 12,
+      "precision": "16-bit",
+      "preset": "height",
+      "sha256": "0887187293f1f8afa069e26d0039ad9a74881b59507657cf7e936fd90f3f33b9",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "T_cobblestone_floor_04_N.dds": {
+      "encoder": "ispc_texcomp",
+      "flipped_y": false,
+      "format": "BC5_UNORM",
+      "from": "T_cobblestone_floor_04_N.png",
+      "mips": 12,
+      "normal_convention_in": "opengl+y",
+      "preset": "geometry_normal",
+      "sha256": "859c6c230427d22a56e8ed4b8ef2c782d80928700005ba2705ff3a70b7f24720",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "T_cobblestone_floor_04_ORM.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM",
+      "from": [
+        "T_cobblestone_floor_04_AO.png",
+        "T_cobblestone_floor_04_R.png"
+      ],
+      "mips": 12,
+      "packed": {
+        "B": "filled 1.0",
+        "G": "_R",
+        "R": "_AO"
+      },
+      "preset": "orm",
+      "sha256": "5bf3098e2ffa4fd9f6e352293f8465e85346b1b1cc65e3117098ff7458128a63",
+      "size": [
+        2048,
+        2048
+      ]
+    }
+  },
+  "tool": "hogshade.texture_cook.cook",
+  "tool_version": "0.3.0"
+}

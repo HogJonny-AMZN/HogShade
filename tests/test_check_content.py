@@ -208,7 +208,12 @@ def test_a_cooked_file_that_is_not_dds_is_found(corpus: Path):
         "content-name: content/textures/grid/cooked/T_grid_ORM.png: a cooked file is dds, or one of "
         "('manifest.json', 'provenance.json')"
     )
-    assert _messages(corpus) == [expected]
+    messages = _messages(corpus)
+    assert messages[0] == expected
+    assert messages[1].startswith("content-runtime: content/textures/grid/cooked/manifest.json: ") and (
+        "carries no textures record" in messages[1]
+    ), "an empty manifest is a runtime finding too (T3)"
+    assert len(messages) == 2
 
 
 def test_a_directory_without_a_licence_is_found(corpus: Path):
@@ -286,3 +291,46 @@ def test_bindings_are_held_to_the_suffix_and_the_schema(tmp_path: Path):
     assert f"content-binding: {where}:height: binds 'tex/wall_H.png', not a texture of this repository" in msgs
     # a set beside a document is a content root too: the licence rule reaches it
     assert any(m.startswith("content-licence: content/materials/standard/rough/tex:") for m in all_msgs)
+
+
+# ----------------------------------------------------------------------------------------- content-runtime (T3)
+
+
+def _cook(set_dir: Path):
+    from hogshade.texture_cook.cook import cook_set
+
+    return cook_set(set_dir, compress=False)
+
+
+def test_a_cooked_set_passes_and_a_missing_record_a_changed_input_and_an_empty_manifest_are_found(corpus: Path):
+    tex = corpus / "content" / "materials" / "standard" / "rough" / "brick"
+    _cook(tex)
+    assert _messages(corpus) == []
+    manifest = tex / "cooked" / "manifest.json"
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    del data["textures"]["T_brick_N.dds"]
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    assert _messages(corpus) == [
+        (
+            "content-runtime: content/materials/standard/rough/brick/cooked/manifest.json: no record of T_brick_N.png; "
+            "cook the set again"
+        )
+    ]
+    _cook(tex)
+    _png(tex / "T_brick_BC.png", 32, 32)  # the authoring file changed after the cook
+    _json(tex / "T_brick_BC.texture.json", {"provenance": PROVENANCE, "resolution": 32})
+    found = _messages(corpus)
+    assert any("T_brick_BC.png changed since the cook" in m for m in found), found
+    assert any("T_brick_BC.texture.json changed since the cook" in m for m in found), found
+    manifest.write_text("{", encoding="utf-8")
+    assert any("not a readable manifest" in m for m in _messages(corpus))
+
+
+def test_a_set_without_a_cooked_directory_is_not_held_and_a_pointer_is_logged(corpus: Path, caplog):
+    tex = corpus / "content" / "textures" / "grid"
+    assert _messages(corpus) == [], "no cooked/ yet: nothing to hold the set to"
+    _cook(tex)
+    (tex / "T_grid_BC.png").write_bytes(b"version https://git-lfs.github.com/spec/v1\noid sha256:0\nsize 1\n")
+    with caplog.at_level("INFO", logger=check_content._MODULE_NAME):
+        assert _messages(corpus) == []
+    assert "content/textures/grid: 1 input(s) are LFS pointers on this checkout" in caplog.text

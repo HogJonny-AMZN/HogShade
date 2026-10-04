@@ -1,4 +1,14 @@
 {
+  "colour_space": "raw",
+  "derived": [
+    "colour_space",
+    "mips",
+    "preset",
+    "resolution",
+    "runtime"
+  ],
+  "mips": "linear-box",
+  "preset": "specular_roughness",
   "provenance": {
     "download": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/brown_planks_03/brown_planks_03_rough_2k.png",
     "fetched": "2026-10-03",
@@ -6,5 +16,10 @@
     "md5": "c7c6d0a396a550d705a4f1ecb276f65d",
     "origin": "polyhaven",
     "url": "https://polyhaven.com/a/brown_planks_03"
+  },
+  "resolution": 2048,
+  "runtime": {
+    "container": "dds",
+    "format": "bc4"
   }
 }
