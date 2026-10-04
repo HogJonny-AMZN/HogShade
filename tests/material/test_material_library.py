@@ -310,7 +310,15 @@ def test_the_tool_check_covers_the_index():
 def test_the_sheet_layout_and_the_command_record():
     import contact_sheet as sheet
 
-    assert sheet.sheet_layout(22, 192) == (960, 960) and sheet.sheet_layout(1, 32) == (160, 32)
+    assert sheet.sheet_layout(22, 192) == (1152, 4 * (192 + sheet.LABEL_H))
+    assert sheet.sheet_layout(1, 32) == (192, 32 + sheet.LABEL_H)
+    assert (
+        sheet.sheet_layout(26, 160) <= (960, 5 * (160 + sheet.LABEL_H)) and 5 * (160 + sheet.LABEL_H) <= sheet.MAX_SIDE
+    )
+    assert sheet.label_for("metal", "Gold", 160) == ("metal", "Gold")
+    assert sheet.label_for("dielectric", "Glossy plastic, the long one", 64)[1].endswith(".")
+    assert sheet.label_for("metal", "Metal plate", 160)[1] == "Metal plate", "thirteen characters fit at scale 2"
+    assert sheet.label_for("rough", "Cobblestone floor", 160)[1] == "Cobblestone .", "a longer title is cut with a dot"
     with pytest.raises(ValueError):
         sheet.sheet_layout(0, 192)
     import argparse
@@ -348,3 +356,22 @@ def test_the_sheet_prepares_every_document_before_the_device(tmp_path: Path):
     )
     with pytest.raises(MaterialError, match="cannot convert an invalid material"):
         sheet.prepare(tmp_path)
+
+
+def test_the_bitmap_font_draws_every_label_character_and_boxes_the_unknown():
+    import bitmap_font as font
+    import numpy as np
+
+    for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _-.,'/:()":
+        g = font.glyph(ch)
+        assert g.shape == (7, 5) and (g.any() or ch == " ")
+    assert font.glyph("a").tolist() == font.glyph("A").tolist(), "lower case draws its capital"
+    assert font.glyph("%").tolist() == font.glyph("\u00e9").tolist(), "the unknown is one box, never dropped"
+    assert font.text_width("abc", 1) == 17 and font.text_width("", 3) == 0
+    assert font.fit("metal / aluminium", 40, 1) == "metal."  # five characters fit in 40 px, the sixth is the dot
+    canvas = np.zeros((20, 60, 3), dtype=np.float32)
+    font.draw_text(canvas, "AB", 1, 1, scale=1, colour=(1.0, 0.5, 0.0))
+    assert canvas[..., 0].sum() > 0 and canvas[1, 2, 0] == 1.0 and canvas[1, 2, 1] == 0.5, (
+        "ink lands where the glyph is"
+    )
+    font.draw_text(canvas, "ZZZZZZZZZZZZZZZZ", 50, 15, scale=2)  # clipped at the edge, no error

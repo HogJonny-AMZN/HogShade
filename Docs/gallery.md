@@ -65,7 +65,7 @@ Every standard document of the base library (S4a) renders through the reverse co
 
 ![the base library, 22 documents, forward path](../verification/wgpu/library/contact-sheet.png)
 
-content/materials/standard/ in roster order, five to a row: metal (base, aluminium, brass, chrome, copper, gold, iron, silver, steel), dielectric (base, ceramic, glossy plastic, matte plastic), coated (base, painted red), rough (base, concrete, rubber), emissive (base, panel), cutout (base, leaf); contact-sheet.json is the legend. The emissive pair do not glow: the wgpu host carries no emission term, so they render as their dark base colour; anisotropy, specular colour and specular occlusion are the table's losses, so brushed steel is iron here. Made by `uv run tools/wgpu/contact_sheet.py`; the file is `verification/wgpu/library/contact-sheet.png`.
+content/materials/standard/ in roster order, six to a row, each cell labelled with its family and title (a long title is cut with a dot; contact-sheet.json has it whole): metal (base, aluminium, brass, chrome, copper, gold, iron, silver, steel), dielectric (base, ceramic, glossy plastic, matte plastic), coated (base, painted red), rough (base, concrete, rubber), emissive (base, panel), cutout (base, leaf); contact-sheet.json is the legend. The emissive pair do not glow: the wgpu host carries no emission term, so they render as their dark base colour; anisotropy, specular colour and specular occlusion are the table's losses, so brushed steel is iron here. Made by `uv run tools/wgpu/contact_sheet.py`; the file is `verification/wgpu/library/contact-sheet.png`.
 
 ## The sphere in Maya 2026
 

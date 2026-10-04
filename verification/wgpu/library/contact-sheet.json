@@ -8,11 +8,11 @@
     "specular_rotation",
     "specular_occlusion"
   ],
-  "tile": 192,
-  "columns": 5,
+  "tile": 160,
+  "columns": 6,
   "size": [
     960,
-    960
+    950
   ],
   "cells": [
     {
@@ -57,8 +57,8 @@
     },
     {
       "cell": 5,
-      "row": 1,
-      "column": 0,
+      "row": 0,
+      "column": 5,
       "family": "metal",
       "document": "metal/gold.material.json",
       "title": "Gold"
@@ -66,7 +66,7 @@
     {
       "cell": 6,
       "row": 1,
-      "column": 1,
+      "column": 0,
       "family": "metal",
       "document": "metal/iron.material.json",
       "title": "Iron"
@@ -74,13 +74,21 @@
     {
       "cell": 7,
       "row": 1,
+      "column": 1,
+      "family": "metal",
+      "document": "metal/metal_plate.material.json",
+      "title": "Metal plate"
+    },
+    {
+      "cell": 8,
+      "row": 1,
       "column": 2,
       "family": "metal",
       "document": "metal/silver.material.json",
       "title": "Silver"
     },
     {
-      "cell": 8,
+      "cell": 9,
       "row": 1,
       "column": 3,
       "family": "metal",
@@ -88,7 +96,7 @@
       "title": "Brushed steel"
     },
     {
-      "cell": 9,
+      "cell": 10,
       "row": 1,
       "column": 4,
       "family": "dielectric",
@@ -96,7 +104,15 @@
       "title": "Dielectric"
     },
     {
-      "cell": 10,
+      "cell": 11,
+      "row": 1,
+      "column": 5,
+      "family": "dielectric",
+      "document": "dielectric/brown_planks_03.material.json",
+      "title": "Brown planks"
+    },
+    {
+      "cell": 12,
       "row": 2,
       "column": 0,
       "family": "dielectric",
@@ -104,7 +120,7 @@
       "title": "Ceramic"
     },
     {
-      "cell": 11,
+      "cell": 13,
       "row": 2,
       "column": 1,
       "family": "dielectric",
@@ -112,7 +128,7 @@
       "title": "Glossy plastic"
     },
     {
-      "cell": 12,
+      "cell": 14,
       "row": 2,
       "column": 2,
       "family": "dielectric",
@@ -120,7 +136,7 @@
       "title": "Matte plastic"
     },
     {
-      "cell": 13,
+      "cell": 15,
       "row": 2,
       "column": 3,
       "family": "coated",
@@ -128,7 +144,7 @@
       "title": "Coated"
     },
     {
-      "cell": 14,
+      "cell": 16,
       "row": 2,
       "column": 4,
       "family": "coated",
@@ -136,47 +152,63 @@
       "title": "Painted, red"
     },
     {
-      "cell": 15,
-      "row": 3,
-      "column": 0,
+      "cell": 17,
+      "row": 2,
+      "column": 5,
       "family": "rough",
       "document": "rough/base.material.json",
       "title": "Rough"
     },
     {
-      "cell": 16,
+      "cell": 18,
+      "row": 3,
+      "column": 0,
+      "family": "rough",
+      "document": "rough/brick_wall_001.material.json",
+      "title": "Brick wall"
+    },
+    {
+      "cell": 19,
       "row": 3,
       "column": 1,
+      "family": "rough",
+      "document": "rough/cobblestone_floor_04.material.json",
+      "title": "Cobblestone floor"
+    },
+    {
+      "cell": 20,
+      "row": 3,
+      "column": 2,
       "family": "rough",
       "document": "rough/concrete.material.json",
       "title": "Concrete"
     },
     {
-      "cell": 17,
+      "cell": 21,
       "row": 3,
-      "column": 2,
+      "column": 3,
       "family": "rough",
       "document": "rough/rubber.material.json",
       "title": "Rubber"
     },
     {
-      "cell": 18,
+      "cell": 22,
       "row": 3,
-      "column": 3,
+      "column": 4,
       "family": "emissive",
       "document": "emissive/base.material.json",
       "title": "Emissive"
     },
     {
-      "cell": 19,
+      "cell": 23,
       "row": 3,
-      "column": 4,
+      "column": 5,
       "family": "emissive",
       "document": "emissive/panel.material.json",
       "title": "Light panel"
     },
     {
-      "cell": 20,
+      "cell": 24,
       "row": 4,
       "column": 0,
       "family": "cutout",
@@ -184,7 +216,7 @@
       "title": "Cutout"
     },
     {
-      "cell": 21,
+      "cell": 25,
       "row": 4,
       "column": 1,
       "family": "cutout",
