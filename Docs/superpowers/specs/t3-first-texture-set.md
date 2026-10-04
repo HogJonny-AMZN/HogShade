@@ -263,3 +263,30 @@ All nine valid, folded into the text above and the plan:
 - **The probe's choice is carried explicitly** (`--compress` or `--no-compress` on `cook` and `separate`, the
   gate's recipe and the README), never the automatic default.
 
+## Amendments made in the build (2026-10-04)
+
+- **`metal_plate`, not `blue_metal_plate`**: Poly Haven's `blue_metal_plate` ships no metalness map (a painted,
+  dielectric plate); `metal_plate` does, so it is the metal family's set and the one whose `_ORM` carries all
+  three channels. Found by reading the asset's file list, not its name.
+- **Poly Haven's PNGs are a mix of depths and channel counts** (16-bit colour, grey-alpha roughness and AO, 8-bit
+  normals here and 16-bit there), so `tools/fetch_polyhaven.py` brings every map to the suffix table's form at
+  fetch (colour and normal 8-bit RGB, masks 8-bit grey, height 16-bit grey) and records the download's url and md5
+  in the sidecar's provenance; the authoring set in the repository is the normalised one, 25 MB a set.
+- **The probe's answer: Maya 2026 decodes BC7 (sRGB and linear), BC5, BC4, `R16_UNORM`, `R8_UNORM` and the
+  uncompressed forms at full size** (`verification/maya-2026/textures/probe/*/check.log`), so every committed
+  `cooked/` is `--compress`ed (BC7 basic); no fallback was needed.
+- **The grid tile's AO is `grid_occlusion` (16-bit), not `grid_ambOcc`**: the two differ by at most one 8-bit step
+  (mean 0.002), so the higher-precision source was taken and reduced to the table's 8 bits.
+- **The packed map is a top-level `packed` section of the host map**, not a parameter entry (`ormMap`,
+  `useOrmMap`, order 120, `channels` per legacy parameter); the generator emits it after the separate maps, the
+  checker validates it, the binder writes its flag off and exposes it through `maya_packed_slots`, and the Maya
+  check connects one `_ORM` there and turns the three separate flags off. The shell samples `orm.g`, `orm.b`,
+  `orm.r` when the flag is on, the separate maps otherwise.
+- **The resident GUI worker leaks environment between jobs** (the board's row): the first gate run landed under
+  `textures/gate/` because `HOGSHADE_CHECK` from the texture job was still set. The texture job now clears its
+  own keys it does not set; the gate was rerun with `check=ibl-check` named explicitly, as two renders in one
+  session (master's shell, then the regenerated one).
+- **A document from a set's maps** is `hogshade.material.sets.document_for_set` (the grid tile's in-memory
+  document; a standard document binding every map with the multiplying factors at 1.0), used by the Maya check
+  when no document is named.
+

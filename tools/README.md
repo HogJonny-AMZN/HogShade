@@ -18,10 +18,12 @@ The comparison framework (roadmap, track E) inherits this layout as its capture 
 | `build_shaders.py` | stitch, validate and translate the WGSL core; `--check` for staleness | uv |
 | `cook_ibl.py`, `bench_cook.py` | the E1 IBL cook and its benchmarks | uv |
 | `cook_textures.py` | the T2 texture cook: an authoring set to its runtime set (`cook`), frequency separation (`separate`), `--check-setup` for the encoder | uv (`uv sync --all-extras` for the encoder) |
-| `check_content.py` | the content standard's check over every texture, sidecar and binding (the CI step "Content") | uv |
+| `check_content.py` | the content standard's check over every texture, sidecar, binding and cooked set (the CI step "Content"; `content-runtime` holds a committed `cooked/` to its manifest) | uv |
+| `fetch_polyhaven.py` | one Poly Haven texture set into an authoring set: md5-checked downloads at 2K, the suffix table's depth and channels, sidecars with provenance, `LICENSE.md` (T3) | uv, network |
 | `maya/_session.py` | what every Maya check shares: log, shader load, file-node binding, light binding, capture, quit | Maya's Python |
 | `maya/load_check.py`, `.mel` | an effect loads and lists techniques | Maya 2026 GUI |
 | `maya/ibl_check.py`, `.mel` | the cooked cubes light the HogShade shell; main view plus debug views | Maya 2026 GUI |
+| `maya/texture_check.py`, `.mel` | a cooked texture set on the shell: the document (or one built from the set's maps) converted to legacy v2, bound, every DDS connected through the manifest, the formats Maya decoded logged, main view plus the texture debug views (T3) | Maya 2026 GUI |
 | `wgpu/viewport.py` | the shader ball through the wgpu host, forward and deferred, to PNGs | uv, needs a GPU |
 | `bats/` | HogShade's Job_Orchestrator profile, launcher and submit tool (`bats/README.md`) | the dev orchestrator |
 

@@ -101,6 +101,9 @@ def main(parameters: dict) -> dict:
         sys.path.insert(0, str(tools_maya))
     import importlib
 
+    # a resident worker keeps the library of the previous job imported: drop it, so the check sees this checkout
+    for name in [n for n in sys.modules if n == "hogshade.material" or n.startswith("hogshade.material.")]:
+        del sys.modules[name]
     for name in ("_session", "texture_check"):
         if name in sys.modules:
             importlib.reload(sys.modules[name])

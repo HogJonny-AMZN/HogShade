@@ -211,8 +211,9 @@ renders the shader ball forward and deferred to `verification/wgpu/shader-ball/<
 ```text
 uv sync --all-extras                      # brings ispc_texcomp, the BC7/BC5/BC4 encoder (the `textures` extra)
 uv run tools/cook_textures.py --check-setup
-uv run tools/cook_textures.py cook <set_dir>                                  # T3 commits the first set
-uv run tools/cook_textures.py separate <set_dir> --radius 16 --macro 64
+uv run tools/cook_textures.py cook content/materials/standard/rough/brick_wall_001 --compress
+uv run tools/cook_textures.py separate content/materials/standard/rough/brick_wall_001 --radius 16 --macro 64 --compress
+uv run tools/fetch_polyhaven.py brick_wall_001 content/materials/standard/rough/brick_wall_001   # how that set got here
 ```
 
 turns an authoring set (`T_<set>_<SUFFIX>.png` or `.exr` with its `.texture.json` sidecar and the directory's
@@ -220,7 +221,14 @@ turns an authoring set (`T_<set>_<SUFFIX>.png` or `.exr` with its `.texture.json
 `<set>/cooked/`: DDS with mips in linear space, normals as OpenGL +Y, `_AO`, `_R` and `_M` packed into `_ORM`,
 any map a sidecar's `pack` field puts in an alpha, block-compressed when the encoder is installed and
 uncompressed with a warning naming the command when it is not, plus `manifest.json` and `provenance.json`.
-`separate` is the frequency separation for detail mapping. The same cook is the `hogshade.jobs.cook_textures`
+`separate` is the frequency separation for detail mapping. The committed sets (four from Poly Haven at 2K under
+their material families, the legacy grid tile under `content/textures/grid/`) are cooked with `--compress`,
+the flag the probe decided (Maya 2026 decodes BC7, BC5 and BC4 at full size), so a fresh clone with the LFS
+payloads re-cooks a committed set byte-identical except `provenance.json`. `tools/fetch_polyhaven.py` is how a
+Poly Haven set is brought in (md5-checked, the suffix table's bit depth and channels, sidecars with provenance,
+`LICENSE.md`). To see a set on the shader ball in Maya: `tools/bats/submit.py --gui --main-thread --module
+hogshade.jobs.maya_texture_check --param set_dir=content/materials/standard/rough/brick_wall_001 --param
+document=content/materials/standard/rough/brick_wall_001.material.json`. The same cook is the `hogshade.jobs.cook_textures`
 job on the developer track. Spec: [Docs/superpowers/specs/t2-texture-cook.md](Docs/superpowers/specs/t2-texture-cook.md).
 
 ## Licence
