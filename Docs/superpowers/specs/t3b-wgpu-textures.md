@@ -54,7 +54,12 @@ sign`) and normal, and keeps the arbitrary frame only when the tangent is zero (
 (MikkTSpace consumes custom normals and survives them; the generator never recomputes a normal, it only builds
 the tangent frame around the one it is handed), UVs and triangle indices, and returns per-corner tangents with
 the handedness sign, welded the way the reference does (by position, normal and UV, angle-weighted, the sign
-kept separate so a mirrored island does not average to zero). It is the one generator for every host and
+kept separate so a mirrored island does not average to zero; never by position alone, which would blend
+frames across a normal or UV seam). The implementation is held to the reference, not only to sphere
+tests: a **parity fixture** of the shader ball's tangents and signs from Maya's own MikkTSpace (a BATS job
+dumps them once from the legacy scene, committed as `tests/host/fixtures/shaderball_mikktspace.npz`) is
+compared vertex by vertex, seams and mirrored islands included, within a stated tolerance (direction within
+1 degree, sign exact); a second fixture is a small hand-made mesh with a UV seam and a mirrored island. It is the one generator for every host and
 exporter here, the standard's requirement made code: the wgpu host calls it when a file carries no tangents,
 the Maya side relies on Maya's own MikkTSpace (default since 2026) and the comparison framework later checks
 the two agree on the shader ball.
@@ -80,11 +85,16 @@ its G-buffer at group 2 (group indices are per pipeline layout):
 | 2 | `_ORM` (AO red, roughness green, metalness blue) | `bc7-rgba-unorm` | `rgba8unorm` |
 | 3 | cavity (`_C`) | `bc4-r-unorm` | `r8unorm` |
 | 4 | the sampler: linear, mipmap linear, repeat, anisotropy 8 | | |
-| 5 | `host_Textures` uniform: a bit per slot bound, the four factors already in the frame stay there | | |
+| 5 | `host_Textures` uniform: a bit **per textured parameter** (base colour, normal, roughness, metalness, AO, cavity), and for each scalar parameter the slot it reads and the channel (0 to 3) | | |
 
 A slot a document does not bind holds a 1x1 neutral texture (white, flat normal `(128, 128)`, white ORM,
-white cavity) and its bit is clear, so `host_samples()` reads one path with no branch on the bind state in
-the shader beyond the bit (the Maya shell's `use<Map>` flags, in a word). Height and emission are not slots:
+white cavity). The bits are **per parameter, not per slot** (the Maya shell's `use<Map>` flags, one each, and
+T3's rule that a packed channel is read only where its own parameter is bound): a document binding roughness
+alone reads `_ORM`'s green and leaves metalness and AO at their unbound 1.0, as Maya does. The scalar
+parameters carry a **channel selector** because the cook may put a map anywhere the sidecar says: roughness,
+metalness and AO in `_ORM`'s g, b, r as a rule, and cavity in its own BC4 red or, when a sidecar packs it, in
+a carrier's alpha (`runtime_textures` reports the slot's path and `channels`, `"a"` included); the uniform
+carries what the runtime reported, and the shader selects by index rather than assuming red. Height and emission are not slots:
 the wgpu host has no parallax and no emission term (the host map says so, as today).
 
 ### 3. The DDS upload and the device features
@@ -102,31 +112,50 @@ is lost by not handling it in T3b.
 
 ### 4. The host map and the binder
 
-`hogshade/material/hosts/wgpu.json` gains a `textures` entry kind beside `field`/`components` and
-`unsupported`: `"normal_map": {"texture": "normal"}`, `"ambient_occlusion_map": {"texture": "orm", "channel":
-"r"}`, `"cavity_map": {"texture": "cavity"}`, and the factor-bearing `base_color`, `roughness`, `metalness`
-gain `"texture": "base_color"` / `"orm", "g"` / `"orm", "b"` next to their fields (a factor and a texture,
-the schema's blend). `_check_wgpu_map` validates the kind (a slot name from the host's list, a channel letter
-where the slot is packed) and the coverage rule stays: every parameter bound, textured or `unsupported` with a
-reason. `bind(resolved, "wgpu")` is unchanged in shape; `Binding.textures` already carries the paths, and the
-host resolves them with `runtime_textures(binding.textures, doc_dir)`. `Scene` gains `textures: dict[str,
-RuntimeTexture] | None` and the renderer builds the material bind group per scene (cached by set).
+`hogshade/material/hosts/wgpu.json` gains a `texture` entry kind beside `field`/`components` and
+`unsupported`, **scoped to legacy v2 with the map's `@` keys** (`"normal_map@hogshade-legacy-v2": {"texture":
+"normal"}`, `"ambient_occlusion_map@hogshade-legacy-v2": {"texture": "orm", "channel": "r"}`,
+`"cavity_map@hogshade-legacy-v2": {"texture": "cavity"}`; the factor-bearing `base_color`, `roughness`,
+`metalness` keep their fields and gain the slot and channel under the same `@` keys), because `host_inputs()`
+samples for legacy v2 only: legacy v1 and Lambert keep their factor and `unsupported` entries unchanged, and a
+test holds that `entries_for` on those two types shows no `texture`. `_check_wgpu_map` validates the kind (a slot
+name from the host's list, a channel letter where the slot is packed) and the coverage rule stays: every
+parameter bound, textured or `unsupported` with a reason. `bind(resolved, "wgpu")` is unchanged in shape;
+`Binding.textures` already carries the paths, and the host resolves them with `runtime_textures(binding.textures,
+doc_dir)`. `Scene` gains `textures: dict[str, RuntimeTexture] | None`. **A bind group is keyed by its
+contents, not by the set**: the DDS uploads are shared by path within a device, and the bind group's key is the
+tuple of (slot path, channel) per parameter plus the bound mask, because one set serves several documents
+(the grid's `T_grid_BC` and `T_grid_BC_blue` are two documents over one manifest) and two documents binding
+different subsets of a set need different neutral slots and bits.
 
 ### 5. `host_samples()` reads the slots
 
 ```wgsl
+// one texel per slot, sampled once; a scalar parameter picks its slot and channel from the uniform
+fn host_scalar(texels: array<vec4<f32>, 4>, sel: vec2<u32>, bound: bool) -> f32 {
+    return select(1.0, texels[sel.x][sel.y], bound);
+}
 fn host_samples(uv: vec2<f32>) -> legacy_v2_Samples {
     var s: legacy_v2_Samples;
-    let bound = host_textures.bound;
-    s.base_color = select(vec4<f32>(1.0), textureSample(host_base_color, host_material_sampler, uv), (bound & 1u) != 0u);
-    let orm = select(vec4<f32>(1.0), textureSample(host_orm, host_material_sampler, uv), (bound & 4u) != 0u);
-    s.roughness = orm.g;  s.metalness = orm.b;  s.ao = orm.r;
-    let n_rg = select(vec2<f32>(0.5), textureSample(host_normal, host_material_sampler, uv).rg, (bound & 2u) != 0u);
+    let b = host_textures.bound;   // bit per parameter: 1 base colour, 2 normal, 4 roughness, 8 metalness, 16 AO, 32 cavity
+    var texels: array<vec4<f32>, 4>;
+    texels[0] = textureSample(host_base_color, host_material_sampler, uv);
+    texels[1] = textureSample(host_normal, host_material_sampler, uv);
+    texels[2] = textureSample(host_orm, host_material_sampler, uv);
+    texels[3] = textureSample(host_cavity, host_material_sampler, uv);
+    s.base_color = select(vec4<f32>(1.0), texels[0], (b & 1u) != 0u);
+    let n_rg = select(vec2<f32>(0.5), texels[1].rg, (b & 2u) != 0u);
     s.normal_ts = vec3<f32>(n_rg * 2.0 - 1.0, 0.0);   // legacy_v2_normal_ts derives Z (T3's finding)
-    s.cavity = select(1.0, textureSample(host_cavity, host_material_sampler, uv).r, (bound & 8u) != 0u);
+    s.roughness = host_scalar(texels, host_textures.roughness_sel, (b & 4u) != 0u);
+    s.metalness = host_scalar(texels, host_textures.metalness_sel, (b & 8u) != 0u);
+    s.ao = host_scalar(texels, host_textures.ao_sel, (b & 16u) != 0u);
+    s.cavity = host_scalar(texels, host_textures.cavity_sel, (b & 32u) != 0u);
     ...
 }
 ```
+
+Every slot is sampled unconditionally (uniform control flow keeps the derivatives for mip selection valid)
+and a neutral 1x1 costs nothing to sample; the bits and selectors decide what is used.
 
 The core is untouched: `legacy_v2_inputs` multiplies the samples by the factors as it always did, and
 `legacy_v2_normal_ts` reconstructs Z with its clamp, the same path Maya's BC5 normal takes. The core contract
@@ -186,3 +215,19 @@ space; G4's framework is what makes them a diff), but a human can see the same b
 2. **Where the wgpu renders of the sets live.** Recommended: `verification/wgpu/textures/<set>/main.png` beside
    the existing separation pictures of `cobblestone_floor_04` and `brick_wall_001`, mirroring
    `verification/maya-2026/textures/<set>/`, so the gallery matrix reads one path pattern per host.
+
+## Amendments after the spec's review (Copilot on #61, 2026-10-04)
+
+All five valid and folded into the text above:
+
+- **Texture entries scoped to legacy v2** with the host map's `@` keys; legacy v1 and Lambert keep their
+  factor and `unsupported` entries, since `host_inputs()` samples for v2 only; tested.
+- **A bind group is keyed by its contents** (slot paths, channels, bound mask), uploads shared by path: one
+  set serves several documents and two documents may bind different subsets.
+- **Bits per parameter, not per slot**, with channel selectors for the scalar parameters: roughness alone
+  reads `_ORM`'s green and leaves metalness and AO unbound, as Maya does since T3.
+- **A packed cavity** (a carrier's alpha) is sampled from the channel the runtime reports, never assumed red;
+  a regression with a packed `_C`.
+- **MikkTSpace held to the reference**: the weld is by position, normal and UV (never position alone) and a
+  parity fixture from Maya's MikkTSpace on the shader ball, seams and mirrored islands included, is a test.
+
