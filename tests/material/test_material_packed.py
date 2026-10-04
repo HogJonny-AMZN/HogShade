@@ -66,5 +66,58 @@ def test_the_binder_exposes_the_packed_slot_and_writes_its_flag_off():
 def test_the_shell_samples_the_packed_map_first():
     text = SHELL.read_text(encoding="utf-8")
     assert "float4 orm = useOrmMap ? ormMap.Sample(SamplerAnisoWrap, uv)" in text
-    assert "s.metalness = useOrmMap ? orm.b :" in text, "metalness from blue, the ORM packing"
-    assert "s.roughness = useOrmMap ? orm.g :" in text and "s.ao = useOrmMap ? orm.r :" in text
+    assert "(useOrmMap ? orm.b :" in text, "metalness from blue, the ORM packing"
+    assert "(useOrmMap ? orm.g :" in text and "(useOrmMap ? orm.r :" in text
+
+
+def test_packed_connections_keep_the_per_parameter_flags_and_refuse_a_channel_disagreement():
+    from pathlib import Path
+
+    import pytest
+
+    from hogshade.material import MaterialError
+    from hogshade.material.binding import packed_connections
+    from hogshade.material.runtime import RuntimeTexture
+
+    orm = Path("x/cooked/T_x_ORM.dds")
+
+    def rt(p, ch, path=orm, packed=True):
+        return RuntimeTexture(p, f"T_x{ch}.png", path, ch, "BC7_UNORM", packed)
+
+    only_rough = packed_connections({"roughness": rt("roughness", "g")})
+    assert only_rough == [
+        {
+            "slot": "ormMap",
+            "flag": "useOrmMap",
+            "path": orm,
+            "format": "BC7_UNORM",
+            "members": {"roughness": "g"},
+            "packed": "orm",
+        }
+    ], "roughness alone: the shell reads orm.g and leaves metalness and AO unbound (their flags stay off)"
+    full = packed_connections(
+        {
+            "roughness": rt("roughness", "g"),
+            "metalness": rt("metalness", "b"),
+            "ambient_occlusion_map": rt("ambient_occlusion_map", "r"),
+        }
+    )
+    assert full[0]["members"] == {"ambient_occlusion_map": "r", "roughness": "g", "metalness": "b"}
+    assert packed_connections({"roughness": rt("roughness", "r", Path("x/cooked/T_x_R.dds"), False)}) == []
+    with pytest.raises(MaterialError, match="the cook put it in channel 'r', the shell reads 'g'"):
+        packed_connections({"roughness": rt("roughness", "r")})
+
+
+def test_the_shell_reads_a_packed_channel_only_where_the_parameter_flag_is_on():
+    text = SHELL.read_text(encoding="utf-8")
+    assert "s.roughness = useRoughnessMap ? (useOrmMap ? orm.g :" in text
+    assert "s.metalness = useMetalnessMap ? (useOrmMap ? orm.b :" in text
+    assert "s.ao = useAmbOccMap ? (useOrmMap ? orm.r :" in text
+
+
+def test_a_malformed_entry_a_packed_map_names_is_a_finding_not_a_crash():
+    hmap = copy.deepcopy(host_map("maya_dx11"))
+    hmap["parameters"]["roughness"] = None
+    found = _findings(hmap)
+    assert any("roughness: an entry is an object" in f for f in found)
+    assert any("packed:orm: channels names 'roughness', which has no map entry" in f for f in found)

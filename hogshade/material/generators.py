@@ -508,7 +508,7 @@ def _check_packed(
             out.append(Finding(where, pname, "channels is an object of parameter name to a channel letter"))
             continue
         for p, c in channels.items():
-            if p not in entries or "map" not in entries[p]:
+            if not isinstance(entries.get(p), dict) or "map" not in entries[p]:
                 out.append(Finding(where, pname, f"channels names {p!r}, which has no map entry of its own"))
             if c not in ("r", "g", "b", "a"):
                 out.append(Finding(where, pname, f"channel for {p!r} is one of r, g, b, a, got {c!r}"))

@@ -139,6 +139,42 @@ def maya_packed_slots() -> dict[str, dict[str, Any]]:
     }
 
 
+def packed_connections(runtime: dict[str, Any]) -> list[dict[str, Any]]:
+    """
+    How a host connects the runtime textures to the Maya shell's packed slots (T3): for each packed map whose
+    bound members all resolve to one packed file, one connection ``{"slot", "flag", "path", "format", "members"}``
+    where ``members`` maps each bound parameter to the channel the shell reads. The parameters' own ``use<Map>``
+    flags stay as the binder wrote them: the shell reads a packed channel only where that flag is on, so a document
+    binding roughness alone leaves the set's metalness and AO unread. A member whose cooked channel differs from
+    the shell's is a ``MaterialError`` (the cook and the host map disagree).
+    """
+    out: list[dict[str, Any]] = []
+    for key, pm in maya_packed_slots().items():
+        members = {p: runtime[p] for p in pm["channels"] if p in runtime}
+        if not members:
+            continue
+        paths = {rt.path for rt in members.values()}
+        if len(paths) != 1 or not all(rt.packed for rt in members.values()):
+            continue  # separate files: the parameters' own slots take them
+        for p, rt in members.items():
+            if rt.channels != pm["channels"][p]:
+                raise MaterialError(
+                    f"{p}: the cook put it in channel {rt.channels!r}, the shell reads {pm['channels'][p]!r}"
+                )
+        rt0 = next(iter(members.values()))
+        out.append(
+            {
+                "slot": pm["name"],
+                "flag": pm["flag"],
+                "path": paths.pop(),
+                "format": rt0.format,
+                "members": {p: pm["channels"][p] for p in members},
+                "packed": key,
+            }
+        )
+    return out
+
+
 #: The host's model per material type, the same names on every host (HOGSHADE_MODEL_* in the core).
 HOST_MODELS = {"hogshade-legacy-v2": "legacy-v2", "hogshade-legacy-v1": "legacy-v1", "hogshade-lambert": "lambert"}
 #: The binders: host name to the function that turns a type's factors and textures into that host's fields.

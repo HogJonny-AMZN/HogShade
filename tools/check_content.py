@@ -365,13 +365,27 @@ def check_runtime(root: Path) -> list[Finding]:
             continue
         for texture in sorted(textures):
             try:
-                locate(manifest, set_dir, texture.name)
-            except CookedSetError:
+                rt = locate(manifest, set_dir, texture.name)
+            except CookedSetError as e:
+                _LOGGER.debug(f"{where}: {e}")
                 out.append(Finding("content-runtime", where, f"no record of {texture.name}; cook the set again"))
-        inputs = manifest.get("inputs", {})
+                continue
+            if not rt.path.is_file():  # an LFS pointer is a file too; a missing output is not
+                out.append(Finding("content-runtime", where, f"{rt.path.name} is recorded and not under cooked/"))
+        inputs = manifest.get("inputs")
+        if not isinstance(inputs, dict):
+            out.append(Finding("content-runtime", where, "no inputs record; cook the set again"))
+            continue
+        expected = {t.name for t in textures} | {f"{t.stem}{SIDECAR_SUFFIX}" for t in textures} | {"LICENSE.md"}
+        for missing in sorted(expected - set(inputs)):
+            out.append(Finding("content-runtime", where, f"no input hash for {missing}; cook the set again"))
         unverified = 0
-        for name, digest in sorted(inputs.items()) if isinstance(inputs, dict) else []:
-            path = set_dir / name
+        resolved_set = set_dir.resolve()
+        for name, digest in sorted(inputs.items()):
+            path = (set_dir / name).resolve()
+            if path.parent != resolved_set or Path(name).name != name:
+                out.append(Finding("content-runtime", where, f"input {name!r} is not a file of the set"))
+                continue
             if not path.is_file():
                 out.append(Finding("content-runtime", where, f"input {name} is gone"))
                 continue

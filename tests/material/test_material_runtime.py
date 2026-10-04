@@ -187,3 +187,12 @@ def test_maya_refusals():
     lam = resolve(from_data({"material_type": "hogshade-lambert", "material_type_version": 1, "values": {}}))
     with pytest.raises(MaterialError, match="does not carry 'hogshade-lambert'"):
         bind(lam, "maya_dx11")
+
+
+def test_a_manifest_key_that_is_not_a_dds_under_cooked_is_refused(family):
+    _fam, s = family
+    cook.cook_set(s, compress=False)
+    manifest = manifest_for(s)
+    manifest["textures"]["../../outside.dds"] = dict(manifest["textures"]["T_plate_BC.dds"])
+    with pytest.raises(CookedSetError, match="is not a .dds file name under cooked/"):
+        locate(manifest, s, "T_plate_BC.png")

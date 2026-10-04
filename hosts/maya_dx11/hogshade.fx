@@ -556,13 +556,14 @@ PsOutput pMain(VsOutput p, bool FrontFace : SV_IsFrontFace)
     // --- material half: sampled values or the unbound defaults, then the core's inputs()
     legacy_v2_Samples s = (legacy_v2_Samples)0;
     s.base_color = useBaseColorMap ? baseColorMap.Sample(SamplerAnisoWrap, uv) : float4(1.0f, 1.0f, 1.0f, 1.0f);
-    // the packed ORM of the runtime set (AO red, roughness green, metalness blue) wins over the separate maps
+    // the packed ORM of the runtime set (AO red, roughness green, metalness blue): a channel is read only where
+    // that parameter's own use flag is on, so a document binding roughness alone leaves metalness and AO unbound
     float4 orm = useOrmMap ? ormMap.Sample(SamplerAnisoWrap, uv) : float4(1.0f, 1.0f, 1.0f, 1.0f);
-    s.roughness = useOrmMap ? orm.g : (useRoughnessMap ? roughnessMap.Sample(SamplerAnisoWrap, uv).g : 1.0f);
-    s.metalness = useOrmMap ? orm.b : (useMetalnessMap ? metalnessMap.Sample(SamplerAnisoWrap, uv).g : 1.0f);
+    s.roughness = useRoughnessMap ? (useOrmMap ? orm.g : roughnessMap.Sample(SamplerAnisoWrap, uv).g) : 1.0f;
+    s.metalness = useMetalnessMap ? (useOrmMap ? orm.b : metalnessMap.Sample(SamplerAnisoWrap, uv).g) : 1.0f;
     s.specular_f0_ = useSpecularF0Map ? specularF0Map.Sample(SamplerAnisoWrap, uv).rgb : float3(0.0f, 0.0f, 0.0f);
     s.specular_amount = useSpecularMap ? specularMap.Sample(SamplerAnisoWrap, uv).r : 1.0f;
-    s.ao = useOrmMap ? orm.r : (useAmbOccMap ? ambOccMap.Sample(SamplerAnisoWrap, uv).r : 1.0f);
+    s.ao = useAmbOccMap ? (useOrmMap ? orm.r : ambOccMap.Sample(SamplerAnisoWrap, uv).r) : 1.0f;
     s.cavity = useCavityMap ? cavityMap.Sample(SamplerAnisoWrap, uv).r : 1.0f;
     s.emissive = (useEmissiveMap ? emissiveMap.Sample(SamplerAnisoWrap, uv).rgb : float3(1.0f, 1.0f, 1.0f))
                  * host_linear(materialEmissive, gamma) * materialEmissiveIntensity;

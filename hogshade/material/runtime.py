@@ -90,6 +90,12 @@ def locate(manifest: dict[str, Any], set_dir: Path, source_name: str, parameter:
     if name is None or not name.known:
         raise CookedSetError(f"{source_name}: not a texture of this repository (T_<base>_<SUFFIX>[_<variant>])")
     cooked = Path(set_dir) / COOKED_DIR
+    for dds_name in manifest["textures"]:  # every key first: a crafted key must not hide behind an earlier match
+        if Path(dds_name).name != dds_name or not dds_name.endswith(".dds") or dds_name.startswith("."):
+            raise CookedSetError(
+                f"{set_dir}/{COOKED_DIR}/{MANIFEST_NAME}: texture key {dds_name!r} is not a .dds file name under "
+                f"{COOKED_DIR}/; the manifest is not the cook's. Cook the set again ({COOK_COMMAND})"
+            )
     for dds_name, entry in manifest["textures"].items():
         if not isinstance(entry, dict):
             continue

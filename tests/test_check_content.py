@@ -334,3 +334,23 @@ def test_a_set_without_a_cooked_directory_is_not_held_and_a_pointer_is_logged(co
     with caplog.at_level("INFO", logger=check_content._MODULE_NAME):
         assert _messages(corpus) == []
     assert "content/textures/grid: 1 input(s) are LFS pointers on this checkout" in caplog.text
+
+
+def test_a_missing_dds_a_missing_input_hash_and_an_input_outside_the_set_are_found(corpus: Path):
+    tex = corpus / "content" / "materials" / "standard" / "rough" / "brick"
+    _cook(tex)
+    assert _messages(corpus) == []
+    (tex / "cooked" / "T_brick_N.dds").unlink()
+    assert any("T_brick_N.dds is recorded and not under cooked/" in m for m in _messages(corpus))
+    _cook(tex)
+    manifest = tex / "cooked" / "manifest.json"
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    del data["inputs"]["T_brick_BC.png"]
+    data["inputs"]["../../../../outside.png"] = "0" * 64
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    found = _messages(corpus)
+    assert any("no input hash for T_brick_BC.png" in m for m in found), found
+    assert any("input '../../../../outside.png' is not a file of the set" in m for m in found), found
+    del data["inputs"]
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    assert any("no inputs record" in m for m in _messages(corpus))

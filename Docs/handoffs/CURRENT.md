@@ -18,6 +18,10 @@ logging architecture for apps**; it is recorded nowhere yet and must be confirme
 into a standard (the guess: a stream handler for the terminal, a per-run file, and the in-app console handler,
 configured at the entry point only).
 
+**Owner, 2026-10-04 (on T3's sets):** CC0 assets are "a box of chocolates"; "at some point, even if I have to curate
+it, we need materials + texture assets with full leverage". That is T4, the showcase set authored with the owner,
+now unblocked (the board row carries the quote and the verdict).
+
 **Sit rep, 2026-10-04, late.** T2 is merged: the texture cook exists on master (#53 spec and plan, #54 the
 spec's setup section, #55 the build). An authoring set cooks to its runtime set under `cooked/` (DDS with mips in
 linear at DDS sizes, normals to `opengl+y`, `_ORM` and alpha carriers through the `pack` sidecar field, height
