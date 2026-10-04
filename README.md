@@ -206,6 +206,23 @@ uv run tools/wgpu/viewport.py --material content/materials/legacy-v1/default.mat
 
 renders the shader ball forward and deferred to `verification/wgpu/shader-ball/<env>/legacy-v1/`.
 
+### The texture cook
+
+```text
+uv sync --all-extras                      # brings ispc_texcomp, the BC7/BC5/BC4 encoder (the `textures` extra)
+uv run tools/cook_textures.py --check-setup
+uv run tools/cook_textures.py cook <set_dir>                                  # T3 commits the first set
+uv run tools/cook_textures.py separate <set_dir> --radius 16 --macro 64
+```
+
+turns an authoring set (`T_<set>_<SUFFIX>.png` or `.exr` with its `.texture.json` sidecar and the directory's
+`LICENSE.md`, the rules in [Docs/standards/content.md](Docs/standards/content.md)) into its runtime set under
+`<set>/cooked/`: DDS with mips in linear space, normals as OpenGL +Y, `_AO`, `_R` and `_M` packed into `_ORM`,
+any map a sidecar's `pack` field puts in an alpha, block-compressed when the encoder is installed and
+uncompressed with a warning naming the command when it is not, plus `manifest.json` and `provenance.json`.
+`separate` is the frequency separation for detail mapping. The same cook is the `hogshade.jobs.cook_textures`
+job on the developer track. Spec: [Docs/superpowers/specs/t2-texture-cook.md](Docs/superpowers/specs/t2-texture-cook.md).
+
 ## Licence
 
 Apache 2.0. See [LICENSE](LICENSE). Third-party code embedded in the legacy shaders, and one

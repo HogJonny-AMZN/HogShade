@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-04: the T2 spec merged (#53), its setup section as #54, the encoder decided (`ispc_texcomp`, the owner's pick; the spike closed on it), the build in progress on `feat/t2-texture-cook`; T1 merged (#50, #51); #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-04, evening: T2 built (`feat/t2-texture-cook`, PR #55 open after three local-review rounds, stacked on #54 which carries the spec's setup section); the spec merged as #53; T1 merged (#50, #51); #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -11,18 +11,25 @@ how much to decide alone.
 
 ## In flight
 
-**Sit rep, 2026-10-04.** The owner said "go" on T2; its spec and plan merged as #53 (the setup section, a
-commit that missed the merge, is #54). The texture cook turns an authoring set into its runtime set (mips in
-linear, normals to the repository's convention, `_ORM` packed, DDS with mips), fills the sidecars' derived
-fields, writes a deterministic manifest and a volatile provenance on the IBL cook's pattern, and carries the
-owner's frequency separation as `separate` with the reconstruction error measured into the manifest. The
-encoder is decided: the owner found `ispc_texcomp` (Intel's ISPC Texture Compressor, MIT, on PyPI, Python with
-no subprocess, the BATS bar) and said to end the spike on it if it does everything we need; it does (wheels for
-Windows, Linux and macOS; BC7, BC5, BC4; deterministic; BC7 at 37 dB, BC4 and BC5 at 48 dB), so it is the
-`textures` extra and the default behind the seam, `texconv` the optional baseline, the other encoders an
-Icebox row. Compression is automatic when the encoder is installed, a warning and uncompressed output when
-it is not, and `--compress` makes it required. The one open question is TIFF (recommended not in T2; the PNG
-reader is this repository's). The build is in progress on `feat/t2-texture-cook`.
+**Owner, 2026-10-04 (late):** f-strings in log calls for readability, `%s` only on a measured hot path and a tight
+loop never logs (collect, log once); logging is for the human troubleshooting an AI's confident error and for the
+agent spelunking later. In python.md; the conversion pass is a board row. The owner also has a **three-tier
+logging architecture for apps**; it is recorded nowhere yet and must be confirmed with the owner before it is written
+into a standard (the guess: a stream handler for the terminal, a per-run file, and the in-app console handler,
+configured at the entry point only).
+
+**Sit rep, 2026-10-04, evening.** T2 is built and awaiting the owner: #54 (the spec's setup section, a
+commit that missed #53's merge) and the build PR #55 stacked on it (local review: three rounds, pass at 7+). The texture cook exists: an authoring set to its
+runtime set (DDS with mips in linear at DDS sizes, normals to `opengl+y`, `_ORM` and alpha carriers through
+the `pack` sidecar field, height at the source's precision), block-compressed through `ispc_texcomp` (the
+owner's pick, the `textures` extra under `uv sync --all-extras`, uncompressed with a warning without it),
+the owner's frequency separation with its error measured, manifest and provenance, a BATS job, the setup in
+every getting-started place. The proof: Poly Haven's `cobblestone_floor_04` cooked in 3.3 s and separated
+outside the repository, four pictures in the gallery. Two things learned: BC4 and BC5 take R8 and RG8
+surfaces (in the spec), and mips must follow the DDS size rule, not pad. No set is committed; T3 commits the
+first. Open on #54: Copilot's two findings (the T2 board row and handoff said the encoder was undecided; the
+spec's compression paragraph had two behaviours), fixed on that branch. Next: T3 the first set (S4b) with its
+host half (a Maya bind or the wgpu texture bind group), T4 the showcase set with the owner.
 
 **Sit rep, 2026-10-02, late night.** #40 merged: the S4 design is in with eight questions and the owner
 has not answered them yet; nothing of S4 is built until they do. The owner said two things worth more than

@@ -1,8 +1,8 @@
 # T2 spec: the texture cook
 
-**Status:** Proposed. Drafted 2026-10-04 from the accepted conventions design (T2) and the content standard (T1);
-built on `feat/t2-texture-cook` once this is merged. Two questions for the owner are at the end; the second
-is answered (`ispc_texcomp`), the first proceeds on its recommendation unless the owner says otherwise. Amendments made in the build go in the
+**Status:** Accepted. Drafted 2026-10-04 from the accepted conventions design (T2) and the content standard (T1)
+as #53 and #54, built the same day on `feat/t2-texture-cook`; the build's amendments are the last section. The
+second question is answered (`ispc_texcomp`), the first proceeds on its recommendation. Amendments made in the build go in the
 last section.
 
 Date: 2026-10-04. Design:
@@ -129,8 +129,9 @@ says"); the cook says:
 
 The cook never compresses a height map with a block format (BC4 is 8-bit; BC6H is three-channel HDR colour
 and its single-channel use wastes two channels) and never converts float to normalised without being
-asked: `--height normalise` writes `R16_UNORM` from an EXR with `min` and `max` recorded in the manifest
-and the sidecar, for a host that wants a fixed range, and the default keeps the float. Mips of a height
+asked: `--height normalise` writes `R16_UNORM` from an EXR with `min` and `max` recorded in the manifest's
+entry (the sidecar's keys are T1's fixed list, so the range is not a sidecar field), for a host that wants a
+fixed range, and the default keeps the float. Mips of a height
 map are box averages in the source's precision. The EXR reader is `hogshade.ibl.imageio.read_exr_rgb`
 extended with a single-channel read (`read_exr_channel(path, "R")` or the first channel), so no new
 dependency: OpenEXR is already one. A 32-bit TIFF is question 1's territory and stays out of T2.
@@ -176,8 +177,10 @@ code (co3dex 2022, section "Basic Frequency Separation" and "Tiling Textures"):
 3. `high = clip((source - low) * 0.5 + 0.5)`: the post's "subtract, offset 128, scale 2" in [0, 1]; mid-grey
    is neutral.
 4. Recombination `recon = clip(low + 2 * high - 1)` (linear light, O3DE's `TextureBlend_LinearLight`); the
-   **reconstruction error** `max |recon - source|` and its mean over the tile go into the manifest. The
-   error is zero except where the high-pass clipped; the manifest also counts clipped texels.
+   **reconstruction error** `max |recon - source|` and its mean over the tile go into the manifest, measured
+   through the 8-bit quantisation of the written high-pass (what a shader samples), so it is within one 8-bit
+   step (`1/255`) everywhere and the manifest also counts the texels where the recombination had to clip
+   (amended in the build; the first draft said zero except where clipped, a tautology in floats).
 5. Outputs under `cooked/`: `T_<set>_DH.dds` (the high-pass, raw, full resolution, `R8G8B8A8_UNORM`) and
    `T_<set>_BC_macro.dds` (the low-pass box-downsampled to `--macro` texels on its longer side, sRGB;
    `macro` is a variant, so the name meets the grammar); and a display PNG pair under `verification/`
@@ -225,8 +228,8 @@ worker runs on the workspace `.venv`, `tools/bats/orchestrator_config_hogshade.j
     "T_brick_ORM.dds": {"packed": {"R": "T_brick_AO.png", "G": "T_brick_R.png", "B": "filled 1.0", "A": "T_brick_H.png"}, "...": "..."},
     "T_brick_BC.dds": {"packed": {"A": "T_brick_O.png"}, "bc7_profile": "alpha_basic", "...": "..."}
   },
-  "separation": {"source": "T_brick_BC.png", "radius": 16, "sigma": 8.0, "macro": 64, "error_max": 0.0039, "error_mean": 0.00002, "clipped_texels": 7},
-  "compression": {"requested": false, "encoder": null}
+  "separation": {"_BC": {"source": "T_brick_BC.png", "radius": 16, "sigma": 8.0, "macro": 64, "error_max": 0.0039, "error_mean": 0.00002, "clipped_texels": 7, "outputs": {"...": "..."}}},
+  "compression": {"encoder": null, "bc7_profile": null}
 }
 ```
 
@@ -252,7 +255,7 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
   the chain ends at 1x1; a normal mip is unit length.
 - `test_height.py`: a 16-bit PNG ramp cooks to `R16_UNORM` with every step kept; a half EXR to `R16_FLOAT` and
   a float EXR to `R32_FLOAT`, both read back exactly; `--height normalise` records the range and maps the
-  extremes to 0 and 65535; an 8-bit height is `R8_UNORM` (or BC4 with `--compress`); the manifest names the
+  extremes to 0 and 65535; an 8-bit height is `R8_UNORM` (BC4 when an encoder is present); the manifest names the
   source's precision.
 - `test_normals.py`: a `directx-y` source flips green and the manifest says so; `opengl+y` is untouched.
 - `test_pack.py`: AO, R, M land in R, G, B; a missing channel is 1.0 and recorded; a `pack` sidecar puts
@@ -260,8 +263,8 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
   profile is an `alpha_*` one; a `pack` naming a missing map, a three-channel suffix or a non-carrier is a
   finding.
 - `test_separate.py`: on a tiling test tile, low and high both tile (the wrapped border equals the opposite
-  edge within one 8-bit step), `recon == source` away from clipping, the error fields are the measured
-  values, the macro is the stated size; sigma follows the radius.
+  edge within one 8-bit step), `|recon - source|` within one 8-bit step everywhere, the error fields are the
+  measured values, the macro is the stated size; sigma follows the radius.
 - `test_cook.py`: a scratch set (the T1 test corpus's shape) cooks to the expected files, the manifest's
   sha256 match the files, cooking twice is byte-identical, the sidecars gain their derived fields and the
   authored fields are untouched, a set with a T1 finding is refused, `check_content.py` passes on the cooked
@@ -303,6 +306,48 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
    one behaviour, "Compression" above). One API fact: BC4 takes
    an R8 surface and BC5 an RG8 surface, not RGBA. The other options are logged on the board's Icebox.
 
-## Amendments made in the build
+## Amendments made in the build (2026-10-04)
 
-(none yet)
+- **Mip sizes follow the DDS convention**, `max(side // 2, 1)`: an odd trailing row or column is dropped, not
+  edge-padded as first written, because every host computes a level's size that way and the writer refused
+  a padded chain (24x16 reached 2x1 where DDS wants 1x1). The manifest still names non-power-of-two sources.
+- **The separation's error is measured through the 8-bit quantisation of the written high-pass.** In [0, 1]
+  floats the offset-and-scale cannot leave the range, so the exact recombination is a tautology; what a
+  shader sees is the quantised map, and the error is within one step (`1/255`), `clipped_texels` counting
+  where the recombination had to clip. `Separation.high` is the quantised map.
+- **The sidecars are hashed as they will be written**, and the manifest's `sidecars_derived` lists every
+  field a cook derived (the sidecar's `derived` list, whether this cook or an earlier one filled it; a field
+  the author wrote is not derived), so cooking twice gives one manifest. A sidecar's derived `runtime` is the
+  preset's token (`bc7`), the manifest carrying the exact DXGI format.
+- **`_AO`, `_R` and `_M` are not written as their own files**: `_ORM` is their runtime form. An `_ORM` alpha
+  carrier is declared on any of those three sidecars (`_ORM` has no source of its own).
+- **The DDS writers live in `hogshade/texture_cook/dds2d.py`** beside the cube writer they share constants
+  with, rather than inside `hogshade/ibl/dds.py`; `write_2d_blocks` carries the block formats.
+- **`pack` is a T1 sidecar key** now (`SIDECAR_KEYS`), validated by the cook's `check_pack`; the content check
+  accepts it as a known key.
+- **A 16-bit colour source is read as 16-bit** (Poly Haven's PNGs are) and reduced to 8 bits only at the
+  write; the mips are computed at float precision from the 16-bit samples.
+- **`--picture-size`** (default 512) halves the separation's pictures to the gallery's budget; at 1K the four
+  were 1.4 to 2.6 MB, over the 1 MiB rule.
+- `encode` takes a level and returns the block bytes; `TexconvEncoder` is found but not wired (`encode` says
+  so): with `ispc_texcomp` the default, the baseline waits for the increment that wants it.
+- **The shape rules are checked before anything is written** (the local review's hard finding: a pack target
+  of another size crashed in numpy after the sidecars were rewritten): one size per set and variant (a pack
+  target and the `_ORM` parts need it), one base per set directory (the packing matches by suffix and
+  variant), the `_ORM` alpha declared on at most one of its parts per variant (round 2: a second declaration
+  consumed its map and wrote it nowhere), a pack target present in its carrier's own variant, no grey-alpha
+  source where RGB is meant; a grey colour map is broadcast and an RGBA one loses its alpha, both logged.
+- **The sidecars' derived fields, the manifest and the provenance are written only after every DDS is**, so
+  a failed write leaves the authoring set as it was. A sidecar the cook rewrites is hashed as it will be
+  written, one it leaves alone as it is on disk; every record is written as LF bytes (`write_bytes`), so the
+  hash of what was written is the hash of the file on every platform.
+- **The `separation` block is keyed by the separated suffix** (`{"_BC": {...}, "_N": {...}}`), so a colour
+  and a normal separation coexist; the job writes its `_BC` record there. **A re-cook keeps each earlier
+  record** whose files are all still under `cooked/`, drops one with a warning when a file is gone, and warns
+  about any `.dds` no record names; it never deletes.
+- **One INFO line per artifact written and per decision taken** (an alpha dropped, a normal flipped, an
+  `_ORM` channel filled, a map riding in an alpha, a sidecar derived), the python standard's logging bar.
+- The detail normal (`_DN`) and the macro normal have their mips renormalised like `_N` (Z reconstructed
+  from the separated X and Y first), not box-averaged as encoded channels.
+- The `_O`-into-alpha packing, dropped on Copilot's finding and restored by the owner's packing scheme, is
+  built as the general `pack` field: `{"a": "_O"}` on `_BC` (tested, and in the proof set `_H` in `_ORM`'s).

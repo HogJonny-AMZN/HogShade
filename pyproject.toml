@@ -21,6 +21,9 @@ jit = [
 gpu = [
     "wgpu>=0.32",
 ]
+textures = [
+    "ispc_texcomp>=1.0",   # the texture cook's BC7/BC5/BC4 encoder (Intel ISPC Texture Compressor, MIT), T2
+]
 
 [project.scripts]
 hogshade-cook-ibl = "hogshade.ibl.cli:main"

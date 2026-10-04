@@ -76,6 +76,10 @@ because the launcher puts the folder on `sys.path`; that is the one relative-loo
 
 - Catch specific exceptions. A `# noqa: BLE001` broad catch is allowed only where the point of the
   code is to log whatever a DCC throws and keep going, and the comment says so.
+- **f-strings in log calls**, for readability (the owner, 2026-10-04: a "better human decision" than the
+  lazy `%s` habit): `_LOGGER.info(f"wrote {path.name}: {fmt}, {n} mip(s)")`. The exception is a measured
+  hot path, and even there the fix is structural: a tight loop does not log; collect, then log once after
+  it. Existing `%s` lines convert as a standards pass, not inside a feature PR.
 - Two-part messages, context then detail: `f"Failed to decode {path}: {e}"`. No emoji or non-ASCII
   in log text (Maya's console is not UTF-8 safe).
 - `print()` only for a script's final summary in its own entry point (`main`) and in DCC scripts,
