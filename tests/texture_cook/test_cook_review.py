@@ -131,6 +131,35 @@ def test_a_grey_colour_map_is_broadcast_and_an_rgba_one_logs_its_dropped_alpha(t
     # a written texture, a filled sidecar: one INFO line each
     assert "wrote T_grey_BC.dds: R8G8B8A8_UNORM_SRGB, 3 mip(s)" in caplog.text
     assert "wrote T_grey_BC.texture.json: derived" in caplog.text
+    n = np.full((4, 4, 4), [128, 128, 255, 9], dtype=np.uint8)
+    texture_writer(s, "T_grey_N", n, {"normal_convention": "opengl+y"})
+    caplog.clear()
+    with caplog.at_level(logging.INFO, logger=cook._MODULE_NAME):
+        cook.cook_set(s, compress=False)
+    assert "T_grey_N.png: the source alpha is dropped (the runtime map has two channels)" in caplog.text
+
+
+def test_a_16_bit_map_riding_in_an_alpha_says_it_is_reduced(brick: Path, caplog):
+    with caplog.at_level(logging.INFO, logger=cook._MODULE_NAME):
+        cook.cook_set(brick, compress=False)
+    assert "T_brick_H.png: uint16 reduced to 8 bits in the alpha" in caplog.text
+
+
+def test_an_old_single_record_separation_block_is_discarded_with_a_warning(brick: Path, caplog):
+    cook.cook_set(brick, compress=False)
+    manifest_path = brick / "cooked" / "manifest.json"
+    m = json.loads(manifest_path.read_text(encoding="utf-8"))
+    m["separation"] = {"source": "T_brick_BC.png", "outputs": {}}  # the tool 0.2 shape
+    manifest_path.write_text(json.dumps(m), encoding="utf-8")
+    with caplog.at_level(logging.WARNING, logger=cook._MODULE_NAME):
+        after = cook.cook_set(brick, compress=False).manifest
+    assert "separation" not in after and "single-record separation block (tool 0.2) is discarded" in caplog.text
+    manifest_path.write_text(json.dumps(m), encoding="utf-8")
+    caplog.clear()
+    with caplog.at_level(logging.WARNING, logger=cook._MODULE_NAME):
+        cook.separate_set(brick, radius=4, macro_size=8, compress=False)
+    assert "single-record separation block (tool 0.2) is replaced" in caplog.text
+    assert set(json.loads(manifest_path.read_text(encoding="utf-8"))["separation"]) == {"_BC"}
 
 
 def test_a_failed_write_leaves_the_sidecars_and_writes_no_manifest(brick: Path, monkeypatch):

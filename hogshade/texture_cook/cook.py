@@ -44,7 +44,7 @@ from hogshade.texture_cook import separate as sep
 from hogshade.texture_cook.encoders import BC7_PROFILES, INSTALL_HINT, Encoder, default_encoder
 
 _MODULE_NAME = "hogshade.texture_cook.cook"
-__version__ = "0.2.0"
+__version__ = "0.3.0"  # 0.3: the separation block keyed by suffix
 __updated__ = "2026-10-04"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
@@ -453,13 +453,13 @@ def _cook_orm(oven: _Oven, variant: str | None) -> None:
         if what.startswith("filled"):
             _LOGGER.info("%s: channel %s %s (no %s source)", out_path.name, channel, what, ORM_CHANNEL_SOURCE[channel])
     levels = mips.data_chain(packed)
-    # an _ORM alpha carrier is declared on any of its sources' sidecars as {"pack": {"a": "_H"}}; the first found
+    # an _ORM alpha carrier is declared on one of its sources' sidecars as {"pack": {"a": "_H"}} (the shape rules
+    # allow one declaration per variant); its target was consumed in cook_set's pre-pass
     extra = next((oven.pack_target(src) for src in parts.values() if src is not None and "pack" in src.sidecar), None)
     if extra is not None:
         _note_alpha_precision(extra)
         a_levels = mips.data_chain(_one_channel(extra))
         levels = [pack.put_alpha(lvl, a[..., 0]) for lvl, a in zip(levels, a_levels, strict=True)]
-        oven.consumed.add(extra.stem)
         _LOGGER.info("%s: %s rides in the alpha", out_path.name, extra.path.name)
     entry = {"from": [p.path.name for p in parts.values() if p is not None], "preset": "orm", "size": [w, h]}
     entry.update(_write(out_path, levels, "R8G8B8A8_UNORM", "bc7", oven.encoder, extra is not None, oven.bc7_profile))
@@ -506,6 +506,12 @@ def _keep_separation(out_dir: Path, textures: dict[str, Any]) -> dict[str, Any] 
             loaded = json.loads(manifest_path.read_text(encoding="utf-8"))
             block = loaded.get("separation", {}) if isinstance(loaded, dict) else {}
             previous = block if isinstance(block, dict) and "source" not in block else {}
+            if block and not previous:
+                _LOGGER.warning(
+                    "%s: an earlier single-record separation block (tool 0.2) is discarded; run separate again to "
+                    "record it under its suffix",
+                    manifest_path.name,
+                )
         except (UnicodeDecodeError, json.JSONDecodeError) as e:
             _LOGGER.warning("%s: the earlier manifest is unreadable and is replaced (%s)", manifest_path, e)
     kept: dict[str, Any] = {}
@@ -711,6 +717,8 @@ def separate_set(
     )
     block = manifest.get("separation")
     earlier = block if isinstance(block, dict) and "source" not in block else {}
+    if block and not earlier:
+        _LOGGER.warning("%s: an earlier single-record separation block (tool 0.2) is replaced", manifest_path.name)
     manifest["separation"] = {**earlier, source_suffix: separation}
     manifest_path.write_bytes(_dump(manifest).encode("utf-8"))
     _LOGGER.info("wrote %s: the %s separation record", manifest_path.name, source_suffix)
