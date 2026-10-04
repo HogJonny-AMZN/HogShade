@@ -30,10 +30,16 @@ Spec: [../specs/t2-texture-cook.md](../specs/t2-texture-cook.md). Test-first: ea
       enumerates; an unregistered module is invisible to BATS), and its test; `tools/bats/README.md` names the
       job. Verify: `hogshade.jobs.manifest()` lists it; the manifest's outputs match what the cook writes; a
       climbing `set_dir` is refused.
-- [ ] 6. On the owner's machine: a Poly Haven set outside the repository cooked and separated; the
+- [ ] 6. Setup written down: the `textures` extra in `pyproject.toml`; `README.md` "Getting started" gains "The
+      texture cook" (`uv sync --all-extras`, the encoder it brings, the one command, what lands under `cooked/`);
+      `tools/README.md`; `tools/bats/README.md` and `Docs/knowledge/job-orchestrator.md` (the worker's venv carries
+      the extra; the job's name); the cook's `WARNING` with the `uv sync` command when the encoder is absent and
+      `--check-setup`. Verify: `test_setup.py`; a fresh `uv sync --all-extras` on this machine imports
+      `ispc_texcomp`; the README section read as a newcomer.
+- [ ] 7. On the owner's machine: a Poly Haven set outside the repository cooked and separated; the
       separation picture pair under `verification/wgpu/textures/` and its gallery row. Verify: the pair
       recombines to the source by eye and by the manifest's error; the PR says what was seen.
-- [ ] 7. Docs: this plan ticked with its table; the spec's amendments; the standard's runtime column
+- [ ] 8. Docs: this plan ticked with its table; the spec's amendments; the standard's runtime column
       ("or uncompressed until the encoder is present") and its cook paragraph; the board (T2 to Now, then
       struck); the glossary if a word changes; the handoff; the journal. Verify: `check_docs.py` clean.
 
@@ -48,3 +54,4 @@ Spec: [../specs/t2-texture-cook.md](../specs/t2-texture-cook.md). Test-first: ea
 | 5 | |
 | 6 | |
 | 7 | |
+| 8 | |

@@ -142,23 +142,20 @@ to prove (T3), with the uncompressed path (`R16_UNORM`) the fallback a host is s
 Mips go down to 1x1; a source that is not a power of two is cooked
 as is (no resampling) and the manifest says so.
 
-**Compression** (question 2; the owner is choosing an open-source encoder through an evaluation spike,
-2026-10-04): T2 writes the uncompressed DXGI formats above through `write_2d`, and `cook.py` carries an
-**encoder seam**: an `Encoder` protocol (`encode(dds_in, dds_out, block_format) -> dict`, returning the
-encoder's name and version for the manifest) with one implementation shipped, `TexconvEncoder`
-(DirectXTex's `texconv` found on `PATH` or named by `HOGSHADE_TEXCONV`). `--compress` selects the preset's
-block format (BC7 for colour, BC5 for normals, BC4 for one channel, `R16_UNORM` stays) and runs the encoder;
-absent an encoder the cook says so and writes uncompressed. The manifest records the format actually
-written and the encoder; the manifest's `runtime.format` is the truth a host reads, and the standard's
-table says "BC7, or uncompressed until the encoder is present". The library the spike picks is a second
-`Encoder` behind the same seam, its own small increment; the owner's requirement for it is that it runs on
-the BATS Python worker (Python with bindings, or Python made fast), so the seam takes a callable, never only
-a subprocess. The pick is Intel's ISPC Texture Compressor through `ispc_texcomp` (K0lb3's MIT binding on PyPI,
-found by the owner; question 2): `compress_blocks_bc7(RGBASurface, BC7EncSettings)`, `_bc5`, `_bc4`
-return the blocks as `bytes`, so the seam's second shape is `encode_blocks(rgba, width, height, block_format)
--> bytes` and `dds.write_2d` gains a block-compressed form (`write_2d_blocks(path, block_mips, dxgi_format)`,
-the DXGI BC formats with the block pitch in the header). Speed, determinism, the wheels and BC7 quality were
-checked on 2026-10-04 (the board's spike row); `texconv` stays the optional quality baseline.
+**Compression** (question 2, answered: `ispc_texcomp`). The cook writes the uncompressed DXGI formats above
+through `write_2d`, and `cook.py` carries an **encoder seam**: an `Encoder` protocol (`encode(level, block_format,
+alpha, profile) -> bytes`, the block bytes of one level, plus the encoder's name and version for the manifest)
+with `IspcEncoder` (Intel's ISPC Texture Compressor through `ispc_texcomp`, the `textures` extra) the default
+and `TexconvEncoder` (DirectXTex's `texconv` on `PATH` or named by `HOGSHADE_TEXCONV`) the optional baseline.
+**One behaviour, three flags:** with no flag, compression is automatic when an encoder is present (BC7 for
+colour, BC5 for normals, BC4 for one channel; height's `R16`/`R32` formats stay) and, when none is, the cook
+warns once with the install command and writes uncompressed; `--compress` makes an encoder required (exit 2
+with the same command when absent); `--no-compress` writes uncompressed on purpose. The manifest records the
+format actually written and the encoder; the manifest's `runtime.format` is the truth a host reads, and the
+standard's table says "BC7, or uncompressed until the encoder is present". The seam takes a callable, never
+only a subprocess, because the owner's bar is that it runs on the BATS Python worker; `ispc_texcomp` returns
+the blocks as `bytes` and `dds2d.write_2d_blocks` writes them with the block pitch in the header. BC4 takes an
+R8 surface and BC5 an RG8 surface, not RGBA (found by decoding a block by hand).
 
 The sidecar: the cook fills every derived field it has authority over (`preset`, `colour_space`, `mips`,
 `runtime` with the format actually written, `resolution`) when absent, lists them under `derived`, and
@@ -191,6 +188,27 @@ code (co3dex 2022, section "Basic Frequency Separation" and "Tiling Textures"):
 table, no authored sidecar); the **macro normal** is written beside it as `T_<set>_N_macro.dds` at the
 `--macro` size, carrying the low frequency as the design says (section 5: "the macro normal carrying the
 low frequency"). Reoriented normal mapping is the host's blend, named in the standard, not the cook's.
+
+## Setup, and where it is written down
+
+The owner's rule (2026-10-04): the encoder's setup is part of setup and getting-started documentation, not
+a surprise at first cook. `ispc_texcomp` is declared in `pyproject.toml` as the `textures` extra, and
+`uv sync --all-extras` (the one setup command the README, CI and the BATS Python worker already share; the
+worker runs on the workspace `.venv`, `tools/bats/orchestrator_config_hogshade.json`) installs it. So:
+
+- `README.md`, "Getting started", gains **The texture cook**: `uv sync --all-extras` (names the extra and
+  that it brings the ISPC encoder), `uv run tools/cook_textures.py cook <set>`, what lands under `cooked/`,
+  and that without the extra the cook writes uncompressed and says so.
+- `tools/README.md` names the cook beside the IBL cook, with the same two lines.
+- `tools/bats/README.md` and `Docs/knowledge/job-orchestrator.md` say the Python worker's venv carries the
+  `textures` extra because `--all-extras` does, and that `hogshade.jobs.cook_textures` is the job.
+- The cook itself, when `ispc_texcomp` does not import: one `WARNING` naming the command
+  (`uv sync --extra textures`), then an uncompressed cook with the manifest saying `"encoder": null`;
+  with `--compress` asked for explicitly and no encoder, exit 2 with the same message. A `--check-setup`
+  flag prints the encoder found, its version and the formats it will write, for a newcomer and for the
+  getting-started page.
+- The getting-started page proper is the manual's first chapter (the board's `Docs/manual/` row); when it
+  exists it carries this section verbatim, and the README's subsection points at it.
 
 ## Manifest and provenance
 
@@ -249,6 +267,9 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
   authored fields are untouched, a set with a T1 finding is refused, `check_content.py` passes on the cooked
   set (DDS and the two records only under `cooked/`).
 - `test_job.py`: the job manifest's outputs match what the cook writes; a climbing `set_dir` is refused.
+- `test_setup.py`: with the encoder import patched away, `cook` warns with the `uv sync` command and writes
+  uncompressed, `--compress` exits 2 with it, `--check-setup` reports; with it present, `--check-setup` names
+  the version and the three formats.
 
 ## Acceptance gate
 
@@ -277,8 +298,9 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
    log the other options for research and evaluation later." It does: wheels for Windows, Linux and macOS on
    `cp311-abi3`; BC7, BC5, BC4 from Python with no subprocess (the BATS bar); deterministic; BC7 at 37 dB on a
    noisy gradient. So T2 declares it as the `textures` extra (`uv sync --extra textures`), `IspcEncoder` is
-   the default behind the seam and `TexconvEncoder` the optional baseline, and `--compress` is the default
-   when the extra is installed (uncompressed when it is not, the manifest saying so). One API fact: BC4 takes
+   the default behind the seam and `TexconvEncoder` the optional baseline; compression is automatic when the
+   extra is installed, a warning and uncompressed output when it is not, `--compress` makes it required (the
+   one behaviour, "Compression" above). One API fact: BC4 takes
    an R8 surface and BC5 an RG8 surface, not RGBA. The other options are logged on the board's Icebox.
 
 ## Amendments made in the build
