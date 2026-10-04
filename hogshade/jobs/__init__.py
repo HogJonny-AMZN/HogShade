@@ -26,6 +26,7 @@ JOB_MODULES = (
     "hogshade.jobs.maya_ibl_check",
     "hogshade.jobs.cook_textures",
     "hogshade.jobs.maya_texture_check",
+    "hogshade.jobs.maya_mikktspace_dump",
 )
 
 

@@ -187,6 +187,17 @@ LF by the tools) and failed on CI's Windows runner, where `core.autocrlf` checks
 `LICENSE.md` out as CRLF, so twenty-nine inputs "changed since the cook" without a byte of content changing.
 Mechanised: `input_digest` in the cook and the check, the `.gitattributes` rules, a test with CRLF inputs.
 
+### 18 · A shell heredoc that rewrites the file it was meant to write
+
+**When you notice** a script or a test file containing real newlines where the source had `\n`, a lost
+backslash, or a `'` that ended a quoted block early, **do** write scripts and multi-line file contents with the
+editor's write tool (or a file on disk) and run them from there; never pipe Python or file contents through a
+bash heredoc on this Windows shell, however the heredoc is quoted.
+**Because:** 2026-10-04, #62: three times in one session a quoted heredoc (`<<'EOF'`) turned `\n` inside Python
+string literals into newlines or stopped at an apostrophe, once leaving a test file syntactically broken and
+once silently skipping a docs patch. The fix each time was the same: the same text written as a file and run.
+Not mechanised: it is the agent's tool choice, now a standing rule in the knowledge base.
+
 ## How to add an entry
 
 When process fails again, append in the same PR as the fix: a trigger you would notice, the action

@@ -24,7 +24,8 @@ rule keeps that from becoming a never-ending string of images:
   `content/**`); at these sizes history costs well under a megabyte per re-render.
 - Fixed names, overwritten in place, never a dated copy. The tree always holds the latest capture of
   each path; git holds the before. Compare across versions with `git show <rev>:<path>`.
-- The pictures that matter are listed in `gallery.json` (sections by need, pairs for side-by-side), and
+- The pictures that matter are listed in `gallery.json` (sections by need, pairs for side-by-side, grids for a
+  matrix of rows by columns, every cell a listed picture), and
   `Docs/gallery.md` is generated from it by `tools/generate_gallery.py --write`; `--check` runs in CI and
   fails on a rule broken, a missing file or a stale page. A capture nobody lists is still evidence, but
   the gallery is the showcase and the comparison, and the manual reuses its pictures by reference.

@@ -14,18 +14,31 @@ import logging as _logging
 import math
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
 
+from hogshade import mikktspace
 from hogshade.ibl.dds import read_2d_rgba16f, read_cube_rgba16f
 from hogshade.material.binding import WGPU_MODEL_IDS, WGPU_MODELS, pack_fields
 from hogshade.material.generators import host_map
 from hogshade.material.model import Binding
+from hogshade.material.runtime import RuntimeTexture
+from hogshade.wgpu_textures import (
+    BC_FEATURE,
+    SLOTS,
+    UNIFORM_BYTES,
+    MaterialPlan,
+    bind_group_entries,
+    material_plan,
+    material_sampler,
+    neutral_texture,
+)
 
 _MODULE_NAME = "hogshade.wgpu_host"
 __version__ = "0.1.0"
-__updated__ = "2026-09-26"
+__updated__ = "2026-10-04"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,6 +47,8 @@ CORE_WGSL = HOSTS_WGPU / "generated" / "hogshade_core.wgsl"
 SHADER_BALL = ROOT / "content" / "shaderball" / "shaderBall.obj"
 IBL_ROOT = ROOT / "content" / "ibl"
 PASSES = ("lit_mesh", "gbuffer_fill", "deferred_light")
+#: The passes that run the material half and so stitch material.wgsl (the texture slots at group 2, T3b).
+MATERIAL_PASSES = ("lit_mesh", "gbuffer_fill")
 
 # The host_Frame uniform in hosts/wgpu/common.wgsl, field for field, std140: matrices column-major.
 FRAME_DTYPE = np.dtype(
@@ -75,10 +90,16 @@ def lfs_hydrated(path: Path) -> bool:
 
 
 def stitch_pass(name: str) -> str:
-    """Core, then common.wgsl, then the pass file: what a wgpu pipeline compiles for pass ``name``."""
+    """
+    Core, then common.wgsl, then material.wgsl for a pass that runs the material half, then the pass file: what a
+    wgpu pipeline compiles for pass ``name``.
+    """
     if name not in PASSES:
         raise ValueError(f"unknown pass {name!r}; one of {PASSES}")
-    parts = [CORE_WGSL, HOSTS_WGPU / "common.wgsl", HOSTS_WGPU / f"{name}.wgsl"]
+    parts = [CORE_WGSL, HOSTS_WGPU / "common.wgsl"]
+    if name in MATERIAL_PASSES:
+        parts.append(HOSTS_WGPU / "material.wgsl")
+    parts.append(HOSTS_WGPU / f"{name}.wgsl")
     return "\n".join(p.read_text(encoding="utf-8") for p in parts)
 
 
@@ -87,44 +108,174 @@ def stitch_pass(name: str) -> str:
 
 @dataclass
 class Mesh:
-    vertices: NDArray  # (n, 6) float32: position, normal
-    indices: NDArray  # (m,) uint32, triangles
+    """
+    A triangle mesh for the host: ``vertices`` ``(n, 12)`` float32 as position, normal, uv, tangent with its
+    handedness sign in the fourth component (``VERTEX_STRIDE`` bytes), ``indices`` ``(m,)`` uint32. The normals
+    are the source's (MikkTSpace consumes them as given); the tangents are MikkTSpace's, and ``tangent_basis``
+    says so (``mikktspace``), or ``unknown`` when a file carried tangents nobody vouched for (the host logs and
+    regenerates), or ``none`` while a mesh has no UVs (the shaders fall back to an arbitrary frame).
+    """
+
+    vertices: NDArray[np.float32]
+    indices: NDArray[np.uint32]
+    tangent_basis: str = "mikktspace"
+
+
+VERTEX_FLOATS = 12
+VERTEX_STRIDE = VERTEX_FLOATS * 4
+
+
+def with_tangents(
+    positions: NDArray[np.floating],
+    normals: NDArray[np.floating],
+    uvs: NDArray[np.floating] | None,
+    indices: NDArray[np.integer],
+    tangents: NDArray[np.floating] | None = None,
+    tangent_basis: str = "none",
+) -> Mesh:
+    """
+    The host's mesh from arrays: MikkTSpace tangents generated when UVs are present (the standard's requirement,
+    the normals as given), a zero tangent with sign +1 and ``tangent_basis="none"`` when they are not. A source
+    that carries tangents passes them as ``(n, 4)`` with the sign in ``w`` and names their basis: ``mikktspace``
+    is used as given; ``unknown`` (baked tangents nobody vouched for) is flagged with a WARNING and regenerated,
+    the owner's rule; any other basis is a validation failure (``ValueError``), the content standard's. A vertex
+    that faces of both handednesses share is split for its mirrored corners before the tangents are generated
+    (``mikktspace.split_mixed_handedness``), so the mesh may come back with more vertices than it was given.
+    """
+    n = positions.shape[0]
+    if tangent_basis not in mikktspace.TANGENT_BASES:
+        raise ValueError(
+            f"tangent basis {tangent_basis!r} is not one of {mikktspace.TANGENT_BASES}; the project requires MikkTSpace"
+        )
+    if tangents is not None and np.asarray(tangents).shape != (n, 4):
+        raise ValueError(f"tangents are (n, 4) with the sign in w; got {np.asarray(tangents).shape} for {n} vertices")
+    if uvs is None:
+        uv = np.zeros((n, 2), dtype=np.float32)
+        tangent = np.zeros((n, 4), dtype=np.float32)
+        tangent[:, 3] = 1.0
+        basis = "none"
+    else:
+        uv = np.asarray(uvs, dtype=np.float32)
+        if tangents is not None and tangent_basis == "mikktspace":
+            given = np.asarray(tangents, dtype=np.float32)
+            t, s = given[:, :3], given[:, 3]
+        else:
+            if tangents is not None:
+                _LOGGER.warning(
+                    f"{n} vertices carry tangents of {tangent_basis} basis: regenerated as MikkTSpace, the "
+                    f"basis every host here assumes (the content standard)"
+                )
+            positions, normals, uv, indices, n_split = mikktspace.split_mixed_handedness(
+                positions, normals, uv, indices
+            )
+            if n_split:
+                _LOGGER.info(f"{n_split} vertex/vertices split for a mirrored seam: {positions.shape[0]} vertices now")
+            uv = np.asarray(uv, dtype=np.float32)
+            t, s = mikktspace.tangents(positions, normals, uv, indices)
+        tangent = np.concatenate([t, s[:, None]], axis=1)
+        basis = "mikktspace"
+    verts = np.concatenate(
+        [np.asarray(positions, dtype=np.float32), np.asarray(normals, dtype=np.float32), uv, tangent], axis=1
+    )
+    return Mesh(np.ascontiguousarray(verts, dtype=np.float32), np.asarray(indices, dtype=np.uint32).reshape(-1), basis)
+
+
+@dataclass
+class ObjRecords:
+    """An OBJ's records as read: the v, vt and vn arrays and each face as its corners' 1-based (v, vt, vn)."""
+
+    positions: list[list[float]]
+    texcoords: list[list[float]]
+    normals: list[list[float]]
+    faces: list[list[tuple[int, int, int]]]
+
+
+def _floats(line: str, count: int) -> list[float]:
+    """The first ``count`` numbers of a v, vt or vn record; fewer is a malformed record."""
+    values = [float(x) for x in line.split()[1 : 1 + count]]
+    if len(values) < count:
+        raise ValueError(f"{count} numbers expected, {len(values)} given")
+    return values
+
+
+def read_obj(path: Path) -> ObjRecords:
+    """The v, vt, vn and f (v/vt/vn) records of an OBJ; a malformed record names the file and its line."""
+    records = ObjRecords([], [], [], [])
+    with Path(path).open(encoding="utf-8", errors="replace") as fh:
+        for number, line in enumerate(fh, start=1):
+            try:
+                if line.startswith("v "):
+                    records.positions.append(_floats(line, 3))
+                elif line.startswith("vt "):
+                    records.texcoords.append(_floats(line, 2))
+                elif line.startswith("vn "):
+                    records.normals.append(_floats(line, 3))
+                elif line.startswith("f "):
+                    face: list[tuple[int, int, int]] = []
+                    for token in line.split()[1:]:
+                        parts = token.split("/")
+                        vi = int(parts[0])
+                        ti = int(parts[1]) if len(parts) > 1 and parts[1] else 0
+                        ni = int(parts[2]) if len(parts) > 2 and parts[2] else 0
+                        face.append((vi, ti, ni))
+                    records.faces.append(face)
+            except (ValueError, IndexError) as e:
+                raise ValueError(f"{path}:{number}: malformed OBJ record {line.strip()!r}: {e}") from e
+    return records
+
+
+def _face_hand(face_keys: list[tuple[int, int, int]], texcoords: list[list[float]]) -> int:
+    """The UV handedness of an OBJ face (+1, or -1 for a mirrored one), from its polygon's signed UV area; +1
+    without UVs. Part of the corner key so a seam vertex both sides share is two vertices, as MikkTSpace wants."""
+    if not texcoords or any(ti == 0 for _, ti, _ in face_keys):
+        return 1
+    uv = [texcoords[ti - 1] for _, ti, _ in face_keys]
+    area = 0.0
+    for k in range(len(uv)):
+        u0, v0 = uv[k]
+        u1, v1 = uv[(k + 1) % len(uv)]
+        area += u0 * v1 - u1 * v0
+    return -1 if area < 0.0 else 1
 
 
 def load_obj(path: Path) -> Mesh:
-    """A minimal OBJ reader: v, vn and f (v/vt/vn) records; quads and fans are triangulated."""
-    positions: list[list[float]] = []
-    normals: list[list[float]] = []
-    corners: dict[tuple[int, int], int] = {}
+    """
+    A minimal OBJ reader: v, vt, vn and f (v/vt/vn) records; quads and fans are triangulated; a corner is keyed
+    on (v, vt, vn) and its face's UV handedness, the weld MikkTSpace uses with the mirrored side kept apart (a
+    seam vertex both sides share becomes two). Tangents are generated (an OBJ carries none); a file without
+    ``vt`` gives a mesh with ``tangent_basis="none"``.
+    """
+    records = read_obj(path)
+    positions, texcoords, normals = records.positions, records.texcoords, records.normals
+    corners: dict[tuple[int, int, int, int], int] = {}
     vertices: list[tuple[float, ...]] = []
     tris: list[int] = []
-    with path.open(encoding="utf-8", errors="replace") as fh:
-        for line in fh:
-            if line.startswith("v "):
-                positions.append([float(x) for x in line.split()[1:4]])
-            elif line.startswith("vn "):
-                normals.append([float(x) for x in line.split()[1:4]])
-            elif line.startswith("f "):
-                face: list[int] = []
-                for token in line.split()[1:]:
-                    parts = token.split("/")
-                    vi = int(parts[0])
-                    ni = int(parts[2]) if len(parts) > 2 and parts[2] else 0
-                    key = (vi, ni)
-                    idx = corners.get(key)
-                    if idx is None:
-                        idx = len(vertices)
-                        corners[key] = idx
-                        p = positions[vi - 1]
-                        n = normals[ni - 1] if ni else [0.0, 1.0, 0.0]
-                        vertices.append((*p, *n))
-                    face.append(idx)
-                for k in range(1, len(face) - 1):
-                    tris.extend((face[0], face[k], face[k + 1]))
+    for face_keys in records.faces:
+        face: list[int] = []
+        hand = _face_hand(face_keys, texcoords)
+        for vi, ti, ni in face_keys:
+            key = (vi, ti, ni, hand)
+            idx = corners.get(key)
+            if idx is None:
+                idx = len(vertices)
+                corners[key] = idx
+                p = positions[vi - 1]
+                n = normals[ni - 1] if ni else [0.0, 1.0, 0.0]
+                t = texcoords[ti - 1] if ti else [0.0, 0.0]
+                vertices.append((*p, *n, *t))
+            face.append(idx)
+        for k in range(1, len(face) - 1):
+            tris.extend((face[0], face[k], face[k + 1]))
     verts = np.asarray(vertices, dtype=np.float32)
     if len(verts) == 0:
         raise ValueError(f"no faces in {path}")
-    return Mesh(verts, np.asarray(tris, dtype=np.uint32))
+    has_uv = bool(texcoords)
+    mesh = with_tangents(verts[:, :3], verts[:, 3:6], verts[:, 6:8] if has_uv else None, np.asarray(tris))
+    _LOGGER.info(
+        f"loaded {path.name}: {len(verts)} corners, {len(tris) // 3} triangles, uvs {'yes' if has_uv else 'no'}, "
+        f"tangents {mesh.tangent_basis}"
+    )
+    return mesh
 
 
 def normalise_mesh(mesh: Mesh, size: float = 2.0) -> Mesh:
@@ -137,7 +288,7 @@ def normalise_mesh(mesh: Mesh, size: float = 2.0) -> Mesh:
     out[:, :3] = (pos - centre) * scale
     n = out[:, 3:6]
     out[:, 3:6] = n / np.maximum(np.linalg.norm(n, axis=-1, keepdims=True), 1e-8)
-    return Mesh(out, mesh.indices)
+    return Mesh(out, mesh.indices, mesh.tangent_basis)  # uv and tangent columns pass through untouched
 
 
 # ----------------------------------------------------------------------------- camera
@@ -267,10 +418,26 @@ class Scene:
     ground: tuple[float, float, float] = (0.2, 0.15, 0.1)
     environment: str = "studio_small_09"
     sh9: NDArray = field(default_factory=lambda: np.zeros((9, 3)))
+    #: The document's textures in their runtime form (``hogshade.material.runtime.runtime_textures`` of the
+    #: binding's ``textures`` against the document's directory); None or empty renders every slot neutral (T3b).
+    textures: dict[str, RuntimeTexture] | None = None
+    _plan: tuple[dict[str, RuntimeTexture], MaterialPlan] | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
 
     @property
     def model(self) -> str:
         return self.material.model  # both kinds of material carry it
+
+    def plan(self) -> MaterialPlan:
+        """
+        The material plan the textures become: bits, selectors and a source per slot; empty when untextured.
+        Built once per distinct ``textures`` content (so a scene rendered many times logs its plan once).
+        """
+        textures = dict(self.textures or {})
+        if self._plan is None or self._plan[0] != textures:
+            self._plan = (textures, material_plan(textures))
+        return self._plan[1]
 
     def view_proj(self) -> tuple[NDArray, NDArray]:
         eye = orbit_eye(self.yaw_deg, self.pitch_deg, self.distance)
@@ -343,6 +510,11 @@ class Renderer:
         self._build_layouts()
         self._build_pipelines()
         self._targets: dict = {}
+        self._texture_cache: dict[str, object] = {}  # DDS path -> texture, shared by every document over a set
+        self._material_groups: dict[tuple, object] = {}  # MaterialPlan.key -> bind group
+        self._neutral = {slot: neutral_texture(device, slot) for slot in SLOTS}
+        self._neutral["sampler"] = material_sampler(device)
+        self.bind_material_none = self._material_group(MaterialPlan())
         _LOGGER.info(
             "wgpu host ready: mesh %d vertices, environment %s (%d specular mips), GB3 %s",
             len(mesh.vertices),
@@ -438,6 +610,14 @@ class Renderer:
                 {"binding": 4, "visibility": frag, "texture": tex("depth", "2d")},
             ]
         )
+        # T3b: the material slots (material.wgsl), group 2 of the two passes that run the material half
+        self.layout_material = self.device.create_bind_group_layout(
+            entries=[{"binding": k, "visibility": frag, "texture": tex("float", "2d")} for k in range(len(SLOTS))]
+            + [
+                {"binding": 4, "visibility": frag, "sampler": {"type": "filtering"}},
+                {"binding": 5, "visibility": frag, "buffer": {"type": "uniform"}},
+            ]
+        )
         self.bind_frame = self.device.create_bind_group(
             layout=self.layout_frame,
             entries=[{"binding": 0, "resource": {"buffer": self.frame_buffer, "offset": 0, "size": FRAME_BYTES}}],
@@ -460,11 +640,13 @@ class Renderer:
             "entry_point": "vs_main",
             "buffers": [
                 {
-                    "array_stride": 24,
+                    "array_stride": VERTEX_STRIDE,
                     "step_mode": wgpu.VertexStepMode.vertex,
                     "attributes": [
                         {"format": wgpu.VertexFormat.float32x3, "offset": 0, "shader_location": 0},
                         {"format": wgpu.VertexFormat.float32x3, "offset": 12, "shader_location": 1},
+                        {"format": wgpu.VertexFormat.float32x2, "offset": 24, "shader_location": 2},
+                        {"format": wgpu.VertexFormat.float32x4, "offset": 32, "shader_location": 3},
                     ],
                 }
             ],
@@ -481,15 +663,20 @@ class Renderer:
         }
         depth = {"format": DEPTH_FORMAT, "depth_write_enabled": True, "depth_compare": wgpu.CompareFunction.less}
         self.pipe_forward = d.create_render_pipeline(
-            layout=d.create_pipeline_layout(bind_group_layouts=[self.layout_frame, self.layout_env]),
+            layout=d.create_pipeline_layout(
+                bind_group_layouts=[self.layout_frame, self.layout_env, self.layout_material]
+            ),
             vertex=self._mesh_vertex_state(modules["lit_mesh"]),
             primitive=primitive,
             depth_stencil=depth,
             fragment={"module": modules["lit_mesh"], "entry_point": "fs_main", "targets": [{"format": COLOR_FORMAT}]},
         )
         gb_formats = list(GBUFFER_FORMATS[:3]) + [self.gb3_format]
+        # the fill pass reads no environment, but material.wgsl puts the slots at group 2 for both mesh passes
         self.pipe_fill = d.create_render_pipeline(
-            layout=d.create_pipeline_layout(bind_group_layouts=[self.layout_frame]),
+            layout=d.create_pipeline_layout(
+                bind_group_layouts=[self.layout_frame, self.layout_env, self.layout_material]
+            ),
             vertex=self._mesh_vertex_state(modules["gbuffer_fill"]),
             primitive=primitive,
             depth_stencil=depth,
@@ -511,6 +698,27 @@ class Renderer:
                 "targets": [{"format": COLOR_FORMAT}],
             },
         )
+
+    def _material_group(self, plan: MaterialPlan) -> Any:
+        """
+        The bind group for a plan, built once per distinct key (two documents over one set that bind different
+        subsets get two groups; the DDS uploads behind them are shared by path).
+        """
+        group = self._material_groups.get(plan.key)
+        if group is not None:
+            return group
+        wgpu = self.wgpu
+        uniform = self.device.create_buffer_with_data(data=plan.uniform_bytes(), usage=wgpu.BufferUsage.UNIFORM)
+        entries = bind_group_entries(self.device, plan, self._texture_cache, self._neutral)
+        entries.append({"binding": 5, "resource": {"buffer": uniform, "offset": 0, "size": UNIFORM_BYTES}})
+        group = self.device.create_bind_group(layout=self.layout_material, entries=entries)
+        self._material_groups[plan.key] = group
+        _LOGGER.info(
+            f"material bind group {len(self._material_groups)}: {len(plan.sources)} slot(s) from files "
+            f"({', '.join(sorted(plan.sources)) or 'none'}), bits {plan.bound:#x}, "
+            f"{len(self._texture_cache)} texture(s) resident"
+        )
+        return group
 
     def _ensure_targets(self, width: int, height: int) -> dict:
         wgpu = self.wgpu
@@ -588,6 +796,7 @@ class Renderer:
         if w % 32:
             raise ValueError("width must be a multiple of 32 so the readback rows are 256-byte aligned")
         t = self._ensure_targets(w, h)
+        bind_material = self._material_group(scene.plan()) if scene.textures else self.bind_material_none
         self.device.queue.write_buffer(self.frame_buffer, 0, scene.frame_bytes(self.specular_mip_count))
         encoder = self.device.create_command_encoder()
         self._draw_mesh(
@@ -595,14 +804,14 @@ class Renderer:
             self.pipe_forward,
             [t["forward"].create_view()],
             t["depth_forward"].create_view(),
-            [self.bind_frame, self.bind_env],
+            [self.bind_frame, self.bind_env, bind_material],
         )
         self._draw_mesh(
             encoder,
             self.pipe_fill,
             [g.create_view() for g in t["gbuffer"]],
             t["depth"].create_view(),
-            [self.bind_frame],
+            [self.bind_frame, self.bind_env, bind_material],
         )
         wgpu = self.wgpu
         rpass = encoder.begin_render_pass(
@@ -630,16 +839,43 @@ class Renderer:
 
 
 def request_device(power_preference: str = "high-performance"):
-    """An adapter and device with the optional G-buffer feature when the adapter has it."""
+    """
+    An adapter and device with the optional features the adapter has: the G-buffer's rg11b10 target and, for the
+    cooked block-compressed sets (T3b), ``texture-compression-bc``.
+    """
     import wgpu
 
     adapter = wgpu.gpu.request_adapter_sync(power_preference=power_preference)
-    features = ["rg11b10ufloat-renderable"] if "rg11b10ufloat-renderable" in adapter.features else []
+    wanted = ("rg11b10ufloat-renderable", BC_FEATURE)
+    features = [f for f in wanted if f in adapter.features]
+    missing = [f for f in wanted if f not in adapter.features]
     info = adapter.info
     _LOGGER.info(
-        "adapter %s (%s), features requested: %s", info.get("device"), info.get("backend_type"), features or "none"
+        f"adapter {info.get('device')} ({info.get('backend_type')}), features requested: {features or 'none'}"
+        + (f"; not offered: {missing}" if missing else "")
     )
     return adapter, adapter.request_device_sync(required_features=features)
+
+
+def obj_corners(path: Path) -> tuple[NDArray[np.int32], NDArray[np.int32], NDArray[np.int32]]:
+    """
+    The corners of an OBJ in file order, as ``load_obj`` keys them: ``(face, vertex, index)`` arrays, one entry per
+    face corner, where ``face`` is the OBJ face index, ``vertex`` the 0-based ``v`` index and ``index`` the row of
+    ``load_obj(path).vertices`` that corner became. What a per-corner fixture from another tool (Maya's tangents,
+    ``hogshade.jobs.maya_mikktspace_dump``) lines up against.
+    """
+    corners: dict[tuple[int, int, int, int], int] = {}
+    faces: list[int] = []
+    verts: list[int] = []
+    rows: list[int] = []
+    records = read_obj(path)
+    for face_index, face_keys in enumerate(records.faces):  # the same records and keying as load_obj
+        hand = _face_hand(face_keys, records.texcoords)
+        for vi, ti, ni in face_keys:
+            faces.append(face_index)
+            verts.append(vi - 1)
+            rows.append(corners.setdefault((vi, ti, ni, hand), len(corners)))
+    return np.asarray(faces, dtype=np.int32), np.asarray(verts, dtype=np.int32), np.asarray(rows, dtype=np.int32)
 
 
 def load_shader_ball() -> Mesh:

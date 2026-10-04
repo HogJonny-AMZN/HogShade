@@ -32,3 +32,7 @@ Note for git-bash: the cargo bin directory is `$HOME/.cargo/bin`; `$USERPROFILE`
   (`WGPU_BACKEND_TYPE=D3D12`) before pushing.
 - `queue.write_texture` needs no 256-byte row alignment; buffer-to-texture copies and readback do.
 - Recreate `.venv` after moving the clone folder: uv's script launchers embed the absolute path.
+- An agent's bash heredoc on this Windows git-bash rewrites what it carries: backslash sequences in a
+  Python string literal become real newlines and an apostrophe can end a quoted block early, however the
+  heredoc is quoted. Write scripts and file contents with the editor's write tool and run the file;
+  never pipe them through a heredoc (failure modes 18).

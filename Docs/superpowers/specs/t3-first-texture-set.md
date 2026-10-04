@@ -221,7 +221,7 @@ gains the Maya texture check; `tools/bats/README.md` and the knowledge file gain
 
 ## Out of scope
 
-- The wgpu texture bind group (T3b). Detail-map blending in any host (`_DH`, `_DN`): the cook writes them, the
+- The wgpu texture bind group (T3b, built: [t3b-wgpu-textures.md](t3b-wgpu-textures.md)). Detail-map blending in any host (`_DH`, `_DN`): the cook writes them, the
   hosts blend nothing yet; the standard names reoriented normal mapping as the host's job for a later increment.
 - Anisotropy, specular colour, specular occlusion and cavity maps on the sourced sets (Poly Haven ships none;
   the grid tile's `_C` is the one cavity map and no sourced document binds one).
