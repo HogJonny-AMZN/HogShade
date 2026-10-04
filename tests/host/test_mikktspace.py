@@ -1,11 +1,16 @@
 """
 HogShade: the MikkTSpace generator on arbitrary data (T3b): tangents follow U and are tangent to the surface, the
 sign flips on a mirrored island, custom normals are consumed and not recomputed, a corner without UV area falls
-back to a perpendicular, and the shapes are checked.
+back to a perpendicular, and the shapes are checked; then the shader ball against Maya's own frame (the fixture
+``hogshade.jobs.maya_mikktspace_dump`` wrote): the corners line up, the handedness is exact, the direction close.
 Package: tests/host/test_mikktspace
 """
 
 from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -89,3 +94,67 @@ def test_a_degenerate_corner_falls_back_to_a_perpendicular_and_shapes_are_checke
     with pytest.raises(ValueError, match="outside the vertex array"):
         tangents(p, n, uv, np.array([[0, 1, 7]]))
     assert TANGENT_BASES == ("mikktspace", "unknown", "none")
+
+
+# ----------------------------------------------------------------------------- parity with Maya on the shader ball
+
+FIXTURE = Path(__file__).resolve().parent / "fixtures" / "shaderBall_mikktspace.npz"
+
+
+@pytest.fixture(scope="module")
+def shader_ball_and_maya():
+    """``load_obj`` of the shader ball and Maya's per-corner frame (``hogshade.jobs.maya_mikktspace_dump``)."""
+    from hogshade import wgpu_host
+
+    if not FIXTURE.exists():
+        pytest.skip(f"no fixture {FIXTURE.name}; run hogshade.jobs.maya_mikktspace_dump")
+    if not wgpu_host.lfs_hydrated(wgpu_host.SHADER_BALL):
+        pytest.skip("shader ball not hydrated (LFS)")
+    data = np.load(FIXTURE)
+    return wgpu_host.load_obj(wgpu_host.SHADER_BALL), data, json.loads(str(data["meta"]))
+
+
+def test_the_fixture_lines_up_with_load_obj_corner_for_corner(shader_ball_and_maya):
+    """Same OBJ, same corners: face and vertex indices agree and the vertex positions hash the same."""
+    from hogshade import wgpu_host
+
+    mesh, data, meta = shader_ball_and_maya
+    face, vertex, rows = wgpu_host.obj_corners(wgpu_host.SHADER_BALL)
+    assert np.array_equal(face, data["face"]) and np.array_equal(vertex, data["vertex"])
+    assert len(rows) == meta["corners"] and rows.max() + 1 == len(mesh.vertices)
+    positions = [
+        [float(x) for x in line.split()[1:4]]
+        for line in wgpu_host.SHADER_BALL.read_text(encoding="utf-8", errors="replace").splitlines()
+        if line.startswith("v ")
+    ]
+    digest = hashlib.sha256(np.round(np.asarray(positions), 5).astype(np.float32).tobytes()).hexdigest()
+    assert digest == meta["positions_sha256"], "Maya imported the same vertices in the same order"
+
+
+def test_parity_with_maya_on_the_shader_ball(shader_ball_and_maya):
+    """
+    Maya 2026.3 exposes no MikkTSpace choice on the mesh (its ``tangentSpace`` enum: detectWindingRightHanded,
+    rightHanded, detectWindingLeftHanded, leftHanded), so this is MikkTSpace against Maya's default basis, measured
+    on 2026-10-04: the handedness agrees on every one of the 135,792 corners (20,628 mirrored on both sides), the
+    direction agrees to a median of 0.8 degrees, 98 percent within 5 degrees, the worst corner 35 degrees (the two
+    weight shared corners differently); the bars below hold those numbers with a little room.
+    """
+    from hogshade import wgpu_host
+
+    mesh, data, _meta = shader_ball_and_maya
+    _face, _vertex, rows = wgpu_host.obj_corners(wgpu_host.SHADER_BALL)
+    ours_t = mesh.vertices[rows, 8:11]
+    ours_sign = mesh.vertices[rows, 11]
+    maya_t = data["tangent"].astype(np.float32)
+    maya_t /= np.maximum(np.linalg.norm(maya_t, axis=1, keepdims=True), 1e-9)
+    normals = mesh.vertices[rows, 3:6]
+    assert np.abs(np.sum(ours_t * normals, axis=1)).max() < 1e-3, "our tangent is orthogonal to the given normal"
+    assert np.array_equal(np.sign(ours_sign), data["sign"].astype(np.float32)), (
+        "the handedness is exact, seams included"
+    )
+    assert (ours_sign < 0).sum() == 20628 == (data["sign"] < 0).sum()
+    angle = np.degrees(np.arccos(np.clip(np.sum(ours_t * maya_t, axis=1), -1.0, 1.0)))
+    assert np.median(angle) < 1.0, np.median(angle)
+    assert (angle <= 5.0).mean() > 0.97, (angle <= 5.0).mean()
+    assert angle.max() < 45.0, angle.max()
+    assert not (angle > 90.0).any(), "no corner points the other way"

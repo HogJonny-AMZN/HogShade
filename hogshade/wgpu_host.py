@@ -700,13 +700,19 @@ class Renderer:
         raw = np.frombuffer(self.device.queue.read_buffer(out), dtype=np.uint8).reshape(height, stride)
         return np.frombuffer(raw[:, : width * bytes_per_pixel].tobytes(), dtype=dtype).reshape(height, -1)
 
-    def render(self, scene: Scene) -> Frames:
-        """Render the scene through both paths and read the results back as linear float32 images."""
+    def render(self, scene: Scene, plan: MaterialPlan | None = None) -> Frames:
+        """
+        Render the scene through both paths and read the results back as linear float32 images. ``plan`` is the
+        scene's material plan when the caller already built it (``scene.plan()``), else it is built here.
+        """
         w, h = scene.width, scene.height
         if w % 32:
             raise ValueError("width must be a multiple of 32 so the readback rows are 256-byte aligned")
         t = self._ensure_targets(w, h)
-        bind_material = self._material_group(scene.plan()) if scene.textures else self.bind_material_none
+        if scene.textures:
+            bind_material = self._material_group(plan if plan is not None else scene.plan())
+        else:
+            bind_material = self.bind_material_none
         self.device.queue.write_buffer(self.frame_buffer, 0, scene.frame_bytes(self.specular_mip_count))
         encoder = self.device.create_command_encoder()
         self._draw_mesh(
@@ -765,6 +771,36 @@ def request_device(power_preference: str = "high-performance"):
         + (f"; not offered: {missing}" if missing else "")
     )
     return adapter, adapter.request_device_sync(required_features=features)
+
+
+def obj_corners(path: Path) -> tuple[NDArray[np.int32], NDArray[np.int32], NDArray[np.int32]]:
+    """
+    The corners of an OBJ in file order, as ``load_obj`` keys them: ``(face, vertex, index)`` arrays, one entry per
+    face corner, where ``face`` is the OBJ face index, ``vertex`` the 0-based ``v`` index and ``index`` the row of
+    ``load_obj(path).vertices`` that corner became. What a per-corner fixture from another tool (Maya's tangents,
+    ``hogshade.jobs.maya_mikktspace_dump``) lines up against.
+    """
+    corners: dict[tuple[int, int, int], int] = {}
+    faces: list[int] = []
+    verts: list[int] = []
+    rows: list[int] = []
+    face_index = 0
+    with Path(path).open(encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            if not line.startswith("f "):
+                continue
+            for token in line.split()[1:]:
+                parts = token.split("/")
+                vi = int(parts[0])
+                ti = int(parts[1]) if len(parts) > 1 and parts[1] else 0
+                ni = int(parts[2]) if len(parts) > 2 and parts[2] else 0
+                key = (vi, ti, ni)
+                idx = corners.setdefault(key, len(corners))
+                faces.append(face_index)
+                verts.append(vi - 1)
+                rows.append(idx)
+            face_index += 1
+    return np.asarray(faces, dtype=np.int32), np.asarray(verts, dtype=np.int32), np.asarray(rows, dtype=np.int32)
 
 
 def load_shader_ball() -> Mesh:
