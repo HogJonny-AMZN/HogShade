@@ -1,0 +1,37 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Brown planks",
+  "doc": "The wood set: Poly Haven's brown_planks_03 at 2K, colour, normal, roughness, ambient occlusion and a 16-bit height; a plain dielectric, the grain's anisotropy left to a later standard.",
+  "parent": "base.material.json",
+  "values": {
+    "base_color": {
+      "factor": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "texture": "brown_planks_03/T_brown_planks_03_BC.png"
+    },
+    "specular_roughness": {
+      "factor": 1.0,
+      "texture": "brown_planks_03/T_brown_planks_03_R.png"
+    },
+    "geometry_normal": {
+      "texture": "brown_planks_03/T_brown_planks_03_N.png"
+    },
+    "ambient_occlusion": {
+      "texture": "brown_planks_03/T_brown_planks_03_AO.png"
+    },
+    "height": {
+      "texture": "brown_planks_03/T_brown_planks_03_H.png"
+    }
+  },
+  "provenance": [
+    {
+      "source": "Poly Haven, https://polyhaven.com/a/brown_planks_03 (CC0 1.0), fetched 2026-10-04 at 2K by tools/fetch_polyhaven.py; the set's LICENSE.md names the authors",
+      "note": "base_color, specular_roughness, geometry_normal, ambient_occlusion, height: each binds the set's map of that name; base_color and specular_roughness carry the factor 1.0 because legacy v2 multiplies the sample by the factor; the IOR is the family's 1.5"
+    }
+  ],
+  "ext": {}
+}

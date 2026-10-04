@@ -6,3 +6,77 @@ log is incremental
 MENUS 63: File, Edit, Create, Select, Modify, Display, Windows, Mesh, Edit Mesh, Mesh Tools, Mesh Display, Curves, Surfaces, Deform, UV, Generate, Recent Commands, Hotbox Controls, Key, Playback, Audio, Visualize, Deform, Constrain, nParticles, Fluids, nCloth, nHair, nConstraint, nCache, Fields/Solvers, Effects, Lighting/Shading, Texturing, Render, Toon, Stereo, Skeleton, Skin, Deform, Constrain, Control, Cache, Bifrost Rigging, Flow, Arnold, Hotbox North 1, Hotbox North 2, Hotbox North 3, Hotbox South 1, Hotbox South 2, Hotbox South 3, Hotbox East 1, Hotbox East 2, Hotbox East 3, Hotbox West 1, Hotbox West 2, Hotbox West 3, Hotbox Center 1, Hotbox Center 2, Hotbox Center 3, MASH, Help 
 BOUND hogshade-legacy-v2 as legacy-v2: 8 texture(s); losses ['specular_color', 'specular_anisotropy', 'specular_rotation', 'specular_occlusion']
 HISTORY D:\Depot\HogShade\verification\maya-2026\textures\probe\grid-compressed\maya-history.log
+TECHNIQUES: ['Main'] (shader load 48.6 s)
+CONNECTED specularEnvTextureCube_file (D:\Depot\HogShade\content\ibl\studio_small_09\cooked\specular.dds) -> specularEnvTextureCube; loaded size [(256.0, 256.0)]
+CONNECTED diffuseEnvTextureCube_file (D:\Depot\HogShade\content\ibl\studio_small_09\cooked\irradiance.dds) -> diffuseEnvTextureCube; loaded size [(32.0, 32.0)]
+CONNECTED brdfTextureMap_file (D:\Depot\HogShade\content\ibl\brdf_lut.dds) -> brdfTextureMap; loaded size [(256.0, 256.0)]
+SET useEnvMaps = True
+SET useShadows = False
+SET envExposure = 1.0
+SET linearSpaceLighting = True
+SET gammaCorrectionValue = 2.2
+SET useBaseColorMap = 1.0
+SET materialBaseColor = (1.0, 1.0, 1.0)
+SET useRoughnessMap = 1.0
+SET materialRoughness = 1.0
+SET useMetalnessMap = 1.0
+SET materialMetalness = 1.0
+SET useSpecularMap = 0.0
+SET materialSpecular = 1.0
+SET materialSpecTint = 0.0
+SET materialIOR = 1.5
+SET useSpecularF0Map = 0.0
+SET materialBumpIntensity = 1.0
+SET useEmissiveMap = 1.0
+SET materialEmissive = (1.0, 1.0, 1.0)
+SET materialEmissiveIntensity = 0.0
+SET useVertexC0_RGBA = 0.0
+SET hasVertexAlpha = 0.0
+SET useVertexC1_AO = 0.0
+SET hasAlpha = 0.0
+SET useCutoutAlpha = 1.0
+SET opacityMaskBias = 0.1
+SET opacity = 1.0
+SET flipBackfaceNormals = 1.0
+SET useNormalMap = 1.0
+SET NormalCoordsysX = 0.0
+SET NormalCoordsysY = 0.0
+SET NormalCoordsysZ = 0.0
+SET useAmbOccMap = 1.0
+SET useCavityMap = 1.0
+SET useHeightMap = 1.0
+SET useParallaxOcclusionMapping = 0.0
+SET materialPomHeightScale = 0.05
+SET pomMinSamples = 25.0
+SET pomMaxSamples = 75.0
+SET parallaxOccShadowType = 0.0
+SET selfOccShadowStrength = 0.7
+SET pomShadowMultiplier = 0.5
+CONNECTED baseColorMap_file (C:\Users\hogjo\AppData\Local\Temp\claude\d--Depot-LargeWorlds\c9687869-d0bb-4072-8ba2-08a8f45ed7e9\scratchpad\probe\compressed\grid\cooked\T_grid_BC.dds) -> baseColorMap; loaded size [(1024.0, 1024.0)]
+TEXTURE base_color: T_grid_BC.dds [rgb] BC7_UNORM_SRGB -> baseColorMap; decoded=True
+CONNECTED roughnessMap_file (C:\Users\hogjo\AppData\Local\Temp\claude\d--Depot-LargeWorlds\c9687869-d0bb-4072-8ba2-08a8f45ed7e9\scratchpad\probe\compressed\grid\cooked\T_grid_ORM.dds) -> roughnessMap; loaded size [(1024.0, 1024.0)]
+TEXTURE roughness: T_grid_ORM.dds [g] BC7_UNORM -> roughnessMap; decoded=True
+CONNECTED metalnessMap_file (C:\Users\hogjo\AppData\Local\Temp\claude\d--Depot-LargeWorlds\c9687869-d0bb-4072-8ba2-08a8f45ed7e9\scratchpad\probe\compressed\grid\cooked\T_grid_ORM.dds) -> metalnessMap; loaded size [(1024.0, 1024.0)]
+TEXTURE metalness: T_grid_ORM.dds [b] BC7_UNORM -> metalnessMap; decoded=True
+CONNECTED emissiveMap_file (C:\Users\hogjo\AppData\Local\Temp\claude\d--Depot-LargeWorlds\c9687869-d0bb-4072-8ba2-08a8f45ed7e9\scratchpad\probe\compressed\grid\cooked\T_grid_E.dds) -> emissiveMap; loaded size [(1024.0, 1024.0)]
+TEXTURE emission_color: T_grid_E.dds [rgb] BC7_UNORM_SRGB -> emissiveMap; decoded=True
+CONNECTED baseNormalMap_file (C:\Users\hogjo\AppData\Local\Temp\claude\d--Depot-LargeWorlds\c9687869-d0bb-4072-8ba2-08a8f45ed7e9\scratchpad\probe\compressed\grid\cooked\T_grid_N.dds) -> baseNormalMap; loaded size [(1024.0, 1024.0)]
+TEXTURE normal_map: T_grid_N.dds [rg] BC5_UNORM -> baseNormalMap; decoded=True
+CONNECTED ambOccMap_file (C:\Users\hogjo\AppData\Local\Temp\claude\d--Depot-LargeWorlds\c9687869-d0bb-4072-8ba2-08a8f45ed7e9\scratchpad\probe\compressed\grid\cooked\T_grid_ORM.dds) -> ambOccMap; loaded size [(1024.0, 1024.0)]
+TEXTURE ambient_occlusion_map: T_grid_ORM.dds [r] BC7_UNORM -> ambOccMap; decoded=True
+CONNECTED cavityMap_file (C:\Users\hogjo\AppData\Local\Temp\claude\d--Depot-LargeWorlds\c9687869-d0bb-4072-8ba2-08a8f45ed7e9\scratchpad\probe\compressed\grid\cooked\T_grid_C.dds) -> cavityMap; loaded size [(1024.0, 1024.0)]
+TEXTURE cavity_map: T_grid_C.dds [r] BC4_UNORM -> cavityMap; decoded=True
+CONNECTED heightMap_file (C:\Users\hogjo\AppData\Local\Temp\claude\d--Depot-LargeWorlds\c9687869-d0bb-4072-8ba2-08a8f45ed7e9\scratchpad\probe\compressed\grid\cooked\T_grid_H.dds) -> heightMap; loaded size [(1024.0, 1024.0)]
+TEXTURE height_map: T_grid_H.dds [r] BC4_UNORM -> heightMap; decoded=True
+LIGHT Light 0 <- key_light: None
+PANEL modelPanel4 renderer=vp2Renderer
+VP2 engine now: ['  Version : 2016.11.62.12. Feature Level 5.\n', '  Adapter : NVIDIA GeForce RTX 5090\n', '  Vendor ID: 4318. Device ID : 11141\n', '  Driver : C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\nv_dispi.inf_amd64_adc55ecfca814224\\nvldumdx.dll,C:\\WINDOWS\\System32\\DriverStore:32.0.15.9186.\n', '  API : DirectX V.11.\n', '  Max texture size : 16384 * 16384.\n', '  Max texture coords : 32\n', '  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).\n', '  Active stereo support available : 0\n', '  GPU Memory Limit : 32607 MB.\n', '  CPU Memory Limit : 61990.4 MB.\n']
+PNG D:\Depot\HogShade\verification\maya-2026\textures\probe\grid-compressed\main.png exists=True
+PNG D:\Depot\HogShade\verification\maya-2026\textures\probe\grid-compressed\debug-01.png exists=True
+PNG D:\Depot\HogShade\verification\maya-2026\textures\probe\grid-compressed\debug-07.png exists=True
+PNG D:\Depot\HogShade\verification\maya-2026\textures\probe\grid-compressed\debug-08.png exists=True
+PNG D:\Depot\HogShade\verification\maya-2026\textures\probe\grid-compressed\debug-09.png exists=True
+PNG D:\Depot\HogShade\verification\maya-2026\textures\probe\grid-compressed\debug-11.png exists=True
+FORMATS ['BC4_UNORM', 'BC5_UNORM', 'BC7_UNORM', 'BC7_UNORM_SRGB']; decoded 8/8; failed []
+RESULT: OK
+MAYA: 2026
