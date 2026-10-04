@@ -22,6 +22,9 @@ configured at the entry point only).
 it, we need materials + texture assets with full leverage". That is T4, the showcase set authored with the owner,
 now unblocked (the board row carries the quote and the verdict).
 
+**Owner, 2026-10-04 (on the gallery):** side-by-side and matrix layouts for comparisons. Boarded (Next) with a yes:
+a `grids` entry kind rendering as a thumbnail table, the texture renders against their debug views the first use.
+
 **Sit rep, 2026-10-04, late.** T2 is merged: the texture cook exists on master (#53 spec and plan, #54 the
 spec's setup section, #55 the build). An authoring set cooks to its runtime set under `cooked/` (DDS with mips in
 linear at DDS sizes, normals to `opengl+y`, `_ORM` and alpha carriers through the `pack` sidecar field, height
