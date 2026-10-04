@@ -4,10 +4,9 @@
 **Last updated:** 2026-10-04, night: T3 merged (#57 spec and plan, #58 the build; bookkeeping PR `docs/t3-landed`); nothing in flight; the Maya 2026.3 menu bug resolved by the owner (prefs and a USD patch; Job_Orchestrator issue 72 open for the patch's name); #56 and #57 merged; T2 merged (#53 spec, #54 setup section, #55 the build); T1 merged (#50, #51); #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
-`Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
-(T2, the texture cook: `Docs/superpowers/plans/t2-texture-cook.md`, Proposed with its spec, built after the
-spec merges; S1 to S4a and T1 are done, their plans ticked). `Docs/standards/definition-of-done.md` says what done means and
-how much to decide alone.
+`Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`. No plan is in flight: S1 to S4a and T1 to T3
+are done, their plans ticked; the next increment is T3b (wgpu samples the runtime set), spec first, then T4 with
+the owner. `Docs/standards/definition-of-done.md` says what done means and how much to decide alone.
 
 ## In flight
 
@@ -22,7 +21,8 @@ configured at the entry point only).
 it, we need materials + texture assets with full leverage". That is T4, the showcase set authored with the owner,
 now unblocked (the board row carries the quote and the verdict).
 
-**Owner, 2026-10-04 (on the gallery):** side-by-side and matrix layouts for comparisons. Boarded (Next) with a yes:
+**Owner, 2026-10-04 (on the gallery):** side-by-side and matrix layouts for comparisons. Boarded (Icebox, the rule for
+an idea said out loud) with a yes:
 a `grids` entry kind rendering as a thumbnail table, the texture renders against their debug views the first use.
 
 **Sit rep, 2026-10-04, late.** T2 is merged: the texture cook exists on master (#53 spec and plan, #54 the
@@ -34,7 +34,8 @@ measured, a deterministic manifest and a volatile provenance, a BATS job, the se
 place, the proof pictures (Poly Haven `cobblestone_floor_04`) in the gallery. What the reviews taught, now rules
 in the cook: validate every shape before writing anything, write the records after every artifact and as LF
 bytes, never let a re-cook drop a record whose files exist, and say in the log what was decided on the caller's
-behalf. Not covered: TIFF (recommended no), `texconv` found but unwired, no host samples a texture yet. T3 is merged
+behalf. Not covered by T2: TIFF (recommended no), `texconv` found but unwired; at T2 no host sampled a texture, which T3
+changed for Maya. T3 is merged
 (#58). What landed: four Poly Haven sets (`metal_plate`, not the spec's
 `blue_metal_plate`, which has no metalness map) and the grid tile, fetched by `tools/fetch_polyhaven.py` and cooked
 `--compress` because the probe showed Maya 2026 decodes every block format; `hogshade.material.runtime` and the
