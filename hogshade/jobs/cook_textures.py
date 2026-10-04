@@ -100,7 +100,7 @@ def main(parameters: dict) -> dict:
     )
     manifest = dict(result.manifest)
     if str(parameters.get("separate", "0")) in ("1", "true", "yes"):
-        manifest["separation"] = separate_set(
+        manifest.setdefault("separation", {})["_BC"] = separate_set(
             set_dir,
             radius=float(parameters.get("radius", 16.0)),
             macro_size=int(parameters.get("macro", 64)),

@@ -226,8 +226,8 @@ worker runs on the workspace `.venv`, `tools/bats/orchestrator_config_hogshade.j
     "T_brick_ORM.dds": {"packed": {"R": "T_brick_AO.png", "G": "T_brick_R.png", "B": "filled 1.0", "A": "T_brick_H.png"}, "...": "..."},
     "T_brick_BC.dds": {"packed": {"A": "T_brick_O.png"}, "bc7_profile": "alpha_basic", "...": "..."}
   },
-  "separation": {"source": "T_brick_BC.png", "radius": 16, "sigma": 8.0, "macro": 64, "error_max": 0.0039, "error_mean": 0.00002, "clipped_texels": 7},
-  "compression": {"requested": false, "encoder": null}
+  "separation": {"_BC": {"source": "T_brick_BC.png", "radius": 16, "sigma": 8.0, "macro": 64, "error_max": 0.0039, "error_mean": 0.00002, "clipped_texels": 7, "outputs": {"...": "..."}}},
+  "compression": {"encoder": null, "bc7_profile": null}
 }
 ```
 
@@ -313,9 +313,10 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
   floats the offset-and-scale cannot leave the range, so the exact recombination is a tautology; what a
   shader sees is the quantised map, and the error is within one step (`1/255`), `clipped_texels` counting
   where the recombination had to clip. `Separation.high` is the quantised map.
-- **The sidecars are filled before the inputs are hashed**, and the manifest's `sidecars_derived` lists every
-  derived field a sidecar carries (not only the ones this cook filled), so cooking twice gives one manifest.
-  A sidecar's derived `runtime` is the preset's token (`bc7`), the manifest carrying the exact DXGI format.
+- **The sidecars are hashed as they will be written**, and the manifest's `sidecars_derived` lists every
+  field a cook derived (the sidecar's `derived` list, whether this cook or an earlier one filled it; a field
+  the author wrote is not derived), so cooking twice gives one manifest. A sidecar's derived `runtime` is the
+  preset's token (`bc7`), the manifest carrying the exact DXGI format.
 - **`_AO`, `_R` and `_M` are not written as their own files**: `_ORM` is their runtime form. An `_ORM` alpha
   carrier is declared on any of those three sidecars (`_ORM` has no source of its own).
 - **The DDS writers live in `hogshade/texture_cook/dds2d.py`** beside the cube writer they share constants
@@ -330,12 +331,18 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
   so): with `ispc_texcomp` the default, the baseline waits for the increment that wants it.
 - **The shape rules are checked before anything is written** (the local review's hard finding: a pack target
   of another size crashed in numpy after the sidecars were rewritten): one size per set and variant (a pack
-  target and the `_ORM` parts need it), a pack target present in its carrier's own variant, no grey-alpha
+  target and the `_ORM` parts need it), one base per set directory (the packing matches by suffix and
+  variant), the `_ORM` alpha declared on at most one of its parts per variant (round 2: a second declaration
+  consumed its map and wrote it nowhere), a pack target present in its carrier's own variant, no grey-alpha
   source where RGB is meant; a grey colour map is broadcast and an RGBA one loses its alpha, both logged.
 - **The sidecars' derived fields, the manifest and the provenance are written only after every DDS is**, so
-  a failed write leaves the authoring set as it was; the sidecars are hashed as they will be written.
-- **A re-cook keeps an earlier `separation` record** when every file it names is still under `cooked/`,
-  drops it with a warning when one is gone, and warns about any `.dds` no record names; it never deletes.
+  a failed write leaves the authoring set as it was. A sidecar the cook rewrites is hashed as it will be
+  written, one it leaves alone as it is on disk; every record is written as LF bytes (`write_bytes`), so the
+  hash of what was written is the hash of the file on every platform.
+- **The `separation` block is keyed by the separated suffix** (`{"_BC": {...}, "_N": {...}}`), so a colour
+  and a normal separation coexist; the job writes its `_BC` record there. **A re-cook keeps each earlier
+  record** whose files are all still under `cooked/`, drops one with a warning when a file is gone, and warns
+  about any `.dds` no record names; it never deletes.
 - **One INFO line per artifact written and per decision taken** (an alpha dropped, a normal flipped, an
   `_ORM` channel filled, a map riding in an alpha, a sidecar derived), the python standard's logging bar.
 - The detail normal (`_DN`) and the macro normal have their mips renormalised like `_N` (Z reconstructed

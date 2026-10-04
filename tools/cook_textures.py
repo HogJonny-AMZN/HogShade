@@ -33,6 +33,7 @@ _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 
 def main(argv: list[str] | None = None) -> int:
+    """The command line: ``cook``, ``separate`` or ``--check-setup``; 0 on success, 2 on a refusal or a failure."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--check-setup", action="store_true", help="print the encoder found and the formats it writes")
     sub = parser.add_subparsers(dest="command")

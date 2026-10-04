@@ -18,7 +18,7 @@ import os
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
 import numpy as np
 from numpy.typing import NDArray
@@ -134,7 +134,7 @@ def default_encoder() -> Encoder | None:
         return None
 
 
-def encoder_report() -> dict:
+def encoder_report() -> dict[str, Any]:
     """What ``--check-setup`` prints: the encoder found, its version and the formats it writes."""
     enc = default_encoder()
     if enc is None:
