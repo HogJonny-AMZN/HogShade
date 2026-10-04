@@ -38,7 +38,7 @@ from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
 
 _MODULE_NAME = "tools.wgpu.contact_sheet"
 __version__ = "0.1.0"
-__updated__ = "2026-10-03"
+__updated__ = "2026-10-04"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 LIBRARY = ROOT / "content" / "materials" / "standard"
@@ -49,8 +49,10 @@ TO_TYPE = "hogshade-legacy-v2"
 #: The label strip under each tile: the family on a small line, the title on a larger one, three pixels of air
 #: around each (7-row glyphs: 7 at scale 1, 14 at scale 2).
 FAMILY_SCALE, TITLE_SCALE = 1, 2
-LABEL_H = 3 + 7 * FAMILY_SCALE + 3 + 7 * TITLE_SCALE + 3
+LABEL_PAD, LABEL_INSET = 3, 2  # air above, between and below the lines; the left inset
+LABEL_H = LABEL_PAD + 7 * FAMILY_SCALE + LABEL_PAD + 7 * TITLE_SCALE + LABEL_PAD
 LABEL_GREY = 0.02  # the strip's ground, linear; near black so the text reads on any tile
+FAMILY_GREY = (0.6, 0.6, 0.6)  # the family line, quieter than the title
 
 
 def sheet_layout(count: int, tile: int, columns: int = COLUMNS, label: int = LABEL_H) -> tuple[int, int]:
@@ -66,7 +68,8 @@ def sheet_layout(count: int, tile: int, columns: int = COLUMNS, label: int = LAB
 
 def label_for(family: str, title: str | None, width: int) -> tuple[str, str]:
     """The strip's two lines, each cut to the tile's width with a trailing dot when it does not fit."""
-    return fit(family, width - 4, FAMILY_SCALE), fit(title or "?", width - 4, TITLE_SCALE)
+    room = width - 2 * LABEL_INSET
+    return fit(family, room, FAMILY_SCALE), fit(title or "?", room, TITLE_SCALE)
 
 
 def command_line(args: argparse.Namespace, defaults: argparse.Namespace) -> str:
@@ -166,8 +169,10 @@ def main(argv: list[str] | None = None) -> int:
         rel = path.relative_to(args.library).as_posix()
         family = family_of(path, args.library)
         line1, line2 = label_for(family, doc.title, args.tile)
-        draw_text(sheet, line1, x0 + 2, y0 + args.tile + 3, FAMILY_SCALE, (0.6, 0.6, 0.6))
-        draw_text(sheet, line2, x0 + 2, y0 + args.tile + 3 + 7 * FAMILY_SCALE + 3, TITLE_SCALE)
+        y_family = y0 + args.tile + LABEL_PAD
+        y_title = y_family + 7 * FAMILY_SCALE + LABEL_PAD
+        draw_text(sheet, line1, x0 + LABEL_INSET, y_family, FAMILY_SCALE, FAMILY_GREY)
+        draw_text(sheet, line2, x0 + LABEL_INSET, y_title, TITLE_SCALE)
         legend.append(
             {
                 "cell": cell,

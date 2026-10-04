@@ -317,7 +317,9 @@ def test_the_sheet_layout_and_the_command_record():
     assert sheet.label_for("metal", "Gold", 160) == ("metal", "Gold")
     assert sheet.label_for("dielectric", "Glossy plastic, the long one", 64)[1].endswith(".")
     assert sheet.label_for("metal", "Metal plate", 160)[1] == "Metal plate", "thirteen characters fit at scale 2"
-    assert sheet.label_for("rough", "Cobblestone floor", 160)[1] == "Cobblestone .", "a longer title is cut with a dot"
+    assert sheet.label_for("rough", "Cobblestone floor", 160)[1] == "Cobblestone.", (
+        "a longer title is cut with a dot, no floating space"
+    )
     with pytest.raises(ValueError):
         sheet.sheet_layout(0, 192)
     import argparse
@@ -362,7 +364,7 @@ def test_the_bitmap_font_draws_every_label_character_and_boxes_the_unknown():
 
     from hogshade import bitmap_font as font
 
-    for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _-.,'/:()":
+    for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _-.,'/:()?":
         g = font.glyph(ch)
         assert g.shape == (7, 5) and (g.any() or ch == " ")
     assert font.glyph("a").tolist() == font.glyph("A").tolist(), "lower case draws its capital"
@@ -378,3 +380,6 @@ def test_the_bitmap_font_draws_every_label_character_and_boxes_the_unknown():
         "ink lands where the glyph is"
     )
     font.draw_text(canvas, "ZZZZZZZZZZZZZZZZ", 50, 15, scale=2)  # clipped at the edge, no error
+    font.draw_text(canvas, "A", -3, -3, scale=1)  # off the top-left corner, no error
+    with pytest.raises(ValueError, match="scale is a positive integer"):
+        font.draw_text(canvas, "A", 0, 0, scale=0)

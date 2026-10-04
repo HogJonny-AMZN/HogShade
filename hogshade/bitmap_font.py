@@ -3,7 +3,7 @@ HogShade: a 5x7 bitmap font for labels on verification pictures, with no font ra
 Package: hogshade/bitmap_font
 
 ``draw_text(image, text, x, y)`` paints ``text`` into a float RGB image at an integer scale; letters are upper
-case (a lower-case letter maps to its capital), digits and a few marks (space, ``_ - . , ' / : ( )``) are drawn, any
+case (a lower-case letter maps to its capital), digits and a few marks (space, ``_ - . , ' / : ( ) ?``) are drawn, any
 other character is a hollow box so a missing glyph is seen, never silently dropped. ``text_width`` says how
 many pixels a string takes, so a caller can truncate. Twenty-six letters, ten digits and the marks are enough
 for a family and a title under a contact-sheet cell (the owner, 2026-10-04: "they need context").
@@ -69,6 +69,7 @@ _GLYPHS: dict[str, tuple[str, ...]] = {
     ":": (".....", "..#..", ".....", ".....", ".....", "..#..", "....."),
     ",": (".....", ".....", ".....", ".....", "..##.", "..##.", ".#..."),
     "'": ("..#..", "..#..", ".#...", ".....", ".....", ".....", "....."),
+    "?": (".###.", "#...#", "....#", "...#.", "..#..", ".....", "..#.."),
     "(": ("...#.", "..#..", ".#...", ".#...", ".#...", "..#..", "...#."),
     ")": (".#...", "..#..", "...#.", "...#.", "...#.", "..#..", ".#..."),
 }
@@ -89,11 +90,15 @@ def text_width(text: str, scale: int = 1) -> int:
 
 
 def fit(text: str, width: int, scale: int = 1) -> str:
-    """``text`` cut to what fits in ``width`` pixels, the cut marked with a trailing dot when it happened."""
+    """
+    ``text`` cut to what fits in ``width`` pixels, the cut marked with a trailing dot when it happened (a trailing
+    space before the dot is dropped). A text that itself ends in a dot and is cut is indistinguishable from a
+    shorter one; the legend beside a picture keeps the whole text, so the picture may be approximate.
+    """
     if text_width(text, scale) <= width:
         return text
     for n in range(len(text) - 1, -1, -1):  # the longest prefix whose rendered width, dot included, fits
-        cut = text[:n] + "."
+        cut = text[:n].rstrip() + "."
         if text_width(cut, scale) <= width:
             return cut
     return ""
@@ -108,6 +113,8 @@ def draw_text(
     colour: tuple[float, float, float] = (1.0, 1.0, 1.0),
 ) -> None:
     """Paint ``text`` with its top-left at ``(x, y)`` into a float ``(H, W, 3)`` image, in place, clipped to it."""
+    if scale < 1:
+        raise ValueError(f"scale is a positive integer, got {scale}")
     h, w = image.shape[:2]
     ink = np.asarray(colour, dtype=np.float32)
     for i, ch in enumerate(text):
