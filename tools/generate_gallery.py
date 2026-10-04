@@ -193,7 +193,11 @@ def _check_grid(where: str, grid: Any, seen: set[str]) -> list[Finding]:
             out.append(Finding(r_where, f"cells must list one entry per column ({len(columns)})"))
             continue
         for c_index, cell in enumerate(cells):
-            if cell is not None and cell not in seen:
+            if cell is None:
+                continue
+            if not isinstance(cell, str):
+                out.append(Finding(f"{r_where} column {c_index}", "a cell is a picture path or null"))
+            elif cell not in seen:
                 out.append(Finding(f"{r_where} column {c_index}", f"{cell!r} is not a picture listed above it"))
     return out
 

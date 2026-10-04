@@ -265,6 +265,14 @@ All five valid and folded into the text above:
 - **A carrier in the base-colour slot is one carrier.** A map packed into `_E`'s or `_SC`'s alpha maps that carrier
   onto the `base_color` slot, so a document binding it beside `_BC` is a slot conflict (`TextureError`), not a
   render. No committed set does this; T4's alpha carrier decides whether the host grows a fifth slot.
+- **A seam both handednesses share is split** (Copilot on #62): the generator's output is per vertex, so a
+  vertex that a mirrored island's faces and its neighbour's share (the mirror axis, one UV, one normal) cannot
+  carry both signs. `mikktspace.split_mixed_handedness` duplicates it for the mirrored corners (the reference's
+  per-corner output made indexed), `with_tangents` splits before it generates, `tangents` warns when it still
+  meets one, and `load_obj` keys a corner on its face's UV handedness as well, so it never builds one. The shader
+  ball has none (the fixture's handedness agreed on every corner before the split and the pictures did not move);
+  a two-quad seam is the test. The parity fixture remains Maya's default basis: a fixture from the reference
+  implementation itself is a board row, not this increment.
 - **`tangent_basis="unknown"` has its path**: `with_tangents(..., tangents=, tangent_basis=)` takes a source's
   tangents, uses a `mikktspace` basis as given, flags `unknown` with a WARNING and regenerates, and refuses any
   other basis (the content standard's validation failure). No loader here passes tangents yet (the OBJ carries

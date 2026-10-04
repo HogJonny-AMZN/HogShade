@@ -29,6 +29,23 @@ def test_read_obj_names_the_file_and_line_of_a_malformed_record(tmp_path) -> Non
     assert face.tolist() == [0, 0, 0] and vertex.tolist() == [0, 1, 2] and rows.tolist() == [0, 1, 2]
 
 
+def test_load_obj_keeps_a_mirrored_seam_apart(tmp_path) -> None:
+    """An OBJ whose two faces share a seam with mirrored UVs loads the seam vertices twice, one per handedness."""
+    obj = tmp_path / "seam.obj"
+    obj.write_text(
+        "v -1 0 0\nv 0 0 0\nv 1 0 0\nv -1 1 0\nv 0 1 0\nv 1 1 0\n"
+        "vt 1 0\nvt 0 0\nvt 1 0\nvt 1 1\nvt 0 1\nvt 1 1\nvn 0 0 1\n"
+        "f 2/2/1 3/3/1 6/6/1 5/5/1\nf 1/1/1 2/2/1 5/5/1 4/4/1\n",
+        encoding="utf-8",
+    )
+    mesh = wgpu_host.load_obj(obj)
+    face, vertex, rows = wgpu_host.obj_corners(obj)
+    assert mesh.vertices.shape[0] == 8 and len(set(rows.tolist())) == 8
+    assert face.tolist() == [0] * 4 + [1] * 4 and vertex.tolist() == [1, 2, 5, 4, 0, 1, 4, 3]
+    signs = mesh.vertices[rows, 11]
+    assert signs[:4].tolist() == [1.0] * 4 and signs[4:].tolist() == [-1.0] * 4, "each face's corners carry its sign"
+
+
 def test_frame_layout_matches_the_wgsl_struct() -> None:
     assert wgpu_host.FRAME_DTYPE.itemsize == wgpu_host.FRAME_BYTES
     assert len(wgpu_host.Scene(width=32, height=32).frame_bytes(9)) == wgpu_host.FRAME_BYTES

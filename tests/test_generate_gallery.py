@@ -223,6 +223,11 @@ def test_grids_are_checked_cell_by_cell_and_rendered_as_a_table(corpus: Path):
 
     assert "grids must be a list" in _findings(corpus, not_a_list)
 
+    def object_cell(m):
+        m["sections"][0]["grids"][0]["rows"][0]["cells"][0] = {"path": "verification/a/one.png"}
+
+    assert "a cell is a picture path or null" in _findings(corpus, object_cell)
+
 
 def test_check_reports_findings_without_rendering(corpus: Path):
     """A string section, non-list pictures or a wrong format reach ``check()`` as findings, never a traceback."""

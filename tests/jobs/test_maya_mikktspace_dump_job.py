@@ -19,6 +19,8 @@ def test_paths_are_confined_before_maya_is_touched(tmp_path):
         job.main({})
     with pytest.raises(ValueError, match="climbs with"):
         job.main({"obj": "content/shaderball/shaderBall.obj", "out": "../elsewhere.npz"})
+    with pytest.raises(ValueError, match=r"must end in \.npz"):
+        job.main({"obj": "content/shaderball/shaderBall.obj", "out": "tests/host/fixtures/fixture"})
     with pytest.raises(ValueError, match="outside the workspace"):
         job.main({"obj": "content/shaderball/shaderBall.obj", "out": str(tmp_path / "fixture.npz")})
     assert "maya" not in sys.modules and "maya.cmds" not in sys.modules

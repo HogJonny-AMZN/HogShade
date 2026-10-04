@@ -16,6 +16,7 @@ import pytest
 from hogshade.material.runtime import RuntimeTexture
 from hogshade.texture_cook import dds2d
 from hogshade.wgpu_textures import (
+    BC_FEATURE,
     BITS,
     NOT_SLOTS,
     SLOTS,
@@ -24,6 +25,7 @@ from hogshade.wgpu_textures import (
     MaterialPlan,
     TextureError,
     material_plan,
+    upload_dds,
 )
 
 
@@ -80,6 +82,48 @@ def test_a_packed_cavity_reads_the_carrier_alpha_and_two_documents_differ():
     blue = material_plan({"base_color": _rt("base_color", "T_x_BC_blue.dds", "rgb", "BC7_UNORM_SRGB")})
     red = material_plan({"base_color": _rt("base_color", "T_x_BC.dds", "rgb", "BC7_UNORM_SRGB")})
     assert blue.key != red.key
+
+
+class _RecordingDevice:
+    """A device that records what upload_dds writes: the block pitch and the rounded size of every mip."""
+
+    features: frozenset[str] = frozenset({BC_FEATURE})
+
+    def __init__(self) -> None:
+        self.writes: list[tuple[int, dict, tuple, int]] = []
+        self.queue = self
+
+    def create_texture(self, **kw):
+        self.created = kw
+        return object()
+
+    def write_texture(self, target, payload, layout, size):
+        self.writes.append((target["mip_level"], layout, size, len(payload)))
+
+
+def test_upload_writes_every_mip_with_the_block_pitch_including_the_odd_ones(tmp_path):
+    """Copilot on #62 (plan task 2): a 2048 BC7 chain ends in 2x2 and 1x1 mips, written as one 4x4 block each."""
+    import wgpu  # noqa: F401 - the module imports it for the usage flags; skipped where it is not installed
+
+    from hogshade.texture_cook import dds2d
+
+    cooked = (
+        Path("D:/Depot/HogShade") / "content/materials/standard/rough/brick_wall_001/cooked/T_brick_wall_001_BC.dds"
+    )
+    if not cooked.exists() or cooked.stat().st_size < 1024:
+        pytest.skip("cooked DDS not hydrated (LFS)")
+    device = _RecordingDevice()
+    _tex, fmt, mips = upload_dds(device, cooked)
+    header = dds2d.read_2d(cooked)
+    assert fmt == "bc7-rgba-unorm-srgb" and mips == len(header.levels) == 12 and device.created["mip_level_count"] == 12
+    by_level = {level: (layout, size, nbytes) for level, layout, size, nbytes in device.writes}
+    assert sorted(by_level) == list(range(12))
+    for level, (layout, size, nbytes) in by_level.items():
+        w = max(2048 >> level, 1)
+        blocks = (w + 3) // 4
+        assert layout["bytes_per_row"] == blocks * 16 and layout["rows_per_image"] == blocks, level
+        assert size == (blocks * 4, blocks * 4, 1) and nbytes == blocks * blocks * 16, level
+    assert by_level[10][1] == (4, 4, 1) and by_level[11][1] == (4, 4, 1), "2x2 and 1x1 are one block each"
 
 
 def test_a_format_without_a_slot_and_a_slot_conflict_are_refused():

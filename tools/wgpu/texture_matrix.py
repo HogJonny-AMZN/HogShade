@@ -102,7 +102,8 @@ def main(argv: list[str] | None = None) -> int:
     _adapter, device = request_device()
     renderer = Renderer(device, load_shader_ball(), environment=args.environment)
     legend: dict[str, Any] = {
-        "command": "uv run tools/wgpu/texture_matrix.py " + " ".join(shlex.quote(a) for a in (argv or sys.argv[1:])),
+        "command": "uv run tools/wgpu/texture_matrix.py "
+        + " ".join(shlex.quote(a) for a in (sys.argv[1:] if argv is None else argv)),
         "environment": args.environment,
         "size": args.size,
         "converted_to": TO_TYPE,

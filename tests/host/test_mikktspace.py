@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from hogshade.mikktspace import TANGENT_BASES, tangents
+from hogshade.mikktspace import TANGENT_BASES, face_handedness, mixed_handedness, split_mixed_handedness, tangents
 
 
 def _quad(mirror_u: bool = False):
@@ -69,6 +69,39 @@ def test_sphere_tangents_are_unit_tangent_to_the_surface_and_follow_u():
     assert equator.any()
     assert np.allclose(t[equator], [[0, 0, -1]], atol=1e-3), t[equator]
     assert np.all(np.abs(s) == 1.0), "every sign is +1 or -1"
+
+
+def _mirrored_pair():
+    """Two quads in the XY plane sharing the edge x = 0, the left one's U mirrored (u = |x|): the shared vertices
+    sit on the mirror axis with one UV and one normal, so both handednesses meet there."""
+    p = np.array([[-1, 0, 0], [0, 0, 0], [1, 0, 0], [-1, 1, 0], [0, 1, 0], [1, 1, 0]], dtype=float)
+    n = np.tile([0.0, 0.0, 1.0], (6, 1))
+    uv = np.column_stack([np.abs(p[:, 0]), p[:, 1]])
+    tri = np.array([[1, 2, 5], [1, 5, 4], [0, 1, 4], [0, 4, 3]])  # right quad, then the mirrored left quad
+    return p, n, uv, tri
+
+
+def test_a_seam_both_handednesses_share_is_split_and_each_side_keeps_its_sign(caplog):
+    """Copilot on #62: a vertex that faces of both handednesses share cannot carry one sign; it is split."""
+    from hogshade.wgpu_host import with_tangents
+
+    p, n, uv, tri = _mirrored_pair()
+    assert face_handedness(uv, tri).tolist() == [1.0, 1.0, -1.0, -1.0]
+    assert mixed_handedness(uv, tri, 6).tolist() == [False, True, False, False, True, False], "the two seam vertices"
+    with caplog.at_level("WARNING", logger="hogshade.mikktspace"):
+        _t, s = tangents(p, n, uv, tri)
+    assert "shared by faces of both handednesses" in caplog.text and s[1] == s[4] == 1.0, (
+        "unsplit: the first corner wins"
+    )
+    p2, _n2, _uv2, tri2, n_split = split_mixed_handedness(p, n, uv, tri)
+    assert n_split == 2 and p2.shape == (8, 3) and np.array_equal(tri2[:2], tri[:2]), "the right quad is untouched"
+    assert set(tri2[2:].reshape(-1)) == {0, 3, 6, 7}, "the mirrored quad indexes the copies"
+    mesh = with_tangents(p, n, uv, tri)
+    assert mesh.vertices.shape[0] == 8 and mesh.indices.shape == (12,)
+    right = mesh.vertices[mesh.indices[:6]]
+    left = mesh.vertices[mesh.indices[6:]]
+    assert np.allclose(right[:, 8:11], [[1, 0, 0]], atol=1e-6) and np.all(right[:, 11] == 1.0)
+    assert np.allclose(left[:, 8:11], [[-1, 0, 0]], atol=1e-6) and np.all(left[:, 11] == -1.0), "the mirrored side"
 
 
 def test_custom_normals_are_consumed_not_recomputed():

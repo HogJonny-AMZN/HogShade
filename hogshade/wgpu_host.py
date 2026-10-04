@@ -138,7 +138,9 @@ def with_tangents(
     the normals as given), a zero tangent with sign +1 and ``tangent_basis="none"`` when they are not. A source
     that carries tangents passes them as ``(n, 4)`` with the sign in ``w`` and names their basis: ``mikktspace``
     is used as given; ``unknown`` (baked tangents nobody vouched for) is flagged with a WARNING and regenerated,
-    the owner's rule; any other basis is a validation failure (``ValueError``), the content standard's.
+    the owner's rule; any other basis is a validation failure (``ValueError``), the content standard's. A vertex
+    that faces of both handednesses share is split for its mirrored corners before the tangents are generated
+    (``mikktspace.split_mixed_handedness``), so the mesh may come back with more vertices than it was given.
     """
     n = positions.shape[0]
     if tangent_basis not in mikktspace.TANGENT_BASES:
@@ -163,6 +165,12 @@ def with_tangents(
                     f"{n} vertices carry tangents of {tangent_basis} basis: regenerated as MikkTSpace, the "
                     f"basis every host here assumes (the content standard)"
                 )
+            positions, normals, uv, indices, n_split = mikktspace.split_mixed_handedness(
+                positions, normals, uv, indices
+            )
+            if n_split:
+                _LOGGER.info(f"{n_split} vertex/vertices split for a mirrored seam: {positions.shape[0]} vertices now")
+            uv = np.asarray(uv, dtype=np.float32)
             t, s = mikktspace.tangents(positions, normals, uv, indices)
         tangent = np.concatenate([t, s[:, None]], axis=1)
         basis = "mikktspace"
@@ -216,25 +224,41 @@ def read_obj(path: Path) -> ObjRecords:
     return records
 
 
+def _face_hand(face_keys: list[tuple[int, int, int]], texcoords: list[list[float]]) -> int:
+    """The UV handedness of an OBJ face (+1, or -1 for a mirrored one), from its polygon's signed UV area; +1
+    without UVs. Part of the corner key so a seam vertex both sides share is two vertices, as MikkTSpace wants."""
+    if not texcoords or any(ti == 0 for _, ti, _ in face_keys):
+        return 1
+    uv = [texcoords[ti - 1] for _, ti, _ in face_keys]
+    area = 0.0
+    for k in range(len(uv)):
+        u0, v0 = uv[k]
+        u1, v1 = uv[(k + 1) % len(uv)]
+        area += u0 * v1 - u1 * v0
+    return -1 if area < 0.0 else 1
+
+
 def load_obj(path: Path) -> Mesh:
     """
     A minimal OBJ reader: v, vt, vn and f (v/vt/vn) records; quads and fans are triangulated; a corner is keyed
-    on (v, vt, vn), the weld MikkTSpace uses. Tangents are generated (an OBJ carries none); a file without ``vt``
-    gives a mesh with ``tangent_basis="none"``.
+    on (v, vt, vn) and its face's UV handedness, the weld MikkTSpace uses with the mirrored side kept apart (a
+    seam vertex both sides share becomes two). Tangents are generated (an OBJ carries none); a file without
+    ``vt`` gives a mesh with ``tangent_basis="none"``.
     """
     records = read_obj(path)
     positions, texcoords, normals = records.positions, records.texcoords, records.normals
-    corners: dict[tuple[int, int, int], int] = {}
+    corners: dict[tuple[int, int, int, int], int] = {}
     vertices: list[tuple[float, ...]] = []
     tris: list[int] = []
     for face_keys in records.faces:
         face: list[int] = []
-        for key in face_keys:
+        hand = _face_hand(face_keys, texcoords)
+        for vi, ti, ni in face_keys:
+            key = (vi, ti, ni, hand)
             idx = corners.get(key)
             if idx is None:
                 idx = len(vertices)
                 corners[key] = idx
-                vi, ti, ni = key
                 p = positions[vi - 1]
                 n = normals[ni - 1] if ni else [0.0, 1.0, 0.0]
                 t = texcoords[ti - 1] if ti else [0.0, 0.0]
@@ -840,15 +864,17 @@ def obj_corners(path: Path) -> tuple[NDArray[np.int32], NDArray[np.int32], NDArr
     ``load_obj(path).vertices`` that corner became. What a per-corner fixture from another tool (Maya's tangents,
     ``hogshade.jobs.maya_mikktspace_dump``) lines up against.
     """
-    corners: dict[tuple[int, int, int], int] = {}
+    corners: dict[tuple[int, int, int, int], int] = {}
     faces: list[int] = []
     verts: list[int] = []
     rows: list[int] = []
-    for face_index, face_keys in enumerate(read_obj(path).faces):  # the same records and keying as load_obj
-        for key in face_keys:
+    records = read_obj(path)
+    for face_index, face_keys in enumerate(records.faces):  # the same records and keying as load_obj
+        hand = _face_hand(face_keys, records.texcoords)
+        for vi, ti, ni in face_keys:
             faces.append(face_index)
-            verts.append(key[0] - 1)
-            rows.append(corners.setdefault(key, len(corners)))
+            verts.append(vi - 1)
+            rows.append(corners.setdefault((vi, ti, ni, hand), len(corners)))
     return np.asarray(faces, dtype=np.int32), np.asarray(verts, dtype=np.int32), np.asarray(rows, dtype=np.int32)
 
 

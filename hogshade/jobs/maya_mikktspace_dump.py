@@ -162,6 +162,10 @@ def main(parameters: dict) -> dict:
     obj = obj if obj.is_absolute() else ROOT / obj
     out_raw = str(parameters.get("out") or DEFAULT_OUT).replace("{stem}", obj.stem)
     out = Path(out_raw)
+    if (
+        out.suffix != ".npz"
+    ):  # numpy appends .npz to any other name, and the declared output would not be the written one
+        raise ValueError(f"out {out_raw!r} must end in .npz (numpy.savez_compressed writes that suffix)")
     out = out if out.is_absolute() else ROOT / out
     if not out.resolve().is_relative_to(ROOT.resolve()):
         raise ValueError(f"out {out_raw!r} resolves outside the workspace {ROOT}; the fixture stays in the repository")
