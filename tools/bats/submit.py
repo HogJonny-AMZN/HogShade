@@ -46,6 +46,8 @@ if root not in sys.path:
     sys.path.insert(0, root)
 import importlib
 mod = importlib.import_module("{module}")
+if getattr(mod, "__file__", "") and root in getattr(mod, "__file__", ""):
+    mod = importlib.reload(mod)  # a resident worker keeps the previous job's module; this checkout's code wins
 params = json.loads({params_json!r})
 result = getattr(mod, "{entry}")(params)
 print("HOGSHADE_RESULT " + json.dumps(result, default=str))

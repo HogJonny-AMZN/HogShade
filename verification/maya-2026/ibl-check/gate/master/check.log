@@ -1,0 +1,30 @@
+started Sat Oct  3 23:52:27 2026
+shader D:\Depot\HogShade\hosts\maya_dx11\hogshade_master.fx
+cooked D:\Depot\HogShade\content\ibl\studio_small_09\cooked
+log is incremental
+HISTORY D:\Depot\HogShade\verification\maya-2026\ibl-check\gate\master\maya-history.log
+TECHNIQUES: ['Main'] (shader load 32.4 s)
+CONNECTED specularEnvTextureCube_file (D:\Depot\HogShade\content\ibl\studio_small_09\cooked\specular.dds) -> specularEnvTextureCube; loaded size [(256.0, 256.0)]
+CONNECTED diffuseEnvTextureCube_file (D:\Depot\HogShade\content\ibl\studio_small_09\cooked\irradiance.dds) -> diffuseEnvTextureCube; loaded size [(32.0, 32.0)]
+CONNECTED brdfTextureMap_file (D:\Depot\HogShade\content\ibl\brdf_lut.dds) -> brdfTextureMap; loaded size [(256.0, 256.0)]
+SET useEnvMaps = True
+SET useShadows = False
+SET envExposure = 1.0
+SET linearSpaceLighting = True
+SET gammaCorrectionValue = 2.2
+SET materialBaseColor = (0.5, 0.5, 0.5)
+SET materialMetalness = 0.0
+SET materialRoughness = 0.2
+SET materialSpecular = 1.0
+SET materialIOR = 1.5
+absent attribute envLightingExp (fine for this shader)
+LIGHT Light 0 <- key_light: None
+PANEL modelPanel4 renderer=vp2Renderer
+VP2 engine now: ['  Version : 2016.11.62.12. Feature Level 5.\n', '  Adapter : NVIDIA GeForce RTX 5090\n', '  Vendor ID: 4318. Device ID : 11141\n', '  Driver : C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\nv_dispi.inf_amd64_adc55ecfca814224\\nvldumdx.dll,C:\\WINDOWS\\System32\\DriverStore:32.0.15.9186.\n', '  API : DirectX V.11.\n', '  Max texture size : 16384 * 16384.\n', '  Max texture coords : 32\n', '  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).\n', '  Active stereo support available : 0\n', '  GPU Memory Limit : 32607 MB.\n', '  CPU Memory Limit : 61990.4 MB.\n']
+PNG D:\Depot\HogShade\verification\maya-2026\ibl-check\gate\master\main.png exists=True
+PNG D:\Depot\HogShade\verification\maya-2026\ibl-check\gate\master\debug-18.png exists=True
+PNG D:\Depot\HogShade\verification\maya-2026\ibl-check\gate\master\debug-27.png exists=True
+PNG D:\Depot\HogShade\verification\maya-2026\ibl-check\gate\master\debug-28.png exists=True
+CUBES decoded: ['diffuseEnvTextureCube', 'specularEnvTextureCube']; LUT decoded: True
+RESULT: OK
+MAYA: 2026
