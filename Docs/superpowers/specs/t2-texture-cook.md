@@ -129,8 +129,9 @@ says"); the cook says:
 
 The cook never compresses a height map with a block format (BC4 is 8-bit; BC6H is three-channel HDR colour
 and its single-channel use wastes two channels) and never converts float to normalised without being
-asked: `--height normalise` writes `R16_UNORM` from an EXR with `min` and `max` recorded in the manifest
-and the sidecar, for a host that wants a fixed range, and the default keeps the float. Mips of a height
+asked: `--height normalise` writes `R16_UNORM` from an EXR with `min` and `max` recorded in the manifest's
+entry (the sidecar's keys are T1's fixed list, so the range is not a sidecar field), for a host that wants a
+fixed range, and the default keeps the float. Mips of a height
 map are box averages in the source's precision. The EXR reader is `hogshade.ibl.imageio.read_exr_rgb`
 extended with a single-channel read (`read_exr_channel(path, "R")` or the first channel), so no new
 dependency: OpenEXR is already one. A 32-bit TIFF is question 1's territory and stays out of T2.
@@ -327,5 +328,17 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
   were 1.4 to 2.6 MB, over the 1 MiB rule.
 - `encode` takes a level and returns the block bytes; `TexconvEncoder` is found but not wired (`encode` says
   so): with `ispc_texcomp` the default, the baseline waits for the increment that wants it.
+- **The shape rules are checked before anything is written** (the local review's hard finding: a pack target
+  of another size crashed in numpy after the sidecars were rewritten): one size per set and variant (a pack
+  target and the `_ORM` parts need it), a pack target present in its carrier's own variant, no grey-alpha
+  source where RGB is meant; a grey colour map is broadcast and an RGBA one loses its alpha, both logged.
+- **The sidecars' derived fields, the manifest and the provenance are written only after every DDS is**, so
+  a failed write leaves the authoring set as it was; the sidecars are hashed as they will be written.
+- **A re-cook keeps an earlier `separation` record** when every file it names is still under `cooked/`,
+  drops it with a warning when one is gone, and warns about any `.dds` no record names; it never deletes.
+- **One INFO line per artifact written and per decision taken** (an alpha dropped, a normal flipped, an
+  `_ORM` channel filled, a map riding in an alpha, a sidecar derived), the python standard's logging bar.
+- The detail normal (`_DN`) and the macro normal have their mips renormalised like `_N` (Z reconstructed
+  from the separated X and Y first), not box-averaged as encoded channels.
 - The `_O`-into-alpha packing, dropped on Copilot's finding and restored by the owner's packing scheme, is
   built as the general `pack` field: `{"a": "_O"}` on `_BC` (tested, and in the proof set `_H` in `_ORM`'s).
