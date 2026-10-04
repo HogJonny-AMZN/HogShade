@@ -1,7 +1,7 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-04, evening: T2 built (`feat/t2-texture-cook`, PR open, stacked on #54 which carries the spec's setup section); the spec merged as #53; T1 merged (#50, #51); #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-04, evening: T2 built (`feat/t2-texture-cook`, PR #55 open after three local-review rounds, stacked on #54 which carries the spec's setup section); the spec merged as #53; T1 merged (#50, #51); #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`, then the plan in flight
@@ -12,7 +12,7 @@ how much to decide alone.
 ## In flight
 
 **Sit rep, 2026-10-04, evening.** T2 is built and awaiting the owner: #54 (the spec's setup section, a
-commit that missed #53's merge) and the build PR stacked on it. The texture cook exists: an authoring set to its
+commit that missed #53's merge) and the build PR #55 stacked on it (local review: three rounds, pass at 7+). The texture cook exists: an authoring set to its
 runtime set (DDS with mips in linear at DDS sizes, normals to `opengl+y`, `_ORM` and alpha carriers through
 the `pack` sidecar field, height at the source's precision), block-compressed through `ispc_texcomp` (the
 owner's pick, the `textures` extra under `uv sync --all-extras`, uncompressed with a warning without it),
