@@ -48,7 +48,7 @@ def pack_fields(hmap: dict[str, Any], type_name: str, factors: dict[str, Any]) -
     fields = {name: [0.0] * width for name, width in hmap["fields"].items()}
     mtype = type_of(type_name)
     for pname, entry in entries_for(hmap, type_name).items():
-        if "unsupported" in entry:
+        if "unsupported" in entry or "field" not in entry:  # a texture-only slot entry writes no frame field
             continue
         factor = factors.get(pname)
         if factor is None:

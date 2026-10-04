@@ -76,7 +76,9 @@ def test_map_double_write_and_width():
     hmap["parameters"]["ior"]["components"] = [0]  # metalness's slot
     hmap["parameters"]["sheen"]["components"] = [7]
     msgs = _findings(hmap)
-    assert "ior: material[0] is already written by 'metalness'" in msgs
+    assert (
+        "ior: material[0] is already written by 'metalness@hogshade-legacy-v2'" in msgs
+    )  # the v2 entry wrote it first
     assert "sheen: component 7 is outside 'params_a' (width 4)" in msgs
 
 
@@ -97,7 +99,36 @@ def test_map_unknown_field_missing_entry_and_texture_binding():
     msgs = _findings(hmap)
     assert "metalness: field 'params_c' is not one of the map's fields" in msgs
     assert "sheen: no entry for hogshade-legacy-v1" in msgs
-    assert "normal_map: a texture parameter is unsupported in the wgpu host (no texture bindings)" in msgs
+    assert "normal_map: a texture parameter is unsupported in the wgpu host, or bound to a slot" in msgs
+
+
+def test_texture_entries_are_scoped_to_legacy_v2_and_validated():
+    hmap = host_map("wgpu")
+    v2 = entries_for(hmap, "hogshade-legacy-v2")
+    assert v2["normal_map"] == {"texture": "normal"}
+    assert v2["ambient_occlusion_map"] == {"texture": "orm", "channel": "r"}
+    assert v2["roughness"]["texture"] == "orm" and v2["roughness"]["channel"] == "g" and v2["roughness"]["field"]
+    assert v2["metalness"]["channel"] == "b" and v2["base_color"]["texture"] == "base_color"
+    for tname in ("hogshade-legacy-v1", "hogshade-lambert"):
+        for pname, e in entries_for(hmap, tname).items():
+            assert "texture" not in e, (tname, pname, "host_inputs() samples for legacy v2 only")
+    bad = _map()
+    bad["parameters"]["normal_map@hogshade-legacy-v2"]["texture"] = "height"
+    bad["parameters"]["roughness@hogshade-legacy-v2"]["channel"] = "x"
+    bad["parameters"]["ior@hogshade-legacy-v2"] = {**bad["parameters"]["ior"], "texture": "orm"}
+    bad["parameters"]["ior"]["types"] = ["hogshade-legacy-v1"]
+    bad["parameters"]["metalness@hogshade-legacy-v2"]["channel"] = "b"
+    del bad["parameters"]["metalness@hogshade-legacy-v2"]["texture"]
+    msgs = _findings(bad)
+    assert "normal_map@hogshade-legacy-v2: texture names slot 'height', not one of the map's slots" in " ".join(msgs)
+    assert "roughness@hogshade-legacy-v2: channel is one of r, g, b, a, got 'x'" in msgs
+    assert "ior@hogshade-legacy-v2: texture on a parameter the schema does not let a texture bind to" in msgs
+    assert "metalness@hogshade-legacy-v2: channel goes with texture" in msgs
+    # binding a textured v2 document still packs the factors and carries the paths
+    values = {"roughness": {"factor": 1.0, "texture": "x/T_x_R.png"}, "normal_map": {"texture": "x/T_x_N.png"}}
+    b = bind(_doc("hogshade-legacy-v2", values), "wgpu")
+    assert b.textures == {"roughness": "x/T_x_R.png", "normal_map": "x/T_x_N.png"}
+    assert b.fields["base_color"][3] == 1.0 and not any(u.parameter == "normal_map" for u in b.unsupported)
 
 
 def test_map_refuses_what_the_schema_knows_and_a_bad_suffix():
@@ -154,11 +185,11 @@ def test_lambert_binds_base_color_only():
 
 
 def test_textures_are_listed_and_unsupported():
-    values = {"normal_map": {"texture": "n.png"}, "base_color": {"factor": [1, 1, 1], "texture": "b.png"}}
+    values = {"height_map": {"texture": "h.png"}, "base_color": {"factor": [1, 1, 1], "texture": "b.png"}}
     b = bind(_doc("hogshade-legacy-v2", values), "wgpu")
-    assert b.textures == {"normal_map": "n.png", "base_color": "b.png"}
+    assert b.textures == {"height_map": "h.png", "base_color": "b.png"}
     assert (
-        Unbound("normal_map", entries_for(host_map("wgpu"), "hogshade-legacy-v2")["normal_map"]["unsupported"])
+        Unbound("height_map", entries_for(host_map("wgpu"), "hogshade-legacy-v2")["height_map"]["unsupported"])
         in b.unsupported
     )
     assert b.fields["base_color"][:3] == (1.0, 1.0, 1.0), "the factor still binds; the texture is carried"
@@ -219,7 +250,7 @@ def test_map_types_rules():
 
 def test_pack_fields_refuses_a_value_of_the_wrong_width():
     hmap = _map()
-    hmap["parameters"]["base_color"]["components"] = [0, 1, 2, 3]  # the checker would refuse; pack_fields on its own
+    hmap["parameters"]["base_color@hogshade-legacy-v2"]["components"] = [0, 1, 2, 3]  # the checker would refuse
     with pytest.raises(MaterialError, match=r"3 value\(s\) for 4 component"):
         pack_fields(hmap, "hogshade-legacy-v2", {"base_color": [1, 1, 1]})
 
@@ -259,6 +290,7 @@ def test_bind_leaves_a_record(caplog):
         bind(resolve(load(CONTENT / "legacy-v2" / "default.material.json")), "wgpu")
     messages = [r.getMessage() for r in caplog.records if r.name == "hogshade.material.binding"]
     assert any(
-        "bound" in m and "hogshade-legacy-v2" in m and "legacy-v2" in m and "24 parameter(s)" in m for m in messages
+        "bound" in m and "hogshade-legacy-v2" in m and "legacy-v2" in m and "21 parameter(s)" in m for m in messages
     )
-    assert sum("normal_map" in m for m in messages) == 1, "each unsupported parameter is one DEBUG line"
+    assert sum("height_map" in m for m in messages) == 1, "each unsupported parameter is one DEBUG line"
+    assert sum("normal_map" in m for m in messages) == 0, "T3b: the normal map is a slot, not an unsupported parameter"

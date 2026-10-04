@@ -52,7 +52,10 @@ fn host_material() -> legacy_v2_Material {
     return m;
 }
 
-fn host_samples() -> legacy_v2_Samples {
+// The legacy v2 samples with nothing bound: what a pass without textures returns, and what material.wgsl
+// starts from before the bound slots overwrite their fields. host_samples(uv) itself comes from the pass's
+// stitch: material.wgsl in the passes that run the material half, deferred_light.wgsl for the light pass.
+fn host_samples_unbound() -> legacy_v2_Samples {
     var s: legacy_v2_Samples;
     s.base_color = vec4<f32>(1.0);
     s.roughness = 1.0;
@@ -74,10 +77,25 @@ fn host_tangent_frame(n: vec3<f32>) -> mat3x3<f32> {
     return mat3x3<f32>(t, b, n);
 }
 
-fn host_geometry(position_ws: vec3<f32>, normal_ws: vec3<f32>, front_face: bool) -> legacy_v2_Geometry {
+// The tangent frame: MikkTSpace's when the mesh carries one (the tangent orthogonalised against the
+// interpolated normal, the bitangent from the handedness sign), else any frame around the normal.
+fn host_frame_of(n: vec3<f32>, tangent_ws: vec4<f32>) -> mat3x3<f32> {
+    if (dot(tangent_ws.xyz, tangent_ws.xyz) < 1e-8) {
+        return host_tangent_frame(n);
+    }
+    let projected = tangent_ws.xyz - n * dot(n, tangent_ws.xyz);
+    if (dot(projected, projected) < 1e-8) {   // the interpolated tangent fell onto the normal: no direction left
+        return host_tangent_frame(n);
+    }
+    let t = normalize(projected);
+    let b = cross(n, t) * select(1.0, -1.0, tangent_ws.w < 0.0);
+    return mat3x3<f32>(t, b, n);
+}
+
+fn host_geometry(position_ws: vec3<f32>, normal_ws: vec3<f32>, tangent_ws: vec4<f32>, front_face: bool) -> legacy_v2_Geometry {
     var g: legacy_v2_Geometry;
     let n = normalize(normal_ws);
-    let frame = host_tangent_frame(n);
+    let frame = host_frame_of(n, tangent_ws);
     g.normal_ws = n;
     g.tangent_ws = frame[0];
     g.binormal_ws = frame[1];
@@ -130,8 +148,8 @@ fn host_samples_v1() -> legacy_v1_Samples {
     return s;
 }
 
-fn host_geometry_v1(position_ws: vec3<f32>, normal_ws: vec3<f32>, front_face: bool) -> legacy_v1_Geometry {
-    let g2 = host_geometry(position_ws, normal_ws, front_face);
+fn host_geometry_v1(position_ws: vec3<f32>, normal_ws: vec3<f32>, tangent_ws: vec4<f32>, front_face: bool) -> legacy_v1_Geometry {
+    let g2 = host_geometry(position_ws, normal_ws, tangent_ws, front_face);
     var g: legacy_v1_Geometry;
     g.normal_ws = g2.normal_ws;
     g.tangent_ws = g2.tangent_ws;
@@ -144,16 +162,16 @@ fn host_geometry_v1(position_ws: vec3<f32>, normal_ws: vec3<f32>, front_face: bo
 }
 
 // The material half for whichever model the frame selects (a uniform branch).
-fn host_inputs(position_ws: vec3<f32>, normal_ws: vec3<f32>, front_face: bool) -> ShadingInputs {
+fn host_inputs(position_ws: vec3<f32>, normal_ws: vec3<f32>, tangent_ws: vec4<f32>, uv: vec2<f32>, front_face: bool) -> ShadingInputs {
     let model = u32(host_frame.model.x);
     if (model == HOGSHADE_MODEL_LEGACY_V1) {
-        return legacy_v1_inputs(host_material_v1(), host_samples_v1(), host_geometry_v1(position_ws, normal_ws, front_face));
+        return legacy_v1_inputs(host_material_v1(), host_samples_v1(), host_geometry_v1(position_ws, normal_ws, tangent_ws, front_face));
     }
     if (model == HOGSHADE_MODEL_LAMBERT) {
-        let g = host_geometry(position_ws, normal_ws, front_face);
+        let g = host_geometry(position_ws, normal_ws, tangent_ws, front_face);
         return lambert_inputs(host_frame.base_color.rgb, 1.0, vec3<f32>(0.0), g.normal_ws, g.view_ws, position_ws);
     }
-    return legacy_v2_inputs(host_material(), host_samples(), host_geometry(position_ws, normal_ws, front_face));
+    return legacy_v2_inputs(host_material(), host_samples(uv), host_geometry(position_ws, normal_ws, tangent_ws, front_face));
 }
 
 fn host_environment_ibl() -> EnvironmentIBL {

@@ -349,7 +349,11 @@ def test_the_sheet_prepares_every_document_before_the_device(tmp_path: Path):
         "specular_rotation",
         "specular_occlusion",
     ]
-    assert all(binding.model == "legacy-v2" for _, _, binding in prepared)
+    assert all(binding.model == "legacy-v2" for _, _, binding, _ in prepared)
+    # T3b: the four documents that bind a set carry their runtime textures; the constants-only ones carry none
+    textured = {path.name.split(".")[0]: sorted(textures) for path, _, _, textures in prepared if textures}
+    assert set(textured) == {"brick_wall_001", "cobblestone_floor_04", "brown_planks_03", "metal_plate"}
+    assert "metalness" in textured["metal_plate"] and "metalness" not in textured["brick_wall_001"]
     with pytest.raises(MaterialError, match="nothing to render"):
         sheet.prepare(tmp_path)
     (tmp_path / "bad.material.json").write_text(

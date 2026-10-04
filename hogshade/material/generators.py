@@ -25,7 +25,7 @@ from hogshade.material.schema import read_json, type_of, types
 
 _MODULE_NAME = "hogshade.material.generators"
 __version__ = "0.1.0"
-__updated__ = "2026-10-01"
+__updated__ = "2026-10-04"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 #: The types whose union the Maya shell declares (the shell is one effect with a model selector).
@@ -338,6 +338,7 @@ def _check_wgpu_entry(
     e: Any,
     fields: dict[str, int],
     written: dict[tuple[str, int], str],
+    slots: tuple[str, ...] = (),
 ) -> list[Finding]:
     if not isinstance(e, dict):
         return [Finding(where, key, "an entry is an object")]
@@ -347,16 +348,27 @@ def _check_wgpu_entry(
             out.append(
                 Finding(where, key, f"{k!r} repeats what the schema knows; the map carries the frame layout only")
             )
-        elif k not in ("field", "components", "types", "unsupported"):
+        elif k not in ("field", "components", "types", "unsupported", "texture", "channel"):
             out.append(Finding(where, key, f"unknown key {k!r}"))
     if "unsupported" in e:
         if not isinstance(e["unsupported"], str) or not e["unsupported"]:
             out.append(Finding(where, key, "unsupported carries a reason"))
-        if "field" in e or "components" in e:
+        if "field" in e or "components" in e or "texture" in e:
             out.append(Finding(where, key, "a parameter is bound or unsupported, not both"))
         return out
+    if "texture" in e:  # T3b: a slot of the host's material bind group, a channel where the slot is packed
+        if not p.texturable:
+            out.append(Finding(where, key, "texture on a parameter the schema does not let a texture bind to"))
+        if e["texture"] not in slots:
+            out.append(Finding(where, key, f"texture names slot {e['texture']!r}, not one of the map's slots {slots}"))
+        if "channel" in e and e["channel"] not in ("r", "g", "b", "a"):
+            out.append(Finding(where, key, f"channel is one of r, g, b, a, got {e['channel']!r}"))
+        if p.type == "texture":
+            return out
+    elif "channel" in e:
+        out.append(Finding(where, key, "channel goes with texture"))
     if p.type == "texture":
-        return out + [Finding(where, key, "a texture parameter is unsupported in the wgpu host (no texture bindings)")]
+        return out + [Finding(where, key, "a texture parameter is unsupported in the wgpu host, or bound to a slot")]
     field, comps = e.get("field"), e.get("components")
     if field not in fields:
         return out + [Finding(where, key, f"field {field!r} is not one of the map's fields")]
@@ -392,6 +404,10 @@ def _check_wgpu_map(hmap: dict[str, Any], params: dict[str, ParameterDef], where
     fields = hmap["fields"]
     if not (isinstance(fields, dict) and fields and all(_is_int(w) and w > 0 for w in fields.values())):
         return [Finding(where, "", "fields is an object of frame field name to its width")]
+    slots_raw = hmap.get("slots", [])
+    if not (isinstance(slots_raw, list) and all(isinstance(s, str) for s in slots_raw)):
+        return [Finding(where, "", "slots is a list of the material bind group's slot names")]
+    slots = tuple(slots_raw)
     entries = hmap["parameters"]
     if not isinstance(entries, dict):
         return [Finding(where, "", "parameters is an object keyed by parameter name, optionally @type")]
@@ -425,7 +441,9 @@ def _check_wgpu_map(hmap: dict[str, Any], params: dict[str, ParameterDef], where
         }
         for pname, e in covered.items():
             key = pname if pname in entries and entries[pname] is e else f"{pname}{TYPE_SUFFIX}{tname}"
-            out.extend(_check_wgpu_entry(where, key, pname, type_of(tname).parameters[pname], e, fields, written))
+            out.extend(
+                _check_wgpu_entry(where, key, pname, type_of(tname).parameters[pname], e, fields, written, slots)
+            )
     # one finding per entry, not per type that shares it
     seen: set[tuple[str, str]] = set()
     unique: list[Finding] = []

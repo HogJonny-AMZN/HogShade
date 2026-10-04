@@ -65,7 +65,7 @@ Every standard document of the base library (S4a) renders through the reverse co
 
 ![the base library, 26 documents, forward path](../verification/wgpu/library/contact-sheet.png)
 
-content/materials/standard/ in roster order, six to a row, each cell labelled with its family and title (a long title is cut with a dot; contact-sheet.json has it whole): metal (base, aluminium, brass, chrome, copper, gold, iron, metal plate, silver, brushed steel), dielectric (base, brown planks, ceramic, glossy plastic, matte plastic), coated (base, painted red), rough (base, brick wall, cobblestone floor, concrete, rubber), emissive (base, panel), cutout (base, leaf); contact-sheet.json is the legend. The emissive pair do not glow: the wgpu host carries no emission term, so they render as their dark base colour; anisotropy, specular colour and specular occlusion are the table's losses, so brushed steel is iron here; the four T3 documents show their families' constants, since this host samples no texture yet (T3b). Made by `uv run tools/wgpu/contact_sheet.py`; the file is `verification/wgpu/library/contact-sheet.png`.
+content/materials/standard/ in roster order, six to a row, each cell labelled with its family and title (a long title is cut with a dot; contact-sheet.json has it whole): metal (base, aluminium, brass, chrome, copper, gold, iron, metal plate, silver, brushed steel), dielectric (base, brown planks, ceramic, glossy plastic, matte plastic), coated (base, painted red), rough (base, brick wall, cobblestone floor, concrete, rubber), emissive (base, panel), cutout (base, leaf); contact-sheet.json is the legend. The emissive pair do not glow: the wgpu host carries no emission term, so they render as their dark base colour; anisotropy, specular colour and specular occlusion are the table's losses, so brushed steel is iron here; the four T3 documents (brick wall, cobblestone floor, brown planks, metal plate) render their cooked sets on the host's texture slots (T3b), the other twenty-two their constants on neutral slots. Made by `uv run tools/wgpu/contact_sheet.py`; the file is `verification/wgpu/library/contact-sheet.png`.
 
 ## The sphere in Maya 2026
 
@@ -173,7 +173,7 @@ the mortar lines and the brick texture; the low frequency is in the macro. Made 
 
 ## The first texture set
 
-T3: the repository's first texture content, four Poly Haven sets and the legacy grid tile, cooked block-compressed and rendered on the Maya shell from their standard documents; the probe that decided the encoding is in the same directory.
+T3: the repository's first texture content, four Poly Haven sets and the legacy grid tile, cooked block-compressed and rendered on the Maya shell from their standard documents; the probe that decided the encoding is in the same directory. T3b: the same five sets through the wgpu host from the same cooked DDS, beside the Maya captures in the matrix below (sets as rows, hosts as columns). The two will not match pixel for pixel: a different mesh (the shader ball against Maya's sphere), camera and output space; the comparison framework after gate G4 is what makes them a diff. A human can see the same brick, the same metalness.
 
 ### the ground: T2's proof set at 2K, height as R16_UNORM; BC7 colour, BC5 normal, the packed ORM through ormMap (`maya-2026`)
 
@@ -205,6 +205,36 @@ the standard document metal_plate.material.json converted to legacy v2 and bound
 
 no document binds it; the check builds one from the set's maps (hogshade.material.sets). Made by `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_texture_check --param set_dir=content/textures/grid --param check=textures --param variant=grid`; the file is `verification/maya-2026/textures/grid/main.png`.
 
+### the ground through the wgpu host: BC7 colour, BC5 normal, the packed ORM's green as roughness and red as AO (`wgpu`)
+
+![the ground through the wgpu host: BC7 colour, BC5 normal, the packed ORM's green as roughness and red as AO](../verification/wgpu/textures/cobblestone_floor_04/main.png)
+
+the standard document converted to legacy v2 and bound; every map the runtime reports handed to the host, the plan logging the ones without a slot. Made by `uv run tools/wgpu/texture_matrix.py`; the file is `verification/wgpu/textures/cobblestone_floor_04/main.png`.
+
+### the brick through the wgpu host: the relief is the BC5 normal on the mesh's MikkTSpace tangents (`wgpu`)
+
+![the brick through the wgpu host: the relief is the BC5 normal on the mesh's MikkTSpace tangents](../verification/wgpu/textures/brick_wall_001/main.png)
+
+the standard document converted to legacy v2 and bound; every map the runtime reports handed to the host, the plan logging the ones without a slot. Made by `uv run tools/wgpu/texture_matrix.py`; the file is `verification/wgpu/textures/brick_wall_001/main.png`.
+
+### the wood through the wgpu host: a plain dielectric, colour, normal, roughness and AO (`wgpu`)
+
+![the wood through the wgpu host: a plain dielectric, colour, normal, roughness and AO](../verification/wgpu/textures/brown_planks_03/main.png)
+
+the standard document converted to legacy v2 and bound; every map the runtime reports handed to the host, the plan logging the ones without a slot. Made by `uv run tools/wgpu/texture_matrix.py`; the file is `verification/wgpu/textures/brown_planks_03/main.png`.
+
+### the metal through the wgpu host: the one set whose ORM carries all three channels, metalness from blue (`wgpu`)
+
+![the metal through the wgpu host: the one set whose ORM carries all three channels, metalness from blue](../verification/wgpu/textures/metal_plate/main.png)
+
+the standard document converted to legacy v2 and bound; every map the runtime reports handed to the host, the plan logging the ones without a slot. Made by `uv run tools/wgpu/texture_matrix.py`; the file is `verification/wgpu/textures/metal_plate/main.png`.
+
+### the calibration tile through the wgpu host: colour, normal, ORM and the BC4 cavity; emission and height have no slot and stay at their factors (`wgpu`)
+
+![the calibration tile through the wgpu host: colour, normal, ORM and the BC4 cavity; emission and height have no slot and stay at their factors](../verification/wgpu/textures/grid/main.png)
+
+no document binds it; the tool builds one from the set's maps (hogshade.material.sets), as the Maya check does. Made by `uv run tools/wgpu/texture_matrix.py`; the file is `verification/wgpu/textures/grid/main.png`.
+
 ### the metalness debug view of the metal plate: the ORM's blue channel read through ormMap (`maya-2026`)
 
 ![the metalness debug view of the metal plate: the ORM's blue channel read through ormMap](../verification/maya-2026/textures/metal_plate/debug-07.png)
@@ -228,6 +258,18 @@ identical to the left on the main view (0 differing pixels); two debug views dif
 | Left | Right | Why |
 | --- | --- | --- |
 | ![left](../verification/maya-2026/ibl-check/gate/master/main.png) | ![right](../verification/maya-2026/ibl-check/gate/ormmap/main.png) | the S2 gate for the shell change: master's shell and the regenerated one (with ormMap) rendered untextured in one Maya session; the main view pixel-identical, the debug views within one 8-bit step on at most two pixels (the viewport's own run-to-run jitter) |
+
+### The five sets, Maya beside wgpu
+
+one cooked set per row, rendered from the same DDS by the two hosts: Maya 2026 through the dx11 shell (a sphere, the viewport's camera), the wgpu host (the shader ball, offscreen). Same colour, same normal relief, same metalness; the differences are mesh, camera and output space, not the material
+
+| | Maya 2026 | wgpu |
+| --- | --- | --- |
+| **cobblestone_floor_04** | ![cobblestone_floor_04, Maya 2026](../verification/maya-2026/textures/cobblestone_floor_04/main.png) | ![cobblestone_floor_04, wgpu](../verification/wgpu/textures/cobblestone_floor_04/main.png) |
+| **brick_wall_001** | ![brick_wall_001, Maya 2026](../verification/maya-2026/textures/brick_wall_001/main.png) | ![brick_wall_001, wgpu](../verification/wgpu/textures/brick_wall_001/main.png) |
+| **brown_planks_03** | ![brown_planks_03, Maya 2026](../verification/maya-2026/textures/brown_planks_03/main.png) | ![brown_planks_03, wgpu](../verification/wgpu/textures/brown_planks_03/main.png) |
+| **metal_plate** | ![metal_plate, Maya 2026](../verification/maya-2026/textures/metal_plate/main.png) | ![metal_plate, wgpu](../verification/wgpu/textures/metal_plate/main.png) |
+| **grid** | ![grid, Maya 2026](../verification/maya-2026/textures/grid/main.png) | ![grid, wgpu](../verification/wgpu/textures/grid/main.png) |
 
 ## Wanted, not yet captured
 

@@ -20,19 +20,54 @@
         0,
         1,
         2
+      ],
+      "types": [
+        "hogshade-legacy-v1",
+        "hogshade-lambert"
       ]
+    },
+    "base_color@hogshade-legacy-v2": {
+      "field": "base_color",
+      "components": [
+        0,
+        1,
+        2
+      ],
+      "texture": "base_color"
     },
     "roughness": {
       "field": "base_color",
       "components": [
         3
+      ],
+      "types": [
+        "hogshade-legacy-v1"
       ]
+    },
+    "roughness@hogshade-legacy-v2": {
+      "field": "base_color",
+      "components": [
+        3
+      ],
+      "texture": "orm",
+      "channel": "g"
     },
     "metalness": {
       "field": "material",
       "components": [
         0
+      ],
+      "types": [
+        "hogshade-legacy-v1"
       ]
+    },
+    "metalness@hogshade-legacy-v2": {
+      "field": "material",
+      "components": [
+        0
+      ],
+      "texture": "orm",
+      "channel": "b"
     },
     "specular": {
       "field": "material",
@@ -71,7 +106,13 @@
       "unsupported": "the host's frame carries no emission; the core receives the unbound default (0)"
     },
     "normal_map": {
-      "unsupported": "no texture bindings in the wgpu host before the comparison framework; the path is carried on the Binding"
+      "unsupported": "no texture bindings in the wgpu host before the comparison framework; the path is carried on the Binding",
+      "types": [
+        "hogshade-legacy-v1"
+      ]
+    },
+    "normal_map@hogshade-legacy-v2": {
+      "texture": "normal"
     },
     "bump_intensity": {
       "unsupported": "the host samples no normal map; the core receives 1.0"
@@ -98,10 +139,15 @@
       "unsupported": "the shader ball carries no vertex colour or alpha; the host's geometry builder passes 1"
     },
     "ambient_occlusion_map": {
-      "unsupported": "no texture bindings in the wgpu host before the comparison framework; the path is carried on the Binding"
+      "unsupported": "no texture bindings in the wgpu host before the comparison framework; the path is carried on the Binding",
+      "types": [
+        "hogshade-legacy-v1",
+        "hogshade-lambert"
+      ]
     },
-    "cavity_map": {
-      "unsupported": "no texture bindings in the wgpu host before the comparison framework; the path is carried on the Binding"
+    "ambient_occlusion_map@hogshade-legacy-v2": {
+      "texture": "orm",
+      "channel": "r"
     },
     "height_map": {
       "unsupported": "no texture bindings in the wgpu host before the comparison framework; the path is carried on the Binding"
@@ -177,6 +223,15 @@
     },
     "use_specular_mask": {
       "unsupported": "the host samples no specular map; the mask flag has nothing to select"
+    },
+    "cavity_map@hogshade-legacy-v2": {
+      "texture": "cavity"
     }
-  }
+  },
+  "slots": [
+    "base_color",
+    "normal",
+    "orm",
+    "cavity"
+  ]
 }

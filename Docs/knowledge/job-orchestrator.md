@@ -90,6 +90,7 @@ and a `main(parameters) -> dict`. `hogshade.jobs.manifest()` lists them. Current
 | `hogshade.jobs.cook_textures` | `hogshade_python` | the T2 texture cook; the worker's venv is the workspace `.venv`, so `uv sync --all-extras` brings its encoder (`ispc_texcomp`) |
 | `hogshade.jobs.maya_ibl_check` | `hogshade_maya_gui`, main thread | load the Maya shell, bind the cooked cubes and a light, playblast, log |
 | `hogshade.jobs.maya_texture_check` | `hogshade_maya_gui`, main thread | a cooked texture set on the shell: convert and bind the document, connect every DDS through the manifest (the packed `_ORM` to `ormMap`), log the format written and the size Maya decoded per texture, playblast the main and texture debug views (T3) |
+| `hogshade.jobs.maya_mikktspace_dump` | `hogshade_maya` (headless) | import an OBJ as one mesh, read Maya's per-corner tangent and binormal through the API, write `tests/host/fixtures/<stem>_mikktspace.npz` (face, vertex, tangent, sign, meta), the parity fixture `hogshade.mikktspace` is tested against (T3b). Maya 2026.3's mesh offers no MikkTSpace entry in its `tangentSpace` enum; the fixture is its default basis and the meta says so |
 
 A job is a thin adapter over code that also runs without the orchestrator (the cook CLI, the
 `tools/maya/*.mel` launchers); a job is never the only way to run something.

@@ -22,6 +22,7 @@ def test_library_manifest_lists_the_job() -> None:
         "hogshade.maya_ibl_check",
         "hogshade.cook_textures",
         "hogshade.maya_texture_check",
+        "hogshade.maya_mikktspace_dump",
     ]
     e = entries[0]
     assert e["module_path"] == "hogshade.jobs.cook_ibl" and e["entry_point"] == "main"

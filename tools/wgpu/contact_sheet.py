@@ -7,8 +7,10 @@ Package: tools/wgpu/contact_sheet
     uv run tools/wgpu/contact_sheet.py --tile 128      # smaller tiles
 
 Each document is resolved, converted to hogshade-legacy-v2 (the table lists what that loses, once), bound for
-wgpu and rendered on the forward path under the calibration environment; the tiles are laid out in roster
-order (families in the index's order, a family's parent first), six to a row, each with a label strip under it
+wgpu with its textures in their runtime form (T3b: a document that binds a set renders its cooked DDS; the others
+render their constants on neutral slots) and rendered on the forward path under the calibration environment;
+the tiles are laid out in roster order (families in the index's order, a family's parent first), six to a row,
+each with a label strip under it
 naming the family and the document's title (``hogshade.bitmap_font``; the owner, 2026-10-04: "they need
 context"). The JSON beside the picture is the legend, one entry per cell with its title and document. The
 picture stays within the gallery's rule (at most 1024 on a side).
@@ -32,8 +34,18 @@ sys.path.insert(0, str(ROOT))
 
 from hogshade.bitmap_font import draw_text, fit
 from hogshade.ibl.imageio import preview_srgb8, write_png_rgb8
-from hogshade.material import MaterialError, bind, convert, documents_under, load, load_table, resolve
+from hogshade.material import (
+    MaterialError,
+    bind,
+    convert,
+    documents_under,
+    load,
+    load_table,
+    resolve,
+    runtime_textures,
+)
 from hogshade.material.library import family_of
+from hogshade.material.runtime import RuntimeTexture
 from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
 
 _MODULE_NAME = "tools.wgpu.contact_sheet"
@@ -86,11 +98,14 @@ def command_line(args: argparse.Namespace, defaults: argparse.Namespace) -> str:
     return shlex.join(argv)
 
 
-def prepare(library: Path, to_type: str = TO_TYPE) -> tuple[list[tuple[Path, Any, Any]], list[str]]:
+def prepare(
+    library: Path, to_type: str = TO_TYPE
+) -> tuple[list[tuple[Path, Any, Any, dict[str, RuntimeTexture]]], list[str]]:
     """
-    Every document under ``library`` loaded, converted to ``to_type`` and bound for wgpu, with the table's
-    losses, before any device exists: ``(path, document, binding)`` triples and the lost parameter names. A
-    malformed document, chain, table or binding is ``MaterialError`` here, where the tool can log it and exit.
+    Every document under ``library`` loaded, converted to ``to_type`` and bound for wgpu, with its runtime textures
+    (empty for a constants-only document) and the table's losses, before any device exists: ``(path, document,
+    binding, textures)`` and the lost parameter names. A malformed document, chain, table, binding or cooked set
+    is ``MaterialError`` here, where the tool can log it and exit.
     """
     paths = documents_under(library)
     if not paths:
@@ -101,7 +116,9 @@ def prepare(library: Path, to_type: str = TO_TYPE) -> tuple[list[tuple[Path, Any
     for path in paths:
         doc = load(path, library)
         converted, _ = convert(resolve(doc, library), to_type)
-        prepared.append((path, doc, bind(resolve(converted), "wgpu")))
+        binding = bind(resolve(converted), "wgpu")
+        textures = runtime_textures(binding.textures, path.parent) if binding.textures else {}
+        prepared.append((path, doc, binding, textures))
     return prepared, losses
 
 
@@ -156,8 +173,10 @@ def main(argv: list[str] | None = None) -> int:
     renderer = Renderer(device, load_shader_ball(), environment=args.environment)
     sheet = np.zeros((height, width, 3), dtype=np.float32)
     legend: list[dict[str, Any]] = []
-    for cell, (path, doc, binding) in enumerate(prepared):
-        scene = Scene(width=args.tile, height=args.tile, material=binding, environment=args.environment)
+    for cell, (path, doc, binding, textures) in enumerate(prepared):
+        scene = Scene(
+            width=args.tile, height=args.tile, material=binding, environment=args.environment, textures=textures
+        )
         frame = renderer.render(scene).forward
         if not np.isfinite(frame).all():
             _LOGGER.error("%s rendered a non-finite pixel", path)
@@ -181,9 +200,13 @@ def main(argv: list[str] | None = None) -> int:
                 "family": family,
                 "document": rel,
                 "title": doc.title,
+                "textures": sorted(textures),
             }
         )
-        _LOGGER.info("cell %2d (row %d, column %d): %-28s %s", cell, row, col, doc.title, rel)
+        _LOGGER.info(
+            f"cell {cell:2d} (row {row}, column {col}): {doc.title:<28} {rel}"
+            + (f" ({len(textures)} map(s))" if textures else "")
+        )
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     picture = args.out_dir / "contact-sheet.png"

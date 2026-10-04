@@ -8,6 +8,12 @@
 @group(2) @binding(3) var host_gb3: texture_2d<f32>;
 @group(2) @binding(4) var host_depth: texture_depth_2d;
 
+// This pass runs the lighting half only; group 2 is its G-buffer, not the material slots of material.wgsl.
+// host_inputs() in common.wgsl still names host_samples, so the unbound defaults stand in for it here.
+fn host_samples(uv: vec2<f32>) -> legacy_v2_Samples {
+    return host_samples_unbound();
+}
+
 struct host_ScreenOut {
     @builtin(position) clip: vec4<f32>,
 }
