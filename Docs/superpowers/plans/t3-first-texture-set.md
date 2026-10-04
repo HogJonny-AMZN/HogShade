@@ -1,7 +1,7 @@
 # T3 plan: the first texture set, and the host that shows it
 
-**Status:** Proposed. Drafted 2026-10-04 with the spec; built after the owner answers the spec's first question
-(the host half) and approves. Test-first: each task's test lands with it; the Maya probe is task 1 because its
+**Status:** Accepted. Drafted 2026-10-04 with the spec (#57); the owner took the recommendations the same day; built
+on `feat/t3-first-texture-set`. Test-first: each task's test lands with it; the Maya probe is task 1 because its
 answer decides what the committed runtime sets carry.
 
 Spec: [../specs/t3-first-texture-set.md](../specs/t3-first-texture-set.md).

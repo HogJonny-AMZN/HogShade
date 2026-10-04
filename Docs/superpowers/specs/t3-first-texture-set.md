@@ -1,8 +1,11 @@
 # T3 spec: the first texture set, and the host that shows it
 
-**Status:** Proposed. Drafted 2026-10-04 from the accepted conventions design (increment 3, "T3, the first texture
-set (this is S4b)"), the material-library design (section 6), the content standard and the T2 cook. Three questions
-for the owner at the end; the first decides the host half and is the one that changes the shape of the build.
+**Status:** Accepted. Drafted 2026-10-04 from the accepted conventions design (increment 3, "T3, the first texture
+set (this is S4b)"), the material-library design (section 6), the content standard and the T2 cook, merged as #57;
+the three questions answered by the owner the same day with the recommendations ("your best recommendations are
+fine for now"): Maya first with wgpu sampling as T3b, the four named sets plus the grid tile, concavity as `_C` and
+the rest of the grid's unmapped maps left in the legacy repository. Built on `feat/t3-first-texture-set`; amendments
+made in the build go in a last section.
 
 Date: 2026-10-04. Design: [../../design/2026-10-03-content-conventions.md](../../design/2026-10-03-content-conventions.md)
 (increment 3) and [../../design/2026-10-02-material-library.md](../../design/2026-10-02-material-library.md)
