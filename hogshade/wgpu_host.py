@@ -18,6 +18,7 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
+from hogshade import mikktspace
 from hogshade.ibl.dds import read_2d_rgba16f, read_cube_rgba16f
 from hogshade.material.binding import WGPU_MODEL_IDS, WGPU_MODELS, pack_fields
 from hogshade.material.generators import host_map
@@ -87,21 +88,63 @@ def stitch_pass(name: str) -> str:
 
 @dataclass
 class Mesh:
-    vertices: NDArray  # (n, 6) float32: position, normal
-    indices: NDArray  # (m,) uint32, triangles
+    """
+    A triangle mesh for the host: ``vertices`` ``(n, 12)`` float32 as position, normal, uv, tangent with its
+    handedness sign in the fourth component (``VERTEX_STRIDE`` bytes), ``indices`` ``(m,)`` uint32. The normals
+    are the source's (MikkTSpace consumes them as given); the tangents are MikkTSpace's, and ``tangent_basis``
+    says so (``mikktspace``), or ``unknown`` when a file carried tangents nobody vouched for (the host logs and
+    regenerates), or ``none`` while a mesh has no UVs (the shaders fall back to an arbitrary frame).
+    """
+
+    vertices: NDArray
+    indices: NDArray
+    tangent_basis: str = "mikktspace"
+
+
+VERTEX_FLOATS = 12
+VERTEX_STRIDE = VERTEX_FLOATS * 4
+
+
+def with_tangents(positions: NDArray, normals: NDArray, uvs: NDArray | None, indices: NDArray) -> Mesh:
+    """
+    The host's mesh from arrays: MikkTSpace tangents generated when UVs are present (the standard's requirement,
+    the normals as given), a zero tangent with sign +1 and ``tangent_basis="none"`` when they are not.
+    """
+    n = positions.shape[0]
+    if uvs is None:
+        uv = np.zeros((n, 2), dtype=np.float32)
+        tangent = np.zeros((n, 4), dtype=np.float32)
+        tangent[:, 3] = 1.0
+        basis = "none"
+    else:
+        uv = np.asarray(uvs, dtype=np.float32)
+        t, s = mikktspace.tangents(positions, normals, uv, indices)
+        tangent = np.concatenate([t, s[:, None]], axis=1)
+        basis = "mikktspace"
+    verts = np.concatenate(
+        [np.asarray(positions, dtype=np.float32), np.asarray(normals, dtype=np.float32), uv, tangent], axis=1
+    )
+    return Mesh(np.ascontiguousarray(verts, dtype=np.float32), np.asarray(indices, dtype=np.uint32).reshape(-1), basis)
 
 
 def load_obj(path: Path) -> Mesh:
-    """A minimal OBJ reader: v, vn and f (v/vt/vn) records; quads and fans are triangulated."""
+    """
+    A minimal OBJ reader: v, vt, vn and f (v/vt/vn) records; quads and fans are triangulated; a corner is keyed
+    on (v, vt, vn), the weld MikkTSpace uses. Tangents are generated (an OBJ carries none); a file without ``vt``
+    gives a mesh with ``tangent_basis="none"``.
+    """
     positions: list[list[float]] = []
+    texcoords: list[list[float]] = []
     normals: list[list[float]] = []
-    corners: dict[tuple[int, int], int] = {}
+    corners: dict[tuple[int, int, int], int] = {}
     vertices: list[tuple[float, ...]] = []
     tris: list[int] = []
     with path.open(encoding="utf-8", errors="replace") as fh:
         for line in fh:
             if line.startswith("v "):
                 positions.append([float(x) for x in line.split()[1:4]])
+            elif line.startswith("vt "):
+                texcoords.append([float(x) for x in line.split()[1:3]])
             elif line.startswith("vn "):
                 normals.append([float(x) for x in line.split()[1:4]])
             elif line.startswith("f "):
@@ -109,22 +152,30 @@ def load_obj(path: Path) -> Mesh:
                 for token in line.split()[1:]:
                     parts = token.split("/")
                     vi = int(parts[0])
+                    ti = int(parts[1]) if len(parts) > 1 and parts[1] else 0
                     ni = int(parts[2]) if len(parts) > 2 and parts[2] else 0
-                    key = (vi, ni)
+                    key = (vi, ti, ni)
                     idx = corners.get(key)
                     if idx is None:
                         idx = len(vertices)
                         corners[key] = idx
                         p = positions[vi - 1]
                         n = normals[ni - 1] if ni else [0.0, 1.0, 0.0]
-                        vertices.append((*p, *n))
+                        t = texcoords[ti - 1] if ti else [0.0, 0.0]
+                        vertices.append((*p, *n, *t))
                     face.append(idx)
                 for k in range(1, len(face) - 1):
                     tris.extend((face[0], face[k], face[k + 1]))
     verts = np.asarray(vertices, dtype=np.float32)
     if len(verts) == 0:
         raise ValueError(f"no faces in {path}")
-    return Mesh(verts, np.asarray(tris, dtype=np.uint32))
+    has_uv = bool(texcoords)
+    mesh = with_tangents(verts[:, :3], verts[:, 3:6], verts[:, 6:8] if has_uv else None, np.asarray(tris))
+    _LOGGER.info(
+        f"loaded {path.name}: {len(verts)} corners, {len(tris) // 3} triangles, uvs {'yes' if has_uv else 'no'}, "
+        f"tangents {mesh.tangent_basis}"
+    )
+    return mesh
 
 
 def normalise_mesh(mesh: Mesh, size: float = 2.0) -> Mesh:
@@ -137,7 +188,7 @@ def normalise_mesh(mesh: Mesh, size: float = 2.0) -> Mesh:
     out[:, :3] = (pos - centre) * scale
     n = out[:, 3:6]
     out[:, 3:6] = n / np.maximum(np.linalg.norm(n, axis=-1, keepdims=True), 1e-8)
-    return Mesh(out, mesh.indices)
+    return Mesh(out, mesh.indices, mesh.tangent_basis)  # uv and tangent columns pass through untouched
 
 
 # ----------------------------------------------------------------------------- camera
@@ -460,11 +511,13 @@ class Renderer:
             "entry_point": "vs_main",
             "buffers": [
                 {
-                    "array_stride": 24,
+                    "array_stride": VERTEX_STRIDE,
                     "step_mode": wgpu.VertexStepMode.vertex,
                     "attributes": [
                         {"format": wgpu.VertexFormat.float32x3, "offset": 0, "shader_location": 0},
                         {"format": wgpu.VertexFormat.float32x3, "offset": 12, "shader_location": 1},
+                        {"format": wgpu.VertexFormat.float32x2, "offset": 24, "shader_location": 2},
+                        {"format": wgpu.VertexFormat.float32x4, "offset": 32, "shader_location": 3},
                     ],
                 }
             ],
