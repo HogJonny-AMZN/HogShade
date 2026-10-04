@@ -29,7 +29,14 @@ from hogshade.material import (
     type_of,
     validate,
 )
-from hogshade.material.library import DEFERRED, FAMILY_ORDER, INDEX_HEADER, PARENT_NAME, factor_parameters
+from hogshade.material.library import (
+    DEFERRED,
+    FAMILY_ORDER,
+    INDEX_HEADER,
+    PARENT_NAME,
+    factor_parameters,
+    texture_coverage,
+)
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "wgpu"))
 
@@ -38,13 +45,24 @@ LIBRARY = REPO / "content" / "materials" / "standard"
 INDEX = REPO / "content" / "materials" / "README.md"
 STANDARD, V2 = "hogshade-standard", "hogshade-legacy-v2"
 ROSTER = {
-    "metal": ["aluminium", "brass", "chrome", "copper", "gold", "iron", "silver", "steel"],
-    "dielectric": ["ceramic", "plastic_glossy", "plastic_matte"],
+    "metal": ["aluminium", "brass", "chrome", "copper", "gold", "iron", "metal_plate", "silver", "steel"],
+    "dielectric": ["brown_planks_03", "ceramic", "plastic_glossy", "plastic_matte"],
     "coated": ["painted"],
-    "rough": ["concrete", "rubber"],
+    "rough": ["brick_wall_001", "cobblestone_floor_04", "concrete", "rubber"],
     "emissive": ["panel"],
     "cutout": ["leaf"],
 }
+#: T3: the texturable parameters a committed document binds, and the one deferred (cavity: only the grid tile
+#: has a _C, and no document binds the grid).
+TEXTURED = {
+    "base_color": 4,
+    "specular_roughness": 4,
+    "geometry_normal": 4,
+    "ambient_occlusion": 4,
+    "height": 4,
+    "base_metalness": 1,
+}
+DEFERRED_TEXTURES = {"cavity"}
 DOCUMENTS = documents_under(LIBRARY)
 
 
@@ -55,7 +73,7 @@ def _rel(p: Path) -> str:
 # ------------------------------------------------------------------------------------------- the roster
 
 
-def test_the_roster_is_six_families_and_twenty_two_documents():
+def test_the_roster_is_six_families_and_twenty_six_documents():
     names = [_rel(p) for p in DOCUMENTS]
     expected = []
     for family in FAMILY_ORDER:
@@ -81,7 +99,7 @@ def test_every_document_validates_resolves_converts_and_binds(path: Path):
     assert converted.title is None and converted.provenance == [], "conversion does not copy the record fields"
 
 
-CITABLE = ("Lagarde", "refractiveindex.info", "author")
+CITABLE = ("Lagarde", "refractiveindex.info", "author", "https://")  # a publication, a URL or the author
 
 
 @pytest.mark.parametrize("path", DOCUMENTS, ids=_rel)
@@ -105,6 +123,23 @@ def test_the_roster_covers_every_factor_bearing_standard_parameter():
     assert sorted(cov) == sorted(factor_parameters(STANDARD)), "every non-texture parameter of the schema is a key"
     uncovered = [name for name, docs in cov.items() if not docs]
     assert uncovered == [], uncovered  # a schema addition lands here until a document sets it
+
+
+def test_the_texture_bindings_cover_the_design_s_parameters_and_say_what_is_deferred():
+    cov = texture_coverage(LIBRARY)
+    bound = {name: len(docs) for name, docs in cov.items() if docs}
+    assert bound == TEXTURED, bound
+    texture_only = {n for n, p in type_of(STANDARD).parameters.items() if p.type == "texture"}
+    unbound_texture_only = {n for n in texture_only if not cov[n]}
+    assert unbound_texture_only == DEFERRED_TEXTURES, (
+        "a texture-only parameter no document binds is a deferral to record"
+    )
+    for name, docs in cov.items():
+        for rel in docs:
+            doc = load(LIBRARY / rel, LIBRARY)
+            texture = doc.values[name]["texture"]
+            assert texture.startswith(rel.split("/")[1].removesuffix(".material.json") + "/"), (rel, texture)
+            assert (LIBRARY / rel).parent.joinpath(*texture.split("/")).is_file(), (rel, texture)
 
 
 def test_children_set_only_deltas_and_the_parents_carry_the_family():

@@ -1,0 +1,45 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Metal plate",
+  "doc": "The metal set: Poly Haven's metal_plate at 2K, colour, normal, roughness, metalness, ambient occlusion and a 16-bit height; the one sourced set with a metalness map, so the packed _ORM carries all three channels.",
+  "parent": "base.material.json",
+  "values": {
+    "base_color": {
+      "factor": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "texture": "metal_plate/T_metal_plate_BC.png"
+    },
+    "base_metalness": {
+      "factor": 1.0,
+      "texture": "metal_plate/T_metal_plate_M.png"
+    },
+    "specular_roughness": {
+      "factor": 1.0,
+      "texture": "metal_plate/T_metal_plate_R.png"
+    },
+    "geometry_normal": {
+      "texture": "metal_plate/T_metal_plate_N.png"
+    },
+    "ambient_occlusion": {
+      "texture": "metal_plate/T_metal_plate_AO.png"
+    },
+    "height": {
+      "texture": "metal_plate/T_metal_plate_H.png"
+    }
+  },
+  "provenance": [
+    {
+      "source": "Poly Haven, https://polyhaven.com/a/metal_plate (CC0 1.0), fetched 2026-10-04 at 2K by tools/fetch_polyhaven.py; the set's LICENSE.md names the authors",
+      "note": "base_color, base_metalness, specular_roughness, geometry_normal, ambient_occlusion, height: each binds the set's map of that name; base_color, base_metalness and specular_roughness carry the factor 1.0 because legacy v2 multiplies the sample by the factor and the family's constants would otherwise scale the maps"
+    },
+    {
+      "source": "author",
+      "note": "base_metalness factor 1.0 with the map, so the metalness map is seen as authored where the family's constant 1.0 would also pass; the map carries the plate's rust as dielectric"
+    }
+  ],
+  "ext": {}
+}

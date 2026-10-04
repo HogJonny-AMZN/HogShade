@@ -89,6 +89,7 @@ and a `main(parameters) -> dict`. `hogshade.jobs.manifest()` lists them. Current
 | `hogshade.jobs.cook_ibl` | `hogshade_python` | the E1 IBL cook |
 | `hogshade.jobs.cook_textures` | `hogshade_python` | the T2 texture cook; the worker's venv is the workspace `.venv`, so `uv sync --all-extras` brings its encoder (`ispc_texcomp`) |
 | `hogshade.jobs.maya_ibl_check` | `hogshade_maya_gui`, main thread | load the Maya shell, bind the cooked cubes and a light, playblast, log |
+| `hogshade.jobs.maya_texture_check` | `hogshade_maya_gui`, main thread | a cooked texture set on the shell: convert and bind the document, connect every DDS through the manifest (the packed `_ORM` to `ormMap`), log the format written and the size Maya decoded per texture, playblast the main and texture debug views (T3) |
 
 A job is a thin adapter over code that also runs without the orchestrator (the cook CLI, the
 `tools/maya/*.mel` launchers); a job is never the only way to run something.
@@ -129,6 +130,10 @@ accepted. Publishing BATS is not a task in this repo.
   to use them. `taskkill /IM maya.exe` took down a worker on 2026-09-26.
 - **One orchestrator, one Maya GUI at a time.** Two GUI Mayas crash each other; a standalone
   `maya.exe -script` launch beside a running GUI worker is the same collision.
+- **The resident worker remembers code and environment, not only the scene** (ledger entry 16, T3): the
+  submit stub reloads a job module the worker already holds, a job drops the `hogshade.material` modules
+  before importing its check and clears the environment keys it does not set, and a path parameter is
+  absolute. A check that fails on a name the code plainly has is this, not the code.
 - **Maya's own errors are in its Script Editor**, not on stdout: the session helper mirrors the
   history to a file beside the log so a job result carries the effect compile error, and turns the
   mirroring off at the end of the check: a resident worker otherwise keeps appending to the committed

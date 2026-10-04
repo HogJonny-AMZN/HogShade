@@ -1,0 +1,10 @@
+{
+  "cooked_at": "2026-10-04T04:45:25Z",
+  "encoder_version": "1.0.1",
+  "git_hash": "2084ae3387d8ead856af420415416058e647ca88",
+  "machine": "BIGHOG-4090RTX",
+  "numpy": "2.5.3",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.13",
+  "wall_seconds": 13.67
+}

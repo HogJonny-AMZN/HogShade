@@ -137,7 +137,11 @@ down; the roadmap's texture-conventions box points here.
 Content is CC0 or made here, never a studio tree. Poly Haven and ambientCG on the IBL pattern
 (`content/ibl/<env>/LICENSE.md` is the template); the owner's own legacy test tiles (`grid_*`, provenance
 `"author"`) as the calibration tile (T3); a showcase set authored with the owner for what a sourced set
-cannot show (T4). Generated textures enter only through the validation harness the gated-research row
+cannot show (T4). The sets committed in T3: `cobblestone_floor_04` and `brick_wall_001` (rough),
+`brown_planks_03` (dielectric), `metal_plate` (metal), each beside the standard document that binds it, and
+the grid tile under `content/textures/grid/`; `tools/fetch_polyhaven.py` brings a Poly Haven set in (md5
+against the API, the suffix table's bit depth and channels at fetch: Poly Haven serves a mix of 8 and 16 bits
+and grey-alpha masks). Every committed `cooked/` is block-compressed (`--compress`), as the Maya probe decided. Generated textures enter only through the validation harness the gated-research row
 describes; this page's checks are its first piece.
 
 ### Tangents, detail maps and frequency separation

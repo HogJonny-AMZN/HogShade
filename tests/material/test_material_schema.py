@@ -181,7 +181,13 @@ DERIVED = {
 }
 # Shell parameters that are not material: the model selector, the display gamma, the shadow strength (declared with
 # the material slider macro but part of the Shadows block).
-SHELL_HOST_ONLY = {"shadingModel", "linearSpaceLighting", "gammaCorrectionValue", "shadowMultiplier"}
+SHELL_HOST_ONLY = {
+    "shadingModel",
+    "linearSpaceLighting",
+    "gammaCorrectionValue",
+    "shadowMultiplier",
+    "ormMap",
+}  # ormMap: the runtime set, not a schema parameter (T3)
 # Every material-block, normal, v1 and parallax parameter and every map of the shell, by schema name.
 SHELL_TO_SCHEMA = {
     "materialBaseColor": "base_color",
@@ -364,7 +370,7 @@ def test_legacy_type_is_the_union_of_structs_and_shell(type_name, model, v1):
 def test_legacy_textures_are_the_shell_maps():
     v2 = type_of("hogshade-legacy-v2")
     textured = {n for n, p in v2.parameters.items() if p.texturable}
-    maps = {SHELL_TO_SCHEMA[n] for n, g in _shell_parameters().items() if g == "maps"}
+    maps = {SHELL_TO_SCHEMA[n] for n, g in _shell_parameters().items() if g == "maps" and n not in SHELL_HOST_ONLY}
     assert textured == maps
 
 

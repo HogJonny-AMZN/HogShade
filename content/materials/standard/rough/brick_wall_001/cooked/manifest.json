@@ -1,0 +1,145 @@
+{
+  "compression": {
+    "bc7_profile": "basic",
+    "encoder": "ispc_texcomp"
+  },
+  "hogshade_version": "0.2.0",
+  "inputs": {
+    "LICENSE.md": "a4a9ade44d0aee5c3ae3caef934a184a01e6fdd521273674a5cecab46d68b1c3",
+    "T_brick_wall_001_AO.png": "d73bfe13568c4dbab81dfffc33eb264810071bb18ba9fe0cd4dc56b4c077d3cb",
+    "T_brick_wall_001_AO.texture.json": "23bcdfa22b53e1c5b2843adf1eed0890f28f1f2e3655d09ac85a0aec228f116b",
+    "T_brick_wall_001_BC.png": "e6d911f1db9f366bc9d33e6d9ac35662be473ae08ff3649e54bc18bf4bae2269",
+    "T_brick_wall_001_BC.texture.json": "8166c91d1426e7a42e398b91b682559aeee18d891c7251e96e63939abd7a19e1",
+    "T_brick_wall_001_H.png": "7438004a1db652f1b4876462f1c8d3f47bd751437f948d014b0e0a387642e365",
+    "T_brick_wall_001_H.texture.json": "f0764d522693f32d8e2607a3185f105f7c72c6d28c19898eaa9b970eede11170",
+    "T_brick_wall_001_N.png": "7b1a5b68bc236d0af2a9c3d4e8629c63844df40e954ac4d4dc86a3bbb940b654",
+    "T_brick_wall_001_N.texture.json": "9ae5cf96f2bab1295e473f99ee7f3841c730d3c0502a773e89fccb742f3fd9bb",
+    "T_brick_wall_001_R.png": "6ffe09713f6e51e20b5c0a8dca7a45335dc8c004d615d3882c15ba9dd605698c",
+    "T_brick_wall_001_R.texture.json": "8b0671d2552ac3bda4be4ed5e3b15b7c48486e08b0d83702d60057b1e10231e0"
+  },
+  "not_power_of_two": [],
+  "separation": {
+    "_BC": {
+      "blend": "linear light: saturate(low + 2 * high - 1), in the stored encoding; the macro is box-downsampled in that encoding, its own mips then follow the map's rule",
+      "clipped_texels": 0,
+      "error_max": 0.003922,
+      "error_mean": 0.00196072,
+      "macro": 64,
+      "macro_size": [
+        64,
+        64
+      ],
+      "outputs": {
+        "T_brick_wall_001_BC_macro.dds": {
+          "bc7_profile": "basic",
+          "encoder": "ispc_texcomp",
+          "format": "BC7_UNORM_SRGB",
+          "sha256": "661f17d45256ecbb3285e222e19df53db779c2ef62701d1f895d5e6e1125efcf"
+        },
+        "T_brick_wall_001_DH.dds": {
+          "bc7_profile": "basic",
+          "encoder": "ispc_texcomp",
+          "format": "BC7_UNORM",
+          "sha256": "aced0a22f8dee5829b0ae037790df712fb0b667f07237208985084b5388edc87"
+        }
+      },
+      "radius": 16.0,
+      "sigma": 8.0,
+      "source": "T_brick_wall_001_BC.png"
+    }
+  },
+  "set": "brick_wall_001",
+  "sidecars_derived": [
+    "T_brick_wall_001_AO.texture.json:colour_space",
+    "T_brick_wall_001_AO.texture.json:mips",
+    "T_brick_wall_001_AO.texture.json:preset",
+    "T_brick_wall_001_AO.texture.json:resolution",
+    "T_brick_wall_001_AO.texture.json:runtime",
+    "T_brick_wall_001_BC.texture.json:colour_space",
+    "T_brick_wall_001_BC.texture.json:mips",
+    "T_brick_wall_001_BC.texture.json:preset",
+    "T_brick_wall_001_BC.texture.json:resolution",
+    "T_brick_wall_001_BC.texture.json:runtime",
+    "T_brick_wall_001_H.texture.json:colour_space",
+    "T_brick_wall_001_H.texture.json:mips",
+    "T_brick_wall_001_H.texture.json:preset",
+    "T_brick_wall_001_H.texture.json:resolution",
+    "T_brick_wall_001_H.texture.json:runtime",
+    "T_brick_wall_001_N.texture.json:colour_space",
+    "T_brick_wall_001_N.texture.json:mips",
+    "T_brick_wall_001_N.texture.json:preset",
+    "T_brick_wall_001_N.texture.json:resolution",
+    "T_brick_wall_001_N.texture.json:runtime",
+    "T_brick_wall_001_R.texture.json:colour_space",
+    "T_brick_wall_001_R.texture.json:mips",
+    "T_brick_wall_001_R.texture.json:preset",
+    "T_brick_wall_001_R.texture.json:resolution",
+    "T_brick_wall_001_R.texture.json:runtime"
+  ],
+  "suffix_table": "hogshade-standard suffixes (Docs/standards/content.md)",
+  "textures": {
+    "T_brick_wall_001_BC.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM_SRGB",
+      "from": "T_brick_wall_001_BC.png",
+      "mips": 12,
+      "preset": "base_color",
+      "sha256": "d517942bc7bb79e692487e807090a975082e1317e6f70acd31d48df87eacb24c",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "T_brick_wall_001_H.dds": {
+      "encoder": null,
+      "format": "R16_UNORM",
+      "from": "T_brick_wall_001_H.png",
+      "mips": 12,
+      "precision": "16-bit",
+      "preset": "height",
+      "sha256": "29d87d2add74607fd5ebefb514c9f31b18f90831d9d5f155e727b831b95d92b2",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "T_brick_wall_001_N.dds": {
+      "encoder": "ispc_texcomp",
+      "flipped_y": false,
+      "format": "BC5_UNORM",
+      "from": "T_brick_wall_001_N.png",
+      "mips": 12,
+      "normal_convention_in": "opengl+y",
+      "preset": "geometry_normal",
+      "sha256": "c2b38105981fe8e26e0dd80929b3ed96b70578e0404bd870407fa3a02ba1d21d",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "T_brick_wall_001_ORM.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM",
+      "from": [
+        "T_brick_wall_001_AO.png",
+        "T_brick_wall_001_R.png"
+      ],
+      "mips": 12,
+      "packed": {
+        "B": "filled 1.0",
+        "G": "_R",
+        "R": "_AO"
+      },
+      "preset": "orm",
+      "sha256": "8af588835d72bea9b15f794ff66df55f182245cfd9c82e6e460ee95d5e2be050",
+      "size": [
+        2048,
+        2048
+      ]
+    }
+  },
+  "tool": "hogshade.texture_cook.cook",
+  "tool_version": "0.3.0"
+}

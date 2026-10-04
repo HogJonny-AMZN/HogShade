@@ -10,7 +10,7 @@ Python in this repository is three things, and the rules differ slightly for eac
 | --- | --- | --- |
 | The library | `hogshade/` (reference twins, the wgpu host, the IBL cook, the jobs) | `uv`'s environment, Python 3.11 to 3.13, numpy |
 | Repo tools | `tools/*.py`, `tools/wgpu/`, `tools/bats/` | `uv run` |
-| DCC-side scripts | `tools/maya/*.py` (and later `tools/blender/`) | the DCC's own Python; no numpy, no `hogshade` import |
+| DCC-side scripts | `tools/maya/*.py` (and later `tools/blender/`) | the DCC's own Python; no numpy; `hogshade.material` may be imported, it is standard-library only (T3's texture check binds a document inside Maya); nothing else of `hogshade` |
 
 `ruff` is the linter and formatter (`pyproject.toml`: 120 columns, `py311` target). CI runs
 `ruff check` and `ruff format --check` on `hogshade`, `tests`, `tools` and `Spikes`. The 120 columns are

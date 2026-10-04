@@ -1,0 +1,115 @@
+{
+  "compression": {
+    "bc7_profile": "basic",
+    "encoder": "ispc_texcomp"
+  },
+  "hogshade_version": "0.2.0",
+  "inputs": {
+    "LICENSE.md": "3b7e7d41ef16a6c13f431fe2c0bd61b36c4016acc0e566a8ee310572f56092de",
+    "T_brown_planks_03_AO.png": "b21f9b1c88af2cf42105d91bf2a58cb7bad12445a3b582c6e03cd7e0be13ece0",
+    "T_brown_planks_03_AO.texture.json": "8603f45dbf8dca3ce68855cc5f96cdf797dc4915178643656f4067c93dc096c1",
+    "T_brown_planks_03_BC.png": "6caf150f331c9df471e7a07239fb1350d7df8b310cd67bb47aa4d4672cc74ea3",
+    "T_brown_planks_03_BC.texture.json": "01b9ce897a0f28be6ee34fe425a3fe868b685274da67335f355813ef271d952c",
+    "T_brown_planks_03_H.png": "d711538209715da47f75ff280cd7874d9106bbe402bd5d92c25071f0989fb5b9",
+    "T_brown_planks_03_H.texture.json": "4ab61cfa1b43b77934c679e3fa64e449966921e3d0173a3eba2999a3d4285b84",
+    "T_brown_planks_03_N.png": "25b09b6d0fc30b54b2c47faeba3a4c20684cd15f49e2417d476173742f8954dd",
+    "T_brown_planks_03_N.texture.json": "fe3ba360b40857981ee864c970deeda0978ec31c8203f1e26e0a0591722f0316",
+    "T_brown_planks_03_R.png": "59eccc46f4e123e4d58e4b23ae2f38849d56c1817775422ed3ba69ea6d210bce",
+    "T_brown_planks_03_R.texture.json": "3ed12716c66bb7fe858a35ed350d6bd3d6e07814d311ae247b5a0378068947d5"
+  },
+  "not_power_of_two": [],
+  "set": "brown_planks_03",
+  "sidecars_derived": [
+    "T_brown_planks_03_AO.texture.json:colour_space",
+    "T_brown_planks_03_AO.texture.json:mips",
+    "T_brown_planks_03_AO.texture.json:preset",
+    "T_brown_planks_03_AO.texture.json:resolution",
+    "T_brown_planks_03_AO.texture.json:runtime",
+    "T_brown_planks_03_BC.texture.json:colour_space",
+    "T_brown_planks_03_BC.texture.json:mips",
+    "T_brown_planks_03_BC.texture.json:preset",
+    "T_brown_planks_03_BC.texture.json:resolution",
+    "T_brown_planks_03_BC.texture.json:runtime",
+    "T_brown_planks_03_H.texture.json:colour_space",
+    "T_brown_planks_03_H.texture.json:mips",
+    "T_brown_planks_03_H.texture.json:preset",
+    "T_brown_planks_03_H.texture.json:resolution",
+    "T_brown_planks_03_H.texture.json:runtime",
+    "T_brown_planks_03_N.texture.json:colour_space",
+    "T_brown_planks_03_N.texture.json:mips",
+    "T_brown_planks_03_N.texture.json:preset",
+    "T_brown_planks_03_N.texture.json:resolution",
+    "T_brown_planks_03_N.texture.json:runtime",
+    "T_brown_planks_03_R.texture.json:colour_space",
+    "T_brown_planks_03_R.texture.json:mips",
+    "T_brown_planks_03_R.texture.json:preset",
+    "T_brown_planks_03_R.texture.json:resolution",
+    "T_brown_planks_03_R.texture.json:runtime"
+  ],
+  "suffix_table": "hogshade-standard suffixes (Docs/standards/content.md)",
+  "textures": {
+    "T_brown_planks_03_BC.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM_SRGB",
+      "from": "T_brown_planks_03_BC.png",
+      "mips": 12,
+      "preset": "base_color",
+      "sha256": "b379cecfc13d26e0d019da26b4baef1dcad82511ad7c7e0cc6f4d0e57359b7a2",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "T_brown_planks_03_H.dds": {
+      "encoder": null,
+      "format": "R16_UNORM",
+      "from": "T_brown_planks_03_H.png",
+      "mips": 12,
+      "precision": "16-bit",
+      "preset": "height",
+      "sha256": "bdccab731073634cc8de618a454b6b6d5d206b2921a6c1b1d983d9bd40b83877",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "T_brown_planks_03_N.dds": {
+      "encoder": "ispc_texcomp",
+      "flipped_y": false,
+      "format": "BC5_UNORM",
+      "from": "T_brown_planks_03_N.png",
+      "mips": 12,
+      "normal_convention_in": "opengl+y",
+      "preset": "geometry_normal",
+      "sha256": "6a658b5d2aed730ad6814ba48b6fa4e2a9c0b461335b8dea271ead70f46117e4",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "T_brown_planks_03_ORM.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM",
+      "from": [
+        "T_brown_planks_03_AO.png",
+        "T_brown_planks_03_R.png"
+      ],
+      "mips": 12,
+      "packed": {
+        "B": "filled 1.0",
+        "G": "_R",
+        "R": "_AO"
+      },
+      "preset": "orm",
+      "sha256": "3238054a3f131fba582124dc1a971715b281c9fbf113a7b43e91a10229b35d9a",
+      "size": [
+        2048,
+        2048
+      ]
+    }
+  },
+  "tool": "hogshade.texture_cook.cook",
+  "tool_version": "0.3.0"
+}

@@ -30,6 +30,7 @@ from hogshade.material.model import (
     Unbound,
 )
 from hogshade.material.resolution import resolve
+from hogshade.material.runtime import CookedSetError, RuntimeTexture, runtime_textures
 from hogshade.material.schema import check_type_data, type_of, types
 from hogshade.material.validation import validate
 
@@ -40,6 +41,7 @@ _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 __all__ = [
     "Binding",
+    "CookedSetError",
     "Document",
     "Finding",
     "Loss",
@@ -47,6 +49,7 @@ __all__ = [
     "MaterialType",
     "ParameterDef",
     "Resolved",
+    "RuntimeTexture",
     "Unbound",
     "bind",
     "check_host_map",
@@ -65,6 +68,7 @@ __all__ = [
     "load",
     "load_table",
     "resolve",
+    "runtime_textures",
     "table_names",
     "type_of",
     "types",

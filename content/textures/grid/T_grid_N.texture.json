@@ -1,0 +1,25 @@
+{
+  "colour_space": "raw",
+  "derived": [
+    "colour_space",
+    "mips",
+    "preset",
+    "resolution",
+    "runtime"
+  ],
+  "mips": "linear-box",
+  "normal_convention": "opengl+y",
+  "preset": "geometry_normal",
+  "provenance": {
+    "fetched": "2026-10-04",
+    "legacy_file": "grid_normal.png",
+    "licence": "the repository's licence (the owner's own 2015 to 2017 test tiles)",
+    "origin": "author",
+    "url": "https://github.com/HogJonny-AMZN/Maya-PBR-BRDF-VP2 (testFiles/Assets/Models/shaderBall)"
+  },
+  "resolution": 1024,
+  "runtime": {
+    "container": "dds",
+    "format": "bc5"
+  }
+}

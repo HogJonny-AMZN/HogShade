@@ -219,6 +219,27 @@ def coverage(root: str | Path, type_name: str = "hogshade-standard") -> dict[str
     return out
 
 
+def texture_coverage(root: str | Path, type_name: str = "hogshade-standard") -> dict[str, list[str]]:
+    """
+    Texturable parameter of ``type_name`` (the texture-only ones and the factor-bearing ones a texture may bind)
+    to the documents under ``root`` that bind a texture to it (raw, not resolved). T3: the library's first
+    texture bindings; a texturable parameter no document binds stays an empty list, which the test reads as the
+    deferral it is (cavity, in T3).
+    """
+    root = Path(root).resolve()
+    out: dict[str, list[str]] = {
+        name: [] for name, p in type_of(type_name).parameters.items() if p.texturable or p.type == "texture"
+    }
+    for path in documents_under(root):
+        doc = load(path, root)
+        if doc.material_type != type_name:
+            continue
+        for name, value in doc.values.items():
+            if name in out and isinstance(value, dict) and value.get("texture") is not None:
+                out[name].append(path.relative_to(root).as_posix())
+    return out
+
+
 if __name__ == "__main__":
     # smoke run: python -m hogshade.material.library <root>
     import sys

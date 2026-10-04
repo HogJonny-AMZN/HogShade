@@ -7,3 +7,8 @@ content/materials/**/*.tiff filter=lfs diff=lfs merge=lfs -text
 content/textures/**/*.png filter=lfs diff=lfs merge=lfs -text
 content/textures/**/*.tif filter=lfs diff=lfs merge=lfs -text
 content/textures/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+# the texture cook hashes these as inputs and a host reads them: one line ending on every platform
+content/**/*.texture.json text eol=lf
+content/**/*.material.json text eol=lf
+content/**/LICENSE.md text eol=lf
+content/**/cooked/*.json text eol=lf

@@ -1,0 +1,25 @@
+{
+  "colour_space": "raw",
+  "derived": [
+    "colour_space",
+    "mips",
+    "preset",
+    "resolution",
+    "runtime"
+  ],
+  "mips": "linear-box",
+  "preset": "ambient_occlusion",
+  "provenance": {
+    "download": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/metal_plate/metal_plate_ao_2k.png",
+    "fetched": "2026-10-03",
+    "licence": "CC0-1.0",
+    "md5": "9ecc4a45ec4676f39c8e0d6523b17038",
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/metal_plate"
+  },
+  "resolution": 2048,
+  "runtime": {
+    "container": "dds",
+    "format": "bc4"
+  }
+}

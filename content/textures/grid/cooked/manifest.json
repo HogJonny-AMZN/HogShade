@@ -1,0 +1,182 @@
+{
+  "compression": {
+    "bc7_profile": "basic",
+    "encoder": "ispc_texcomp"
+  },
+  "hogshade_version": "0.2.0",
+  "inputs": {
+    "LICENSE.md": "55007f5784f8fdf0c6079c8fedf05c30ad47ed38e1a8f77c09fd4bb3cb59960a",
+    "T_grid_AO.png": "3c29fa0d63ac41a59baa723842256ceb62b6cd02161882c1d198b7f1150f887b",
+    "T_grid_AO.texture.json": "1536de8a77a7559f181b684a99c0af7e037bb4e2388905c52133d443397f0d5d",
+    "T_grid_BC.png": "96681e3e3746a5bebcb1f073a6bbe8dbcde60921ca19135cd21fffb6c5e686bc",
+    "T_grid_BC.texture.json": "9b71c9802366e1dd31c1a079591d2639dedcf14002181978aeee2d6c7914d39b",
+    "T_grid_BC_blue.png": "ebd5b83b1f9551d8715c40701b24c3bbb239a44017326d8e100678d35a2c3e33",
+    "T_grid_BC_blue.texture.json": "abe43259e74b932f7da29bb6c2b58509ad03ee5fe35dff8a7c7a29c45719d873",
+    "T_grid_C.png": "b38cda8385867e31cdcfb11f85e3e7515a5fc6fcf15bc207a95963673291816f",
+    "T_grid_C.texture.json": "7df0cdbafe1ccd94760db5777f23fb2db7e2181054d33ce6a28abb85f06eaa7e",
+    "T_grid_E.png": "5be07e9f62ca8d2a26a04c05dc5ca7bb724ef7cccfd1c9becab59c8fdb6ed334",
+    "T_grid_E.texture.json": "e619d10407247ca72f6382c1a3db661d5d9b9e5f82b9018e72c2370e8daf0059",
+    "T_grid_H.png": "a393c93d31a6d34bf30e4e19872569d276e439201fa22774c0457d9740b8839b",
+    "T_grid_H.texture.json": "a5b61206124f67299689519ef8e7fd757f79a52d2ee32a7c2479a0b667c00916",
+    "T_grid_M.png": "6328f5703965ae4637a721882b8ae338990d6b91c4070d0c368ddbb96eec99e0",
+    "T_grid_M.texture.json": "db4a8880521b3b700f26cdba9f05b77e813a01f5638bb1f749fdc3e50a6502ae",
+    "T_grid_N.png": "83ef5a5dd355c5a073a0d53d247f2269bb58cdb413a49f5467405533b0c86c21",
+    "T_grid_N.texture.json": "fc71149eebb15f0525609d1b0ac63271ea39edac7b579a90aff702a11325bbcb",
+    "T_grid_R.png": "309944882b8ee591d335eb1fa93f090c9583a3eafd1d922814af6aa5104ad540",
+    "T_grid_R.texture.json": "8c348369f446675fb4e7b8bb900c2b459f6a0cd2a1de70acde6c0a057f8254c9"
+  },
+  "not_power_of_two": [],
+  "set": "grid",
+  "sidecars_derived": [
+    "T_grid_AO.texture.json:colour_space",
+    "T_grid_AO.texture.json:mips",
+    "T_grid_AO.texture.json:preset",
+    "T_grid_AO.texture.json:resolution",
+    "T_grid_AO.texture.json:runtime",
+    "T_grid_BC.texture.json:colour_space",
+    "T_grid_BC.texture.json:mips",
+    "T_grid_BC.texture.json:preset",
+    "T_grid_BC.texture.json:resolution",
+    "T_grid_BC.texture.json:runtime",
+    "T_grid_BC_blue.texture.json:colour_space",
+    "T_grid_BC_blue.texture.json:mips",
+    "T_grid_BC_blue.texture.json:preset",
+    "T_grid_BC_blue.texture.json:resolution",
+    "T_grid_BC_blue.texture.json:runtime",
+    "T_grid_C.texture.json:colour_space",
+    "T_grid_C.texture.json:mips",
+    "T_grid_C.texture.json:preset",
+    "T_grid_C.texture.json:resolution",
+    "T_grid_C.texture.json:runtime",
+    "T_grid_E.texture.json:colour_space",
+    "T_grid_E.texture.json:mips",
+    "T_grid_E.texture.json:preset",
+    "T_grid_E.texture.json:resolution",
+    "T_grid_E.texture.json:runtime",
+    "T_grid_H.texture.json:colour_space",
+    "T_grid_H.texture.json:mips",
+    "T_grid_H.texture.json:preset",
+    "T_grid_H.texture.json:resolution",
+    "T_grid_H.texture.json:runtime",
+    "T_grid_M.texture.json:colour_space",
+    "T_grid_M.texture.json:mips",
+    "T_grid_M.texture.json:preset",
+    "T_grid_M.texture.json:resolution",
+    "T_grid_M.texture.json:runtime",
+    "T_grid_N.texture.json:colour_space",
+    "T_grid_N.texture.json:mips",
+    "T_grid_N.texture.json:preset",
+    "T_grid_N.texture.json:resolution",
+    "T_grid_N.texture.json:runtime",
+    "T_grid_R.texture.json:colour_space",
+    "T_grid_R.texture.json:mips",
+    "T_grid_R.texture.json:preset",
+    "T_grid_R.texture.json:resolution",
+    "T_grid_R.texture.json:runtime"
+  ],
+  "suffix_table": "hogshade-standard suffixes (Docs/standards/content.md)",
+  "textures": {
+    "T_grid_BC.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM_SRGB",
+      "from": "T_grid_BC.png",
+      "mips": 11,
+      "preset": "base_color",
+      "sha256": "5db96abf5d604e533d1baa9ca534b68c02031d68520ef88a362d220d0b8fe021",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    "T_grid_BC_blue.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM_SRGB",
+      "from": "T_grid_BC_blue.png",
+      "mips": 11,
+      "preset": "base_color",
+      "sha256": "3ddf366ee277d58efc25407f7f02c7d08eb4bb3164b35d7342ecd30d0328f5ce",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    "T_grid_C.dds": {
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_grid_C.png",
+      "mips": 11,
+      "preset": "cavity",
+      "sha256": "2580932565ac7c8747db1095944d1799f59099c81eff59433b1b26f6c75b0044",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    "T_grid_E.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM_SRGB",
+      "from": "T_grid_E.png",
+      "mips": 11,
+      "preset": "emission_color",
+      "sha256": "b9e6c7f316dd81a853da0b7bbca525d0f06c9949f5589e48bb8146a04e099853",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    "T_grid_H.dds": {
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_grid_H.png",
+      "mips": 11,
+      "precision": "8-bit",
+      "preset": "height",
+      "sha256": "916235f661a44131857c34338cc9a1b2cb1960f0549abc216d489493dfcb65d2",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    "T_grid_N.dds": {
+      "encoder": "ispc_texcomp",
+      "flipped_y": false,
+      "format": "BC5_UNORM",
+      "from": "T_grid_N.png",
+      "mips": 11,
+      "normal_convention_in": "opengl+y",
+      "preset": "geometry_normal",
+      "sha256": "8e8ae0db47efbb4c82f24a76e23641aae2dc1869b74942f5b9e64a30def3795b",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    "T_grid_ORM.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM",
+      "from": [
+        "T_grid_AO.png",
+        "T_grid_R.png",
+        "T_grid_M.png"
+      ],
+      "mips": 11,
+      "packed": {
+        "B": "_M",
+        "G": "_R",
+        "R": "_AO"
+      },
+      "preset": "orm",
+      "sha256": "6d1488ab1e8ca0a6338006b4fc890cb9823af4af41afd439190ee28c9f4c13c4",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  },
+  "tool": "hogshade.texture_cook.cook",
+  "tool_version": "0.3.0"
+}

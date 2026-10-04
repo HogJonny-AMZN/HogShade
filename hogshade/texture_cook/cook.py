@@ -27,6 +27,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from hogshade import __version__ as HOGSHADE_VERSION
+from hogshade.material.runtime import input_digest
 from hogshade.material.textures import (
     AUTHORING_FORMATS,
     MAX_RESOLUTION,
@@ -580,13 +581,13 @@ def cook_set(
     oven = _Oven(sources, out_dir, encoder, bc7_profile, height_normalise)
     # the sidecars as they will be written, hashed now so the manifest is one whether this cook fills them or not
     sidecars = {s.stem: _sidecar_fill(s) for s in sources}
-    inputs = {s.path.name: sha256_file(s.path) for s in sources}
+    inputs = {s.path.name: input_digest(s.path) for s in sources}
     for s in sources:  # a sidecar this cook rewrites is hashed as it will be written; one it leaves alone, as it is
         data, filled = sidecars[s.stem]
         inputs[s.sidecar_path.name] = (
-            _sha256_bytes(_dump(data).encode("utf-8")) if filled else sha256_file(s.sidecar_path)
+            _sha256_bytes(_dump(data).encode("utf-8")) if filled else input_digest(s.sidecar_path)
         )
-    inputs["LICENSE.md"] = sha256_file(set_dir / "LICENSE.md")
+    inputs["LICENSE.md"] = input_digest(set_dir / "LICENSE.md")  # text: line endings normalised
     for s in sources:
         packed = oven.pack_target(s)
         if packed is not None:

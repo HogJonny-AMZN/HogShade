@@ -1,0 +1,37 @@
+{
+  "material_type": "hogshade-standard",
+  "material_type_version": 1,
+  "title": "Brick wall",
+  "doc": "The brick set: Poly Haven's brick_wall_001 at 2K, colour, normal, roughness, ambient occlusion and a 16-bit height with strong relief for the detail maps.",
+  "parent": "base.material.json",
+  "values": {
+    "base_color": {
+      "factor": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "texture": "brick_wall_001/T_brick_wall_001_BC.png"
+    },
+    "specular_roughness": {
+      "factor": 1.0,
+      "texture": "brick_wall_001/T_brick_wall_001_R.png"
+    },
+    "geometry_normal": {
+      "texture": "brick_wall_001/T_brick_wall_001_N.png"
+    },
+    "ambient_occlusion": {
+      "texture": "brick_wall_001/T_brick_wall_001_AO.png"
+    },
+    "height": {
+      "texture": "brick_wall_001/T_brick_wall_001_H.png"
+    }
+  },
+  "provenance": [
+    {
+      "source": "Poly Haven, https://polyhaven.com/a/brick_wall_001 (CC0 1.0), fetched 2026-10-04 at 2K by tools/fetch_polyhaven.py; the set's LICENSE.md names the authors",
+      "note": "base_color, specular_roughness, geometry_normal, ambient_occlusion, height: each binds the set's map of that name; base_color and specular_roughness carry the factor 1.0 because legacy v2 multiplies the sample by the factor; the family's metalness 0 stands"
+    }
+  ],
+  "ext": {}
+}

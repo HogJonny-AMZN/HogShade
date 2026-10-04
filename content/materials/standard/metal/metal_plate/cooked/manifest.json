@@ -1,0 +1,123 @@
+{
+  "compression": {
+    "bc7_profile": "basic",
+    "encoder": "ispc_texcomp"
+  },
+  "hogshade_version": "0.2.0",
+  "inputs": {
+    "LICENSE.md": "582a1d46132850a5ab82324600aea9a58d7c03f9a536ecd80faa2e0d3b2a8cc0",
+    "T_metal_plate_AO.png": "5220a206eaa6200e7fd14aba5d0d8521063bccef1e02d010f4b04f98779e1e06",
+    "T_metal_plate_AO.texture.json": "33b163b88c1740f786d2ed3bf65964c0733e9513778a730d935a872f2f506955",
+    "T_metal_plate_BC.png": "633077aecc6d1e5370564583876fe64af6abe19b52818cd5d3d88e550d68fd13",
+    "T_metal_plate_BC.texture.json": "9c2fea5dfb333630136e1a47d9c7317611dd337c142e99119f0a30fb9a9e9f48",
+    "T_metal_plate_H.png": "0222bfe849e6965b330ac858f692a802cd8a41dccc3cc4877573b7bde05cb86f",
+    "T_metal_plate_H.texture.json": "6d053d014cab65af39c4941eb16f81092c8742fc206154b51f116bac04261b47",
+    "T_metal_plate_M.png": "2d97e7b17a9b08dd6962a8b23f498959f50afe48bd4b775c0692e05a46e174fe",
+    "T_metal_plate_M.texture.json": "48192ba2dc6b608ca3db410f016bc1354549b60d3eeab63a1af8d1e0ef4decc9",
+    "T_metal_plate_N.png": "6f2d3b22d428fca533ea75e1a446568abbe9dba4fd37733610927bce1c252162",
+    "T_metal_plate_N.texture.json": "4fdf25317d238e880c212f236ed49129ccdc3bd3e2553db8a85b0c99aefb3435",
+    "T_metal_plate_R.png": "1b84c47abf2217194f5b02ec347f3a6f90e3493456b1dbe3345396a6fe58deee",
+    "T_metal_plate_R.texture.json": "3df11ba666caaee09268dc3f939df904639bbbae7dfb54b5bf95e532c83e0086"
+  },
+  "not_power_of_two": [],
+  "set": "metal_plate",
+  "sidecars_derived": [
+    "T_metal_plate_AO.texture.json:colour_space",
+    "T_metal_plate_AO.texture.json:mips",
+    "T_metal_plate_AO.texture.json:preset",
+    "T_metal_plate_AO.texture.json:resolution",
+    "T_metal_plate_AO.texture.json:runtime",
+    "T_metal_plate_BC.texture.json:colour_space",
+    "T_metal_plate_BC.texture.json:mips",
+    "T_metal_plate_BC.texture.json:preset",
+    "T_metal_plate_BC.texture.json:resolution",
+    "T_metal_plate_BC.texture.json:runtime",
+    "T_metal_plate_H.texture.json:colour_space",
+    "T_metal_plate_H.texture.json:mips",
+    "T_metal_plate_H.texture.json:preset",
+    "T_metal_plate_H.texture.json:resolution",
+    "T_metal_plate_H.texture.json:runtime",
+    "T_metal_plate_M.texture.json:colour_space",
+    "T_metal_plate_M.texture.json:mips",
+    "T_metal_plate_M.texture.json:preset",
+    "T_metal_plate_M.texture.json:resolution",
+    "T_metal_plate_M.texture.json:runtime",
+    "T_metal_plate_N.texture.json:colour_space",
+    "T_metal_plate_N.texture.json:mips",
+    "T_metal_plate_N.texture.json:preset",
+    "T_metal_plate_N.texture.json:resolution",
+    "T_metal_plate_N.texture.json:runtime",
+    "T_metal_plate_R.texture.json:colour_space",
+    "T_metal_plate_R.texture.json:mips",
+    "T_metal_plate_R.texture.json:preset",
+    "T_metal_plate_R.texture.json:resolution",
+    "T_metal_plate_R.texture.json:runtime"
+  ],
+  "suffix_table": "hogshade-standard suffixes (Docs/standards/content.md)",
+  "textures": {
+    "T_metal_plate_BC.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM_SRGB",
+      "from": "T_metal_plate_BC.png",
+      "mips": 12,
+      "preset": "base_color",
+      "sha256": "ff53c4d54e54bb5be0772a195f36ec11188376be2093ce0aa59f9b2d681eba7f",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "T_metal_plate_H.dds": {
+      "encoder": null,
+      "format": "R16_UNORM",
+      "from": "T_metal_plate_H.png",
+      "mips": 12,
+      "precision": "16-bit",
+      "preset": "height",
+      "sha256": "9540858b7a74f527759b93c70658e53f935759cfb5cc4ff67952bf7daf738296",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "T_metal_plate_N.dds": {
+      "encoder": "ispc_texcomp",
+      "flipped_y": false,
+      "format": "BC5_UNORM",
+      "from": "T_metal_plate_N.png",
+      "mips": 12,
+      "normal_convention_in": "opengl+y",
+      "preset": "geometry_normal",
+      "sha256": "7b55840adecb224458ca6d7b68712cd9da77b43eb95a55c01222983ed09737c2",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "T_metal_plate_ORM.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM",
+      "from": [
+        "T_metal_plate_AO.png",
+        "T_metal_plate_R.png",
+        "T_metal_plate_M.png"
+      ],
+      "mips": 12,
+      "packed": {
+        "B": "_M",
+        "G": "_R",
+        "R": "_AO"
+      },
+      "preset": "orm",
+      "sha256": "027746d0a334498df5d5c16f5b1318221bb3058a8b7a6fba9050282f7815ab33",
+      "size": [
+        2048,
+        2048
+      ]
+    }
+  },
+  "tool": "hogshade.texture_cook.cook",
+  "tool_version": "0.3.0"
+}
