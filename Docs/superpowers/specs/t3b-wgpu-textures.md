@@ -1,7 +1,9 @@
 # T3b spec: the wgpu host samples the runtime set
 
 **Status:** Proposed. Drafted 2026-10-04 from the T3 spec's "out of scope" (wgpu samples no texture), the content
-standard and the T2 cook. Two questions for the owner at the end; the first (tangents) decides a day of work.
+standard and the T2 cook. Question 1 (tangents) is answered by the owner the same day: a MikkTSpace generator of our
+own on arbitrary data, the source's normals taken as given, and a flag for assets that arrive with baked tangents of
+an unknown basis; question 2 proceeds on its recommendation.
 
 Date: 2026-10-04. Standard: [../../standards/content.md](../../standards/content.md) ("The authoring set and the
 runtime set"; "Tangents, detail maps and frequency separation": MikkTSpace is a requirement). The cook:
@@ -45,6 +47,26 @@ generates MikkTSpace tangents when a file carries none, the OBJ carries none, an
 (MikkTSpace by default since 2026) decodes correctly only in that frame. The shaders' `host_VertexIn` gains
 `uv` and `tangent`; `host_geometry` builds the frame from the interpolated tangent, bitangent (`cross(n, t) *
 sign`) and normal, and keeps the arbitrary frame only when the tangent is zero (a mesh without UVs).
+
+### 1b. Tangents on arbitrary data, and the flag for an unknown basis (owner, 2026-10-04)
+
+`hogshade/mikktspace.py` (numpy, library) takes what any source gives: positions, **the normals as provided**
+(MikkTSpace consumes custom normals and survives them; the generator never recomputes a normal, it only builds
+the tangent frame around the one it is handed), UVs and triangle indices, and returns per-corner tangents with
+the handedness sign, welded the way the reference does (by position, normal and UV, angle-weighted, the sign
+kept separate so a mirrored island does not average to zero). It is the one generator for every host and
+exporter here, the standard's requirement made code: the wgpu host calls it when a file carries no tangents,
+the Maya side relies on Maya's own MikkTSpace (default since 2026) and the comparison framework later checks
+the two agree on the shader ball.
+
+**The flag.** A mesh that arrives with tangents already baked in (an FBX, a glTF, an OBJ with a custom
+extension) carries them in an unknown basis unless its provenance says MikkTSpace. `Mesh` gains
+`tangent_basis: "mikktspace" | "unknown" | "none"`: `"mikktspace"` when generated here or declared by the
+asset's record, `"unknown"` when the file carried tangents and nothing says how they were made, `"none"` when
+the file has none and the host generated them. The host logs an `"unknown"` as a WARNING, regenerates with the
+generator anyway (the project assumes and requires MikkTSpace; an unknown basis is not trusted), and the
+record beside a committed mesh (`content/shaderball/`'s and every asset after it) states its basis, which
+`check_content.py` reads once meshes join the content standard (a follow-on row, not T3b).
 
 ### 2. The material bind group
 
@@ -155,12 +177,12 @@ space; G4's framework is what makes them a diff), but a human can see the same b
 
 ## The questions for the owner
 
-1. **Tangents.** Recommended: a MikkTSpace implementation of our own in numpy (`hogshade/mikktspace.py`, the
-   reference algorithm: per-face tangents from the UV derivatives, grouped by position and angle-weighted,
-   orthogonalised against the normal with the handedness sign; about a day with its tests), because the
-   standard names MikkTSpace as a requirement for every host and a dependency for it would be the bigger
-   decision. The alternative is a PyPI binding (`mikktspace` exists, C with a numpy interface) at an hour of
-   work and one more wheel to carry on every platform.
+1. **Tangents.** Answered (owner, 2026-10-04): "we absolutely need a way to gen MikkT on arbitrary data, and then
+   flag it if it came with baked assets of an unknown tangent base"; MikkTSpace "accounts for and survives custom
+   normals, whatever normals the source provides; my goal is a future-forward and correct project that assumes and
+   requires MikkT, which Maya supports now." So: the generator of our own in numpy (section 1b), the normals as
+   given, the `tangent_basis` flag with a WARNING and regeneration for an unknown basis. The PyPI binding is not
+   taken.
 2. **Where the wgpu renders of the sets live.** Recommended: `verification/wgpu/textures/<set>/main.png` beside
    the existing separation pictures of `cobblestone_floor_04` and `brick_wall_001`, mirroring
    `verification/maya-2026/textures/<set>/`, so the gallery matrix reads one path pattern per host.

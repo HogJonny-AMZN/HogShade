@@ -25,6 +25,11 @@ now unblocked (the board row carries the quote and the verdict).
 an idea said out loud) with a yes:
 a `grids` entry kind rendering as a thumbnail table, the texture renders against their debug views the first use.
 
+**Owner, 2026-10-04 (on T3b's tangents):** "we absolutely need a way to gen MikkT on arbitrary data, and then flag it if
+it came with baked assets of an unknown tangent base"; MikkTSpace "survives custom normals, whatever normals the
+source provides"; the project "assumes and requires MikkT" (Maya supports it now). In the T3b spec (section 1b): the
+generator of our own, the normals as given, `Mesh.tangent_basis` with a WARNING and regeneration for `unknown`.
+
 **Sit rep, 2026-10-04, late.** T2 is merged: the texture cook exists on master (#53 spec and plan, #54 the
 spec's setup section, #55 the build). An authoring set cooks to its runtime set under `cooked/` (DDS with mips in
 linear at DDS sizes, normals to `opengl+y`, `_ORM` and alpha carriers through the `pack` sidecar field, height

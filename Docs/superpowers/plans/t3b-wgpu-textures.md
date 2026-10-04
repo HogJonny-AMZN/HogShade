@@ -1,7 +1,7 @@
 # T3b plan: the wgpu host samples the runtime set
 
-**Status:** Proposed. Drafted 2026-10-04 with the spec; built after the owner answers question 1 (tangents) and
-approves. Test-first: each task's test lands with it; the GPU tests run on the owner's machine and are skipped on
+**Status:** Proposed. Drafted 2026-10-04 with the spec; question 1 (tangents) answered by the owner the same
+day (a generator of our own, the normals as given, a flag for an unknown basis); built after approval. Test-first: each task's test lands with it; the GPU tests run on the owner's machine and are skipped on
 CI, which the PR states.
 
 Spec: [../specs/t3b-wgpu-textures.md](../specs/t3b-wgpu-textures.md).
@@ -9,10 +9,13 @@ Spec: [../specs/t3b-wgpu-textures.md](../specs/t3b-wgpu-textures.md).
 ## Tasks
 
 - [ ] 1. **UVs and tangents in the mesh**: `load_obj` reads `vt` and keys corners on `(v, vt, vn)`; `Mesh.vertices`
-      becomes position, normal, uv, tangent-with-sign (stride 48); the MikkTSpace tangents (the owner's answer to
-      question 1); `normalise_mesh` keeps the new columns. Verify: tangents unit and tangent to the surface on a
-      UV sphere, following U, the sign flipping on a mirrored island; the shader ball's vertex count equals its
-      distinct corners; the untextured render unchanged (the arbitrary frame kept where the tangent is zero).
+      becomes position, normal, uv, tangent-with-sign (stride 48); `hogshade/mikktspace.py`, the generator on
+      arbitrary data (positions, the normals as given, UVs, indices; welded as the reference welds, the sign kept
+      apart); `Mesh.tangent_basis` (`mikktspace`, `unknown`, `none`) with a WARNING and regeneration for `unknown`;
+      `normalise_mesh` keeps the new columns. Verify: tangents unit and tangent to the surface on a UV sphere,
+      following U, the sign flipping on a mirrored island, custom normals left untouched (a sphere with
+      deliberately tilted normals keeps them); the shader ball's vertex count equals its distinct corners; the
+      untextured render unchanged (the arbitrary frame kept where the tangent is zero).
 - [ ] 2. **`hogshade/wgpu_textures.py`**: `upload_dds` (every mip, block pitch for BC, row pitch otherwise, the
       DXGI to wgpu format table), `neutral_texture`, `material_textures` from `runtime_textures` with the
       `_ORM` channel check; `request_device` asks for `texture-compression-bc`; a block-compressed set without
