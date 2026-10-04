@@ -161,7 +161,7 @@ S4 decides the directory layout beyond this (its design, track F).
 
 ## Out of scope
 
-- Texture sampling in the wgpu host (no texture bind group exists; the comparison framework or S5 adds it).
+- Texture sampling in the wgpu host (no texture bind group existed; T3b added it, [t3b-wgpu-textures.md](t3b-wgpu-textures.md): the `texture` entries of the host map are scoped to legacy v2 and the `unsupported` entries above now serve v1 and Lambert only).
 - The standard type's wgpu model (C3). Blender. The Maya side of `bind()`: the Maya shell reads a
   document through its own generated UI, not through a frame; a Maya `bind()` is a later increment if the
   check scripts want it.

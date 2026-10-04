@@ -6,9 +6,11 @@ Package: tools/generate_gallery
     uv run tools/generate_gallery.py --write    # regenerate Docs/gallery.md
 
 The manifest is verification/gallery.json: the pictures that matter, in sections by need, with pairs the
-A/B page will consume later. The rules (PNG, at most 1024 on a side, at most 1 MiB, fixed names overwritten
-in place, plain git) are the manifest's own `rules` block and verification/README.md; a picture outside them
-is a finding here before it is a storage problem.
+A/B page will consume later and grids (T3b, the owner's layout row): a matrix of listed pictures, rows by one
+thing and columns by another (sets by hosts), rendered as a table GitHub shows side by side. The rules (PNG,
+at most 1024 on a side, at most 1 MiB, fixed names overwritten in place, plain git) are the manifest's own
+`rules` block and verification/README.md; a picture outside them is a finding here before it is a storage
+problem.
 """
 
 from __future__ import annotations
@@ -21,6 +23,7 @@ import struct
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "verification" / "gallery.json"
@@ -115,6 +118,9 @@ def check_manifest(manifest: dict, root: Path = ROOT) -> list[Finding]:
         if not isinstance(section.get("pictures", []), list) or not isinstance(section.get("pairs", []), list):
             out.append(Finding(s_where, "pictures and pairs must be lists"))
             continue
+        if not isinstance(section.get("grids", []), list):
+            out.append(Finding(s_where, "grids must be a list"))
+            continue
         for p_index, picture in enumerate(section.get("pictures", [])):
             if not isinstance(picture, dict):
                 out.append(Finding(f"{s_where} picture {p_index}", f"must be an object, not {type(picture).__name__}"))
@@ -156,6 +162,38 @@ def check_manifest(manifest: dict, root: Path = ROOT) -> list[Finding]:
                     out.append(Finding(pr_where, f"{side} is not a picture listed above it"))
             if not pair.get("caption"):
                 out.append(Finding(pr_where, "missing caption"))
+        for g_index, grid in enumerate(section.get("grids", [])):
+            out.extend(_check_grid(f"{s_where} grid {g_index}", grid, seen))
+    return out
+
+
+def _check_grid(where: str, grid: Any, seen: set[str]) -> list[Finding]:
+    """A grid: a title and caption, columns as labels, rows each with a label and one cell per column, every cell a
+    picture listed above it or null for an empty cell."""
+    if not isinstance(grid, dict):
+        return [Finding(where, f"a grid must be an object, not {type(grid).__name__}")]
+    out: list[Finding] = []
+    for key in ("title", "caption"):
+        if not isinstance(grid.get(key), str) or not grid.get(key):
+            out.append(Finding(where, f"missing or empty {key!r}"))
+    columns = grid.get("columns")
+    if not (isinstance(columns, list) and columns and all(isinstance(c, str) and c for c in columns)):
+        return out + [Finding(where, "columns must be a non-empty list of labels")]
+    rows = grid.get("rows")
+    if not (isinstance(rows, list) and rows):
+        return out + [Finding(where, "rows must be a non-empty list")]
+    for r_index, row in enumerate(rows):
+        r_where = f"{where} row {r_index}"
+        if not isinstance(row, dict) or not isinstance(row.get("label"), str) or not row.get("label"):
+            out.append(Finding(r_where, "a row is an object with a label and cells"))
+            continue
+        cells = row.get("cells")
+        if not isinstance(cells, list) or len(cells) != len(columns):
+            out.append(Finding(r_where, f"cells must list one entry per column ({len(columns)})"))
+            continue
+        for c_index, cell in enumerate(cells):
+            if cell is not None and cell not in seen:
+                out.append(Finding(f"{r_where} column {c_index}", f"{cell!r} is not a picture listed above it"))
     return out
 
 
@@ -206,6 +244,14 @@ def render(manifest: dict) -> str:
             out += ["### Side by side", "", "| Left | Right | Why |", "| --- | --- | --- |"]
             for pair in pairs:
                 out.append(f"| {_img(pair['left'], 'left')} | {_img(pair['right'], 'right')} | {pair['caption']} |")
+            out.append("")
+        for grid in section.get("grids", []):
+            columns = grid["columns"]
+            out += [f"### {grid['title']}", "", grid["caption"], ""]
+            out += ["| | " + " | ".join(columns) + " |", "| --- |" + " --- |" * len(columns)]
+            for row in grid["rows"]:
+                cells = [_img(c, f"{row['label']}, {columns[k]}") if c else "" for k, c in enumerate(row["cells"])]
+                out.append(f"| **{row['label']}** | " + " | ".join(cells) + " |")
             out.append("")
     wanted = manifest.get("wanted", [])
     if wanted:

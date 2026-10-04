@@ -1,12 +1,11 @@
 # Handoff: where HogShade is right now
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
-**Last updated:** 2026-10-04, night: the T3b spec and plan drafted (`docs/t3b-spec`, PR open; two owner questions, tangents first); #59 (T3 bookkeeping) and #60 (contact-sheet labels, `hogshade.bitmap_font`) merged; T3 merged (#57 spec and plan, #58 the build); the Maya 2026.3 menu bug resolved by the owner (prefs and a USD patch; Job_Orchestrator issue 72 open for the patch's name); #56 and #57 merged; T2 merged (#53 spec, #54 setup section, #55 the build); T1 merged (#50, #51); #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
+**Last updated:** 2026-10-04, late night: the T3b build done on `feat/t3b-wgpu-textures` (PR stacked on #61: MikkTSpace of our own, the material bind group, DDS upload, the gallery's first matrix; Maya 2026.3 exposes no MikkTSpace mesh option, a question for the owner); the T3b spec and plan accepted (`docs/t3b-spec`, #61, the owner's "go"); #59 (T3 bookkeeping) and #60 (contact-sheet labels, `hogshade.bitmap_font`) merged; T3 merged (#57 spec and plan, #58 the build); the Maya 2026.3 menu bug resolved by the owner (prefs and a USD patch; Job_Orchestrator issue 72 open for the patch's name); #56 and #57 merged; T2 merged (#53 spec, #54 setup section, #55 the build); T1 merged (#50, #51); #48 and #49 merged; S4a merged (#45, #46); before that #44 (bookkeeping), #43 (the gallery) merged after #42; before that #41 and #42 boarded the owner's gallery, manual and A/B-page ideas, #40 (the S4 design) merged with its eight questions awaiting the owner; before that #35 (S2) and its gate; before that, `hog_color`'s history settled by the owner, the old toolbox identifiers retired and track A closed (`chore/history-put-to-bed`, #32, from the LargeWorlds session), on top of #31 merged (S1, the material schema files and `hogshade.material`). Before that: #27 to #30 (the standards remainder, the schema design, the glossary, the S1 spec); #26 and `v0.2.0`.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
-`Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`. No plan is in flight: S1 to S4a and T1 to T3
-are done, their plans ticked; T3b's spec and plan (wgpu samples the runtime set) are the PR in flight, the build after
-the owner's answers, then T4 with the owner. `Docs/standards/definition-of-done.md` says what done means and how much to decide alone.
+`Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`. No plan is in flight: S1 to S4a and T1 to T3b
+are done, their plans ticked; T3b's two PRs (#61 the spec, the build stacked on it) await the owner's merge, then T4 with the owner. `Docs/standards/definition-of-done.md` says what done means and how much to decide alone.
 
 ## In flight
 
@@ -24,6 +23,21 @@ now unblocked (the board row carries the quote and the verdict).
 **Owner, 2026-10-04 (on the gallery):** side-by-side and matrix layouts for comparisons. Boarded (Icebox, the rule for
 an idea said out loud) with a yes:
 a `grids` entry kind rendering as a thumbnail table, the texture renders against their debug views the first use.
+
+**T3b built, 2026-10-04 (late night).** On `feat/t3b-wgpu-textures`, stacked on #61: `hogshade.mikktspace` (the
+reference algorithm in numpy, the normals as given, welded by position, normal and UV with the sign apart), the mesh
+with UVs and tangents (stride 48, `tangent_basis`), `hogshade.wgpu_textures` (DXGI to wgpu formats, DDS upload with
+every mip, the material plan with a bit per parameter and a slot-and-channel selector per scalar), `material.wgsl`
+at group 2 of both mesh passes, `Scene.textures`, bind groups keyed by plan and uploads shared by path,
+`texture-compression-bc` requested, the host map's `texture` entries scoped to legacy v2, `viewport.py --material`
+textured, the contact sheet textured for the four T3 documents (the other twenty-two pixel-identical), the new
+`tools/wgpu/texture_matrix.py`, and the gallery's `grids` kind with its first matrix (five sets, Maya beside wgpu).
+**One finding for the owner:** Maya 2026.3's mesh `tangentSpace` enum has no MikkTSpace entry
+(detectWindingRightHanded, rightHanded, detectWindingLeftHanded, leftHanded), so the parity fixture
+(`hogshade.jobs.maya_mikktspace_dump`, headless) is Maya's default basis: handedness exact on every corner,
+direction median 0.8 degrees, 98 percent within 5, worst 35; where Maya's MikkTSpace lives (an exporter, a
+preference, a newer attribute) is the owner's to say. Not in T3b: a packed-cavity set to test on the GPU (T4's alpha
+carrier), the quad sphere, height and emission slots.
 
 **Owner, 2026-10-04 (on T3b's tangents):** "we absolutely need a way to gen MikkT on arbitrary data, and then flag it if
 it came with baked assets of an unknown tangent base"; MikkTSpace "survives custom normals, whatever normals the

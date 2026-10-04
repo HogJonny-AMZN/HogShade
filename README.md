@@ -231,6 +231,14 @@ hogshade.jobs.maya_texture_check --param set_dir=content/materials/standard/roug
 document=content/materials/standard/rough/brick_wall_001.material.json`. The same cook is the `hogshade.jobs.cook_textures`
 job on the developer track. Spec: [Docs/superpowers/specs/t2-texture-cook.md](Docs/superpowers/specs/t2-texture-cook.md).
 
+The wgpu host renders the same cooked sets (T3b): the mesh carries UVs and MikkTSpace tangents
+(`hogshade.mikktspace`, a generator of our own on arbitrary data, the normals as given), a legacy v2 document's
+textures fill a material bind group (base colour, normal, ORM, cavity; neutral where unbound, a bit per parameter
+as the Maya shell's flags), and the block-compressed DDS upload asks the device for `texture-compression-bc`
+(the cook's `--no-compress` output is the fallback). `uv run tools/wgpu/viewport.py --material <document>` renders
+one; `uv run tools/wgpu/texture_matrix.py` renders the five committed sets beside the Maya captures for the
+gallery's matrix. Spec: [Docs/superpowers/specs/t3b-wgpu-textures.md](Docs/superpowers/specs/t3b-wgpu-textures.md).
+
 ## Licence
 
 Apache 2.0. See [LICENSE](LICENSE). Third-party code embedded in the legacy shaders, and one

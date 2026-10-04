@@ -231,3 +231,33 @@ All five valid and folded into the text above:
 - **MikkTSpace held to the reference**: the weld is by position, normal and UV (never position alone) and a
   parity fixture from Maya's MikkTSpace on the shader ball, seams and mirrored islands included, is a test.
 
+## What the build found (2026-10-04, `feat/t3b-wgpu-textures`)
+
+- **Maya 2026.3 exposes no MikkTSpace choice on a mesh.** The job that dumps the fixture
+  (`hogshade.jobs.maya_mikktspace_dump`, headless) asks the mesh's `tangentSpace` enum and gets
+  `detectWindingRightHanded`, `rightHanded`, `detectWindingLeftHanded`, `leftHanded`; it records the names and
+  selects nothing. So the fixture is Maya's default basis and the parity test (`tests/host/test_mikktspace.py`)
+  states the measured distance rather than identity: on the shader ball's 135,792 corners the handedness agrees
+  on every corner (20,628 mirrored on both sides), the direction agrees to a median of 0.8 degrees, 98 percent
+  within 5 degrees, the worst corner 35 degrees; uniform or area weighting instead of MikkTSpace's angle weighting
+  moves none of those numbers, so the gap is Maya's smoothing rule, not ours. Where Maya's MikkTSpace lives (the
+  owner's "supported in Maya now"; the exporters, the viewport preference, a newer attribute) is a question for
+  the owner; the generator is held to the reference either way.
+- **Group 2 is per pipeline layout**, and the fill pass had no group 1: it now carries the environment layout
+  unused at group 1 so `material.wgsl` can say `@group(2)` once for both mesh passes. The light pass keeps its
+  G-buffer at group 2 and defines a `host_samples` of unbound defaults, since `host_inputs()` in `common.wgsl`
+  names it and WGSL needs the symbol in every stitched module.
+- **`host_Textures` is 48 bytes as WGSL lays it out**: `bound: u32` at 0, then two `vec4<u32>` at 16 and 32 (the
+  selectors in pairs), not nine packed `u32`; `MaterialPlan.uniform_bytes()` writes that layout and the test
+  unpacks it.
+- **V is flipped at the sample**, not in the mesh: the tangents are built from the OBJ's bottom-up V and the
+  DDS's first row is the top, which is how the Maya shell does it (`m_Uv0.y` negated).
+- **The deferred path agrees on a textured ball** within the untextured tolerance (brick: mean 0.0007, max 0.006);
+  the grid tile's max rises to 1.8 on silhouette pixels of its metal cells (mean 0.017), the G-buffer's
+  quantisation of a high-contrast metalness, not a texture fault.
+- **The packed-cavity regression is a plan test, not a GPU test**: no committed set packs `_C` into a carrier's
+  alpha (the grid's is its own BC4), so the selector is proven at the plan level (`tests/host/test_wgpu_textures.py`)
+  and the GPU test reads the grid's own cavity through debug view 10. T4's set, with the alpha carrier, closes it.
+- **The contact sheet's twenty-two constant documents are pixel-identical** to the committed sheet (compared cell
+  by cell before overwriting it); only the four T3 documents changed, which is the gate.
+

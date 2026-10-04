@@ -69,6 +69,17 @@ def corpus(tmp_path: Path) -> Path:
                     {"path": "verification/a/two.png", "host": "a", "feature": "f2", "caption": "c2", "made_by": "m"},
                 ],
                 "pairs": [{"left": "verification/a/one.png", "right": "verification/a/two.png", "caption": "p"}],
+                "grids": [
+                    {
+                        "title": "G",
+                        "caption": "g",
+                        "columns": ["left host", "right host"],
+                        "rows": [
+                            {"label": "r1", "cells": ["verification/a/one.png", "verification/a/two.png"]},
+                            {"label": "r2", "cells": ["verification/a/two.png", None]},
+                        ],
+                    }
+                ],
             }
         ],
         "wanted": ["w"],
@@ -180,6 +191,37 @@ def test_rules_each_have_a_finding(corpus: Path):
         m["sections"][0]["pictures"][0]["caption"] = ""
 
     assert "missing or empty 'caption'" in _findings(corpus, no_caption)
+
+
+def test_grids_are_checked_cell_by_cell_and_rendered_as_a_table(corpus: Path):
+    """T3b: a grid's cells are listed pictures, one per column; the page shows a table with the row labels."""
+    page = gg.render(json.loads((corpus / "verification" / "gallery.json").read_text(encoding="utf-8")))
+    assert "### G" in page and "| | left host | right host |" in page
+    assert (
+        "| **r1** | ![r1, left host](../verification/a/one.png) | ![r1, right host](../verification/a/two.png) |"
+        in page
+    )
+    assert "| **r2** | ![r2, left host](../verification/a/two.png) |  |" in page, "a null cell is empty"
+
+    def unlisted(m):
+        m["sections"][0]["grids"][0]["rows"][0]["cells"][1] = "verification/a/three.png"
+
+    assert any("'verification/a/three.png' is not a picture listed above it" in f for f in _findings(corpus, unlisted))
+
+    def short_row(m):
+        m["sections"][0]["grids"][0]["rows"][1]["cells"] = ["verification/a/one.png"]
+
+    assert "cells must list one entry per column (2)" in _findings(corpus, short_row)
+
+    def no_columns(m):
+        m["sections"][0]["grids"][0]["columns"] = []
+
+    assert "columns must be a non-empty list of labels" in _findings(corpus, no_columns)
+
+    def not_a_list(m):
+        m["sections"][0]["grids"] = {"title": "x"}
+
+    assert "grids must be a list" in _findings(corpus, not_a_list)
 
 
 def test_check_reports_findings_without_rendering(corpus: Path):
