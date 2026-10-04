@@ -136,7 +136,7 @@ def unfilter(data: bytes, height: int, stride: int, bpp: int, backend: str = "au
     return _unfilter_nb(arr, height, stride, bpp)
 
 
-def read_png(path: Path, backend: str = "auto") -> NDArray:
+def read_png(path: Path, backend: str = "auto") -> NDArray[np.uint8] | NDArray[np.uint16]:
     """
     The image as ``(H, W, C)``: ``uint8`` for an 8-bit PNG, ``uint16`` for a 16-bit one. Grey, grey-alpha, RGB
     and RGBA, non-interlaced; anything else is ``PngError`` naming what it is.

@@ -17,6 +17,8 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
+from hogshade.texture_cook.mips import halve
+
 _MODULE_NAME = "hogshade.texture_cook.separate"
 __version__ = "0.1.0"
 __updated__ = "2026-10-04"
@@ -62,11 +64,15 @@ def lowpass(image: NDArray[np.float32], sigma: float, wrap: bool = True) -> NDAr
     # rows then columns; a plain correlation with the symmetric kernel
     h, w, c = a.shape
     tmp = np.zeros((h + 2 * half, w, c), dtype=np.float32)
+    scratch = np.empty_like(tmp)  # one temporary for every tap, not one per tap
     for i, kv in enumerate(k):
-        tmp += kv * padded[:, i : i + w, :]
+        np.multiply(padded[:, i : i + w, :], np.float32(kv), out=scratch)
+        tmp += scratch
     out = np.zeros((h, w, c), dtype=np.float32)
+    scratch = np.empty_like(out)
     for i, kv in enumerate(k):
-        out += kv * tmp[i : i + h, :, :]
+        np.multiply(tmp[i : i + h, :, :], np.float32(kv), out=scratch)
+        out += scratch
     return out
 
 
@@ -106,8 +112,6 @@ def separate(image: NDArray[np.float32], radius: float, wrap: bool = True) -> Se
 
 def macro(low: NDArray[np.float32], size: int) -> NDArray[np.float32]:
     """The low-pass box-downsampled until its longer side is at most ``size`` (a power-of-two step each time)."""
-    from hogshade.texture_cook.mips import halve
-
     out = np.asarray(low, dtype=np.float32)
     if size < 1:
         raise ValueError("macro size is at least 1")

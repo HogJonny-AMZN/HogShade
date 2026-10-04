@@ -17,6 +17,8 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
+from hogshade.texture_cook.mips import chain as _chain
+
 _MODULE_NAME = "hogshade.texture_cook.height"
 __version__ = "0.1.0"
 __updated__ = "2026-10-04"
@@ -32,10 +34,11 @@ class Height:
     runtime: str  # "R8_UNORM", "R16_UNORM", "R16_FLOAT", "R32_FLOAT"
 
 
-def read_exr_channel(path: Path, channel: str | None = None) -> tuple[NDArray, str]:
+def read_exr_channel(path: Path, channel: str | None = None) -> tuple[NDArray[np.float16] | NDArray[np.float32], str]:
     """
     One channel of an EXR (``channel``, else ``R``, else the first) at its stored precision: ``float16`` for a
-    HALF channel, ``float32`` for FLOAT. OpenEXR is a dependency already (the IBL cook).
+    HALF channel, ``float32`` for FLOAT, with the precision name. OpenEXR is a dependency already (the IBL cook);
+    ``ImportError`` without it, ``ValueError`` for an EXR without the channel, OpenEXR's own errors for a bad file.
     """
     import OpenEXR
 
@@ -86,8 +89,6 @@ def normalise(height: Height) -> tuple[Height, dict[str, float]]:
 
 def chain(height: Height) -> list[NDArray]:
     """The mip chain in the source's precision: box averages, cast back to the samples' dtype."""
-    from hogshade.texture_cook.mips import chain as _chain
-
     s = height.samples
     if s.dtype.kind == "f":
         levels = _chain(s.astype(np.float32)[..., None])
