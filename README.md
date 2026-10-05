@@ -218,7 +218,8 @@ uv run tools/fetch_polyhaven.py brick_wall_001 content/materials/standard/rough/
 
 turns an authoring set (`T_<set>_<SUFFIX>.png` or `.exr` with its `.texture.json` sidecar and the directory's
 `LICENSE.md`, the rules in [Docs/standards/content.md](Docs/standards/content.md)) into its runtime set under
-`<set>/cooked/`: DDS with mips in linear space, normals as OpenGL +Y, `_AO`, `_R` and `_M` packed into `_ORM`,
+`<set>/cooked/`: DDS with mips in linear space, normals as OpenGL +Y, `_AO`, `_R` and `_M` packed into `_ORM`
+(and, in development, also written on their own: `--no-individual` is the packed-only packaged form),
 any map a sidecar's `pack` field puts in an alpha, block-compressed when the encoder is installed and
 uncompressed with a warning naming the command when it is not, plus `manifest.json` and `provenance.json`.
 `separate` is the frequency separation for detail mapping. The committed sets (four from Poly Haven at 2K under

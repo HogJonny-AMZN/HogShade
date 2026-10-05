@@ -122,7 +122,11 @@ encoder is `ispc_texcomp`, the `textures` extra under `uv sync --all-extras`, an
 uncompressed and says so). The check insists that anything under `cooked/` is DDS, `manifest.json` or
 `provenance.json`, and that no packed or derived map (`_ORM`, `_DN`, `_DH`) sits outside it. A sidecar's
 `pack` field (`{"a": "_O"}` on `_BC`, `_E`, `_SC` or an `_ORM` source) puts a single-channel map in that
-carrier's alpha; the manifest records where every channel lives. Height keeps its source precision: a 16-bit
+carrier's alpha; the manifest records where every channel lives. **Individual maps** (the owner,
+2026-10-04): by default the cook also writes each packed map (`_AO`, `_R`, `_M`, an alpha-packed `_H` or `_O`) as its
+own DDS beside the carrier, marked `also_in` it, so a test, a host without packing or a person can read one channel;
+`--no-individual` (the job's `individual=no`) writes the packed runtime set alone, the form a packaged game ships.
+Documents and hosts still bind the carrier; the standalone files are for development. Height keeps its source precision: a 16-bit
 PNG to `R16_UNORM`, a half EXR to `R16_FLOAT`, a float EXR to `R32_FLOAT`; BC4 only for an 8-bit source. A source wider than 2048 on a side is a
 finding (the sidecar's `resolution` and the PNG header both). On a checkout without LFS payloads
 (CI), a PNG is a pointer and the sidecar's stated resolution is logged as unverified, not judged.
