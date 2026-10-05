@@ -1,0 +1,341 @@
+{
+  "compression": {
+    "bc7_profile": "basic",
+    "encoder": "ispc_texcomp"
+  },
+  "hogshade_version": "0.2.0",
+  "individual_outputs": true,
+  "inputs": {
+    "LICENSE.md": "5e7fecb5e5f7e3445024e10885b906d2e8686bed6d8b809e272c0fb82e7ded9c",
+    "T_synthetic_AO.png": "a576096292cc88d8f28f6f1f57a6cf977474fa1d3b358a2b82b734982b67f0af",
+    "T_synthetic_AO.texture.json": "18887936b44b87a32b111dd85c336b67f51a09166a9fa1c77c182c49a911e780",
+    "T_synthetic_AR.png": "d8aaf30ea7c95f29e25200907383be8dd1b7ecce3629df4df00a62ea6fc5e883",
+    "T_synthetic_AR.texture.json": "0e29f88bd117b485228791b3ec982d0cecc52ea33947a3324e04004d2027a942",
+    "T_synthetic_AX.png": "75e17bc784dd239f3b93dd42be42d0f9534615dcefaf5b4064f481cb379e5285",
+    "T_synthetic_AX.texture.json": "c19c074d9e6a94ff90e75831b50e6235be2cb40635e6a2aa3a4a0d7dbb014787",
+    "T_synthetic_BC.png": "0e1f43fe9d348d3112227cd8572e45971fbe9262190a9d564f1815dea8ad7c42",
+    "T_synthetic_BC.texture.json": "5e62e9b533e3ee705ef675e67be4ec1c171244003504a44491bb48e98ad765b8",
+    "T_synthetic_BC_blue.png": "ddcb3e28d636217d5077ecd3d132b38eab319cd0556e4ff4f11fc7e0ce9d7a6c",
+    "T_synthetic_BC_blue.texture.json": "1b260895a4e89b12f571c2df653be01da00e5bdaf847660627ccaaedb2fd09dc",
+    "T_synthetic_C.png": "5dc0441f2ec588382a9bf62b2d74fcc451abb304964ac2ca5f002a5939c6f574",
+    "T_synthetic_C.texture.json": "d9602b941a13688084719dbdd1c131c52f16ae8e546c37ba4a51c97d7caf2ea5",
+    "T_synthetic_E.png": "8181e8cb4e259488059b72e1e5db1a5297dbe8c578064c975698dd13c0088c94",
+    "T_synthetic_E.texture.json": "c448f12873de851b6a44112ebe42c3095c04410a959cf79fd2f2319ef6de802c",
+    "T_synthetic_H.png": "71f420c44d04561461e629b351f433c88f87466b39fb3b9ae84d0483c0e14729",
+    "T_synthetic_H.texture.json": "370db94fb114b233753f352b10cb295fd12a8bfbf82e746b6eb8ff5852b52a57",
+    "T_synthetic_M.png": "0bdb463990b583f947a907a3539aedc42007f40b2855410ead2ba877ff218874",
+    "T_synthetic_M.texture.json": "05974a84c224171ee52bd1806ad205789821660b9afa8edde75c28cc361f5d78",
+    "T_synthetic_N.png": "6985d5b645467822fdeec52c94575eb40dd88f49caa0a47f90339ac50a9fea51",
+    "T_synthetic_N.texture.json": "fbd08554405402602f31130b5e87dd1205ce0efbc49f64df6e8e9ceb43cf6399",
+    "T_synthetic_O.png": "27bfb7e9955d60700b220012f60e562b5ae6b2b6c2224b4817726f84d10a7aee",
+    "T_synthetic_O.texture.json": "3f53bdb5b9db3be962bffadb3a12f8a6b3bf10d7814f5cffac642b7af38370c8",
+    "T_synthetic_R.png": "8c25201b60cf3f8a1893499f3000867f1e65d5dc3dc5ec5ff4746ecc3c64d98a",
+    "T_synthetic_R.texture.json": "2e7ba495bb2b39f9a9200d26d33e761ccee472310305dc83060743a6098b95cb",
+    "T_synthetic_SC.png": "8a5da1080da005cb6ca41b59416423e616938673423ab866c3be3c9b5e8aa43c",
+    "T_synthetic_SC.texture.json": "37d6869a1f2e071240cf99e9729553a5ef232bf6d21204d49b8f03fe6fbea096",
+    "T_synthetic_SO.png": "4f06426e79d25ceab28c8f9edb4fd2bdff8f3a930c50b1e702509f41cf172037",
+    "T_synthetic_SO.texture.json": "2adf91190f9a62f3a791a7ae02fdfa3f6acd21e573cae230214af030ba8ad98e",
+    "T_synthetic_SW.png": "43feede53b21c16d0992699cbac8633237f92ce25631567ddf37cc34d33886ee",
+    "T_synthetic_SW.texture.json": "8797ba36aa86b027830c9272eeed048843f30b9b38a3bc223d8fb4e7630cb9c7"
+  },
+  "not_power_of_two": [],
+  "set": "synthetic",
+  "sidecars_derived": [
+    "T_synthetic_AO.texture.json:colour_space",
+    "T_synthetic_AO.texture.json:mips",
+    "T_synthetic_AO.texture.json:preset",
+    "T_synthetic_AO.texture.json:resolution",
+    "T_synthetic_AO.texture.json:runtime",
+    "T_synthetic_AR.texture.json:colour_space",
+    "T_synthetic_AR.texture.json:mips",
+    "T_synthetic_AR.texture.json:preset",
+    "T_synthetic_AR.texture.json:resolution",
+    "T_synthetic_AR.texture.json:runtime",
+    "T_synthetic_AX.texture.json:colour_space",
+    "T_synthetic_AX.texture.json:mips",
+    "T_synthetic_AX.texture.json:preset",
+    "T_synthetic_AX.texture.json:resolution",
+    "T_synthetic_AX.texture.json:runtime",
+    "T_synthetic_BC.texture.json:colour_space",
+    "T_synthetic_BC.texture.json:mips",
+    "T_synthetic_BC.texture.json:preset",
+    "T_synthetic_BC.texture.json:resolution",
+    "T_synthetic_BC.texture.json:runtime",
+    "T_synthetic_BC_blue.texture.json:colour_space",
+    "T_synthetic_BC_blue.texture.json:mips",
+    "T_synthetic_BC_blue.texture.json:preset",
+    "T_synthetic_BC_blue.texture.json:resolution",
+    "T_synthetic_BC_blue.texture.json:runtime",
+    "T_synthetic_C.texture.json:colour_space",
+    "T_synthetic_C.texture.json:mips",
+    "T_synthetic_C.texture.json:preset",
+    "T_synthetic_C.texture.json:resolution",
+    "T_synthetic_C.texture.json:runtime",
+    "T_synthetic_E.texture.json:colour_space",
+    "T_synthetic_E.texture.json:mips",
+    "T_synthetic_E.texture.json:preset",
+    "T_synthetic_E.texture.json:resolution",
+    "T_synthetic_E.texture.json:runtime",
+    "T_synthetic_H.texture.json:colour_space",
+    "T_synthetic_H.texture.json:mips",
+    "T_synthetic_H.texture.json:preset",
+    "T_synthetic_H.texture.json:resolution",
+    "T_synthetic_H.texture.json:runtime",
+    "T_synthetic_M.texture.json:colour_space",
+    "T_synthetic_M.texture.json:mips",
+    "T_synthetic_M.texture.json:preset",
+    "T_synthetic_M.texture.json:resolution",
+    "T_synthetic_M.texture.json:runtime",
+    "T_synthetic_N.texture.json:colour_space",
+    "T_synthetic_N.texture.json:mips",
+    "T_synthetic_N.texture.json:preset",
+    "T_synthetic_N.texture.json:resolution",
+    "T_synthetic_N.texture.json:runtime",
+    "T_synthetic_O.texture.json:colour_space",
+    "T_synthetic_O.texture.json:mips",
+    "T_synthetic_O.texture.json:preset",
+    "T_synthetic_O.texture.json:resolution",
+    "T_synthetic_O.texture.json:runtime",
+    "T_synthetic_R.texture.json:colour_space",
+    "T_synthetic_R.texture.json:mips",
+    "T_synthetic_R.texture.json:preset",
+    "T_synthetic_R.texture.json:resolution",
+    "T_synthetic_R.texture.json:runtime",
+    "T_synthetic_SC.texture.json:colour_space",
+    "T_synthetic_SC.texture.json:mips",
+    "T_synthetic_SC.texture.json:preset",
+    "T_synthetic_SC.texture.json:resolution",
+    "T_synthetic_SC.texture.json:runtime",
+    "T_synthetic_SO.texture.json:colour_space",
+    "T_synthetic_SO.texture.json:mips",
+    "T_synthetic_SO.texture.json:preset",
+    "T_synthetic_SO.texture.json:resolution",
+    "T_synthetic_SO.texture.json:runtime",
+    "T_synthetic_SW.texture.json:colour_space",
+    "T_synthetic_SW.texture.json:mips",
+    "T_synthetic_SW.texture.json:preset",
+    "T_synthetic_SW.texture.json:resolution",
+    "T_synthetic_SW.texture.json:runtime"
+  ],
+  "suffix_table": "hogshade-standard suffixes (Docs/standards/content.md)",
+  "textures": {
+    "T_synthetic_AO.dds": {
+      "also_in": "T_synthetic_ORM.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_synthetic_AO.png",
+      "mips": 10,
+      "preset": "ambient_occlusion",
+      "sha256": "cfd6d3e940aac6ab9df280be169d70832157c91bc7da95e7aeca63b1e2640f76",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_AR.dds": {
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_synthetic_AR.png",
+      "mips": 10,
+      "preset": "specular_rotation",
+      "sha256": "e08ea8e4c9f11357cf20fb053623b602b0a90917d94f3725059537200f4b66b1",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_AX.dds": {
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_synthetic_AX.png",
+      "mips": 10,
+      "preset": "specular_anisotropy",
+      "sha256": "da28beac59f67967637db6a541bcdebd208770de6e9482e15480eed652e4e264",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_BC.dds": {
+      "bc7_profile": "alpha_basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM_SRGB",
+      "from": "T_synthetic_BC.png",
+      "mips": 10,
+      "packed": {
+        "A": "T_synthetic_O.png"
+      },
+      "preset": "base_color",
+      "sha256": "96b6a95d6798e9f2ab96703fa51762c2ecd229c17e3f5045e4f921a4440ecae1",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_BC_blue.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM_SRGB",
+      "from": "T_synthetic_BC_blue.png",
+      "mips": 10,
+      "preset": "base_color",
+      "sha256": "d731332bdafc25b9b9eedfe09d420c39acf02f15b264e0d2acb02b5ddabbcf9b",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_C.dds": {
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_synthetic_C.png",
+      "mips": 10,
+      "preset": "cavity",
+      "sha256": "b079ac2e13fdf7d3ca2c5da1300292e6193b058e0ce344b57548c4a3005de6d0",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_E.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM_SRGB",
+      "from": "T_synthetic_E.png",
+      "mips": 10,
+      "preset": "emission_color",
+      "sha256": "ea1379885c3eca4208cd2b266a39da6d39a06de5377155abbf7c9e1db661f01a",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_H.dds": {
+      "encoder": null,
+      "format": "R16_UNORM",
+      "from": "T_synthetic_H.png",
+      "mips": 10,
+      "precision": "16-bit",
+      "preset": "height",
+      "sha256": "f913c1a750d6e7e76f12235d19cadfdb5a8d68a380758673612f1ad5fc10ddc1",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_M.dds": {
+      "also_in": "T_synthetic_ORM.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_synthetic_M.png",
+      "mips": 10,
+      "preset": "base_metalness",
+      "sha256": "493d07c63510b0d61370942ce6cbbf66a910f728455b8e5d6b462a1f8cafc04a",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_N.dds": {
+      "encoder": "ispc_texcomp",
+      "flipped_y": false,
+      "format": "BC5_UNORM",
+      "from": "T_synthetic_N.png",
+      "mips": 10,
+      "normal_convention_in": "opengl+y",
+      "preset": "geometry_normal",
+      "sha256": "ddd9d9d8698614ad45af4d3a86afbdeb1a31a6cd462c147fba9f7a584e017d52",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_O.dds": {
+      "also_in": "T_synthetic_BC.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_synthetic_O.png",
+      "mips": 10,
+      "preset": "geometry_opacity",
+      "sha256": "976f8af859bc539d04e8486ec260add72e5fc4c9c9d3b9cedf4d53692642828c",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_ORM.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM",
+      "from": [
+        "T_synthetic_AO.png",
+        "T_synthetic_R.png",
+        "T_synthetic_M.png"
+      ],
+      "mips": 10,
+      "packed": {
+        "B": "_M",
+        "G": "_R",
+        "R": "_AO"
+      },
+      "preset": "orm",
+      "sha256": "212a39c733345b8661277569bc998a192f4d6faf42ce8a63a8d35a91c604f8de",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_R.dds": {
+      "also_in": "T_synthetic_ORM.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_synthetic_R.png",
+      "mips": 10,
+      "preset": "specular_roughness",
+      "sha256": "530555515043f82c128ed4cb69f13773787d56a27d3f86c74beb7657c8ac387e",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_SC.dds": {
+      "bc7_profile": "basic",
+      "encoder": "ispc_texcomp",
+      "format": "BC7_UNORM",
+      "from": "T_synthetic_SC.png",
+      "mips": 10,
+      "preset": "specular_color",
+      "sha256": "5212f72e15b733e8e03bcecb41c92197481c98981699e2b5d2091063e4b65f98",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_SO.dds": {
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_synthetic_SO.png",
+      "mips": 10,
+      "preset": "specular_occlusion",
+      "sha256": "ff4960bffc3c4e72f2a472422a65f21a45caf09474d0a6dec0b4abec228bf3dd",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "T_synthetic_SW.dds": {
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_synthetic_SW.png",
+      "mips": 10,
+      "preset": "specular_weight",
+      "sha256": "f782360695e11681155446b98e80c3893da12630504a2863a6d6dcea1ce024cb",
+      "size": [
+        512,
+        512
+      ]
+    }
+  },
+  "tool": "hogshade.texture_cook.cook",
+  "tool_version": "0.4.0"
+}

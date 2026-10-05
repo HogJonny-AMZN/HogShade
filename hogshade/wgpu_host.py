@@ -477,11 +477,12 @@ class Scene:
 
 @dataclass
 class Frames:
-    """Linear float images (H, W, 3) from one render: forward, deferred, and the deferred depth mask."""
+    """Linear float images (H, W, 3) from one render: forward, deferred, the deferred depth mask and the depth."""
 
     forward: NDArray
     deferred: NDArray
     covered: NDArray  # (H, W) bool: pixels the ball covers (depth written)
+    depth: NDArray | None = None  # (H, W) float32: the deferred pass's depth buffer, (0, 1) clip depth, 1 where empty
 
     def difference(self) -> tuple[float, float]:
         """(mean, max) absolute difference between the paths over covered pixels."""
@@ -835,7 +836,7 @@ class Renderer:
         fwd = self._read_texture(t["forward"], w, h, 8, np.float16).reshape(h, w, 4)[..., :3].astype(np.float32)
         dfr = self._read_texture(t["deferred"], w, h, 8, np.float16).reshape(h, w, 4)[..., :3].astype(np.float32)
         depth = self._read_texture(t["depth"], w, h, 4, np.float32).reshape(h, w)
-        return Frames(fwd, dfr, depth < 1.0)
+        return Frames(fwd, dfr, depth < 1.0, depth)
 
 
 def request_device(power_preference: str = "high-performance"):

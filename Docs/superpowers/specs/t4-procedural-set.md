@@ -1,8 +1,9 @@
 # T4 tier 1 spec: the procedural set, ground truth for every map the standard names
 
-**Status:** Proposed. Drafted 2026-10-04 on the owner's "get as far as we can on T4 without me building a
-custom material"; the procedural test data row (owner, 2026-09-26) promoted to T4's first tier. Questions
-for the owner at the end; nothing is built until they answer.
+**Status:** Accepted (owner, 2026-10-04: "synethetic is great ... Go with the recommendations"; built, #68).
+Drafted 2026-10-04 on the owner's "get as far as we can on T4 without me building a custom material"; the
+procedural test data row (owner, 2026-09-26) promoted to T4's first tier. The four questions are answered at the end;
+what the build changed from the draft is under *What the build found*.
 
 Board: [../../plan/BOARD.md](../../plan/BOARD.md) (T4, the showcase set). Standard:
 [../../standards/content.md](../../standards/content.md). The cook: [t2-texture-cook.md](t2-texture-cook.md).
@@ -17,17 +18,17 @@ back. It is the one T4 source that needs no authoring, no licence and no model: 
 three tiers (a generated set, a Fab set kept local, Marmoset bakes) are compared against. It is not pretty and
 it is not meant to be: the showcase stays the authored set the owner curates.
 
-After this increment: `content/textures/synthetic/` (name: question 1) holds `T_synthetic_<SUFFIX>.png` for
-every suffix in `hogshade.material.textures.SUFFIXES`, each with its sidecar and a `LICENSE.md` naming the
-repository's licence; `tools/gen_synthetic_textures.py` regenerates them byte-identically from a seed; the
-cook writes the runtime set as for any other; `document_for_set` builds the document that binds every map;
-the Maya check and the wgpu matrix render it; and `tests/content/test_synthetic_set.py` reads known texels back
-through the cooked DDS and the renders.
+After this increment: `content/textures/synthetic/` holds `T_synthetic_<SUFFIX>.png` for every suffix in
+`hogshade.material.textures.SUFFIXES`, each with its sidecar and a `LICENSE.md` naming the repository's licence;
+`tools/gen_synthetic_textures.py` regenerates them byte-identically from numbers (nothing is random); the cook
+writes the runtime set as for any other; `document_for_set` builds the document that binds every map; the wgpu
+matrix renders it (the Maya check waits for the orchestrator's Maya worker); and `tests/testdata/test_synthetic.py`
+and `tests/host/test_wgpu_host.py` read known texels back through the cooked DDS and the host's debug views.
 
 ## What each map is, and what is known about it
 
-Every map is `1024 x 1024` (question 2), tiles without a seam, and carries a **legend strip** of 32 px along
-its bottom edge naming the map in the bitmap font (`hogshade.bitmap_font`), so a wrong slot is visible in a
+Every map is `512 x 512` (the owner's answer to question 2), an instrument and not a tile (the strip below
+breaks any repeat), and carries a **legend strip** of 32 px along its bottom edge naming the map in the bitmap font (`hogshade.bitmap_font`), so a wrong slot is visible in a
 render before any number is read. Above the strip, the content; each design is chosen so that one or two
 texel reads prove the channel landed where it should.
 
@@ -61,26 +62,26 @@ lands before or with this set; one document binds the set, and the test reads th
 ## The generator
 
 `hogshade/testdata/synthetic.py` (library, numpy and the repository's PNG writer, no new dependency):
-one function per map returning an array, `generate(set_dir, seed, size)` writing every PNG and sidecar and
-the `LICENSE.md`, and a `manifest` of the known values a test reads (`known.json` beside the maps: for each
-map, the texel positions and the values the generator put there, so the test and the generator cannot drift).
-`tools/gen_synthetic_textures.py` is the launcher, as `cook_ibl.py` is for the IBL. The generator is
-deterministic: the same seed and size give the same bytes, and `check_content.py` gains nothing new because
-the set obeys the standard as any other.
+one function per map returning an array, `generate(set_dir, size)` writing every PNG and sidecar and the
+`LICENSE.md`, `known_points(size)` listing the named semantic points of every map with the pixel and the value
+the generator put there (computed from the same functions that draw the maps, so the test and the generator
+cannot drift), and `contact_sheet()` for the gallery. `tools/gen_synthetic_textures.py` is the launcher, as
+`cook_ibl.py` is for the IBL. The generator is deterministic (nothing is random, so there is no seed): the same size
+gives the same bytes, and `check_content.py` gains nothing new because the set obeys the standard as any other.
 
 ## The tests
 
-- `tests/content/test_synthetic_set.py`: the generator is deterministic; every suffix of the table has a map;
-  every sidecar validates; `document_for_set` binds every map; after `cook`, every known texel of `known.json`
-  reads back through `dds2d.read_2d` within the format's tolerance (BC7 one sRGB step, BC5 and BC4 one 8-bit
-  step, `R16_UNORM` exact to 16 bits), the `_ORM` channels in their places, the alpha carrier holding the
-  cutout.
+- `tests/testdata/test_synthetic.py`: the generator is deterministic; every suffix of the table has a map; every
+  sidecar carries its provenance, the normal convention and the cutout's `pack`; `document_for_set` binds every
+  map; after an uncompressed `cook`, every known point reads back through `dds2d.read_2d` exactly (the carriers'
+  channels, the individual copies, the alpha holding the cutout, `R16_UNORM` all 16 bits; the normal within one
+  step); and, on the committed cooked set, every parameter resolves to its carrier or its own file.
 - The wgpu host (GPU, the owner's machine): the debug views (1 base colour, 7 metalness, 8 roughness, 9 AO,
-  10 cavity, 11 the shading normal) at the pixels where the ball's UV lands on a known texel give the known
-  value; the +V quadrant's normal tilts the way the arrow says. This is the test of the T3b V flip and the
-  green convention that T3b could only eyeball.
-- The Maya check job renders it with the debug views, and the matrix grows a row: the one row where a human
-  and a test agree on what every pixel should be.
+  11 the shading normal) at the pixels where the ball's UV lands on a flat part of a known map give the known
+  value, and the normal view on the texels that lean in U and in V matches the authored reading and none of the
+  channel-flipped one. This is the test of the T3b V flip and the green convention that T3b could only eyeball.
+- The Maya check job renders it with the debug views (pending: the orchestrator's Maya worker was not running),
+  and the matrix has its row: the one row where a human and a test agree on what every pixel should be.
 
 ## Out of scope
 
@@ -88,15 +89,36 @@ the set obeys the standard as any other.
 - Detail maps (`_DH`, `_DN`): the cook derives them; a test of the blend is the hosts' increment.
 - Anything prettier than ramps and patches: this set is an instrument.
 
-## Questions for the owner
+## What the build found (2026-10-04, `feat/t4-synthetic-set`)
 
-1. **The name**: `synthetic` under `content/textures/` beside `grid`, as proposed, or a word of yours
-   (`probe`, `calibration`, `truth`)?
-2. **The size**: `1024` (the grid's, 15 maps at 1 to 3 MB each in LFS) or `512` (a quarter of that; every
-   design above survives it)?
+- **The shader ball's UVs are not a 0 to 1 unwrap**: they span from -1 to 1.66 across several tiles, with seams, and
+  the texture is minified about four texels per pixel on it. So a host probe cannot read "the texel at a pixel"; it
+  reads the vertices that are *seen* (each vertex's depth matched to the depth buffer, `Frames.depth`, new) away
+  from a tile seam, on a flat part of the map (a window wide enough for the filter footprint), and compares the
+  drawn value with the map at the vertex's coordinate. Before the depth match a third of the samples were hidden
+  surfaces (65 to 80 percent agreement); with it 98 to 100. The owner's cleaned-up legacy shader ball, a single clean
+  unwrap, would simplify the probe and is boarded.
+- **The probe was shown able to fail**: with V flipped in the expectation, the metalness checker drops to under one
+  percent and the colour patches to 60; the roughness view, a function of U alone, rightly stays at 98. With a normal
+  channel flipped, 0 percent of the texels that lean that way match, against 66 (green) and 85 (red) as authored. The
+  first draft of the normal check had no such control and could not have told the conventions apart (most samples
+  were flat texels); it now asserts the contrast.
+- **No `known.json`**: the content standard allows only textures, sidecars and the licence in a set, and the file
+  was redundant, so `known_points()` computes the same list in memory.
+- **No GPU read of the cavity or the height**: the cavity is thin lines (no flat window at the filter footprint) and
+  height has no debug view; both are exact through the cooked DDS instead.
+- **The cutout rides in `_BC`'s alpha and stands alone as `_O`** through the cook's `individual_outputs`
+  (#67); one document binds the set.
+
+## Questions for the owner (answered 2026-10-04)
+
+All four were answered by "go with the recommendations" ("synethetic is great"): `synthetic`, 512, both packing
+forms through the cook's `individual_outputs`, the document beside the set only.
+
+1. ~~The name~~ **`synthetic`** (the owner: "one of my favorite words").
+2. ~~The size~~ **512.**
 3. ~~The packing variants~~ **Answered by the owner (2026-10-04):** "write all individual outputs AND then also
    write the packed outputs; make this a default setting enabled currently while in dev and testing, but it can be
    turned off for a real packaged game." The cook's `individual_outputs` setting (the Next row); one document.
-4. **Where the documents live**: `content/materials/standard/test/synthetic.material.json` (a `test` family
-   in the library, which puts it on the contact sheet) or beside the set only, built by `document_for_set` as
-   the grid is (not on the sheet)?
+4. ~~Where the documents live~~ **Beside the set only**, built by `document_for_set` as the grid is; not on the
+   contact sheet.

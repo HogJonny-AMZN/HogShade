@@ -1,0 +1,24 @@
+{
+  "colour_space": "raw",
+  "derived": [
+    "colour_space",
+    "mips",
+    "preset",
+    "resolution",
+    "runtime"
+  ],
+  "mips": "linear-box",
+  "preset": "specular_rotation",
+  "provenance": {
+    "fetched": "2026-10-04",
+    "generator": "hogshade.testdata.synthetic 0.1.0",
+    "licence": "the repository's licence",
+    "origin": "author",
+    "url": "tools/gen_synthetic_textures.py"
+  },
+  "resolution": 512,
+  "runtime": {
+    "container": "dds",
+    "format": "bc4"
+  }
+}
