@@ -49,9 +49,14 @@ texel reads prove the channel landed where it should.
 | `_AR` | a ramp along V (rotation) | three V positions |
 | `_SO` | an inverse of the AO (0.25 at the centre, 1.0 at the corners) | the centre and a corner |
 
-Two packing variants exercise the cook's carriers (question 3): `T_synthetic_BC.texture.json` with
-`"pack": {"a": "_O"}` so the cutout rides in the colour's alpha (the alpha-carrier case T3 left to T4), and a
-second document binding the standalone `_O`. The `_ORM` is the cook's as always.
+The cutout rides in the colour's alpha (`T_synthetic_BC.texture.json` with `"pack": {"a": "_O"}`, the
+alpha-carrier case T3 left to T4) **and** stands alone as `T_synthetic_O.dds`: the owner's answer to question 3
+(2026-10-04) is a cook rule, not a per-set choice. The cook writes every individual map and the packed carriers
+both, behind a setting (`individual_outputs`, on by default while the repository is in development and testing;
+off for a packaged game, "which is a long way off"); the manifest marks each individual map whose channels also
+live in a carrier, the runtime resolver keeps preferring the carrier, and the standalone DDS is there for a test, a
+host without packing, or a human looking at one channel. That setting is its own row on the board (Next) and
+lands before or with this set; one document binds the set, and the test reads the cutout from both forms.
 
 ## The generator
 
@@ -89,8 +94,9 @@ the set obeys the standard as any other.
    (`probe`, `calibration`, `truth`)?
 2. **The size**: `1024` (the grid's, 15 maps at 1 to 3 MB each in LFS) or `512` (a quarter of that; every
    design above survives it)?
-3. **The packing variants**: both the alpha carrier and the standalone cutout (two documents, proposed), or
-   one of them?
+3. ~~The packing variants~~ **Answered by the owner (2026-10-04):** "write all individual outputs AND then also
+   write the packed outputs; make this a default setting enabled currently while in dev and testing, but it can be
+   turned off for a real packaged game." The cook's `individual_outputs` setting (the Next row); one document.
 4. **Where the documents live**: `content/materials/standard/test/synthetic.material.json` (a `test` family
    in the library, which puts it on the contact sheet) or beside the set only, built by `document_for_set` as
    the grid is (not on the sheet)?
