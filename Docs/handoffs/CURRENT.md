@@ -39,7 +39,7 @@ direction median 0.8 degrees, 98 percent within 5, worst 35. **Answered by the o
 preference Preferences > Modeling > Polygon Tangent Space > "Use MikkTSpace tangents"
 (`polyUseMikkTSpaceTangents`), off by default; Job_Orchestrator #73 (merged) makes every Maya worker set it at
 boot (and load `fbxmaya`), with the rule that a job loads and unloads its own plug-ins. **Re-dumped after the
-restart, against Maya's MikkTSpace:** the handedness agrees on every one of the 135,792 corners (20,628 mirrored on both sides), the direction to a median of 0.000 degrees, 96 percent within 0.5, 98.8 percent within 1, every corner within 7.1 (the fixture is float16, worth 0.02 degrees). The parity test reads the fixture's `basis` and holds those bars.
+restart, against Maya's MikkTSpace:** the handedness agrees on every one of the 135,792 corners (20,628 mirrored on both sides), the direction to a median of 0.000 degrees, 96 percent within 0.5, 98.8 percent within 1, every corner within 7.1 (the fixture is float16, worth 0.02 degrees). The parity test requires the fixture's `basis` to be `mikktspace` and holds those bars.
 Not in T3b: a packed-cavity set to test on the GPU (T4's alpha
 carrier), the quad sphere, height and emission slots.
 
