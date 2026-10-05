@@ -4,6 +4,7 @@
     "encoder": "ispc_texcomp"
   },
   "hogshade_version": "0.2.0",
+  "individual_outputs": true,
   "inputs": {
     "LICENSE.md": "3b7e7d41ef16a6c13f431fe2c0bd61b36c4016acc0e566a8ee310572f56092de",
     "T_brown_planks_03_AO.png": "b21f9b1c88af2cf42105d91bf2a58cb7bad12445a3b582c6e03cd7e0be13ece0",
@@ -48,6 +49,19 @@
   ],
   "suffix_table": "hogshade-standard suffixes (Docs/standards/content.md)",
   "textures": {
+    "T_brown_planks_03_AO.dds": {
+      "also_in": "T_brown_planks_03_ORM.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_brown_planks_03_AO.png",
+      "mips": 12,
+      "preset": "ambient_occlusion",
+      "sha256": "6944155557c47b38acdb393198acd629f779239294b6c16905791b285a1a80cc",
+      "size": [
+        2048,
+        2048
+      ]
+    },
     "T_brown_planks_03_BC.dds": {
       "bc7_profile": "basic",
       "encoder": "ispc_texcomp",
@@ -108,8 +122,21 @@
         2048,
         2048
       ]
+    },
+    "T_brown_planks_03_R.dds": {
+      "also_in": "T_brown_planks_03_ORM.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_brown_planks_03_R.png",
+      "mips": 12,
+      "preset": "specular_roughness",
+      "sha256": "e6d2b5447f3a50655e8e6479e1bfe4f6d476a6c86129670f8efe8f97e4e5e8c7",
+      "size": [
+        2048,
+        2048
+      ]
     }
   },
   "tool": "hogshade.texture_cook.cook",
-  "tool_version": "0.3.0"
+  "tool_version": "0.4.0"
 }

@@ -42,6 +42,12 @@ def main(argv: list[str] | None = None) -> int:
     g = c.add_mutually_exclusive_group()
     g.add_argument("--compress", action="store_true", help="require the encoder; exit 2 without it")
     g.add_argument("--no-compress", action="store_true", help="write uncompressed DDS on purpose")
+    c.add_argument(
+        "--no-individual",
+        action="store_true",
+        help="write the packed runtime set alone (the packaged-game form); the default also writes each packed "
+        "map (_AO, _R, _M, an alpha-packed map) as its own DDS",
+    )
     c.add_argument("--bc7-profile", default="basic", choices=BC7_PROFILES)
     c.add_argument(
         "--height",
@@ -81,6 +87,7 @@ def main(argv: list[str] | None = None) -> int:
                 compress=compress,
                 bc7_profile=args.bc7_profile,
                 height_normalise=args.height == "normalise",
+                individual_outputs=not args.no_individual,
             )
             print(
                 json.dumps(

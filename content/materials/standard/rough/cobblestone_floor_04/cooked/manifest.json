@@ -4,6 +4,7 @@
     "encoder": "ispc_texcomp"
   },
   "hogshade_version": "0.2.0",
+  "individual_outputs": true,
   "inputs": {
     "LICENSE.md": "a346c4c7c5cc00be695fcbf66b2b005ca6f82c29f7838749625251ee39dd37fc",
     "T_cobblestone_floor_04_AO.png": "2f84bd8a16d2673f28339a7b259fd92698399f908603938de78cc84bf608130a",
@@ -48,6 +49,19 @@
   ],
   "suffix_table": "hogshade-standard suffixes (Docs/standards/content.md)",
   "textures": {
+    "T_cobblestone_floor_04_AO.dds": {
+      "also_in": "T_cobblestone_floor_04_ORM.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_cobblestone_floor_04_AO.png",
+      "mips": 12,
+      "preset": "ambient_occlusion",
+      "sha256": "2a854df7c68df0bd02e736e7407f5080494a03522c80f2b1196d6ec4afc9320d",
+      "size": [
+        2048,
+        2048
+      ]
+    },
     "T_cobblestone_floor_04_BC.dds": {
       "bc7_profile": "basic",
       "encoder": "ispc_texcomp",
@@ -108,8 +122,21 @@
         2048,
         2048
       ]
+    },
+    "T_cobblestone_floor_04_R.dds": {
+      "also_in": "T_cobblestone_floor_04_ORM.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_cobblestone_floor_04_R.png",
+      "mips": 12,
+      "preset": "specular_roughness",
+      "sha256": "c48444e85d6e5f877b47dedfae2c8fabd761f33e21badba83a820066bbf725c2",
+      "size": [
+        2048,
+        2048
+      ]
     }
   },
   "tool": "hogshade.texture_cook.cook",
-  "tool_version": "0.3.0"
+  "tool_version": "0.4.0"
 }

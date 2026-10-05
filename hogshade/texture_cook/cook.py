@@ -45,7 +45,7 @@ from hogshade.texture_cook import separate as sep
 from hogshade.texture_cook.encoders import BC7_PROFILES, INSTALL_HINT, Encoder, default_encoder
 
 _MODULE_NAME = "hogshade.texture_cook.cook"
-__version__ = "0.3.0"  # 0.3: the separation block keyed by suffix
+__version__ = "0.4.0"  # 0.3: the separation block keyed by suffix; 0.4: individual_outputs
 __updated__ = "2026-10-04"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
@@ -111,7 +111,9 @@ class _Oven:
     encoder: Encoder | None
     bc7_profile: str
     height_normalise: bool = False
+    individual_outputs: bool = True  # also write each packed map's own DDS (the development default)
     consumed: set[str] = field(default_factory=set)  # stems packed into another map, never written on their own
+    carrier_of: dict[str, str] = field(default_factory=dict)  # a packed source's stem -> the carrier DDS it rides in
     textures: dict[str, Any] = field(default_factory=dict)
     written: list[Path] = field(default_factory=list)
 
@@ -397,6 +399,7 @@ def _cook_colour(oven: _Oven, s: Source) -> None:
     entry.update(_write(out_path, levels, fmt, "bc7", oven.encoder, packed is not None, oven.bc7_profile))
     if packed is not None:
         entry["packed"] = {"A": packed.path.name}
+        oven.carrier_of[packed.stem] = out_path.name
         _LOGGER.info("%s: %s rides in the alpha", out_path.name, packed.path.name)
     _finish(oven, out_path, entry, len(levels))
 
@@ -460,6 +463,9 @@ def _cook_orm(oven: _Oven, variant: str | None) -> None:
     )
     stem = f"T_{shape_src.base}_ORM" + (f"_{variant}" if variant else "")
     out_path = oven.out_dir / f"{stem}.dds"
+    for part in parts.values():
+        if part is not None:
+            oven.carrier_of[part.stem] = out_path.name
     for channel, what in record.items():
         if what.startswith("filled"):
             _LOGGER.info("%s: channel %s %s (no %s source)", out_path.name, channel, what, ORM_CHANNEL_SOURCE[channel])
@@ -468,6 +474,7 @@ def _cook_orm(oven: _Oven, variant: str | None) -> None:
     # allow one declaration per variant); its target was consumed in cook_set's pre-pass
     extra = next((oven.pack_target(src) for src in parts.values() if src is not None and "pack" in src.sidecar), None)
     if extra is not None:
+        oven.carrier_of[extra.stem] = out_path.name
         _note_alpha_precision(extra)
         a_levels = mips.data_chain(_one_channel(extra))
         levels = [pack.put_alpha(lvl, a[..., 0]) for lvl, a in zip(levels, a_levels, strict=True)]
@@ -479,6 +486,22 @@ def _cook_orm(oven: _Oven, variant: str | None) -> None:
         rec["A"] = extra.path.name
     entry["packed"] = rec
     _finish(oven, out_path, entry, len(levels))
+
+
+def _cook_individuals(oven: _Oven) -> None:
+    """
+    Each map the cook packed into a carrier (an ``_ORM`` channel, a colour map's alpha) also gets its own DDS, marked
+    ``also_in`` its carrier: the development default (the owner, 2026-10-04: "write all individual outputs AND then
+    also write the packed outputs"). A test, a host without packing or a human looking at one channel reads the
+    individual form; the runtime resolver still prefers the carrier.
+    """
+    for s in oven.sources:
+        carrier = oven.carrier_of.get(s.stem)
+        if carrier is None:
+            continue
+        (_cook_height if s.suffix == "_H" else _cook_single)(oven, s)
+        oven.textures[f"{s.stem}.dds"]["also_in"] = carrier
+        _LOGGER.info("%s.dds: %s on its own, also in %s", s.stem, s.path.name, carrier)
 
 
 def _sidecar_fill(s: Source) -> tuple[dict[str, Any], list[str]]:
@@ -551,12 +574,15 @@ def cook_set(
     encoder: Encoder | None = None,
     bc7_profile: str = "basic",
     height_normalise: bool = False,
+    individual_outputs: bool = True,
 ) -> CookResult:
     """
     Cook one set. ``compress`` None means "when an encoder is present"; True requires one (``CookError`` with the
-    install hint otherwise); False writes uncompressed. Returns the manifest and the files written. The sidecars'
-    derived fields and the manifest are written only after every DDS is, so a failure leaves the authoring set as
-    it was.
+    install hint otherwise); False writes uncompressed. ``individual_outputs`` (default True, the development
+    setting) also writes each packed map (the ``_ORM`` channels, a carrier's alpha) as its own DDS beside the
+    packed form; False writes the packed runtime set alone, the packaged-game form. Returns the manifest and the
+    files written. The sidecars' derived fields and the manifest are written only after every DDS is, so a failure
+    leaves the authoring set as it was.
     """
     started = time.time()
     set_dir = Path(set_dir).resolve()
@@ -578,7 +604,7 @@ def cook_set(
         encoder.name if encoder else "none (uncompressed)",
         bc7_profile,
     )
-    oven = _Oven(sources, out_dir, encoder, bc7_profile, height_normalise)
+    oven = _Oven(sources, out_dir, encoder, bc7_profile, height_normalise, individual_outputs)
     # the sidecars as they will be written, hashed now so the manifest is one whether this cook fills them or not
     sidecars = {s.stem: _sidecar_fill(s) for s in sources}
     inputs = {s.path.name: input_digest(s.path) for s in sources}
@@ -605,6 +631,8 @@ def cook_set(
             _cook_single(oven, s)
     for variant in sorted({s.variant for s in sources if s.suffix in pack.ORM_SOURCES}, key=lambda v: v or ""):
         _cook_orm(oven, variant)
+    if individual_outputs:
+        _cook_individuals(oven)
     # every DDS is on disk: now the sidecars, the manifest, the provenance
     derived: list[str] = []
     for s in sources:
@@ -622,6 +650,7 @@ def cook_set(
         "hogshade_version": HOGSHADE_VERSION,
         "set": set_dir.name,
         "suffix_table": TO_TYPE_NOTE,
+        "individual_outputs": individual_outputs,
         "inputs": dict(sorted(inputs.items())),
         "textures": dict(sorted(oven.textures.items())),
         "compression": {"encoder": encoder.name if encoder else None, "bc7_profile": bc7_profile if encoder else None},

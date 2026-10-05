@@ -86,7 +86,9 @@ def test_every_home_from_the_manifest(family, caplog):
     }
     assert (rt["height"].path.name, rt["height"].channels, rt["height"].packed) == ("T_plate_ORM.dds", "a", True)
     assert all(r.path.is_file() for r in rt.values())
-    assert "runtime set plate: 3 cooked texture(s), compression none" in caplog.text
+    # the default cook also wrote the packed maps on their own (individual_outputs); the resolver above still
+    # returned every carrier, and the log counts the two apart
+    assert "runtime set plate: 3 cooked texture(s) and 5 individual map(s) beside their carriers" in caplog.text
 
 
 def test_a_standalone_height_carries_its_format(tmp_path: Path):

@@ -28,9 +28,11 @@ def _manifest(set_dir: Path) -> dict:
 
 
 def test_cook_writes_the_runtime_set_and_the_records(brick: Path):
-    result = cook.cook_set(brick, compress=False)
+    """The packaged-game form: ``individual_outputs=False`` writes the packed runtime set alone."""
+    result = cook.cook_set(brick, compress=False, individual_outputs=False)
     names = sorted(p.name for p in (brick / "cooked").iterdir())
     assert names == ["T_brick_BC.dds", "T_brick_N.dds", "T_brick_ORM.dds", "manifest.json", "provenance.json"]
+    assert result.manifest["individual_outputs"] is False
     m = result.manifest
     assert m["set"] == "brick" and m["compression"] == {"encoder": None, "bc7_profile": None}
     bc = m["textures"]["T_brick_BC.dds"]
@@ -176,3 +178,64 @@ def test_the_content_check_passes_on_a_cooked_set(brick: Path, tmp_path: Path):
 
     shutil.copytree(brick, dest)
     assert [str(f) for f in check_content.run(root)] == []
+
+
+# ----------------------------------------------------------------------------- individual_outputs (T4, 2026-10-04)
+
+
+def test_the_default_also_writes_every_packed_map_on_its_own_marked_with_its_carrier(brick: Path):
+    """The owner: write all individual outputs AND the packed outputs; a development default."""
+    result = cook.cook_set(brick, compress=False)
+    m = result.manifest
+    assert m["individual_outputs"] is True
+    names = sorted(p.name for p in (brick / "cooked").iterdir() if p.suffix == ".dds")
+    assert names == [
+        "T_brick_AO.dds",
+        "T_brick_BC.dds",
+        "T_brick_H.dds",
+        "T_brick_N.dds",
+        "T_brick_O.dds",
+        "T_brick_ORM.dds",
+        "T_brick_R.dds",
+    ], "the packed ones and every map that was packed"
+    t = m["textures"]
+    assert t["T_brick_AO.dds"]["also_in"] == t["T_brick_R.dds"]["also_in"] == "T_brick_ORM.dds"
+    assert t["T_brick_H.dds"]["also_in"] == "T_brick_ORM.dds", "the height riding in the ORM alpha"
+    assert t["T_brick_O.dds"]["also_in"] == "T_brick_BC.dds", "the opacity riding in the colour alpha"
+    assert all("also_in" not in t[k] for k in ("T_brick_BC.dds", "T_brick_N.dds", "T_brick_ORM.dds"))
+    for name, entry in t.items():
+        assert entry["sha256"] == cook.sha256_file(brick / "cooked" / name)
+
+
+def test_an_individual_map_is_the_same_pixels_as_its_channel_in_the_carrier(brick: Path):
+    cook.cook_set(brick, compress=False)
+    orm = dds2d.read_2d(brick / "cooked" / "T_brick_ORM.dds").levels[0]
+    ao = dds2d.read_2d(brick / "cooked" / "T_brick_AO.dds").levels[0]
+    rough = dds2d.read_2d(brick / "cooked" / "T_brick_R.dds").levels[0]
+    opacity = dds2d.read_2d(brick / "cooked" / "T_brick_O.dds").levels[0]
+    colour = dds2d.read_2d(brick / "cooked" / "T_brick_BC.dds").levels[0]
+    np.testing.assert_array_equal(ao.reshape(orm.shape[:2]), orm[..., 0])
+    np.testing.assert_array_equal(rough.reshape(orm.shape[:2]), orm[..., 1])
+    np.testing.assert_array_equal(opacity.reshape(colour.shape[:2]), colour[..., 3])
+
+
+def test_the_resolver_still_prefers_the_carrier_and_individual_for_finds_the_standalone(brick: Path):
+    from hogshade.material.runtime import individual_for, locate, manifest_for
+
+    cook.cook_set(brick, compress=False)
+    manifest = manifest_for(brick)
+    rough = locate(manifest, brick, "T_brick_R.png")
+    assert (rough.path.name, rough.channels, rough.packed) == ("T_brick_ORM.dds", "g", True)
+    alone = individual_for(manifest, brick, "T_brick_R.png")
+    assert alone is not None and (alone.path.name, alone.channels, alone.packed) == ("T_brick_R.dds", "r", False)
+    assert individual_for(manifest, brick, "T_brick_BC.png") is None, "a map that was never packed has no copy"
+    cook.cook_set(brick, compress=False, individual_outputs=False)
+    assert individual_for(manifest_for(brick), brick, "T_brick_R.png") is None, "the packaged form has none"
+
+
+def test_both_forms_recook_byte_identically(brick: Path):
+    cook.cook_set(brick, compress=False)
+    first = {p.name: p.read_bytes() for p in (brick / "cooked").iterdir() if p.name != "provenance.json"}
+    cook.cook_set(brick, compress=False)
+    second = {p.name: p.read_bytes() for p in (brick / "cooked").iterdir() if p.name != "provenance.json"}
+    assert first == second

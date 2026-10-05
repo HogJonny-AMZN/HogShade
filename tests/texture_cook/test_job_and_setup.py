@@ -80,3 +80,20 @@ def test_the_tool_without_a_command_prints_help(capsys):
     import cook_textures as tool
 
     assert tool.main([]) == 2
+
+
+def test_the_job_and_the_tool_turn_the_individual_maps_off_for_a_packaged_cook(brick: Path):
+    """The owner: on by default in development, off for a packaged game (individual=no, --no-individual)."""
+    import cook_textures as tool
+
+    assert job.MANIFEST["parameters"]["individual"]["default"] == "yes"
+    on = job.main({"set_dir": str(brick), "compress": "no"})
+    assert on["individual_outputs"] is True and "T_brick_AO.dds" in on["textures"]
+    off = job.main({"set_dir": str(brick), "compress": "no", "individual": "no"})
+    assert off["individual_outputs"] is False and "T_brick_AO.dds" not in off["textures"]
+    assert tool.main(["cook", str(brick), "--no-compress", "--no-individual"]) == 0
+    manifest = json.loads((brick / "cooked" / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["individual_outputs"] is False and "T_brick_AO.dds" not in manifest["textures"]
+    assert tool.main(["cook", str(brick), "--no-compress"]) == 0
+    manifest = json.loads((brick / "cooked" / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["individual_outputs"] is True and manifest["textures"]["T_brick_AO.dds"]["also_in"]

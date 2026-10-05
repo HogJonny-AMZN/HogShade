@@ -120,8 +120,8 @@ def locate(manifest: dict[str, Any], set_dir: Path, source_name: str, parameter:
                 f"{COOKED_DIR}/; the manifest is not the cook's. Cook the set again ({COOK_COMMAND})"
             )
     for dds_name, entry in manifest["textures"].items():
-        if not isinstance(entry, dict):
-            continue
+        if not isinstance(entry, dict) or entry.get("also_in"):
+            continue  # an individual copy of a packed map (individual_outputs) is never the runtime form
         dds = parse_name(Path(dds_name).stem)
         dds_suffix = dds.suffix if dds is not None else ""
         fmt = str(entry.get("format", ""))
@@ -140,6 +140,24 @@ def locate(manifest: dict[str, Any], set_dir: Path, source_name: str, parameter:
     )
 
 
+def individual_for(manifest: dict[str, Any], set_dir: Path, source_name: str) -> RuntimeTexture | None:
+    """
+    The map ``source_name`` as its own DDS when the cook wrote one beside its carrier (``individual_outputs``, the
+    development default), else None. For a test, a host without packing or a person looking at one channel; a
+    document's binding still resolves through ``locate``, which prefers the carrier.
+    """
+    name = parse_name(Path(source_name).stem)
+    if name is None or not name.known:
+        raise CookedSetError(f"{source_name}: not a texture of this repository (T_<base>_<SUFFIX>[_<variant>])")
+    for dds_name, entry in manifest["textures"].items():
+        if isinstance(entry, dict) and entry.get("also_in") and source_name in _sources_of(entry):
+            channels = OWN_CHANNELS[SUFFIXES[name.suffix].runtime]
+            return RuntimeTexture(
+                "", source_name, Path(set_dir) / COOKED_DIR / dds_name, channels, str(entry.get("format", "")), False
+            )
+    return None
+
+
 def runtime_textures(textures: dict[str, str], doc_dir: Path) -> dict[str, RuntimeTexture]:
     """
     Every bound texture of a document (``parameter -> path as the document spells it``, a ``Binding.textures``)
@@ -154,9 +172,12 @@ def runtime_textures(textures: dict[str, str], doc_dir: Path) -> dict[str, Runti
         set_dir = source.parent
         if set_dir not in manifests:
             manifests[set_dir] = manifest_for(set_dir)
+            records = manifests[set_dir]["textures"].values()
+            individual = sum(1 for r in records if isinstance(r, dict) and r.get("also_in"))
             _LOGGER.info(
-                f"runtime set {set_dir.name}: {len(manifests[set_dir]['textures'])} cooked texture(s), "
-                f"compression {manifests[set_dir].get('compression', {}).get('encoder') or 'none'}"
+                f"runtime set {set_dir.name}: {len(records) - individual} cooked texture(s)"
+                + (f" and {individual} individual map(s) beside their carriers" if individual else "")
+                + f", compression {manifests[set_dir].get('compression', {}).get('encoder') or 'none'}"
             )
         out[parameter] = locate(manifests[set_dir], set_dir, source.name, parameter)
         rt = out[parameter]

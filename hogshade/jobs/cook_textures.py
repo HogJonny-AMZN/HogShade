@@ -41,6 +41,11 @@ MANIFEST = {
             "default": "auto",
             "description": "auto (when the encoder is installed), yes (required), no",
         },
+        "individual": {
+            "type": "str",
+            "default": "yes",
+            "description": "yes (development default): each packed map also as its own DDS; no: the packed set alone",
+        },
         "bc7_profile": {"type": "str", "default": "basic", "description": "ultrafast, veryfast, fast, basic, slow"},
         "height": {
             "type": "str",
@@ -100,6 +105,7 @@ def main(parameters: dict) -> dict:
         encoder=encoder,
         bc7_profile=str(parameters.get("bc7_profile", "basic")),
         height_normalise=height_param == "normalise",
+        individual_outputs=str(parameters.get("individual", "yes")).lower() not in ("no", "false", "0"),
     )
     manifest = dict(result.manifest)
     if str(parameters.get("separate", "0")) in ("1", "true", "yes"):
