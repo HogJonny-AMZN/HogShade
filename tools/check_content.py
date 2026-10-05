@@ -367,6 +367,10 @@ def check_runtime(root: Path) -> list[Finding]:
             carrier = entry.get("also_in") if isinstance(entry, dict) else None
             if carrier is None:
                 continue
+            if Path(dds_name).name != dds_name or not dds_name.endswith(".dds"):
+                # an invalid key is reported, never turned into a path to probe
+                out.append(Finding("content-runtime", where, f"texture key {dds_name!r} is not a .dds file name"))
+                continue
             if not isinstance(carrier, str) or carrier not in manifest["textures"]:
                 out.append(
                     Finding("content-runtime", where, f"{dds_name} is also in {carrier!r}, which no record names")

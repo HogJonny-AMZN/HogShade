@@ -288,6 +288,7 @@ def test_individual_for_finds_the_alpha_packed_maps_and_refuses_a_crafted_key(br
         "height",
     )
     assert opacity is not None and (opacity.path.name, opacity.channels) == ("T_brick_O.dds", "r")
-    manifest["textures"]["../../outside.dds"] = dict(manifest["textures"]["T_brick_R.dds"])
-    with pytest.raises(CookedSetError, match="is not a .dds file name under cooked"):
-        individual_for(manifest, brick, "T_brick_R.png")
+    for key in ("../../outside.dds", "C:/outside.dds", "/outside.dds"):  # traversal, a drive and a rooted path
+        crafted = {**manifest, "textures": {**manifest["textures"], key: dict(manifest["textures"]["T_brick_R.dds"])}}
+        with pytest.raises(CookedSetError, match="is not a .dds file name under cooked"):
+            individual_for(crafted, brick, "T_brick_R.png")

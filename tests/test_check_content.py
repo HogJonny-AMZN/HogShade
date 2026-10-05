@@ -381,9 +381,18 @@ def test_an_individual_copy_naming_a_carrier_the_manifest_lacks_is_found(corpus:
     manifest.write_text(json.dumps(data), encoding="utf-8")
     found = _messages(corpus)
     assert any(f"{victim} is also in 'T_brick_GONE.dds', which no record names" in m for m in found), found
-    data["textures"][victim]["also_in"] = ["not", "a", "name"]  # hand-edited: unhashable, a finding not a TypeError
+    for malformed in (["not", "a", "name"], [], {}, 7):  # hand-edited: a finding each, never a TypeError
+        data["textures"][victim]["also_in"] = malformed
+        manifest.write_text(json.dumps(data), encoding="utf-8")
+        assert any("which no record names" in m for m in _messages(corpus)), malformed
+    _cook(tex)  # a clean cook again, then an invalid key naming an outside path is reported and never probed
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    for key in ("../../outside.dds", "C:/outside.dds", "/outside.dds"):
+        data["textures"][key] = {**data["textures"][victim], "from": "T_brick_R.png"}
     manifest.write_text(json.dumps(data), encoding="utf-8")
-    assert any("which no record names" in m for m in _messages(corpus))
+    found = _messages(corpus)
+    for key in ("../../outside.dds", "C:/outside.dds", "/outside.dds"):
+        assert any(f"texture key {key!r} is not a .dds file name" in m for m in found), (key, found)
     _cook(tex)  # a clean cook again, then a deleted standalone
     (tex / "cooked" / victim).unlink()
     assert any(f"{victim} is recorded as an individual copy and not under cooked/" in m for m in _messages(corpus))
