@@ -51,6 +51,7 @@ SETS: tuple[tuple[str, Path | None, Path], ...] = (
     ("brown_planks_03", LIBRARY / "dielectric" / "brown_planks_03.material.json", LIBRARY / "dielectric"),
     ("metal_plate", LIBRARY / "metal" / "metal_plate.material.json", LIBRARY / "metal"),
     ("grid", None, ROOT / "content" / "textures" / "grid"),
+    ("synthetic", None, ROOT / "content" / "textures" / "synthetic"),
 )
 
 

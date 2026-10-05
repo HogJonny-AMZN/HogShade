@@ -123,6 +123,11 @@ class Mesh:
 
 VERTEX_FLOATS = 12
 VERTEX_STRIDE = VERTEX_FLOATS * 4
+#: The columns of ``Mesh.vertices``: position, normal, uv, the tangent and its handedness sign.
+COL_POSITION, COL_NORMAL, COL_UV, COL_TANGENT = slice(0, 3), slice(3, 6), slice(6, 8), slice(8, 11)
+COL_TANGENT_SIGN = 11
+#: The scene camera's clip planes (``Scene.view_proj``) and the linear distance a (0, 1) clip depth stands for.
+NEAR_PLANE, FAR_PLANE = 0.1, 50.0
 
 
 def with_tangents(
@@ -319,6 +324,11 @@ def perspective(fov_y_deg: float, aspect: float, near: float, far: float) -> NDA
     return m
 
 
+def linear_depth(clip_depth: NDArray) -> NDArray:
+    """The view-space distance a ``perspective`` (0, 1) clip depth stands for (``NEAR_PLANE`` to ``FAR_PLANE``)."""
+    return NEAR_PLANE * FAR_PLANE / (FAR_PLANE - clip_depth * (FAR_PLANE - NEAR_PLANE))
+
+
 def orbit_eye(yaw_deg: float, pitch_deg: float, distance: float) -> NDArray:
     cy, sy = math.cos(math.radians(yaw_deg)), math.sin(math.radians(yaw_deg))
     cp, sp = math.cos(math.radians(pitch_deg)), math.sin(math.radians(pitch_deg))
@@ -442,7 +452,7 @@ class Scene:
     def view_proj(self) -> tuple[NDArray, NDArray]:
         eye = orbit_eye(self.yaw_deg, self.pitch_deg, self.distance)
         view = look_at(eye, np.array([0.0, 0.05, 0.0]), np.array([0.0, 1.0, 0.0]))
-        proj = perspective(self.fov_y_deg, self.width / self.height, 0.1, 50.0)
+        proj = perspective(self.fov_y_deg, self.width / self.height, NEAR_PLANE, FAR_PLANE)
         return proj @ view, eye
 
     def frame_bytes(self, specular_mip_count: int) -> bytes:
@@ -477,11 +487,12 @@ class Scene:
 
 @dataclass
 class Frames:
-    """Linear float images (H, W, 3) from one render: forward, deferred, and the deferred depth mask."""
+    """Linear float images (H, W, 3) from one render: forward, deferred, the deferred depth mask and the depth."""
 
     forward: NDArray
     deferred: NDArray
     covered: NDArray  # (H, W) bool: pixels the ball covers (depth written)
+    depth: NDArray | None = None  # (H, W) float32: the deferred pass's depth buffer, (0, 1) clip depth, 1 where empty
 
     def difference(self) -> tuple[float, float]:
         """(mean, max) absolute difference between the paths over covered pixels."""
@@ -835,7 +846,7 @@ class Renderer:
         fwd = self._read_texture(t["forward"], w, h, 8, np.float16).reshape(h, w, 4)[..., :3].astype(np.float32)
         dfr = self._read_texture(t["deferred"], w, h, 8, np.float16).reshape(h, w, 4)[..., :3].astype(np.float32)
         depth = self._read_texture(t["depth"], w, h, 4, np.float32).reshape(h, w)
-        return Frames(fwd, dfr, depth < 1.0)
+        return Frames(fwd, dfr, depth < 1.0, depth)
 
 
 def request_device(power_preference: str = "high-performance"):

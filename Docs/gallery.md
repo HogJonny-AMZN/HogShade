@@ -235,6 +235,24 @@ the standard document converted to legacy v2 and bound; every map the runtime re
 
 no document binds it; the tool builds one from the set's maps (hogshade.material.sets), as the Maya check does. Made by `uv run tools/wgpu/texture_matrix.py`; the file is `verification/wgpu/textures/grid/main.png`.
 
+### the synthetic set (T4 tier 1): a map for every suffix the standard names, fifteen with the variant, each labelled in its own strip (`wgpu`)
+
+![the synthetic set (T4 tier 1): a map for every suffix the standard names, fifteen with the variant, each labelled in its own strip](../verification/wgpu/textures/synthetic/maps.png)
+
+generated from numbers, a known value at every texel: eight roughness bands in steps of 1/7, an exact 0/1 metalness checker, a radial AO and its inverse, a 16-bit height (ramp, step and cone), the letter E for emission, a soft-rimmed cutout, the normal quadrants leaning 30 degrees toward +U, +V and -U around a bump; U to the right, V up (the arrows). Made by `uv run tools/gen_synthetic_textures.py --sheet verification/wgpu/textures/synthetic/maps.png`; the file is `verification/wgpu/textures/synthetic/maps.png`.
+
+### the synthetic set on the shader ball through the wgpu host (`wgpu`)
+
+![the synthetic set on the shader ball through the wgpu host](../verification/wgpu/textures/synthetic/main.png)
+
+the document built from the set's maps, converted to legacy v2 and bound; the colour patches, the checker and the bands are what tests/host reads back at the pixels where the ball's UVs land on a flat part of a map. Made by `uv run tools/wgpu/texture_matrix.py --only synthetic --debug-modes 1,11`; the file is `verification/wgpu/textures/synthetic/main.png`.
+
+### the synthetic set, view 11: the world shading normal (`wgpu`)
+
+![the synthetic set, view 11: the world shading normal](../verification/wgpu/textures/synthetic/debug-11.png)
+
+the normal quadrants through the mesh's MikkTSpace frame; the host test reads this view on the texels that lean in U and in V and checks that flipping either channel matches nowhere. Made by `uv run tools/wgpu/texture_matrix.py --only synthetic --debug-modes 1,11`; the file is `verification/wgpu/textures/synthetic/debug-11.png`.
+
 ### the metalness debug view of the metal plate: the ORM's blue channel read through ormMap (`maya-2026`)
 
 ![the metalness debug view of the metal plate: the ORM's blue channel read through ormMap](../verification/maya-2026/textures/metal_plate/debug-07.png)
@@ -261,7 +279,7 @@ identical to the left on the main view (0 differing pixels); two debug views dif
 
 ### The five sets, Maya beside wgpu
 
-one cooked set per row, rendered from the same DDS by the two hosts: Maya 2026 through the dx11 shell (a sphere, the viewport's camera), the wgpu host (the shader ball, offscreen). Same colour, same normal relief, same metalness; the differences are mesh, camera and output space, not the material
+one cooked set per row, rendered from the same DDS by the two hosts: Maya 2026 through the dx11 shell (a sphere, the viewport's camera), the wgpu host (the shader ball, offscreen). Same colour, same normal relief, same metalness; the differences are mesh, camera and output space, not the material. The synthetic row has no Maya picture yet: the capture waits for the orchestrator's Maya worker (`hogshade.jobs.maya_texture_check --param set_dir=content/textures/synthetic`)
 
 | | Maya 2026 | wgpu |
 | --- | --- | --- |
@@ -270,6 +288,7 @@ one cooked set per row, rendered from the same DDS by the two hosts: Maya 2026 t
 | **brown_planks_03** | ![brown_planks_03, Maya 2026](../verification/maya-2026/textures/brown_planks_03/main.png) | ![brown_planks_03, wgpu](../verification/wgpu/textures/brown_planks_03/main.png) |
 | **metal_plate** | ![metal_plate, Maya 2026](../verification/maya-2026/textures/metal_plate/main.png) | ![metal_plate, wgpu](../verification/wgpu/textures/metal_plate/main.png) |
 | **grid** | ![grid, Maya 2026](../verification/maya-2026/textures/grid/main.png) | ![grid, wgpu](../verification/wgpu/textures/grid/main.png) |
+| **synthetic** |  | ![synthetic, wgpu](../verification/wgpu/textures/synthetic/main.png) |
 
 ## Wanted, not yet captured
 
