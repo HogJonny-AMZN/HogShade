@@ -4,6 +4,7 @@
     "encoder": "ispc_texcomp"
   },
   "hogshade_version": "0.2.0",
+  "individual_outputs": true,
   "inputs": {
     "LICENSE.md": "55007f5784f8fdf0c6079c8fedf05c30ad47ed38e1a8f77c09fd4bb3cb59960a",
     "T_grid_AO.png": "3c29fa0d63ac41a59baa723842256ceb62b6cd02161882c1d198b7f1150f887b",
@@ -76,6 +77,19 @@
   ],
   "suffix_table": "hogshade-standard suffixes (Docs/standards/content.md)",
   "textures": {
+    "T_grid_AO.dds": {
+      "also_in": "T_grid_ORM.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_grid_AO.png",
+      "mips": 11,
+      "preset": "ambient_occlusion",
+      "sha256": "6a8e2eecce0c8fa69c78b86d7f10438d41a0a7c1c4cefbdd336a30c00af25a66",
+      "size": [
+        1024,
+        1024
+      ]
+    },
     "T_grid_BC.dds": {
       "bc7_profile": "basic",
       "encoder": "ispc_texcomp",
@@ -140,6 +154,19 @@
         1024
       ]
     },
+    "T_grid_M.dds": {
+      "also_in": "T_grid_ORM.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_grid_M.png",
+      "mips": 11,
+      "preset": "base_metalness",
+      "sha256": "bd240ad1fbf2aefc0cfe4067be5519235ab4f437410a207191ff095d1d0bf06c",
+      "size": [
+        1024,
+        1024
+      ]
+    },
     "T_grid_N.dds": {
       "encoder": "ispc_texcomp",
       "flipped_y": false,
@@ -175,8 +202,21 @@
         1024,
         1024
       ]
+    },
+    "T_grid_R.dds": {
+      "also_in": "T_grid_ORM.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_grid_R.png",
+      "mips": 11,
+      "preset": "specular_roughness",
+      "sha256": "12648be70931c29361f29aa0b5c8844faad861dcdb8f6e6fbc8e074741909b57",
+      "size": [
+        1024,
+        1024
+      ]
     }
   },
   "tool": "hogshade.texture_cook.cook",
-  "tool_version": "0.3.0"
+  "tool_version": "0.4.0"
 }

@@ -319,8 +319,16 @@ file), `main(parameters)` calling `cook.cook_set`. Runs without the orchestrator
   field a cook derived (the sidecar's `derived` list, whether this cook or an earlier one filled it; a field
   the author wrote is not derived), so cooking twice gives one manifest. A sidecar's derived `runtime` is the
   preset's token (`bc7`), the manifest carrying the exact DXGI format.
-- **`_AO`, `_R` and `_M` are not written as their own files**: `_ORM` is their runtime form. An `_ORM` alpha
-  carrier is declared on any of those three sidecars (`_ORM` has no source of its own).
+- **`_AO`, `_R` and `_M` are not written as their own files in the packaged form**: `_ORM` is their runtime
+  form. An `_ORM` alpha carrier is declared on any of those three sidecars (`_ORM` has no source of its own).
+  **Amended 2026-10-04 (the owner: "write all individual outputs AND then also write the packed outputs ... a default
+  setting enabled currently while in dev and testing ... turned off for a real packaged game")**: `cook_set` takes
+  `individual_outputs` (default True; `--no-individual` on the CLI, `individual=no` on the job), and with it the cook
+  also writes each packed map (`_AO`, `_R`, `_M`, an `_H` or `_O` riding in an alpha) as its own DDS beside the
+  carrier. Each such record carries `also_in` naming its carrier; the manifest records the setting
+  (`individual_outputs`). The runtime resolver (`locate`) never returns an individual copy, so every document and
+  host keeps reading the carrier; `individual_for` finds the standalone for a test, a host without packing or a
+  person looking at one channel. The carriers are byte-identical either way.
 - **The DDS writers live in `hogshade/texture_cook/dds2d.py`** beside the cube writer they share constants
   with, rather than inside `hogshade/ibl/dds.py`; `write_2d_blocks` carries the block formats.
 - **`pack` is a T1 sidecar key** now (`SIDECAR_KEYS`), validated by the cook's `check_pack`; the content check

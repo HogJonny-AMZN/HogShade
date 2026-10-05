@@ -198,6 +198,16 @@ string literals into newlines or stopped at an apostrophe, once leaving a test f
 once silently skipping a docs patch. The fix each time was the same: the same text written as a file and run.
 Not mechanised: it is the agent's tool choice, now a standing rule in the knowledge base.
 
+### 19 · A write that fails after it has already emptied the file
+
+**When you notice** a script that writes a file with a computed argument (an encoding, a `newline=`) you have not
+run before, **do** write the new content to a temporary path first and move it over, or run the script on a copy;
+and after any failed write, `git status` before the next step. Python opens a file for writing, which truncates it,
+before it validates the `newline` argument, so a bad value raises with the file already empty.
+**Because:** 2026-10-04, #62 and #67: a `Path.write_text(..., newline="\\n")` (a literal backslash and n, not a
+newline) emptied a job test and then `tests/texture_cook/test_cook.py`; each came back from git and the lost edit was
+redone. Not mechanised: it is a habit of the script author, and `git` was the safety net both times.
+
 ## How to add an entry
 
 When process fails again, append in the same PR as the fix: a trigger you would notice, the action

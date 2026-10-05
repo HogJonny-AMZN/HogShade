@@ -17,7 +17,7 @@ The comparison framework (roadmap, track E) inherits this layout as its capture 
 | --- | --- | --- |
 | `build_shaders.py` | stitch, validate and translate the WGSL core; `--check` for staleness | uv |
 | `cook_ibl.py`, `bench_cook.py` | the E1 IBL cook and its benchmarks | uv |
-| `cook_textures.py` | the T2 texture cook: an authoring set to its runtime set (`cook`), frequency separation (`separate`), `--check-setup` for the encoder | uv (`uv sync --all-extras` for the encoder) |
+| `cook_textures.py` | the T2 texture cook: an authoring set to its runtime set (`cook`; `--no-individual` for the packed-only packaged form), frequency separation (`separate`), `--check-setup` for the encoder | uv (`uv sync --all-extras` for the encoder) |
 | `check_content.py` | the content standard's check over every texture, sidecar, binding and cooked set (the CI step "Content"; `content-runtime` holds a committed `cooked/` to its manifest) | uv |
 | `fetch_polyhaven.py` | one Poly Haven texture set into an authoring set: md5-checked downloads at 2K, the suffix table's depth and channels, sidecars with provenance, `LICENSE.md` (T3) | uv, network |
 | `maya/_session.py` | what every Maya check shares: log, shader load, file-node binding, light binding, capture, quit | Maya's Python |

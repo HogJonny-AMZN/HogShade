@@ -363,6 +363,24 @@ def check_runtime(root: Path) -> list[Finding]:
                 continue
             if not rt.path.is_file():  # an LFS pointer is a file too; a missing output is not
                 out.append(Finding("content-runtime", where, f"{rt.path.name} is recorded and not under cooked/"))
+        for dds_name, entry in manifest["textures"].items():  # an individual copy names a carrier the manifest has
+            carrier = entry.get("also_in") if isinstance(entry, dict) else None
+            if carrier is None:
+                continue
+            if Path(dds_name).name != dds_name or not dds_name.endswith(".dds"):
+                # an invalid key is reported, never turned into a path to probe
+                out.append(Finding("content-runtime", where, f"texture key {dds_name!r} is not a .dds file name"))
+                continue
+            if not isinstance(carrier, str) or carrier not in manifest["textures"]:
+                out.append(
+                    Finding("content-runtime", where, f"{dds_name} is also in {carrier!r}, which no record names")
+                )
+            elif not (cooked / dds_name).is_file():
+                out.append(
+                    Finding(
+                        "content-runtime", where, f"{dds_name} is recorded as an individual copy and not under cooked/"
+                    )
+                )
         inputs = manifest.get("inputs")
         if not isinstance(inputs, dict):
             out.append(Finding("content-runtime", where, "no inputs record; cook the set again"))

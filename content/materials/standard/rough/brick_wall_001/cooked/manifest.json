@@ -4,6 +4,7 @@
     "encoder": "ispc_texcomp"
   },
   "hogshade_version": "0.2.0",
+  "individual_outputs": true,
   "inputs": {
     "LICENSE.md": "a4a9ade44d0aee5c3ae3caef934a184a01e6fdd521273674a5cecab46d68b1c3",
     "T_brick_wall_001_AO.png": "d73bfe13568c4dbab81dfffc33eb264810071bb18ba9fe0cd4dc56b4c077d3cb",
@@ -78,6 +79,19 @@
   ],
   "suffix_table": "hogshade-standard suffixes (Docs/standards/content.md)",
   "textures": {
+    "T_brick_wall_001_AO.dds": {
+      "also_in": "T_brick_wall_001_ORM.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_brick_wall_001_AO.png",
+      "mips": 12,
+      "preset": "ambient_occlusion",
+      "sha256": "156ddda82d969c9cd596d5e7529251aaa6cd007c97b3ed1e85acf011d1fb663c",
+      "size": [
+        2048,
+        2048
+      ]
+    },
     "T_brick_wall_001_BC.dds": {
       "bc7_profile": "basic",
       "encoder": "ispc_texcomp",
@@ -138,8 +152,21 @@
         2048,
         2048
       ]
+    },
+    "T_brick_wall_001_R.dds": {
+      "also_in": "T_brick_wall_001_ORM.dds",
+      "encoder": "ispc_texcomp",
+      "format": "BC4_UNORM",
+      "from": "T_brick_wall_001_R.png",
+      "mips": 12,
+      "preset": "specular_roughness",
+      "sha256": "7aea97e1a4312fffac440f822265765a928ebb94f26e2bd395b5859de27e0b0b",
+      "size": [
+        2048,
+        2048
+      ]
     }
   },
   "tool": "hogshade.texture_cook.cook",
-  "tool_version": "0.3.0"
+  "tool_version": "0.4.0"
 }

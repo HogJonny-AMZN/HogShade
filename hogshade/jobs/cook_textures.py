@@ -41,6 +41,11 @@ MANIFEST = {
             "default": "auto",
             "description": "auto (when the encoder is installed), yes (required), no",
         },
+        "individual": {
+            "type": "str",
+            "default": "yes",
+            "description": "yes (development default): each packed map also as its own DDS; no: the packed set alone",
+        },
         "bc7_profile": {"type": "str", "default": "basic", "description": "ultrafast, veryfast, fast, basic, slow"},
         "height": {
             "type": "str",
@@ -81,15 +86,17 @@ def main(parameters: dict) -> dict:
     if compress_param not in compress_values:
         _LOGGER.warning("compress=%r is not one of %s; treated as auto", compress_param, sorted(compress_values))
     compress = compress_values.get(compress_param, None)
+    individual_param = str(parameters.get("individual", "yes")).strip().lower()
+    if individual_param not in ("yes", "true", "1", "no", "false", "0"):
+        # a typo here would silently ship standalone maps in a packaged cook: refuse, as height does
+        raise CookError(f"individual={individual_param!r} is not 'yes' or 'no'")
+    individual = individual_param in ("yes", "true", "1")
     height_param = str(parameters.get("height", "keep"))
     if height_param not in ("keep", "normalise"):
         raise CookError(f"height={height_param!r} is not 'keep' or 'normalise'")
     _LOGGER.info(
-        "cook_textures job: %s compress=%s bc7=%s height=%s",
-        set_dir,
-        compress_param,
-        parameters.get("bc7_profile", "basic"),
-        parameters.get("height", "keep"),
+        f"cook_textures job: {set_dir} compress={compress_param} bc7={parameters.get('bc7_profile', 'basic')} "
+        f"height={parameters.get('height', 'keep')} individual={'yes' if individual else 'no'}"
     )
     encoder = None if compress is False else default_encoder()
     if encoder is None and compress is None:
@@ -100,6 +107,7 @@ def main(parameters: dict) -> dict:
         encoder=encoder,
         bc7_profile=str(parameters.get("bc7_profile", "basic")),
         height_normalise=height_param == "normalise",
+        individual_outputs=individual,
     )
     manifest = dict(result.manifest)
     if str(parameters.get("separate", "0")) in ("1", "true", "yes"):

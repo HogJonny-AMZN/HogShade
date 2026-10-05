@@ -364,3 +364,35 @@ def test_a_checkout_with_crlf_text_inputs_still_matches_the_manifest(corpus: Pat
         lf = p.read_bytes().replace(b"\r\n", b"\n")  # the fixture may already be CRLF (write_text on Windows)
         p.write_bytes(lf.replace(b"\n", b"\r\n"))  # what a Windows runner with autocrlf checks out
     assert _messages(corpus) == [], "line endings are not a change to a text input"
+
+
+def test_an_individual_copy_naming_a_carrier_the_manifest_lacks_is_found(corpus: Path):
+    tex = corpus / "content" / "materials" / "standard" / "rough" / "brick"
+    _png(tex / "T_brick_R.png", 64, 64)  # a map the cook packs into _ORM, so the default cook also writes it alone
+    _json(tex / "T_brick_R.texture.json", {"provenance": PROVENANCE})
+    _cook(tex)
+    assert _messages(corpus) == [], "a default cook, individual copies included, passes"
+    manifest = tex / "cooked" / "manifest.json"
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    carriers = {k: v["also_in"] for k, v in data["textures"].items() if v.get("also_in")}
+    assert carriers, "the default cook wrote individual copies"
+    victim = next(iter(carriers))
+    data["textures"][victim]["also_in"] = "T_brick_GONE.dds"
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    found = _messages(corpus)
+    assert any(f"{victim} is also in 'T_brick_GONE.dds', which no record names" in m for m in found), found
+    for malformed in (["not", "a", "name"], [], {}, 7):  # hand-edited: a finding each, never a TypeError
+        data["textures"][victim]["also_in"] = malformed
+        manifest.write_text(json.dumps(data), encoding="utf-8")
+        assert any("which no record names" in m for m in _messages(corpus)), malformed
+    _cook(tex)  # a clean cook again, then an invalid key naming an outside path is reported and never probed
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    for key in ("../../outside.dds", "C:/outside.dds", "/outside.dds"):
+        data["textures"][key] = {**data["textures"][victim], "from": "T_brick_R.png"}
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    found = _messages(corpus)
+    for key in ("../../outside.dds", "C:/outside.dds", "/outside.dds"):
+        assert any(f"texture key {key!r} is not a .dds file name" in m for m in found), (key, found)
+    _cook(tex)  # a clean cook again, then a deleted standalone
+    (tex / "cooked" / victim).unlink()
+    assert any(f"{victim} is recorded as an individual copy and not under cooked/" in m for m in _messages(corpus))
