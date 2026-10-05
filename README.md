@@ -109,7 +109,8 @@ a replacement for them.
 ## What it needs
 
 - **The inputs pinned**: one OCIO config, a light-rig description, written texture conventions,
-  MikkTSpace everywhere. Track E on the roadmap.
+  MikkTSpace everywhere. Track E on the roadmap. In Maya that is a preference, not a default: see
+  [MikkTSpace in Maya](#mikktspace-in-maya).
 - **The proof**: the comparison framework, designed before it is built, with a calibration scene,
   procedural test data (a Macbeth chart, ramps, registered grids with orientation marks) and
   per-feature tolerances.
@@ -166,7 +167,9 @@ Tested with Maya 2026 on Windows; the only supported version. Viewport 2.0 must 
 
 1. Create a `DX11 Shader` node in the Hypershade and set its **Shader File** to
    `hosts/maya_dx11/hogshade.fx` from your clone. The technique list shows `Main`.
-2. Assign it to a mesh with UVs, normals and tangents; a sphere is fine.
+2. Assign it to a mesh with UVs, normals and tangents; a sphere is fine. Turn the MikkTSpace
+   preference on first, or a normal map decodes in the wrong frame
+   ([MikkTSpace in Maya](#mikktspace-in-maya)).
 3. Pick a model in the **Shading Model** dropdown: Lambert, Legacy v1 (2015 Disney), Legacy v2 (2017).
 4. Bind a scene light into `Light 0` (each of the sixteen light groups has a Light Binding menu).
 5. For environment lighting, connect file nodes for `specularEnvTextureCube` and
@@ -178,6 +181,29 @@ Tested with Maya 2026 on Windows; the only supported version. Viewport 2.0 must 
 The scripted version of the same check, which also captures the pictures under `verification/`,
 is in [tools/README.md](tools/README.md); through the developer track it is one job on a resident
 Maya worker.
+
+### MikkTSpace in Maya
+
+The repository requires MikkTSpace tangents everywhere, and a normal map decodes correctly only in the
+tangent frame it was baked in. Maya does not generate MikkTSpace by default: it is a preference, **off
+out of the box**, and it is not the mesh's `tangentSpace` attribute (that enum only offers right and left
+handed with winding detection).
+
+- **In your own Maya**: Preferences > Settings > Modeling > Polygon Tangent Space > tick **Use MikkTSpace
+  tangents** (the optionVar `polyUseMikkTSpaceTangents`), then save the preferences. The setting is
+  yours; nothing in this repository changes it for a Maya you start yourself.
+- **In the developer track**: nothing to do. Every Maya worker the Job_Orchestrator starts sets the
+  preference at boot, from the worker's `userSetup.py` before the worker accepts a job (Job_Orchestrator
+  `maya_default_prefs`, with the plug-in `fbxmaya` loaded beside it). The worker log shows the line
+  `optionVar polyUseMikkTSpaceTangents = 1`, with a WARNING first if your user prefs had it off.
+  `JOB_ORCHESTRATOR_MAYA_DEFAULT_PREFS=0` turns that step off for a worker that must keep your prefs.
+- **How a fixture says which it was**: the tangent dump job (`hogshade.jobs.maya_mikktspace_dump`)
+  records the preference in its output as `basis` (`mikktspace` or `maya-default`), and the parity
+  test against our generator accepts only `mikktspace`. A fixture dumped from a Maya with the preference
+  off fails that test on purpose.
+
+Against Maya's MikkTSpace on the shader ball, `hogshade.mikktspace` agrees to a median of 0.000 degrees
+with the handedness exact on every corner ([the T3b spec's findings](Docs/superpowers/specs/t3b-wgpu-textures.md)).
 
 ### The legacy v2 shader
 
