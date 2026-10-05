@@ -8,6 +8,7 @@ Package: tests/texture_cook/test_cook
 from __future__ import annotations
 
 import json
+import logging
 import sys
 from pathlib import Path
 
@@ -239,3 +240,54 @@ def test_both_forms_recook_byte_identically(brick: Path):
     cook.cook_set(brick, compress=False)
     second = {p.name: p.read_bytes() for p in (brick / "cooked").iterdir() if p.name != "provenance.json"}
     assert first == second
+
+
+def test_the_off_cook_after_an_on_cook_drops_the_individual_copies_it_wrote(brick: Path, caplog):
+    cook.cook_set(brick, compress=False)
+    assert (brick / "cooked" / "T_brick_AO.dds").exists()
+    (brick / "cooked" / "T_brick_stray.dds").write_bytes(b"not ours")  # an unrecorded file is never ours to delete
+    with caplog.at_level(logging.INFO, logger=cook._MODULE_NAME):
+        m = cook.cook_set(brick, compress=False, individual_outputs=False).manifest
+    names = sorted(p.name for p in (brick / "cooked").iterdir() if p.suffix == ".dds")
+    assert names == ["T_brick_BC.dds", "T_brick_N.dds", "T_brick_ORM.dds", "T_brick_stray.dds"], names
+    assert m["individual_outputs"] is False and "individual outputs off (the packed-only form)" in caplog.text
+    assert "dropped 4 individual copy file(s) an earlier cook wrote: T_brick_AO.dds" in caplog.text
+    assert "T_brick_stray.dds" in caplog.text and "no record names" in caplog.text
+
+
+def test_an_individual_height_is_never_normalised_so_it_matches_the_carrier_alpha(brick: Path):
+    """The review: with height_normalise the standalone _H would have been rescaled while the ORM alpha was not."""
+    m = cook.cook_set(brick, compress=False, height_normalise=True).manifest
+    assert "normalised" not in m["textures"]["T_brick_H.dds"], "the copy keeps the source range"
+    orm = dds2d.read_2d(brick / "cooked" / "T_brick_ORM.dds").levels[0]
+    height = dds2d.read_2d(brick / "cooked" / "T_brick_H.dds").levels[0]
+    assert m["textures"]["T_brick_H.dds"]["format"] == "R16_UNORM", "the copy keeps the 16-bit source's precision"
+    as_8bit = np.rint(height.reshape(orm.shape[:2]).astype(np.float64) / 65535.0 * 255.0)
+    np.testing.assert_allclose(as_8bit, orm[..., 3], atol=1.0)  # the same range, quantised to the alpha's 8 bits
+
+
+@pytest.mark.parametrize("individual", [True, False])
+def test_each_form_recooks_byte_identically(brick: Path, individual: bool):
+    cook.cook_set(brick, compress=False, individual_outputs=individual)
+    first = {p.name: p.read_bytes() for p in (brick / "cooked").iterdir() if p.name != "provenance.json"}
+    cook.cook_set(brick, compress=False, individual_outputs=individual)
+    second = {p.name: p.read_bytes() for p in (brick / "cooked").iterdir() if p.name != "provenance.json"}
+    assert first == second
+
+
+def test_individual_for_finds_the_alpha_packed_maps_and_refuses_a_crafted_key(brick: Path):
+    from hogshade.material.runtime import CookedSetError, individual_for, manifest_for
+
+    cook.cook_set(brick, compress=False)
+    manifest = manifest_for(brick)
+    height = individual_for(manifest, brick, "T_brick_H.png", "height")
+    opacity = individual_for(manifest, brick, "T_brick_O.png", "geometry_opacity")
+    assert height is not None and (height.path.name, height.packed, height.parameter) == (
+        "T_brick_H.dds",
+        False,
+        "height",
+    )
+    assert opacity is not None and (opacity.path.name, opacity.channels) == ("T_brick_O.dds", "r")
+    manifest["textures"]["../../outside.dds"] = dict(manifest["textures"]["T_brick_R.dds"])
+    with pytest.raises(CookedSetError, match="is not a .dds file name under cooked"):
+        individual_for(manifest, brick, "T_brick_R.png")

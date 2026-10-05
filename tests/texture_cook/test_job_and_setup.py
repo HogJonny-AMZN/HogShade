@@ -97,3 +97,10 @@ def test_the_job_and_the_tool_turn_the_individual_maps_off_for_a_packaged_cook(b
     assert tool.main(["cook", str(brick), "--no-compress"]) == 0
     manifest = json.loads((brick / "cooked" / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["individual_outputs"] is True and manifest["textures"]["T_brick_AO.dds"]["also_in"]
+
+
+def test_the_job_refuses_an_individual_value_it_cannot_read(brick: Path):
+    """A typo must not silently ship standalone maps in a packaged cook."""
+    with pytest.raises(cook.CookError, match="individual='nope' is not 'yes' or 'no'"):
+        job.main({"set_dir": str(brick), "compress": "no", "individual": "nope"})
+    assert not (brick / "cooked").exists() or not any((brick / "cooked").glob("*.dds")), "nothing was cooked"

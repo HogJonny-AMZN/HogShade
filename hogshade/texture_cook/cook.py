@@ -419,12 +419,16 @@ def _cook_normal(oven: _Oven, s: Source) -> None:
     _finish(oven, out_path, entry, len(levels))
 
 
-def _cook_height(oven: _Oven, s: Source) -> None:
-    """``_H`` at the source's precision; BC4 only for an 8-bit source with an encoder; normalised when asked."""
+def _cook_height(oven: _Oven, s: Source, normalise: bool | None = None) -> None:
+    """
+    ``_H`` at the source's precision; BC4 only for an 8-bit source with an encoder; normalised when asked
+    (``normalise`` None follows the cook's setting; an individual copy of a packed height passes False so it matches
+    the carrier's alpha, which is never normalised).
+    """
     out_path = oven.out_dir / f"{s.stem}.dds"
     entry = _entry(s)
     h = height_mod.from_array(s.samples)
-    if oven.height_normalise:
+    if oven.height_normalise if normalise is None else normalise:
         h, rng = height_mod.normalise(h)
         if rng:
             entry["normalised"] = rng
@@ -499,9 +503,12 @@ def _cook_individuals(oven: _Oven) -> None:
         carrier = oven.carrier_of.get(s.stem)
         if carrier is None:
             continue
-        (_cook_height if s.suffix == "_H" else _cook_single)(oven, s)
+        if s.suffix == "_H":
+            _cook_height(oven, s, normalise=False)  # the carrier's alpha is the source's range: so is the copy
+        else:
+            _cook_single(oven, s)
         oven.textures[f"{s.stem}.dds"]["also_in"] = carrier
-        _LOGGER.info("%s.dds: %s on its own, also in %s", s.stem, s.path.name, carrier)
+        _LOGGER.info(f"{s.stem}.dds also in {carrier}: the individual copy of {s.path.name}")
 
 
 def _sidecar_fill(s: Source) -> tuple[dict[str, Any], list[str]]:
@@ -524,6 +531,38 @@ def _sidecar_fill(s: Source) -> tuple[dict[str, Any], list[str]]:
     if filled:
         data["derived"] = sorted(set(data.get("derived", [])) | set(filled))
     return data, filled
+
+
+def _drop_stale_individuals(out_dir: Path, textures: dict[str, Any]) -> list[str]:
+    """
+    The individual copies an earlier cook wrote (the earlier manifest's ``also_in`` records) that this cook did not
+    write again, deleted and logged: switching ``individual_outputs`` off must leave the packed-only form, not a
+    packed set with last week's standalone files beside it. Only files the cook itself recorded as individual copies
+    are touched; any other unrecorded ``.dds`` is still only warned about.
+    """
+    manifest_path = out_dir / MANIFEST_NAME
+    if not manifest_path.is_file():
+        return []
+    try:
+        previous = json.loads(manifest_path.read_text(encoding="utf-8")).get("textures", {})
+    except (UnicodeDecodeError, json.JSONDecodeError, AttributeError):
+        return []  # _keep_separation reports an unreadable manifest
+    dropped: list[str] = []
+    for name, record in sorted(previous.items() if isinstance(previous, dict) else []):
+        if not (isinstance(record, dict) and record.get("also_in")) or name in textures:
+            continue
+        if Path(name).name != name or not name.endswith(".dds"):
+            continue  # a crafted key is never a path to delete
+        path = out_dir / name
+        if path.is_file():
+            path.unlink()
+            dropped.append(name)
+    if dropped:
+        _LOGGER.info(
+            f"individual_outputs is off: dropped {len(dropped)} individual copy file(s) an earlier cook wrote: "
+            f"{', '.join(dropped)}"
+        )
+    return dropped
 
 
 def _keep_separation(out_dir: Path, textures: dict[str, Any]) -> dict[str, Any] | None:
@@ -598,11 +637,9 @@ def cook_set(
     out_dir = set_dir / COOKED_DIR
     out_dir.mkdir(exist_ok=True)
     _LOGGER.info(
-        "cooking %s: %d source(s), encoder %s, bc7 profile %s",
-        set_dir.name,
-        len(sources),
-        encoder.name if encoder else "none (uncompressed)",
-        bc7_profile,
+        f"cooking {set_dir.name}: {len(sources)} source(s), "
+        f"encoder {encoder.name if encoder else 'none (uncompressed)'}, bc7 profile {bc7_profile}, "
+        f"individual outputs {'on' if individual_outputs else 'off (the packed-only form)'}"
     )
     oven = _Oven(sources, out_dir, encoder, bc7_profile, height_normalise, individual_outputs)
     # the sidecars as they will be written, hashed now so the manifest is one whether this cook fills them or not
@@ -643,6 +680,7 @@ def cook_set(
             oven.written.append(s.sidecar_path)
             _LOGGER.info("wrote %s: derived %s", s.sidecar_path.name, ", ".join(filled))
         derived.extend(f"{s.sidecar_path.name}:{k}" for k in data.get("derived", []))
+    _drop_stale_individuals(out_dir, oven.textures)
     separations = _keep_separation(out_dir, oven.textures)
     manifest = {
         "tool": _MODULE_NAME,

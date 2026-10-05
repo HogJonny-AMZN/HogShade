@@ -380,4 +380,10 @@ def test_an_individual_copy_naming_a_carrier_the_manifest_lacks_is_found(corpus:
     data["textures"][victim]["also_in"] = "T_brick_GONE.dds"
     manifest.write_text(json.dumps(data), encoding="utf-8")
     found = _messages(corpus)
-    assert any(f"{victim} is also in T_brick_GONE.dds, which no record names" in m for m in found), found
+    assert any(f"{victim} is also in 'T_brick_GONE.dds', which no record names" in m for m in found), found
+    data["textures"][victim]["also_in"] = ["not", "a", "name"]  # hand-edited: unhashable, a finding not a TypeError
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    assert any("which no record names" in m for m in _messages(corpus))
+    _cook(tex)  # a clean cook again, then a deleted standalone
+    (tex / "cooked" / victim).unlink()
+    assert any(f"{victim} is recorded as an individual copy and not under cooked/" in m for m in _messages(corpus))

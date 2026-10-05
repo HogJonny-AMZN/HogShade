@@ -104,6 +104,17 @@ def _channel_in_packed(entry: dict[str, Any], suffix: str, source: str) -> str |
     return None
 
 
+def _check_keys(manifest: dict[str, Any], set_dir: Path) -> None:
+    """Every texture key is a ``.dds`` file name under ``cooked/``: a crafted key must not escape it or hide behind
+    an earlier match. ``CookedSetError`` otherwise."""
+    for dds_name in manifest["textures"]:
+        if Path(dds_name).name != dds_name or not dds_name.endswith(".dds") or dds_name.startswith("."):
+            raise CookedSetError(
+                f"{set_dir}/{COOKED_DIR}/{MANIFEST_NAME}: texture key {dds_name!r} is not a .dds file name under "
+                f"{COOKED_DIR}/; the manifest is not the cook's. Cook the set again ({COOK_COMMAND})"
+            )
+
+
 def locate(manifest: dict[str, Any], set_dir: Path, source_name: str, parameter: str = "") -> RuntimeTexture:
     """
     Where the authoring file ``source_name`` of the set lives at runtime, from the manifest: its own DDS, a
@@ -113,12 +124,7 @@ def locate(manifest: dict[str, Any], set_dir: Path, source_name: str, parameter:
     if name is None or not name.known:
         raise CookedSetError(f"{source_name}: not a texture of this repository (T_<base>_<SUFFIX>[_<variant>])")
     cooked = Path(set_dir) / COOKED_DIR
-    for dds_name in manifest["textures"]:  # every key first: a crafted key must not hide behind an earlier match
-        if Path(dds_name).name != dds_name or not dds_name.endswith(".dds") or dds_name.startswith("."):
-            raise CookedSetError(
-                f"{set_dir}/{COOKED_DIR}/{MANIFEST_NAME}: texture key {dds_name!r} is not a .dds file name under "
-                f"{COOKED_DIR}/; the manifest is not the cook's. Cook the set again ({COOK_COMMAND})"
-            )
+    _check_keys(manifest, set_dir)
     for dds_name, entry in manifest["textures"].items():
         if not isinstance(entry, dict) or entry.get("also_in"):
             continue  # an individual copy of a packed map (individual_outputs) is never the runtime form
@@ -140,7 +146,9 @@ def locate(manifest: dict[str, Any], set_dir: Path, source_name: str, parameter:
     )
 
 
-def individual_for(manifest: dict[str, Any], set_dir: Path, source_name: str) -> RuntimeTexture | None:
+def individual_for(
+    manifest: dict[str, Any], set_dir: Path, source_name: str, parameter: str = ""
+) -> RuntimeTexture | None:
     """
     The map ``source_name`` as its own DDS when the cook wrote one beside its carrier (``individual_outputs``, the
     development default), else None. For a test, a host without packing or a person looking at one channel; a
@@ -149,11 +157,17 @@ def individual_for(manifest: dict[str, Any], set_dir: Path, source_name: str) ->
     name = parse_name(Path(source_name).stem)
     if name is None or not name.known:
         raise CookedSetError(f"{source_name}: not a texture of this repository (T_<base>_<SUFFIX>[_<variant>])")
+    _check_keys(manifest, set_dir)
     for dds_name, entry in manifest["textures"].items():
         if isinstance(entry, dict) and entry.get("also_in") and source_name in _sources_of(entry):
             channels = OWN_CHANNELS[SUFFIXES[name.suffix].runtime]
             return RuntimeTexture(
-                "", source_name, Path(set_dir) / COOKED_DIR / dds_name, channels, str(entry.get("format", "")), False
+                parameter,
+                source_name,
+                Path(set_dir) / COOKED_DIR / dds_name,
+                channels,
+                str(entry.get("format", "")),
+                False,
             )
     return None
 
