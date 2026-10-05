@@ -102,7 +102,17 @@ gives the same bytes, and `check_content.py` gains nothing new because the set o
   percent and the colour patches to 60; the roughness view, a function of U alone, rightly stays at 98. With a normal
   channel flipped, 0 percent of the texels that lean that way match, against 66 (green) and 85 (red) as authored. The
   first draft of the normal check had no such control and could not have told the conventions apart (most samples
-  were flat texels); it now asserts the contrast.
+  were flat texels); it now asserts the contrast, and the V-flip control is a test
+  (`test_the_probe_fails_when_the_expectation_has_v_flipped`), not a one-off run.
+- **An unexplained residual, said plainly**: the green samples (122, all in one quadrant) match as authored 66 percent
+  at a tolerance of 0.1, median error 0.03 with a tail past it; splitting by viewing angle (the red channel is flat
+  across it) and by the tangent's handedness explained none of it. The test's floor (0.55) is a guard against a gross
+  break; the proof is the flipped control. A cleaner ball (the board's shader-ball variant) is the way to look closer.
+- **The legend strip bounds the size**: at 64 the strip is 4 rows and a glyph is 7, so no label is legible; the
+  smallest size is 128 (8 rows) and a label is fitted to the width and cut with a dot where it cannot fit (the local
+  review). The generator also validates the size before it creates the directory.
+- **The host probe reads the camera's planes from `wgpu_host`** (`NEAR_PLANE`, `FAR_PLANE`, `linear_depth`) and the
+  mesh's columns by name (`COL_UV`, `COL_TANGENT`, ...), not as copies in the test.
 - **No `known.json`**: the content standard allows only textures, sidecars and the licence in a set, and the file
   was redundant, so `known_points()` computes the same list in memory.
 - **No GPU read of the cavity or the height**: the cavity is thin lines (no flat window at the filter footprint) and

@@ -35,10 +35,10 @@ Spec: [../specs/t4-procedural-set.md](../specs/t4-procedural-set.md).
 
 | Task | Ran |
 | --- | --- |
-| 1 | `tests/testdata/test_synthetic.py` (13): suffix coverage and the variant; determinism and the files reading back as the arrays; the sidecars; unsupported sizes; every strip labelled; the contact sheet; the arrows' orientation; the named points against values worked out by hand |
+| 1 | `tests/testdata/test_synthetic.py` (15): suffix coverage and the variant; determinism and the files reading back as the arrays; the sidecars; unsupported sizes and no directory left behind; the legend fitted at every size and cut with a dot; a wrong-dtype draw refused; every strip labelled; the contact sheet; the arrows' orientation; the named points against values worked out by hand |
 | 2 | `tools/check_content.py` clean on 45 source textures; the manifest's 16 records (the carriers, the individual `_AO`, `_R`, `_M` and `_O`) |
 | 3 | the cook round trip, the document and the committed-set resolution tests in the same file |
-| 4 | five GPU tests on the owner's machine: four parametrised map views (98 to 100 percent agreement), the normal conventions (as authored 66 and 85 percent, flipped 0); the flipped-V control run once, by hand: metalness under 1 percent, colour 60 |
+| 4 | seven GPU tests on the owner's machine: four parametrised map views (98 to 100 percent agreement), the normal conventions (as authored 66 and 85 percent, flipped 0), and the flipped-V control for metalness and colour as tests (under 1 percent and 60 in the first measurement) |
 | 5 | `generate_gallery.py --check` clean; the matrix row rendered |
 | 6 | `check_docs.py` clean |
 

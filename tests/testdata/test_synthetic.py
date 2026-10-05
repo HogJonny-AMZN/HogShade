@@ -8,13 +8,12 @@ Package: tests/testdata/test_synthetic
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-from hogshade.material.runtime import individual_for, locate, manifest_for, runtime_textures
+from hogshade.material.runtime import individual_for, input_digest, locate, manifest_for, runtime_textures
 from hogshade.material.sets import document_for_set
 from hogshade.material.textures import SUFFIXES
 from hogshade.testdata import synthetic
@@ -74,13 +73,40 @@ def test_the_sidecars_carry_provenance_the_normal_convention_and_the_cutout_pack
 
 
 def test_a_size_the_layout_does_not_support_is_refused(tmp_path: Path):
-    for size in (32, 100, 4096):
-        with pytest.raises(synthetic.SyntheticError, match="power of two between 64 and 2048"):
+    for size in (32, 64, 100, 4096):
+        with pytest.raises(synthetic.SyntheticError, match="power of two between 128 and 2048"):
             synthetic.render_map("_R", None, size)
+    with pytest.raises(synthetic.SyntheticError, match="power of two"):
+        synthetic.generate(tmp_path / "never", 100)
+    assert not (tmp_path / "never").exists(), "a refused size leaves no directory behind"
     small = synthetic.render_map("_R", None, 128)
     assert small.shape == (128, 128) and small.dtype == np.uint8
     with pytest.raises(synthetic.SyntheticError, match="no _ZZ"):
         synthetic.spec_for("_ZZ")
+
+
+def test_the_legend_fits_the_strip_at_every_size_and_is_cut_with_a_dot_where_it_cannot():
+    from hogshade.bitmap_font import text_width
+
+    widest = max(synthetic.SPECS, key=lambda s: len(synthetic.legend_label(s, 2048)))
+    assert synthetic.legend_label(widest, N) == "_AX specular_anisotropy", "the longest label is whole at 512"
+    for size in (128, 256, 512, 1024, 2048):
+        for spec in synthetic.SPECS:
+            label = synthetic.legend_label(spec, size)
+            scale = max(1, round(2 * size / 512))
+            assert text_width(label, scale) <= size - 2 * max(1, round(8 * size / 512)), (size, label)
+    assert synthetic.legend_label(widest, 128).endswith("."), "cut, never silently clipped"
+    strip = 128 // synthetic.STRIP_DIV
+    img = synthetic.render_map("_AX", None, 128)
+    assert img[128 - strip :].max() == 255, "the label's ink is inside the strip at the smallest size"
+
+
+def test_a_draw_function_returning_the_wrong_dtype_is_refused(monkeypatch):
+    wrong = lambda f: np.zeros((f.size, f.size))
+    bad = synthetic.MapSpec("_R", "bad", "specular_roughness", wrong, "gray8", 0, 255, {})
+    monkeypatch.setattr(synthetic, "SPECS", (*synthetic.SPECS, bad))
+    with pytest.raises(synthetic.SyntheticError, match="draw returned float64 rank 2; the gray8 kind is"):
+        synthetic.render_map("_R", "bad")
 
 
 def test_every_map_names_itself_in_a_legend_strip():
@@ -220,10 +246,9 @@ def test_a_document_binds_every_map_of_the_set_and_the_variant_binds_the_colour_
     doc = document_for_set(authoring)
     assert set(doc.values) == {s.parameter for s in synthetic.SPECS if s.variant is None}
     assert len(doc.values) == len(SUFFIXES)
-    blue = document_for_set(authoring, VARIANT := synthetic.VARIANT)
-    assert set(blue.values) == {"base_color"} and blue.values["base_color"]["texture"] == "T_synthetic_BC_blue.png", (
-        VARIANT
-    )
+    blue = document_for_set(authoring, synthetic.VARIANT)
+    assert set(blue.values) == {"base_color"}
+    assert blue.values["base_color"]["texture"] == "T_synthetic_BC_blue.png"
 
 
 needs_cooked = pytest.mark.skipif(
@@ -252,10 +277,16 @@ def test_the_committed_set_resolves_every_parameter_to_its_carrier_or_its_own_fi
 
 
 @needs_cooked
-def test_the_committed_cook_matches_a_fresh_cook_of_the_committed_authoring_files(tmp_path: Path):
-    """The set under content is the generator's output, cooked: regenerate it and the PNGs are the same bytes."""
+def test_the_committed_png_are_the_generators_output_and_the_cook_is_of_those_png(tmp_path: Path):
+    """
+    Two links in one chain: the PNGs under content are what the generator writes now (so the host tests' expectations,
+    drawn by ``render_map``, are what the committed DDS were cooked from) and the manifest's recorded hash of each is
+    the hash of the file on disk (so the cook is of those files, not of an earlier generation).
+    """
     again = tmp_path / "synthetic"
     synthetic.generate(again)
+    manifest = manifest_for(SET)
     for spec in synthetic.SPECS:
-        assert (SET / f"{spec.stem}.png").read_bytes() == (again / f"{spec.stem}.png").read_bytes(), spec.stem
-    shutil.rmtree(again)
+        committed = SET / f"{spec.stem}.png"
+        assert committed.read_bytes() == (again / f"{spec.stem}.png").read_bytes(), spec.stem
+        assert manifest["inputs"][committed.name] == input_digest(committed), f"{spec.stem}: cooked from other bytes"

@@ -365,7 +365,8 @@ def test_a_block_compressed_set_without_the_feature_is_refused_by_name() -> None
 # ----------------------------------------------------------------------------- T4 tier 1: the synthetic set on the host
 
 SYNTHETIC = wgpu_host.ROOT / "content" / "textures" / "synthetic"
-PROBE = 512
+PROBE = 512  # the render's side, in screen pixels
+MAP = 512  # the synthetic maps' side, in texels (``hogshade.testdata.synthetic.SIZE``)
 
 
 @pytest.fixture(scope="module")
@@ -390,16 +391,17 @@ def _probe(renderer, synthetic_scene, mode: int):
     """
     A render of the synthetic set in debug view ``mode`` and the mesh vertices that are *seen* in it: each vertex
     projected through the scene's camera, kept when its depth matches the depth buffer (so nothing hidden), it faces
-    the camera, sits on the equator band and is off a UV tile seam; one per pixel. Returns ``(frames, vertex rows,
-    pixel columns, pixel rows, uv)``. At such a pixel the texture coordinate is the vertex's, so the value the host
-    drew can be compared with the map at that coordinate.
+    the camera, is away from the poles (``|normal.y| < 0.7``) and is off a UV tile seam; one per pixel. Returns
+    ``(frames, vertex rows, pixel columns, pixel rows, uv)``. At such a pixel the texture coordinate is the
+    vertex's, so the value the host drew can be compared with the map at that coordinate.
     """
     binding, textures = synthetic_scene
     scene = wgpu_host.Scene(width=PROBE, height=PROBE, material=binding, textures=textures, debug_mode=mode)
     frames = renderer.render(scene)
+    assert frames.depth is not None and frames.depth.shape == frames.covered.shape, "the render carries its depth"
     verts = renderer.mesh.vertices
-    pos = verts[:, :3].astype(np.float64)
-    nrm, uv = verts[:, 3:6], verts[:, 6:8]
+    pos = verts[:, wgpu_host.COL_POSITION].astype(np.float64)
+    nrm, uv = verts[:, wgpu_host.COL_NORMAL], verts[:, wgpu_host.COL_UV]
     vp, eye = scene.view_proj()
     clip = np.concatenate([pos, np.ones((len(pos), 1))], axis=1) @ vp.T
     ndc = clip[:, :3] / clip[:, 3:4]
@@ -408,12 +410,8 @@ def _probe(renderer, synthetic_scene, mode: int):
     to_eye = eye - pos
     dist = np.linalg.norm(to_eye, axis=1)
     inside = (col >= 0) & (col < PROBE) & (row >= 0) & (row < PROBE)
-    near, far = 0.1, 50.0
-
-    def linear(d):
-        return near * far / (far - d * (far - near))
-
-    seen = np.abs(linear(ndc[:, 2]) - linear(frames.depth[np.clip(row, 0, PROBE - 1), np.clip(col, 0, PROBE - 1)]))
+    buffer = frames.depth[np.clip(row, 0, PROBE - 1), np.clip(col, 0, PROBE - 1)]
+    seen = np.abs(wgpu_host.linear_depth(ndc[:, 2]) - wgpu_host.linear_depth(buffer))
     facing = np.einsum("ij,ij->i", nrm, to_eye) / dist
     frac = uv % 1.0
     keep = (
@@ -431,8 +429,8 @@ def _probe(renderer, synthetic_scene, mode: int):
 
 def _texels(uv):
     """The ``(col, row)`` of the 512 map each texture coordinate lands in (repeat wrap, V up)."""
-    c = np.minimum(((uv[:, 0] % 1.0) * PROBE).astype(int), PROBE - 1)
-    r = np.minimum(((1.0 - uv[:, 1] % 1.0) * PROBE).astype(int), PROBE - 1)
+    c = np.minimum(((uv[:, 0] % 1.0) * MAP).astype(int), MAP - 1)
+    r = np.minimum(((1.0 - uv[:, 1] % 1.0) * MAP).astype(int), MAP - 1)
     return c, r
 
 
@@ -464,7 +462,7 @@ def test_the_host_draws_the_synthetic_maps_where_their_texture_coordinates_say(
 
     frames, _idx, pc, pr, uv = _probe(renderer, synthetic_scene, mode)
     tc, tr = _texels(uv)
-    image = synthetic.render_map(suffix, None, PROBE)
+    image = synthetic.render_map(suffix, None, MAP)
     flat = _flat_around(image, tc, tr, spread)
     assert flat.sum() >= 150, f"{suffix}: only {int(flat.sum())} probe pixels sit on a flat part of the map"
     texel = image[tr[flat], tc[flat]].astype(np.float64) / 255.0
@@ -474,6 +472,30 @@ def test_the_host_draws_the_synthetic_maps_where_their_texture_coordinates_say(
     assert close.mean() >= 0.95, f"{suffix}: {close.mean():.1%} of {int(flat.sum())} probe pixels match"
 
 
+@pytest.mark.parametrize(("mode", "suffix", "gray"), [(7, "_M", True), (1, "_BC", False)], ids=["metalness", "colour"])
+def test_the_probe_fails_when_the_expectation_has_v_flipped(renderer, synthetic_scene, mode, suffix, gray) -> None:
+    """
+    The control that makes the probe worth trusting: read the same views with V flipped in the expectation and the
+    agreement collapses (metalness under 1 percent, the colour patches about 60 in the first measurement). The
+    roughness view, a function of U alone, is rightly not asked.
+    """
+    from hogshade.testdata import synthetic
+    from hogshade.texture_cook.colour import srgb_to_linear
+
+    frames, _idx, pc, pr, uv = _probe(renderer, synthetic_scene, mode)
+    tc, _tr = _texels(uv)
+    flipped_rows = np.minimum(((uv[:, 1] % 1.0) * MAP).astype(int), MAP - 1)  # V up taken as the row index: wrong
+    image = synthetic.render_map(suffix, None, MAP)
+    flat = _flat_around(image, tc, flipped_rows, 0)
+    assert flat.sum() >= 50, f"{suffix}: only {int(flat.sum())} probe pixels sit on a flat part of the map"
+    texel = image[flipped_rows[flat], tc[flat]].astype(np.float64) / 255.0
+    want = srgb_to_linear(texel) if not gray else np.repeat(texel[:, None], 3, axis=1)
+    close = np.abs(frames.forward[pr[flat], pc[flat]] - want).max(axis=1) < 0.05
+    assert close.mean() < 0.8, (
+        f"{suffix}: the flipped expectation still matches {close.mean():.1%}: the probe is blind to V"
+    )
+
+
 def test_the_normal_maps_green_and_red_channels_tilt_the_shading_normal_the_authored_way(
     renderer, synthetic_scene
 ) -> None:
@@ -481,21 +503,24 @@ def test_the_normal_maps_green_and_red_channels_tilt_the_shading_normal_the_auth
     The T3b finding made a test (the conventions were eyeballed on the brick): through the mesh's MikkTSpace frame
     the texel's tangent-space normal gives the world shading normal the host shows in view 11. On the texels that
     lean in V (green) and in U (red) the authored reading matches the render and the channel-flipped reading matches
-    nowhere, so the instrument can tell the conventions apart.
+    nowhere, so the instrument can tell the conventions apart. The 0.55 floor sits under the measured 66 percent
+    (green) and 85 percent (red): the rest is a residual of a median 0.03 with a tail past 0.1 that no viewing-angle
+    or handedness split explained (the red channel is flat across angle; the green samples are all one quadrant), so
+    the floor is a guard against a gross break and the flipped control is what carries the proof.
     """
     from hogshade.testdata import synthetic
 
     frames, idx, pc, pr, uv = _probe(renderer, synthetic_scene, 11)
     tc, tr = _texels(uv)
-    image = synthetic.render_map("_N", None, PROBE)
+    image = synthetic.render_map("_N", None, MAP)
     flat = _flat_around(image, tc, tr, 2)
     verts = renderer.mesh.vertices[idx][flat]
-    n = verts[:, 3:6].astype(np.float64)
+    n = verts[:, wgpu_host.COL_NORMAL].astype(np.float64)
     n /= np.linalg.norm(n, axis=1, keepdims=True)
-    tangent = verts[:, 8:11].astype(np.float64)
+    tangent = verts[:, wgpu_host.COL_TANGENT].astype(np.float64)
     t = tangent - n * (n * tangent).sum(1, keepdims=True)
     t /= np.linalg.norm(t, axis=1, keepdims=True)
-    b = np.cross(n, t) * verts[:, 11:12].astype(np.float64)
+    b = np.cross(n, t) * verts[:, wgpu_host.COL_TANGENT_SIGN : wgpu_host.COL_TANGENT_SIGN + 1].astype(np.float64)
     rg = image[tr[flat], tc[flat]][:, :2].astype(np.float64) / 255.0 * 2.0 - 1.0
     ts = np.stack([rg[:, 0], rg[:, 1], np.sqrt(np.clip(1.0 - (rg**2).sum(1), 0.0, 1.0))], axis=1)
     got = frames.forward[pr[flat], pc[flat]] * 2.0 - 1.0

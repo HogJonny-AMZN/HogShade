@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import logging as _logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -30,7 +31,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-from hogshade.bitmap_font import ADVANCE, draw_text, glyph
+from hogshade.bitmap_font import draw_text, fit, glyph
 from hogshade.texture_cook import png
 
 _MODULE_NAME = "hogshade.testdata.synthetic"
@@ -89,9 +90,9 @@ class Frame:
 
 
 def frame(size: int = SIZE) -> Frame:
-    """The grid for a ``size x size`` map; ``size`` is a power of two between 64 and 2048."""
-    if size < 64 or size > 2048 or size & (size - 1):
-        raise SyntheticError(f"size {size} is not a power of two between 64 and 2048")
+    """The grid for a ``size x size`` map: a power of two from 128 (where the legend strip is 8 rows) to 2048."""
+    if size < 128 or size > 2048 or size & (size - 1):
+        raise SyntheticError(f"size {size} is not a power of two between 128 and 2048")
     strip = size // STRIP_DIV
     col = np.arange(size)[None, :].repeat(size, axis=0)
     row = np.arange(size)[:, None].repeat(size, axis=1)
@@ -282,10 +283,10 @@ class MapSpec:
     suffix: str
     variant: str | None
     parameter: str
-    draw: Any
-    kind: str  # rgb8, gray8 or gray16
-    strip_fill: Any
-    strip_ink: Any
+    draw: Callable[[Frame], NDArray]
+    kind: str  # rgb8, gray8 or gray16: the dtype and rank ``draw`` must return, checked by ``render_map``
+    strip_fill: int | tuple[int, int, int]
+    strip_ink: int | tuple[int, int, int]
     sidecar: dict[str, Any]
 
     @property
@@ -322,67 +323,73 @@ def spec_for(suffix: str, variant: str | None = None) -> MapSpec:
     raise SyntheticError(f"the synthetic set has no {suffix}{'_' + variant if variant else ''}")
 
 
+_KINDS: dict[str, tuple[Any, int]] = {"rgb8": (np.uint8, 3), "gray8": (np.uint8, 2), "gray16": (np.uint16, 2)}
+
+
+def legend_label(spec: MapSpec, size: int = SIZE) -> str:
+    """The text of a map's legend strip: ``<suffix> <parameter>``, cut with a dot where it would not fit the width."""
+    f = frame(size)
+    full = f"{spec.suffix}{'_' + spec.variant if spec.variant else ''} {spec.parameter}"
+    return fit(full, size - 2 * f.px(8), max(1, f.px(2)))
+
+
 def render_map(suffix: str, variant: str | None = None, size: int = SIZE) -> NDArray:
     """One map as an array: ``(size, size, 3)`` uint8 for colour, ``(size, size)`` uint8 or uint16 for the rest."""
     f = frame(size)
     spec = spec_for(suffix, variant)
     img = spec.draw(f)
+    dtype, rank = _KINDS[spec.kind]
+    if img.dtype != dtype or img.ndim != rank:
+        raise SyntheticError(
+            f"{spec.stem}: draw returned {img.dtype} rank {img.ndim}; the {spec.kind} kind is "
+            f"{np.dtype(dtype).name} rank {rank}"
+        )
     strip = f.in_strip
     img[strip] = spec.strip_fill
-    label = f"{spec.suffix}{'_' + spec.variant if spec.variant else ''} {spec.parameter}"
     canvas = np.zeros((size, size, 3), dtype=np.float32)
     scale = max(1, f.px(2))
-    draw_text(canvas, label, f.px(8), size - f.strip + (f.strip - 7 * scale) // 2, scale)
+    draw_text(canvas, legend_label(spec, size), f.px(8), size - f.strip + (f.strip - 7 * scale) // 2, scale)
     ink = canvas[..., 0] > 0.5
     img[ink & strip] = spec.strip_ink
     return img
 
 
-def _text_width(label: str, scale: int) -> int:
-    return len(label) * ADVANCE * scale
-
-
 def known_points(size: int = SIZE) -> list[dict[str, Any]]:
     """
     The named semantic points of every map with the pixel and the value the generator put there. A point sits at the
-    centre of a feature (a band, a patch, a quadrant, a checker block, a ramp position) so filtering and block
-    compression do not reach it; ``value`` is in the authoring encoding (8-bit, or 16-bit for the height).
+    centre of a feature (a band, a patch, a quadrant, a checker block, a ramp position), well inside it, so a block
+    compressor's error at an edge does not reach it (the host tests read the compressed set within tolerances; the
+    cook tests read an uncompressed one exactly); ``value`` is in the authoring encoding (8-bit, or 16-bit for the
+    height).
     """
     f = frame(size)
     maps = {(s.suffix, s.variant): render_map(s.suffix, s.variant, size) for s in SPECS}
 
-    def at(suffix: str, name: str, u: float, v: float, variant: str | None = None) -> dict[str, Any]:
-        col, row = f.pixel_of(u, v)
+    def at_pixel(suffix: str, name: str, col: int, row: int, variant: str | None = None, v: float | None = None):
         value = maps[(suffix, variant)][row, col]
         return {
             "map": suffix,
             "variant": variant,
             "name": name,
-            "u": u,
+            "u": (col + 0.5) / size,
             "v": v,
             "col": col,
             "row": row,
             "value": [int(x) for x in np.atleast_1d(value)],
         }
 
+    def at(suffix: str, name: str, u: float, v: float, variant: str | None = None) -> dict[str, Any]:
+        col, row = f.pixel_of(u, v)
+        point = at_pixel(suffix, name, col, row, variant, v)
+        point["u"] = u
+        return point
+
     pts: list[dict[str, Any]] = []
     for name, ((pu, pv), _rgb) in PATCHES.items():
         pts.append(at("_BC", f"patch {name}", pu, pv))
         pts.append(at("_BC", f"patch {name}", pu, pv, VARIANT))
     for label, (tail, tip, _rgb) in _arrows(f).items():
-        mid_col, mid_row = (tail[0] + tip[0]) // 2, (tail[1] + tip[1]) // 2
-        pts.append(
-            {
-                "map": "_BC",
-                "variant": None,
-                "name": f"arrow +{label}",
-                "u": (mid_col + 0.5) / size,
-                "v": None,
-                "col": mid_col,
-                "row": mid_row,
-                "value": [int(x) for x in maps[("_BC", None)][mid_row, mid_col]],
-            }
-        )
+        pts.append(at_pixel("_BC", f"arrow +{label}", (tail[0] + tip[0]) // 2, (tail[1] + tip[1]) // 2))
     for name, (u, v) in {
         "flat (top left)": (0.25, 0.75),
         "leans +U (top right)": (0.75, 0.75),
@@ -393,19 +400,7 @@ def known_points(size: int = SIZE) -> list[dict[str, Any]]:
     cx, cy = _content_centre(f)
     radius = 0.1 * size
     for name, (dx, dy) in {"bump, half way toward +U": (0.5, 0.0), "bump, half way toward +V": (0.0, 0.5)}.items():
-        col, row = int(cx + dx * radius), int(cy - dy * radius)
-        pts.append(
-            {
-                "map": "_N",
-                "variant": None,
-                "name": name,
-                "u": (col + 0.5) / size,
-                "v": None,
-                "col": col,
-                "row": row,
-                "value": [int(x) for x in maps[("_N", None)][row, col]],
-            }
-        )
+        pts.append(at_pixel("_N", name, int(cx + dx * radius), int(cy - dy * radius)))
     for band in range(ROUGHNESS_BANDS):
         pts.append(at("_R", f"band {band} of {ROUGHNESS_BANDS}", (band + 0.5) / ROUGHNESS_BANDS, 0.5))
     block = f.px(CHECKER_BLOCK) / size
@@ -432,18 +427,7 @@ def known_points(size: int = SIZE) -> list[dict[str, Any]]:
         "inside the stem of the E": (gx + scale // 2, gy + 3 * scale),
         "outside the E": (gx // 2, gy + 3 * scale),
     }.items():
-        pts.append(
-            {
-                "map": "_E",
-                "variant": None,
-                "name": name,
-                "u": (col + 0.5) / size,
-                "v": None,
-                "col": col,
-                "row": row,
-                "value": [int(x) for x in maps[("_E", None)][row, col]],
-            }
-        )
+        pts.append(at_pixel("_E", name, col, row))
     return pts
 
 
@@ -470,13 +454,13 @@ def _dump(data: dict[str, Any]) -> str:
     return json.dumps(data, indent=2, sort_keys=True) + "\n"
 
 
-LICENCE = """# synthetic
+LICENCE = f"""# synthetic
 
 - **Source:** generated by `tools/gen_synthetic_textures.py` (`hogshade.testdata.synthetic`) from numbers; no
   photograph, no scan, no model
 - **Author:** the repository (provenance `author`)
 - **Licence:** this repository's licence applies
-- **Generated:** 2026-10-04
+- **Generated:** {TODAY}
 - **Role in HogShade:** T4 tier 1: a map for every suffix the content standard names, a known value at every texel,
   the ground truth the generated, local and baked tiers are compared against. An instrument, not a material and not
   a tile (the bottom strip names each map).
@@ -490,7 +474,17 @@ def generate(set_dir: Path, size: int = SIZE) -> list[Path]:
     Write the set into ``set_dir``: every map as a PNG with its sidecar, and ``LICENSE.md``. Returns
     the files written. Nothing under ``cooked/`` is touched. Deterministic: the same ``size`` writes the same bytes.
     """
+    frame(size)  # validates the size before anything is written (a refused size leaves no directory behind)
     set_dir = Path(set_dir)
+    replacing = sum(1 for p in set_dir.glob(f"T_{BASE}_*") if p.suffix in (".png", ".json")) if set_dir.is_dir() else 0
+    _LOGGER.info(
+        f"generating {len(SPECS)} map(s) at {size}x{size} into {set_dir}"
+        + (
+            f", replacing {replacing} existing file(s) (the sidecars lose what the cook derived: cook the set again)"
+            if replacing
+            else ""
+        )
+    )
     set_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
     for spec in SPECS:
@@ -513,7 +507,7 @@ def generate(set_dir: Path, size: int = SIZE) -> list[Path]:
         _LOGGER.info(f"wrote {path.name}: {spec.kind} {size}x{size} for {spec.parameter}")
     (set_dir / "LICENSE.md").write_bytes(LICENCE.encode("utf-8"))
     written.append(set_dir / "LICENSE.md")
-    _LOGGER.info(f"synthetic set: {len(SPECS)} map(s) and {len(known_points(size))} known point(s) under {set_dir}")
+    _LOGGER.info(f"wrote {len(written)} file(s) under {set_dir}: {len(SPECS)} PNG(s), their sidecars and LICENSE.md")
     return written
 
 

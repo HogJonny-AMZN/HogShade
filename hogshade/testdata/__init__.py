@@ -5,6 +5,8 @@ Package: hogshade/testdata
 ``synthetic`` writes the T4 tier-1 texture set: a map for every suffix the content standard names.
 """
 
+from __future__ import annotations
+
 import logging as _logging
 
 _MODULE_NAME = "hogshade.testdata"

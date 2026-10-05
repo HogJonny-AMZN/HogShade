@@ -197,11 +197,11 @@ def test_parity_with_maya_on_the_shader_ball(shader_ball_and_maya):
     mesh, data, meta = shader_ball_and_maya
     assert meta.get("basis") == "mikktspace", f"the fixture was dumped with the MikkTSpace preference off: {meta}"
     _face, _vertex, rows = wgpu_host.obj_corners(wgpu_host.SHADER_BALL)
-    ours_t = mesh.vertices[rows, 8:11]
-    ours_sign = mesh.vertices[rows, 11]
+    ours_t = mesh.vertices[rows, wgpu_host.COL_TANGENT]
+    ours_sign = mesh.vertices[rows, wgpu_host.COL_TANGENT_SIGN]
     maya_t = data["tangent"].astype(np.float32)
     maya_t /= np.maximum(np.linalg.norm(maya_t, axis=1, keepdims=True), 1e-9)
-    normals = mesh.vertices[rows, 3:6]
+    normals = mesh.vertices[rows, wgpu_host.COL_NORMAL]
     assert np.abs(np.sum(ours_t * normals, axis=1)).max() < 1e-3, "our tangent is orthogonal to the given normal"
     assert np.array_equal(np.sign(ours_sign), data["sign"].astype(np.float32)), (
         "the handedness is exact, seams included"

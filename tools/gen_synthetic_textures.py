@@ -31,8 +31,8 @@ DEFAULT_OUT = ROOT / "content" / "textures" / "synthetic"
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--out", type=Path, default=DEFAULT_OUT, help="the set directory to write")
-    ap.add_argument("--size", type=int, default=synthetic.SIZE, help="a power of two from 64 to 2048")
+    ap.add_argument("--out", type=Path, default=None, help=f"the set directory to write (default {DEFAULT_OUT})")
+    ap.add_argument("--size", type=int, default=None, help="a power of two from 128 to 2048 (default 512)")
     ap.add_argument(
         "--sheet",
         type=Path,
@@ -42,18 +42,21 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     _logging.basicConfig(level=_logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     if args.sheet is not None:
+        if args.out is not None or args.size is not None:
+            ap.error("--sheet writes the contact sheet only; it takes neither --out nor --size")
         from hogshade.texture_cook import png
 
         args.sheet.parent.mkdir(parents=True, exist_ok=True)
         png.write_png(args.sheet, synthetic.contact_sheet())
         _LOGGER.info(f"wrote the contact sheet of {len(synthetic.SPECS)} map(s) to {args.sheet}")
         return 0
+    out, size = args.out or DEFAULT_OUT, args.size or synthetic.SIZE
     try:
-        written = synthetic.generate(args.out, args.size)
+        written = synthetic.generate(out, size)
     except synthetic.SyntheticError as e:
         _LOGGER.error(f"synthetic set: {e}")
         return 2
-    _LOGGER.info(f"{len(written)} file(s) written under {args.out}")
+    _LOGGER.info(f"{len(written)} file(s) written under {out}")
     return 0
 
 

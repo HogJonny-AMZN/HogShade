@@ -123,6 +123,11 @@ class Mesh:
 
 VERTEX_FLOATS = 12
 VERTEX_STRIDE = VERTEX_FLOATS * 4
+#: The columns of ``Mesh.vertices``: position, normal, uv, the tangent and its handedness sign.
+COL_POSITION, COL_NORMAL, COL_UV, COL_TANGENT = slice(0, 3), slice(3, 6), slice(6, 8), slice(8, 11)
+COL_TANGENT_SIGN = 11
+#: The scene camera's clip planes (``Scene.view_proj``) and the linear distance a (0, 1) clip depth stands for.
+NEAR_PLANE, FAR_PLANE = 0.1, 50.0
 
 
 def with_tangents(
@@ -319,6 +324,11 @@ def perspective(fov_y_deg: float, aspect: float, near: float, far: float) -> NDA
     return m
 
 
+def linear_depth(clip_depth: NDArray) -> NDArray:
+    """The view-space distance a ``perspective`` (0, 1) clip depth stands for (``NEAR_PLANE`` to ``FAR_PLANE``)."""
+    return NEAR_PLANE * FAR_PLANE / (FAR_PLANE - clip_depth * (FAR_PLANE - NEAR_PLANE))
+
+
 def orbit_eye(yaw_deg: float, pitch_deg: float, distance: float) -> NDArray:
     cy, sy = math.cos(math.radians(yaw_deg)), math.sin(math.radians(yaw_deg))
     cp, sp = math.cos(math.radians(pitch_deg)), math.sin(math.radians(pitch_deg))
@@ -442,7 +452,7 @@ class Scene:
     def view_proj(self) -> tuple[NDArray, NDArray]:
         eye = orbit_eye(self.yaw_deg, self.pitch_deg, self.distance)
         view = look_at(eye, np.array([0.0, 0.05, 0.0]), np.array([0.0, 1.0, 0.0]))
-        proj = perspective(self.fov_y_deg, self.width / self.height, 0.1, 50.0)
+        proj = perspective(self.fov_y_deg, self.width / self.height, NEAR_PLANE, FAR_PLANE)
         return proj @ view, eye
 
     def frame_bytes(self, specular_mip_count: int) -> bytes:
