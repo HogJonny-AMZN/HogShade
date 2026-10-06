@@ -258,6 +258,10 @@ hogshade.jobs.maya_texture_check --param set_dir=content/materials/standard/roug
 document=content/materials/standard/rough/brick_wall_001.material.json`. The same cook is the `hogshade.jobs.cook_textures`
 job on the developer track. Spec: [Docs/superpowers/specs/t2-texture-cook.md](Docs/superpowers/specs/t2-texture-cook.md).
 
+`--mesh quad-sphere` (on `tools/wgpu/viewport.py` and `texture_matrix.py`) draws the quad sphere instead of the shader
+ball: a cube mapped onto a sphere, every face one clean 0 to 1 UV tile, so a texture shows whole and unmirrored once per
+face with no wrap seam (`hogshade.testdata.quad_sphere`; nothing is read from disk).
+
 `content/textures/synthetic/` is the set generated from numbers (`uv run tools/gen_synthetic_textures.py`, then cook
 it): a map for every suffix the standard names with a known value at every texel, the ground truth the tests read back
 through the cooked DDS and both hosts ([the T4 tier-1 spec](Docs/superpowers/specs/t4-procedural-set.md)).

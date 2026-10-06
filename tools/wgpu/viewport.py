@@ -29,7 +29,7 @@ import logging as _logging
 
 from hogshade.ibl.imageio import preview_srgb8, write_png_rgb8
 from hogshade.material import bind, convert, load, resolve, runtime_textures
-from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
+from hogshade.wgpu_host import MESHES, Renderer, Scene, load_mesh, request_device
 
 _MODULE_NAME = "tools.wgpu.viewport"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
@@ -47,6 +47,9 @@ def main(argv: list[str] | None = None) -> int:
         help="capture directory; default verification/wgpu/shader-ball/<env>[/<variant>]",
     )
     ap.add_argument("--variant", default="", help="sub-directory for a material variant, e.g. metal")
+    ap.add_argument(
+        "--mesh", default="shader-ball", choices=sorted(MESHES), help="what to draw (default the shader ball)"
+    )
     ap.add_argument("--environment", default="studio_small_09")
     ap.add_argument("--size", type=int, default=1024, help="square output, multiple of 32")
     ap.add_argument(
@@ -86,7 +89,7 @@ def main(argv: list[str] | None = None) -> int:
             + ", ".join(f"{k} <- {v.path.name}[{v.channels}]" for k, v in textures.items())
         )
     _adapter, device = request_device()
-    mesh = load_shader_ball()
+    mesh = load_mesh(args.mesh)
     renderer = Renderer(device, mesh, environment=args.environment)
     scene = Scene(
         width=args.size,
@@ -100,7 +103,7 @@ def main(argv: list[str] | None = None) -> int:
     frames = renderer.render(scene)
     elapsed = time.perf_counter() - t0
 
-    out_dir = args.out_dir or ROOT / "verification" / "wgpu" / "shader-ball" / args.environment
+    out_dir = args.out_dir or ROOT / "verification" / "wgpu" / args.mesh / args.environment
     if args.variant:
         out_dir = out_dir / args.variant
     out_dir.mkdir(parents=True, exist_ok=True)

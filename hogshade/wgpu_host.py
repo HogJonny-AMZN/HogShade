@@ -893,6 +893,28 @@ def load_shader_ball() -> Mesh:
     return normalise_mesh(load_obj(SHADER_BALL))
 
 
+def quad_sphere(subdivisions: int | None = None) -> Mesh:
+    """
+    The quad sphere (``hogshade.testdata.quad_sphere``): six cube faces on a sphere, each face one clean 0 to 1 UV tile,
+    the normals the sphere's own, MikkTSpace tangents from the UVs. Nothing is read from disk.
+    """
+    from hogshade.testdata import quad_sphere as qs
+
+    positions, normals, uvs, indices = qs.build(qs.SUBDIVISIONS if subdivisions is None else subdivisions)
+    return with_tangents(positions, normals, uvs, indices)
+
+
+#: The meshes the tools can render, by the name ``--mesh`` takes.
+MESHES = {"shader-ball": load_shader_ball, "quad-sphere": quad_sphere}
+
+
+def load_mesh(name: str) -> Mesh:
+    """A mesh by name (``MESHES``): ``ValueError`` naming the choices for any other."""
+    if name not in MESHES:
+        raise ValueError(f"no mesh named {name!r}; one of {sorted(MESHES)}")
+    return MESHES[name]()
+
+
 if __name__ == "__main__":
     m = normalise_mesh(load_obj(SHADER_BALL))
     print(

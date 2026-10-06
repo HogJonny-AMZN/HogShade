@@ -80,8 +80,8 @@ gives the same bytes, and `check_content.py` gains nothing new because the set o
   11 the shading normal) at the pixels where the ball's UV lands on a flat part of a known map give the known
   value, and the normal view on the texels that lean in U and in V matches the authored reading and none of the
   channel-flipped one. This is the test of the T3b V flip and the green convention that T3b could only eyeball.
-- The Maya check job renders it with the debug views (pending: the orchestrator's Maya worker was not running),
-  and the matrix has its row: the one row where a human and a test agree on what every pixel should be.
+- The Maya check job renders it with the debug views (captured 2026-10-05, all nine textures decoded, on Maya's polar
+  sphere), and the matrix has its row: the one row where a human and a test agree on what every pixel should be.
 
 ## Out of scope
 
@@ -104,10 +104,16 @@ gives the same bytes, and `check_content.py` gains nothing new because the set o
   first draft of the normal check had no such control and could not have told the conventions apart (most samples
   were flat texels); it now asserts the contrast, and the V-flip control is a test
   (`test_the_probe_fails_when_the_expectation_has_v_flipped`), not a one-off run.
-- **An unexplained residual, said plainly**: the green samples (122, all in one quadrant) match as authored 66 percent
-  at a tolerance of 0.1, median error 0.03 with a tail past it; splitting by viewing angle (the red channel is flat
-  across it) and by the tangent's handedness explained none of it. The test's floor (0.55) is a guard against a gross
-  break; the proof is the flipped control. A cleaner ball (the board's shader-ball variant) is the way to look closer.
+- **The unexplained residual was the ball, not the host** (resolved 2026-10-05): the green samples on the shader ball
+  (122, all in one quadrant) matched as authored 66 percent at a tolerance of 0.1, median error 0.03 with a tail past
+  it, and neither the viewing angle nor the tangent's handedness explained it. On the quad sphere, where a ray-sphere
+  hit gives each pixel's exact face, UV and analytic tangent, the same check agrees **100 percent** (1,522 green-leaning
+  and 6,593 red-leaning pixels as authored, 0 flipped), and roughness, metalness, AO and the colour patches agree 100
+  percent over 1,100 to 9,000 flat pixels each. So the 66 was the legacy ball's interpolated frames and the vertex proxy.
+  The shader-ball test keeps its 0.55 floor (it is the proof on the real look-dev mesh); the quad sphere's tests hold 0.99.
+- **The legacy ball has no clean variant to bring in**: the Maya scenes in the legacy repository hold the same mesh
+  (one UV set, u from -1 to 1.66, 5,060 shells) or a nine-part split of it; the v2.0 scene's two colour sets are the
+  only extra data (see the board's shader-ball row). The clean unwrap is `hogshade.testdata.quad_sphere`.
 - **The legend strip bounds the size**: at 64 the strip is 4 rows and a glyph is 7, so no label is legible; the
   smallest size is 128 (8 rows) and a label is fitted to the width and cut with a dot where it cannot fit (the local
   review). The generator also validates the size before it creates the directory.
