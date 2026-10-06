@@ -12,6 +12,12 @@ HogShade's workers are its own named types, the pattern the orchestrator uses fo
 | `hogshade_maya_gui` | one maya.exe, DirectX 11 viewport | dx11Shader checks, playblasts, captures |
 | `hogshade_python` | one venv Python | the IBL cook and other NumPy jobs |
 | `hogshade_blender` | one headless Blender 5.2 | the Blender host, bakes and the required comparison path |
+| `marmoset` | a bridge to Marmoset Toolbag 4, a fresh Toolbag per job | the baked-maps tier of T4 |
+
+`marmoset` is the one type that keeps the canon's name (the worker's RPC server and the orchestrator know it by that
+name; the owner, 2026-10-05) and takes no environment file: its jobs run inside Toolbag's embedded Python 3.9, which
+imports nothing from here, and the canon ships it inert (pool 0), so this profile only turns the pool to 1. A job
+reaches Toolbag by writing files (a scene path in, files out); nothing is held between jobs.
 
 Every worker carries an explicit environment file (`environment_json_path`), because the
 orchestrator resolves profile-based environments by worker type name and a renamed type would boot
@@ -32,8 +38,8 @@ import os
 from pathlib import Path
 
 _MODULE_NAME = "tools.bats.make_profile"
-__version__ = "0.1.0"
-__updated__ = "2026-09-27"
+__version__ = "0.2.0"
+__updated__ = "2026-10-05"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -100,6 +106,18 @@ def build_env(base: dict, dcc: dict, name: str, extra: dict) -> dict:
     return out
 
 
+_MARMOSET_DESCRIPTION = (
+    "Marmoset Toolbag worker, enabled for HogShade with a pool of 1. The default ONE-SHOT mode launches a fresh "
+    "Toolbag "
+    "for each job (robust); set environment.MARMOSET_MODE=resident for a long-lived Toolbag over a bridge "
+    "(best-effort). Toolbag must be installed and signed in; the default install path "
+    "C:/Program Files/Marmoset/Toolbag 4/toolbag.exe is auto-discovered, and environment.TOOLBAG_EXE names another. "
+    "The venv interpreter runs marmoset_rpc_server.py, which owns gRPC and spawns toolbag.exe; jobs run in Toolbag's "
+    "embedded Python 3.9 and must be stateless (a scene path in, files out). See dcc_workers/marmoset/CLAUDE.md in "
+    "Job_Orchestrator."
+)
+
+
 def build_profile(canon: dict) -> dict:
     # package_paths is the dev checkout's own sys.path additions; HogShade's workers need none of them
     profile = {k: v for k, v in canon.items() if k not in ("worker_types", "package_paths")}
@@ -146,6 +164,11 @@ def build_profile(canon: dict) -> dict:
     )
     workers["hogshade_blender"]["executable_paths"] = {"headless": _fwd(blender_paths["executable"])}
     workers["hogshade_blender"]["pool_sizes"] = {"headless": 1}
+    if "marmoset" in canon["worker_types"]:  # the canon ships it inert; Toolbag 4 is installed on the dev machine
+        workers["marmoset"] = _clone(canon["worker_types"]["marmoset"])
+        workers["marmoset"]["pool_sizes"] = {"headless": 1}
+        workers["marmoset"]["description"] = _MARMOSET_DESCRIPTION  # the canon's says it ships inert, which this is not
+        _LOGGER.info("marmoset worker type enabled with a pool of 1 (a fresh Toolbag per job)")
     profile["worker_types"] = workers
     return profile
 

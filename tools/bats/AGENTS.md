@@ -7,7 +7,7 @@ and [Docs/knowledge/job-orchestrator.md](../../Docs/knowledge/job-orchestrator.m
 
 - Query the swarm: `submit.py --pool`, or the `bats_get_pool_status` MCP tool.
 - Submit jobs to HogShade's worker types (`hogshade_maya`, `hogshade_maya_gui`, `hogshade_python`,
-  `hogshade_blender`) and wait for results: `submit.py`, or `bats_submit_job` and
+  `hogshade_blender`, and `marmoset` for Toolbag) and wait for results: `submit.py`, or `bats_submit_job` and
   `bats_get_job_result`. Viewport work goes to `hogshade_maya_gui` with GUI mode and the main
   thread.
 - Write new jobs under `hogshade/jobs/` as MODULE-mode modules with a `MANIFEST` and a
