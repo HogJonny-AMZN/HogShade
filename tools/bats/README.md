@@ -23,7 +23,7 @@ replaces the worker set with:
 | `hogshade_blender` | one headless Blender 5.2 | the Blender host, bakes, the required comparison path |
 | `marmoset` | a bridge to Marmoset Toolbag 4, a fresh Toolbag per job (Job_Orchestrator #75, one-shot by default) | the baked-maps tier of T4; needs a signed-in Toolbag seat, and a Toolbag window flashes per job |
 
-Named types are the orchestrator's pattern for variants; nothing in HogShade targets a canon type.
+Named types are the orchestrator's pattern for variants; nothing in HogShade targets a canon type, except `marmoset`, which keeps the canon's name because the Toolbag worker's server knows it by that name and its jobs share nothing with ours.
 
 ## Files
 

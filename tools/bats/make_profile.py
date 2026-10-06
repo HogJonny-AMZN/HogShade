@@ -106,6 +106,18 @@ def build_env(base: dict, dcc: dict, name: str, extra: dict) -> dict:
     return out
 
 
+_MARMOSET_DESCRIPTION = (
+    "Marmoset Toolbag worker, enabled for HogShade with a pool of 1. The default ONE-SHOT mode launches a fresh "
+    "Toolbag "
+    "for each job (robust); set environment.MARMOSET_MODE=resident for a long-lived Toolbag over a bridge "
+    "(best-effort). Toolbag must be installed and signed in; the default install path "
+    "C:/Program Files/Marmoset/Toolbag 4/toolbag.exe is auto-discovered, and environment.TOOLBAG_EXE names another. "
+    "The venv interpreter runs marmoset_rpc_server.py, which owns gRPC and spawns toolbag.exe; jobs run in Toolbag's "
+    "embedded Python 3.9 and must be stateless (a scene path in, files out). See dcc_workers/marmoset/CLAUDE.md in "
+    "Job_Orchestrator."
+)
+
+
 def build_profile(canon: dict) -> dict:
     # package_paths is the dev checkout's own sys.path additions; HogShade's workers need none of them
     profile = {k: v for k, v in canon.items() if k not in ("worker_types", "package_paths")}
@@ -155,6 +167,7 @@ def build_profile(canon: dict) -> dict:
     if "marmoset" in canon["worker_types"]:  # the canon ships it inert; Toolbag 4 is installed on the dev machine
         workers["marmoset"] = _clone(canon["worker_types"]["marmoset"])
         workers["marmoset"]["pool_sizes"] = {"headless": 1}
+        workers["marmoset"]["description"] = _MARMOSET_DESCRIPTION  # the canon's says it ships inert, which this is not
         _LOGGER.info("marmoset worker type enabled with a pool of 1 (a fresh Toolbag per job)")
     profile["worker_types"] = workers
     return profile

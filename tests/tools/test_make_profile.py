@@ -34,7 +34,9 @@ def _canon(with_marmoset: bool = True) -> dict:
         "gpu": {"enable_vram_admission": False},
     }
     if with_marmoset:
-        canon["worker_types"]["marmoset"] = dict(worker, display_name="Marmoset Toolbag 4")
+        canon["worker_types"]["marmoset"] = dict(
+            worker, display_name="Marmoset Toolbag 4", description="Ships inert (pool 0): a sidecar sets it to 1."
+        )
     return canon
 
 
@@ -44,6 +46,8 @@ def test_marmoset_is_enabled_under_its_own_name_with_no_environment_file(make_pr
     assert set(workers) == {"hogshade_maya", "hogshade_maya_gui", "hogshade_python", "hogshade_blender", "marmoset"}
     assert workers["marmoset"]["pool_sizes"] == {"headless": 1}, "the canon ships it at 0"
     assert "environment_json_path" not in workers["marmoset"], "its jobs run in Toolbag's Python, not ours"
+    description = workers["marmoset"]["description"]
+    assert "inert" not in description.lower() and "pool 0" not in description, "the canon's text contradicts the pool"
     for name in ("hogshade_maya", "hogshade_python", "hogshade_blender"):
         assert workers[name]["environment_json_path"].endswith(f"{name}_env.json"), name
 
@@ -60,3 +64,4 @@ def test_the_committed_profile_names_the_marmoset_type_when_the_canon_has_it() -
     committed = json.loads((ROOT / "tools" / "bats" / "orchestrator_config_hogshade.json").read_text(encoding="utf-8"))
     assert "marmoset" in committed["worker_types"]
     assert committed["worker_types"]["marmoset"]["pool_sizes"] == {"headless": 1}
+    assert "inert" not in committed["worker_types"]["marmoset"]["description"].lower()

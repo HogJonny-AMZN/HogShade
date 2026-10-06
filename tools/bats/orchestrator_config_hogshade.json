@@ -232,7 +232,7 @@
     },
     "marmoset": {
       "display_name": "Marmoset Toolbag 4",
-      "description": "Marmoset Toolbag worker. Default ONE-SHOT mode launches a fresh Toolbag for each job (robust); set environment.MARMOSET_MODE=resident for a long-lived Toolbag over a BRIDGE (best-effort). Toolbag's embedded Python 3.9 runs scripts in a sub-interpreter where gRPC hangs, so the venv interpreter runs marmoset_rpc_server.py, which owns gRPC, spawns toolbag.exe with an in-app agent script (no AppData plugin install) and forwards jobs over a loopback socket; jobs execute on Toolbag's main thread. Ships inert (pool 0): Toolbag is licence- and machine-specific. To activate, a studio/local sidecar sets pool_sizes.headless to 1 (the default install path C:/Program Files/Marmoset/Toolbag 4/toolbag.exe is auto-discovered; set environment.TOOLBAG_EXE to the full toolbag.exe path for a non-default install or Toolbag 5). See dcc_workers/marmoset/CLAUDE.md.",
+      "description": "Marmoset Toolbag worker, enabled for HogShade with a pool of 1. The default ONE-SHOT mode launches a fresh Toolbag for each job (robust); set environment.MARMOSET_MODE=resident for a long-lived Toolbag over a bridge (best-effort). Toolbag must be installed and signed in; the default install path C:/Program Files/Marmoset/Toolbag 4/toolbag.exe is auto-discovered, and environment.TOOLBAG_EXE names another. The venv interpreter runs marmoset_rpc_server.py, which owns gRPC and spawns toolbag.exe; jobs run in Toolbag's embedded Python 3.9 and must be stateless (a scene path in, files out). See dcc_workers/marmoset/CLAUDE.md in Job_Orchestrator.",
       "enabled": true,
       "capabilities": {
         "supports_gui": false,
