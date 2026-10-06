@@ -26,7 +26,7 @@ HogShade development needs. LargeWorlds and SpriteJammer get their own later, co
 dependencies. Only one orchestrator runs at a time on a machine (one port), so stop one before
 starting another.
 
-`tools/bats/make_profile.py` derives, from the dev checkout's canon config, four generated files
+`tools/bats/make_profile.py` derives, from the dev checkout's canon config, five generated files
 that are committed and never hand-edited: the profile and one environment file per DCC, each
 folding in the canon base environment (see the layering section below):
 
@@ -45,6 +45,8 @@ folding in the canon base environment (see the layering section below):
   `PYTHONPATH` (so a MODULE-mode job imports `hogshade.*` directly) and the DirectX 11 viewport
   override; shared by `hogshade_maya` and `hogshade_maya_gui`.
 - `hogshade_python_env.json`: base plus the canon Python worker environment plus the HogShade root.
+- `hogshade_marmoset_env.json`: the Python environment again, under the Marmoset type (the worker is a venv
+  Python); the generator removes it when the canon has no Marmoset type.
 - `hogshade_blender_env.json`: base plus the canon Blender environment plus `HOGSHADE_ROOT`;
   Blender's embedded Python ignores `PYTHONPATH`, so a Blender job puts the root on `sys.path` from
   that variable.

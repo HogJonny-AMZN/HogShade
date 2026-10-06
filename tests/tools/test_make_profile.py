@@ -84,3 +84,47 @@ def test_every_worker_in_the_committed_profile_has_a_committed_environment_file(
     python_env = json.loads((bats / "hogshade_python_env.json").read_text(encoding="utf-8"))["environment"]
     assert marmoset_env == python_env, "the venv-Python worker types share one environment"
     assert marmoset_env["variables"]["ORCHESTRATOR_PORT"], "the worker reaches the orchestrator through this"
+
+
+def _canon_dir(tmp_path: Path, with_marmoset: bool) -> Path:
+    """A throwaway canon config directory: the orchestrator config, the base environment and the three DCC ones."""
+    import json
+
+    config = tmp_path / "config"
+    config.mkdir()
+    canon = _canon(with_marmoset)
+    for worker in canon["worker_types"].values():
+        worker.pop("environment", None)
+    (config / "orchestrator_config.json").write_text(json.dumps(canon), encoding="utf-8")
+    env = {"environment": {"variables": {"X": "1"}, "PATH": {}, "PYTHONPATH": {"prepend": ["${WORKSPACE_ROOT}"]}}}
+    for name in ("base", "maya", "python", "blender"):
+        (config / f"{name}_env.json").write_text(json.dumps(env), encoding="utf-8")
+    return config
+
+
+def test_the_marmoset_environment_says_it_came_from_the_python_one_and_goes_when_the_canon_loses_the_type(
+    make_profile, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import json
+
+    out = tmp_path / "out"
+    out.mkdir()
+    monkeypatch.setattr(make_profile, "HERE", out)
+    monkeypatch.setattr(make_profile, "PROFILE_OUT", out / "profile.json")
+
+    def run(with_marmoset: bool) -> None:
+        base = tmp_path / f"canon_{with_marmoset}"
+        base.mkdir(exist_ok=True)
+        config = _canon_dir(base, with_marmoset)
+        monkeypatch.setattr(make_profile, "CONFIG_DIR", config)
+        monkeypatch.setattr(make_profile, "CANON", config / "orchestrator_config.json")
+        monkeypatch.setattr(make_profile, "BASE_ENV", config / "base_env.json")
+        assert make_profile.main() == 0
+
+    run(with_marmoset=True)
+    meta = json.loads((out / "hogshade_marmoset_env.json").read_text(encoding="utf-8"))
+    assert "base and python environments" in meta["description"], "it was built from the Python environment"
+    assert "marmoset" in meta["name"]
+    run(with_marmoset=False)
+    assert not (out / "hogshade_marmoset_env.json").exists(), "a stale environment is removed"
+    assert (out / "hogshade_python_env.json").exists(), "the other environments stay"
