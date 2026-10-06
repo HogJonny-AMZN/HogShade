@@ -12,12 +12,12 @@ HogShade's workers are its own named types, the pattern the orchestrator uses fo
 | `hogshade_maya_gui` | one maya.exe, DirectX 11 viewport | dx11Shader checks, playblasts, captures |
 | `hogshade_python` | one venv Python | the IBL cook and other NumPy jobs |
 | `hogshade_blender` | one headless Blender 5.2 | the Blender host, bakes and the required comparison path |
-| `marmoset` | a bridge to Marmoset Toolbag 4, a fresh Toolbag per job | the baked-maps tier of T4 |
+| `hogshade_marmoset` | a bridge to Marmoset Toolbag 4, a fresh Toolbag per job | the baked-maps tier of T4 |
 
-`marmoset` is the one type that keeps the canon's name (the worker's RPC server and the orchestrator know it by that
-name; the owner, 2026-10-05) and takes no environment file: its jobs run inside Toolbag's embedded Python 3.9, which
-imports nothing from here, and the canon ships it inert (pool 0), so this profile only turns the pool to 1. A job
-reaches Toolbag by writing files (a scene path in, files out); nothing is held between jobs.
+The Marmoset type is a named variant of the canon's inert `marmoset`, like the rest: its pool is 1 and it carries
+an explicit environment file, because the worker process is a venv Python that needs the orchestrator's host, port
+and PYTHONPATH (a renamed type is not found by the profile-based lookup). Its jobs run inside Toolbag's embedded
+Python 3.9 and reach it by files: a scene path in, files out, nothing held between jobs.
 
 Every worker carries an explicit environment file (`environment_json_path`), because the
 orchestrator resolves profile-based environments by worker type name and a renamed type would boot
@@ -61,7 +61,15 @@ WORKERS = {
     ),
     "hogshade_python": ("python", "python_env.json", "hogshade_python_env.json", {}),
     "hogshade_blender": ("blender", "blender_env.json", "hogshade_blender_env.json", {}),
+    # the canon ships the Marmoset type inert; its worker is a venv Python like the Python type's, so it takes that
+    # environment, and the type is only built when the canon has it
+    "hogshade_marmoset": ("marmoset", "python_env.json", "hogshade_marmoset_env.json", {}),
 }
+
+
+def _present(canon: dict) -> dict:
+    """The ``WORKERS`` whose canon type exists in this canon (an older checkout has no Marmoset type)."""
+    return {name: spec for name, spec in WORKERS.items() if spec[0] in canon["worker_types"]}
 
 
 def _fwd(p: Path | str) -> str:
@@ -107,7 +115,7 @@ def build_env(base: dict, dcc: dict, name: str, extra: dict) -> dict:
 
 
 _MARMOSET_DESCRIPTION = (
-    "Marmoset Toolbag worker, enabled for HogShade with a pool of 1. The default ONE-SHOT mode launches a fresh "
+    "HogShade: the Marmoset Toolbag worker, enabled with a pool of 1. The default ONE-SHOT mode launches a fresh "
     "Toolbag "
     "for each job (robust); set environment.MARMOSET_MODE=resident for a long-lived Toolbag over a bridge "
     "(best-effort). Toolbag must be installed and signed in; the default install path "
@@ -130,7 +138,7 @@ def build_profile(canon: dict) -> dict:
     }
     profile["dcc_paths"] = dict(canon["dcc_paths"])
     workers: dict = {}
-    for name, (canon_type, _env_file, env_out, _extra) in WORKERS.items():
+    for name, (canon_type, _env_file, env_out, _extra) in _present(canon).items():
         w = _clone(canon["worker_types"][canon_type])
         w["environment_json_path"] = _fwd(HERE / env_out)
         w.pop("environment", None)
@@ -164,11 +172,11 @@ def build_profile(canon: dict) -> dict:
     )
     workers["hogshade_blender"]["executable_paths"] = {"headless": _fwd(blender_paths["executable"])}
     workers["hogshade_blender"]["pool_sizes"] = {"headless": 1}
-    if "marmoset" in canon["worker_types"]:  # the canon ships it inert; Toolbag 4 is installed on the dev machine
-        workers["marmoset"] = _clone(canon["worker_types"]["marmoset"])
-        workers["marmoset"]["pool_sizes"] = {"headless": 1}
-        workers["marmoset"]["description"] = _MARMOSET_DESCRIPTION  # the canon's says it ships inert, which this is not
-        _LOGGER.info("marmoset worker type enabled with a pool of 1 (a fresh Toolbag per job)")
+    if "hogshade_marmoset" in workers:  # the canon ships it inert; Toolbag 4 is installed on the dev machine
+        workers["hogshade_marmoset"]["display_name"] = "HogShade Marmoset Toolbag"
+        workers["hogshade_marmoset"]["description"] = _MARMOSET_DESCRIPTION  # the canon's says it ships inert
+        workers["hogshade_marmoset"]["pool_sizes"] = {"headless": 1}
+        _LOGGER.info("hogshade_marmoset worker type enabled with a pool of 1 (a fresh Toolbag per job)")
     profile["worker_types"] = workers
     return profile
 
@@ -177,12 +185,13 @@ def main() -> int:
     canon = _load(CANON)
     base = _load(BASE_ENV)
     written: list[str] = []
-    for canon_type, env_file, env_out, extra in WORKERS.values():
+    active = _present(canon)
+    for canon_type, env_file, env_out, extra in active.values():
         if env_out in written:
             continue
         # the two Maya types share one file; the GUI override applies to both (headless ignores it)
         extras = dict(extra)
-        for _t, _f, other_out, other_extra in WORKERS.values():
+        for _t, _f, other_out, other_extra in active.values():
             if other_out == env_out:
                 extras.update(other_extra)
         env = build_env(base, _load(CONFIG_DIR / env_file), canon_type, extras)
