@@ -89,10 +89,10 @@ def test_build_refuses_what_would_turn_it_inside_out_or_into_a_point():
     for bad in (0, -3, 2.7, "8", None):
         with pytest.raises(qs.QuadSphereError, match="subdivisions is"):
             qs.build(bad)
-    for radius in (0.0, -1.0, float("nan"), float("inf")):
+    for radius in (0.0, -1.0, float("nan"), float("inf"), "x", None, [1.0]):
         with pytest.raises(qs.QuadSphereError, match="radius is finite and positive"):
             qs.build(4, radius)
-    for centre in ((0.0, 0.0), (0.0, 0.0, float("nan")), (1, 2, 3, 4)):
+    for centre in ((0.0, 0.0), (0.0, 0.0, float("nan")), (1, 2, 3, 4), ("a", "b", "c"), None):
         with pytest.raises(qs.QuadSphereError, match="centre is three finite numbers"):
             qs.build(4, 1.0, centre)
     positions, normals, _uvs, _idx = qs.build(np.int64(4), 2.5, (1.0, -2.0, 3.0))

@@ -544,7 +544,7 @@ def test_the_normal_maps_green_and_red_channels_tilt_the_shading_normal_the_auth
         assert as_flipped.mean() <= 0.05, f"{name}: {as_flipped.mean():.1%} still match with the channel flipped"
 
 
-# ----------------------------------------------------------------------------- the quad sphere: the exact probe
+# ----------------------------------------------------------------------------- the quad sphere: the per-pixel probe
 
 
 @pytest.fixture(scope="module")
@@ -552,12 +552,73 @@ def quad_renderer(renderer):
     return wgpu_host.Renderer(renderer.device, wgpu_host.quad_sphere())
 
 
+def _mesh_hit(face, u, v, origin, direction):
+    """
+    Where each ray meets the quad sphere's own triangles, not the analytic sphere between them: the rasteriser draws
+    flat triangles and interpolates their vertex attributes perspective-correctly, which is exactly the barycentric
+    interpolation of the ray's hit on the triangle. ``face, u, v`` (from the analytic hit) only say which cell to look
+    in; the triangles of that cell and its eight neighbours (never across a face edge, the caller keeps clear of them)
+    are tested and the nearest wins. Returns ``(u, v, normal, tangent)`` at the hit: ``(u, v)`` the interpolated UV,
+    the normal and the analytic tangent interpolated from the vertices and renormalised.
+    """
+    from hogshade.testdata import quad_sphere as qs
+
+    n_sub = qs.SUBDIVISIONS
+    side = n_sub + 1
+    positions, normals, uvs, _indices = qs.build(n_sub)
+    vert_u, vert_v = uvs[:, 0], uvs[:, 1]
+    vertex_face = np.repeat(np.arange(6), side * side)
+    tangents = qs.tangent_at(vertex_face, vert_u, vert_v)
+    cell_i = np.clip(np.floor(u * n_sub).astype(int), 0, n_sub - 1)
+    cell_j = np.clip(np.floor(v * n_sub).astype(int), 0, n_sub - 1)
+    count = len(u)
+    best_t = np.full(count, np.inf)
+    best = np.zeros((count, 3), dtype=np.int64)
+    best_w = np.zeros((count, 3))
+    for di in (-1, 0, 1):
+        for dj in (-1, 0, 1):
+            ci, cj = np.clip(cell_i + di, 0, n_sub - 1), np.clip(cell_j + dj, 0, n_sub - 1)
+            v00 = face * side * side + cj * side + ci
+            v10, v11, v01 = v00 + 1, v00 + side + 1, v00 + side
+            for tri in ((v00, v10, v11), (v00, v11, v01)):
+                p0, p1, p2 = (positions[k] for k in tri)
+                e1, e2 = p1 - p0, p2 - p0
+                pvec = np.cross(direction, e2)
+                det = np.einsum("ij,ij->i", e1, pvec)
+                ok = np.abs(det) > 1e-12
+                inv = np.where(ok, 1.0 / np.where(ok, det, 1.0), 0.0)
+                tvec = origin - p0
+                a = np.einsum("ij,ij->i", tvec, pvec) * inv
+                qvec = np.cross(tvec, e1)
+                b = np.einsum("ij,ij->i", direction, qvec) * inv
+                dist = np.einsum("ij,ij->i", e2, qvec) * inv
+                inside = ok & (a >= -1e-9) & (b >= -1e-9) & (a + b <= 1.0 + 1e-9) & (dist > 0.0) & (dist < best_t)
+                best_t = np.where(inside, dist, best_t)
+                best = np.where(inside[:, None], np.stack(tri, axis=1), best)
+                best_w = np.where(inside[:, None], np.stack([1.0 - a - b, a, b], axis=1), best_w)
+    assert np.isfinite(best_t).all(), f"{int((~np.isfinite(best_t)).sum())} rays met no triangle of their cell"
+
+    def lerp(values):
+        return np.einsum("ij,ijk->ik", best_w, values[best])
+
+    hit_uv = lerp(uvs)
+    normal = lerp(normals)
+    tangent = lerp(tangents)
+    return (
+        hit_uv[:, 0],
+        hit_uv[:, 1],
+        normal / np.linalg.norm(normal, axis=1, keepdims=True),
+        tangent / np.linalg.norm(tangent, axis=1, keepdims=True),
+    )
+
+
 def _exact_probe(quad_renderer, synthetic_scene, mode: int, stride: int = 3):
     """
     A render of the synthetic set on the quad sphere in debug view ``mode``, and for every ``stride``-th pixel it covers
-    (not near a face edge, not grazing) its exact face, ``(u, v)`` and sphere normal from the ray through the pixel
-    centre: no vertex proxy and no seams, since the sphere is analytic. Returns ``(frames, rows, cols, face, u, v,
-    normals)``.
+    (not near a face edge, not grazing) the face, ``(u, v)``, normal and tangent the rasteriser must have interpolated
+    there: the ray through the pixel centre is intersected with the mesh's own triangles (``_mesh_hit``), so nothing is
+    taken from the analytic sphere between the vertices. The sphere only picks the cell to look in. Returns ``(frames,
+    rows, cols, face, u, v, normals, tangents)``.
     """
     from hogshade.testdata import quad_sphere as qs
 
@@ -588,7 +649,11 @@ def _exact_probe(quad_renderer, synthetic_scene, mode: int, stride: int = 3):
     face, u, v = qs.face_uv(normal.reshape(-1, 3))
     face, u, v = (a.reshape(ys.shape) for a in (face, u, v))
     keep = hit & frames.covered[ys, xs] & (facing > 0.35) & (u > 0.04) & (u < 0.96) & (v > 0.04) & (v < 0.96)
-    return frames, ys[keep], xs[keep], face[keep], u[keep], v[keep], normal[keep]
+    face, u, v = face[keep], u[keep], v[keep]
+    mesh_u, mesh_v, mesh_normal, mesh_tangent = _mesh_hit(face, u, v, origin[keep], direction[keep])
+    deviation = max(np.abs(mesh_u - u).max(), np.abs(mesh_v - v).max()) * MAP
+    assert deviation < 0.5, f"the mesh and the sphere differ by {deviation:.2f} map texels: the oracle is off"
+    return frames, ys[keep], xs[keep], face, mesh_u, mesh_v, mesh_normal, mesh_tangent
 
 
 @pytest.mark.parametrize(
@@ -600,14 +665,15 @@ def test_on_the_quad_sphere_every_pixel_shows_the_texel_its_ray_lands_on(
     renderer, quad_renderer, synthetic_scene, mode, suffix, spread, gray
 ) -> None:
     """
-    The exact form of the vertex probe: the quad sphere's pixel has a face and a (u, v) from a ray-sphere hit, so the
-    texel it must show is a lookup. Roughness, metalness, AO and the colour patches in the debug views agree on
-    almost every pixel that sits on a flat part of the map, with no seam to avoid and no vertex to stand in.
+    The vertex probe without the proxy: the pixel's ray is intersected with the quad sphere's own triangles, which
+    gives the (u, v) the rasteriser interpolated there, so the texel it must show is a lookup. Roughness, metalness,
+    AO and the colour patches in the debug views agree on almost every pixel that sits on a flat part of the map,
+    with no seam to avoid and no vertex to stand in.
     """
     from hogshade.testdata import synthetic
     from hogshade.texture_cook.colour import srgb_to_linear
 
-    frames, rows, cols, _face, u, v, _n = _exact_probe(quad_renderer, synthetic_scene, mode)
+    frames, rows, cols, _face, u, v, _n, _t = _exact_probe(quad_renderer, synthetic_scene, mode)
     tc = np.minimum((u * MAP).astype(int), MAP - 1)
     tr = np.minimum(((1.0 - v) * MAP).astype(int), MAP - 1)
     image = synthetic.render_map(suffix, None, MAP)
@@ -629,16 +695,14 @@ def test_on_the_quad_sphere_the_normal_maps_conventions_match_as_authored_and_no
     agreement is 100 percent where the legacy ball's interpolated frames left a 66 percent residual (so that residual
     was the ball's vertex proxy, not the host).
     """
-    from hogshade.testdata import quad_sphere as qs
     from hogshade.testdata import synthetic
 
-    frames, rows, cols, face, u, v, n = _exact_probe(quad_renderer, synthetic_scene, 11)
+    frames, rows, cols, _face, u, v, n, t = _exact_probe(quad_renderer, synthetic_scene, 11)
     tc = np.minimum((u * MAP).astype(int), MAP - 1)
     tr = np.minimum(((1.0 - v) * MAP).astype(int), MAP - 1)
     image = synthetic.render_map("_N", None, MAP)
     flat = _flat_around(image, tc, tr, 2)
-    n, face, u, v = n[flat], face[flat], u[flat], v[flat]
-    t = qs.tangent_at(face, u, v)
+    n, t = n[flat], t[flat]
     b = np.cross(n, t)  # every face is right-handed: the sign is +1
     rg = image[tr[flat], tc[flat]][:, :2].astype(np.float64) / 255.0 * 2.0 - 1.0
     ts = np.stack([rg[:, 0], rg[:, 1], np.sqrt(np.clip(1.0 - (rg**2).sum(1), 0.0, 1.0))], axis=1)

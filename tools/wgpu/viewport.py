@@ -44,7 +44,7 @@ def main(argv: list[str] | None = None) -> int:
         "--out-dir",
         type=Path,
         default=None,
-        help="capture directory; default verification/wgpu/shader-ball/<env>[/<variant>]",
+        help="capture directory; default verification/wgpu/<mesh>/<env>[/<variant>] (<mesh> is --mesh)",
     )
     ap.add_argument("--variant", default="", help="sub-directory for a material variant, e.g. metal")
     ap.add_argument(

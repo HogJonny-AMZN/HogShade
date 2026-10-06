@@ -77,9 +77,16 @@ def build(
         raise QuadSphereError(f"subdivisions is an integer, got {subdivisions!r}") from e
     if n < 1:
         raise QuadSphereError(f"subdivisions is at least 1, got {subdivisions}")
-    if not (np.isfinite(radius) and radius > 0):
+    try:
+        radius_f = float(radius)
+    except (TypeError, ValueError) as e:
+        raise QuadSphereError(f"radius is finite and positive, got {radius!r}") from e
+    if not (np.isfinite(radius_f) and radius_f > 0):
         raise QuadSphereError(f"radius is finite and positive, got {radius!r}")
-    centre_a = np.asarray(centre, dtype=np.float64)
+    try:
+        centre_a = np.asarray(centre, dtype=np.float64)
+    except (TypeError, ValueError) as e:
+        raise QuadSphereError(f"centre is three finite numbers, got {centre!r}") from e
     if centre_a.shape != (3,) or not np.isfinite(centre_a).all():
         raise QuadSphereError(f"centre is three finite numbers, got {centre!r}")
     side = n + 1
@@ -92,7 +99,7 @@ def build(
     v10, v11, v01 = v00 + 1, v00 + side + 1, v00 + side
     for face in range(len(_AXES)):
         unit = direction(np.full(s.shape, face), s, t).reshape(-1, 3)
-        positions.append(centre_a + radius * unit)
+        positions.append(centre_a + radius_f * unit)
         normals.append(unit)
         uvs.append(np.stack([s.ravel(), t.ravel()], axis=1))
         base = face * side * side
@@ -113,7 +120,10 @@ def face_uv(directions: NDArray[np.floating]) -> tuple[NDArray[np.int_], NDArray
     the lowest-numbered of those that meet there and ``(u, v)`` is on its tile. ``QuadSphereError`` for a direction
     that is zero or not finite, which has no face.
     """
-    d = np.asarray(directions, dtype=np.float64)
+    try:
+        d = np.asarray(directions, dtype=np.float64)
+    except (TypeError, ValueError) as e:
+        raise QuadSphereError("directions are (N, 3), finite and nonzero") from e
     if d.ndim != 2 or d.shape[1] != 3 or not np.isfinite(d).all() or not (np.linalg.norm(d, axis=1) > 0).all():
         raise QuadSphereError("directions are (N, 3), finite and nonzero")
     face = np.argmax(np.einsum("fk,nk->nf", _AXES[:, 2, :], d), axis=1)  # the face whose outward axis d leans on most

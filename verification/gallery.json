@@ -391,7 +391,7 @@
       ],
       "grids": [
         {
-          "title": "The five sets, Maya beside wgpu",
+          "title": "The six sets, Maya beside wgpu",
           "caption": "one cooked set per row, rendered from the same DDS by the two hosts: Maya 2026 through the dx11 shell (a sphere, the viewport's camera), the wgpu host (the shader ball, offscreen). Same colour, same normal relief, same metalness; the differences are mesh, camera and output space, not the material. The quad sphere column is the clean-UV ball: each cube face carries the whole texture once",
           "columns": [
             "Maya 2026",

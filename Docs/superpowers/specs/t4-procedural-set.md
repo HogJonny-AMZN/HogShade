@@ -106,8 +106,9 @@ gives the same bytes, and `check_content.py` gains nothing new because the set o
   (`test_the_probe_fails_when_the_expectation_has_v_flipped`), not a one-off run.
 - **The unexplained residual was the ball, not the host** (resolved 2026-10-05): the green samples on the shader ball
   (122, all in one quadrant) matched as authored 66 percent at a tolerance of 0.1, median error 0.03 with a tail past
-  it, and neither the viewing angle nor the tangent's handedness explained it. On the quad sphere, where a ray-sphere
-  hit gives each pixel's exact face, UV and analytic tangent, the same check agrees **100 percent** (1,522 green-leaning
+  it, and neither the viewing angle nor the tangent's handedness explained it. On the quad sphere, where each pixel's ray is intersected with the mesh's own triangles (the
+  rasteriser's flat triangles, so the UV, normal and tangent are the barycentric interpolation it performs; the analytic
+  sphere between the vertices differs from that by up to 0.28 of a 512 texel, a bound the test asserts), the same check agrees **100 percent** (1,522 green-leaning
   and 6,593 red-leaning pixels as authored, 0 flipped), and roughness, metalness, AO and the colour patches agree 100
   percent over 1,100 to 9,000 flat pixels each. So the 66 was the legacy ball's interpolated frames and the vertex proxy.
   The shader-ball test keeps its 0.55 floor (it is the proof on the real look-dev mesh); the quad sphere's tests hold 0.99.

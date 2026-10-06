@@ -325,7 +325,7 @@ identical to the left on the main view (0 differing pixels); two debug views dif
 | --- | --- | --- |
 | ![left](../verification/maya-2026/ibl-check/gate/master/main.png) | ![right](../verification/maya-2026/ibl-check/gate/ormmap/main.png) | the S2 gate for the shell change: master's shell and the regenerated one (with ormMap) rendered untextured in one Maya session; the main view pixel-identical, the debug views within one 8-bit step on at most two pixels (the viewport's own run-to-run jitter) |
 
-### The five sets, Maya beside wgpu
+### The six sets, Maya beside wgpu
 
 one cooked set per row, rendered from the same DDS by the two hosts: Maya 2026 through the dx11 shell (a sphere, the viewport's camera), the wgpu host (the shader ball, offscreen). Same colour, same normal relief, same metalness; the differences are mesh, camera and output space, not the material. The quad sphere column is the clean-UV ball: each cube face carries the whole texture once
 
