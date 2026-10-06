@@ -112,6 +112,7 @@ Newest first. `tools/check_docs.py` fails when a session file is missing from th
 
 | Date | Session | What happened |
 | --- | --- | --- |
+| 2026-10-05 | [Session 02](2026-10-05-session-02.md) | The `marmoset` worker type added to HogShade's generated BATS profile on the owner's pasted note (pool 1, no environment file, one-shot by default); no bake job yet |
 | 2026-10-05 | [Session 01](2026-10-05-session-01.md) | The legacy shader ball inspected in Maya (no clean unwrap; two colour sets in v2.0), the quad sphere built and a per-pixel host probe against the mesh's own triangles that agrees 100 percent, the synthetic set captured in Maya |
 | 2026-10-04 | [Session 01](2026-10-04-session-01.md) | The T2 spec and plan (the texture cook): a PNG reader of our own, an encoder seam, the BC encoder spike on the owner's ask, frequency separation specified from the post |
 | 2026-10-03 | [Session 01](2026-10-03-session-01.md) | The per-day journal rule made mechanical on the owner's go: a new day starts a new file, `journal-day` in the docs checker, the earlier entries of the day left in place in the 2026-10-01 file |

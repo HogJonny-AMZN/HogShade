@@ -229,6 +229,30 @@
       ],
       "est_vram_mb": 6144,
       "environment_json_path": "D:/Depot/HogShade/tools/bats/hogshade_blender_env.json"
+    },
+    "marmoset": {
+      "display_name": "Marmoset Toolbag 4",
+      "description": "Marmoset Toolbag worker. Default ONE-SHOT mode launches a fresh Toolbag for each job (robust); set environment.MARMOSET_MODE=resident for a long-lived Toolbag over a BRIDGE (best-effort). Toolbag's embedded Python 3.9 runs scripts in a sub-interpreter where gRPC hangs, so the venv interpreter runs marmoset_rpc_server.py, which owns gRPC, spawns toolbag.exe with an in-app agent script (no AppData plugin install) and forwards jobs over a loopback socket; jobs execute on Toolbag's main thread. Ships inert (pool 0): Toolbag is licence- and machine-specific. To activate, a studio/local sidecar sets pool_sizes.headless to 1 (the default install path C:/Program Files/Marmoset/Toolbag 4/toolbag.exe is auto-discovered; set environment.TOOLBAG_EXE to the full toolbag.exe path for a non-default install or Toolbag 5). See dcc_workers/marmoset/CLAUDE.md.",
+      "enabled": true,
+      "capabilities": {
+        "supports_gui": false,
+        "supports_headless": true,
+        "supports_module_mode": true,
+        "supports_string_mode": true,
+        "resident_editor": true
+      },
+      "executable_paths": {
+        "headless": "${WORKSPACE_ROOT}/.venv/Scripts/python.exe"
+      },
+      "rpc_servers": {
+        "headless": "dcc_workers/marmoset/marmoset_rpc_server.py"
+      },
+      "pool_sizes": {
+        "headless": 1
+      },
+      "boot_timeout": {
+        "headless": 120
+      }
     }
   }
 }
