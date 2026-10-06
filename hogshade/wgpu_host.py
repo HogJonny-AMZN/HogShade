@@ -12,8 +12,10 @@ from __future__ import annotations
 
 import logging as _logging
 import math
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any
 
 import numpy as np
@@ -25,6 +27,7 @@ from hogshade.material.binding import WGPU_MODEL_IDS, WGPU_MODELS, pack_fields
 from hogshade.material.generators import host_map
 from hogshade.material.model import Binding
 from hogshade.material.runtime import RuntimeTexture
+from hogshade.testdata import quad_sphere as _quad_sphere
 from hogshade.wgpu_textures import (
     BC_FEATURE,
     SLOTS,
@@ -898,20 +901,21 @@ def quad_sphere(subdivisions: int | None = None) -> Mesh:
     The quad sphere (``hogshade.testdata.quad_sphere``): six cube faces on a sphere, each face one clean 0 to 1 UV tile,
     the normals the sphere's own, MikkTSpace tangents from the UVs. Nothing is read from disk.
     """
-    from hogshade.testdata import quad_sphere as qs
-
-    positions, normals, uvs, indices = qs.build(qs.SUBDIVISIONS if subdivisions is None else subdivisions)
-    return with_tangents(positions, normals, uvs, indices)
+    n = _quad_sphere.SUBDIVISIONS if subdivisions is None else subdivisions
+    return with_tangents(*_quad_sphere.build(n))
 
 
 #: The meshes the tools can render, by the name ``--mesh`` takes.
-MESHES = {"shader-ball": load_shader_ball, "quad-sphere": quad_sphere}
+MESHES: Mapping[str, Callable[[], Mesh]] = MappingProxyType(
+    {"shader-ball": load_shader_ball, "quad-sphere": quad_sphere}
+)
 
 
 def load_mesh(name: str) -> Mesh:
     """A mesh by name (``MESHES``): ``ValueError`` naming the choices for any other."""
     if name not in MESHES:
         raise ValueError(f"no mesh named {name!r}; one of {sorted(MESHES)}")
+    _LOGGER.info(f"mesh {name}")
     return MESHES[name]()
 
 

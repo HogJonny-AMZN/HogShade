@@ -366,7 +366,7 @@ def test_a_block_compressed_set_without_the_feature_is_refused_by_name() -> None
 
 SYNTHETIC = wgpu_host.ROOT / "content" / "textures" / "synthetic"
 PROBE = 512  # the render's side, in screen pixels
-MAP = 512  # the synthetic maps' side, in texels (``hogshade.testdata.synthetic.SIZE``)
+MAP = 512  # the synthetic maps' side, in texels; the module asserts it is the generator's size (below)
 
 
 @pytest.fixture(scope="module")
@@ -381,6 +381,9 @@ def synthetic_scene(renderer):
         pytest.skip("the synthetic set's cooked DDS are not hydrated (LFS)")
     if BC_FEATURE not in set(renderer.device.features):
         pytest.skip(f"the device has no {BC_FEATURE}")
+    from hogshade.testdata import synthetic
+
+    assert MAP == synthetic.SIZE, "the probe's map side follows the generator's size"
     doc = document_for_set(SYNTHETIC)
     converted, _ = convert(resolve(doc), "hogshade-legacy-v2")
     binding = bind(resolve(converted), "wgpu")
@@ -577,7 +580,9 @@ def _exact_probe(quad_renderer, synthetic_scene, mode: int, stride: int = 3):
     b = np.sum(oc * direction, axis=-1)
     disc = b * b - (np.sum(oc * oc, axis=-1) - qs.RADIUS**2)
     hit = disc >= 0.0
-    point = origin + (-b - np.sqrt(np.maximum(disc, 0.0)))[..., None] * direction
+    nearest = -b - np.sqrt(np.maximum(disc, 0.0))
+    hit &= nearest > 0.0  # a sphere behind the ray's origin is not a hit
+    point = origin + nearest[..., None] * direction
     normal = (point - np.array(qs.CENTRE)) / qs.RADIUS
     facing = np.sum(normal * -direction, axis=-1)
     face, u, v = qs.face_uv(normal.reshape(-1, 3))

@@ -55,13 +55,7 @@ def test_the_analytic_tangent_is_the_derivative_along_u():
     face = rng.integers(0, 6, 200)
     u, v = rng.uniform(0.05, 0.95, 200), rng.uniform(0.05, 0.95, 200)
 
-    def point(uc):
-        a, b, c = (qs._AXES[face, k] for k in range(3))
-        x, y = np.tan((2 * uc - 1) * np.pi / 4), np.tan((2 * v - 1) * np.pi / 4)
-        p = c + x[:, None] * a + y[:, None] * b
-        return p / np.linalg.norm(p, axis=1, keepdims=True)
-
-    fd = point(u + 1e-6) - point(u - 1e-6)
+    fd = qs.direction(face, u + 1e-6, v) - qs.direction(face, u - 1e-6, v)
     fd /= np.linalg.norm(fd, axis=1, keepdims=True)
     np.testing.assert_allclose(qs.tangent_at(face, u, v), fd, atol=1e-6)
 
@@ -75,8 +69,8 @@ def test_the_hosts_mikktspace_tangents_follow_u_without_a_split_and_are_all_righ
     assert (mesh.vertices[:, wgpu_host.COL_TANGENT_SIGN] == 1.0).all(), "every face reads unmirrored from outside"
     normals = mesh.vertices[:, wgpu_host.COL_NORMAL]
     face, u, v = qs.face_uv(normals)
-    interior = (mesh.vertices[:, 6] > 0.04) & (mesh.vertices[:, 6] < 0.96) & (mesh.vertices[:, 7] > 0.04)
-    interior &= mesh.vertices[:, 7] < 0.96
+    uv = mesh.vertices[:, wgpu_host.COL_UV]
+    interior = ((uv > 0.04) & (uv < 0.96)).all(axis=1)
     ours = mesh.vertices[:, wgpu_host.COL_TANGENT][interior]
     exact = qs.tangent_at(face[interior], u[interior], v[interior])
     angle = np.degrees(np.arccos(np.clip(np.sum(ours * exact, axis=1), -1.0, 1.0)))
@@ -89,3 +83,28 @@ def test_a_subdivision_below_one_is_refused_and_a_mesh_name_that_does_not_exist_
     with pytest.raises(ValueError, match="no mesh named 'nope'; one of \\['quad-sphere', 'shader-ball'\\]"):
         wgpu_host.load_mesh("nope")
     assert wgpu_host.load_mesh("quad-sphere").vertices.shape[1] == wgpu_host.VERTEX_FLOATS
+
+
+def test_build_refuses_what_would_turn_it_inside_out_or_into_a_point():
+    for bad in (0, -3, 2.7, "8", None):
+        with pytest.raises(qs.QuadSphereError, match="subdivisions is"):
+            qs.build(bad)
+    for radius in (0.0, -1.0, float("nan"), float("inf")):
+        with pytest.raises(qs.QuadSphereError, match="radius is finite and positive"):
+            qs.build(4, radius)
+    for centre in ((0.0, 0.0), (0.0, 0.0, float("nan")), (1, 2, 3, 4)):
+        with pytest.raises(qs.QuadSphereError, match="centre is three finite numbers"):
+            qs.build(4, 1.0, centre)
+    positions, normals, _uvs, _idx = qs.build(np.int64(4), 2.5, (1.0, -2.0, 3.0))
+    np.testing.assert_allclose(positions - np.array([1.0, -2.0, 3.0]), 2.5 * normals, atol=1e-12)
+
+
+def test_face_uv_refuses_a_zero_or_non_finite_direction_and_resolves_an_edge_to_one_valid_face():
+    for bad in ([[0.0, 0.0, 0.0]], [[1.0, np.nan, 0.0]], [[np.inf, 0.0, 0.0]], [1.0, 0.0, 0.0]):
+        with pytest.raises(qs.QuadSphereError, match=r"\(N, 3\), finite and nonzero"):
+            qs.face_uv(np.array(bad))
+    edge = np.array([[1.0, 1.0, 0.0], [1.0, 1.0, 1.0], [-1.0, 0.0, 1.0]]) * 3.0  # an edge, a corner, an edge; not unit
+    face, u, v = qs.face_uv(edge)
+    assert ((u >= 0.0) & (u <= 1.0) & (v >= 0.0) & (v <= 1.0)).all(), "a tie still lands on its face's tile"
+    back = qs.direction(face, u, v)
+    np.testing.assert_allclose(back, edge / np.linalg.norm(edge, axis=1, keepdims=True), atol=1e-12)

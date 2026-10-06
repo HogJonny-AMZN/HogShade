@@ -106,9 +106,10 @@ def main(argv: list[str] | None = None) -> int:
     except MaterialError as e:
         _LOGGER.error(f"texture matrix: {e}")
         return 2
+    root = args.out_dir if args.mesh == "shader-ball" else args.out_dir / args.mesh  # another mesh never overwrites
+    _LOGGER.info(f"texture matrix: {len(prepared)} set(s) on the {args.mesh} at {args.size}x{args.size} into {root}")
     _adapter, device = request_device()
     renderer = Renderer(device, load_mesh(args.mesh), environment=args.environment)
-    root = args.out_dir if args.mesh == "shader-ball" else args.out_dir / args.mesh  # another mesh never overwrites
     legend: dict[str, Any] = {
         "command": "uv run tools/wgpu/texture_matrix.py "
         + " ".join(shlex.quote(a) for a in (sys.argv[1:] if argv is None else argv)),

@@ -17,6 +17,7 @@ which is what lets a test read the texel a pixel shows without a vertex proxy. N
 from __future__ import annotations
 
 import logging as _logging
+import operator
 
 import numpy as np
 from numpy.typing import NDArray
@@ -45,7 +46,20 @@ _AXES = np.array(FACES, dtype=np.float64)  # (6, 3, 3): face, (a, b, c), xyz
 
 
 class QuadSphereError(ValueError):
-    """A quad sphere that cannot be built: a subdivision below 1."""
+    """A quad sphere that cannot be built or asked about: a bad subdivision, radius or centre, a zero direction."""
+
+
+def direction(face: NDArray[np.integer], u: NDArray[np.floating], v: NDArray[np.floating]) -> NDArray[np.float64]:
+    """
+    The unit direction from the sphere's centre of ``(face, u, v)``: the forward map ``build`` uses, public so a test
+    can recompute a point. ``face``, ``u`` and ``v`` broadcast together; the result has a trailing axis of 3.
+    """
+    face = np.asarray(face)
+    a, b, c = _AXES[face, 0], _AXES[face, 1], _AXES[face, 2]
+    x = np.tan((2.0 * np.asarray(u) - 1.0) * np.pi / 4.0)
+    y = np.tan((2.0 * np.asarray(v) - 1.0) * np.pi / 4.0)
+    p = c + x[..., None] * a + y[..., None] * b
+    return p / np.linalg.norm(p, axis=-1, keepdims=True)
 
 
 def build(
@@ -53,24 +67,32 @@ def build(
 ) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.uint32]]:
     """
     ``(positions, normals, uvs, indices)``: ``6 * (n + 1)^2`` vertices, ``12 * n^2`` triangles for ``n`` subdivisions
-    per face edge, indices ``(m, 3)`` counter-clockwise seen from outside.
+    per face edge, indices ``(m, 3)`` counter-clockwise seen from outside. ``QuadSphereError`` for a subdivision that is
+    not an integer of at least 1, a radius that is not finite and positive (a negative one would turn the winding and
+    the normals inward), or a centre that is not three finite numbers.
     """
-    n = int(subdivisions)
+    try:
+        n = operator.index(subdivisions)
+    except TypeError as e:
+        raise QuadSphereError(f"subdivisions is an integer, got {subdivisions!r}") from e
     if n < 1:
         raise QuadSphereError(f"subdivisions is at least 1, got {subdivisions}")
+    if not (np.isfinite(radius) and radius > 0):
+        raise QuadSphereError(f"radius is finite and positive, got {radius!r}")
+    centre_a = np.asarray(centre, dtype=np.float64)
+    if centre_a.shape != (3,) or not np.isfinite(centre_a).all():
+        raise QuadSphereError(f"centre is three finite numbers, got {centre!r}")
     side = n + 1
     grid = np.linspace(0.0, 1.0, side)
     s, t = np.meshgrid(grid, grid)  # s varies along columns (i), t along rows (j)
-    x, y = np.tan((2.0 * s - 1.0) * np.pi / 4.0), np.tan((2.0 * t - 1.0) * np.pi / 4.0)
     positions, normals, uvs, tris = [], [], [], []
     cells = np.arange(n)
     ii, jj = np.meshgrid(cells, cells)
     v00 = (jj * side + ii).ravel()
     v10, v11, v01 = v00 + 1, v00 + side + 1, v00 + side
-    for face, (a, b, c) in enumerate(_AXES):
-        p = c[None, None, :] + x[..., None] * a + y[..., None] * b
-        unit = (p / np.linalg.norm(p, axis=-1, keepdims=True)).reshape(-1, 3)
-        positions.append(np.asarray(centre) + radius * unit)
+    for face in range(len(_AXES)):
+        unit = direction(np.full(s.shape, face), s, t).reshape(-1, 3)
+        positions.append(centre_a + radius * unit)
         normals.append(unit)
         uvs.append(np.stack([s.ravel(), t.ravel()], axis=1))
         base = face * side * side
@@ -86,10 +108,14 @@ def build(
 
 def face_uv(directions: NDArray[np.floating]) -> tuple[NDArray[np.int_], NDArray[np.float64], NDArray[np.float64]]:
     """
-    The face and ``(u, v)`` of unit directions ``(N, 3)`` from the sphere's centre: the exact inverse of ``build``'s
-    map, for a point seen on the sphere.
+    The face and ``(u, v)`` of directions ``(N, 3)`` from the sphere's centre (any nonzero length: only the ratios are
+    used): the exact inverse of ``build``'s map, for a point seen on the sphere. On a cube edge or corner the face is
+    the lowest-numbered of those that meet there and ``(u, v)`` is on its tile. ``QuadSphereError`` for a direction
+    that is zero or not finite, which has no face.
     """
     d = np.asarray(directions, dtype=np.float64)
+    if d.ndim != 2 or d.shape[1] != 3 or not np.isfinite(d).all() or not (np.linalg.norm(d, axis=1) > 0).all():
+        raise QuadSphereError("directions are (N, 3), finite and nonzero")
     face = np.argmax(np.einsum("fk,nk->nf", _AXES[:, 2, :], d), axis=1)  # the face whose outward axis d leans on most
     a, b, c = _AXES[face, 0], _AXES[face, 1], _AXES[face, 2]
     dc = np.einsum("nk,nk->n", d, c)
@@ -104,9 +130,7 @@ def tangent_at(face: NDArray[np.int_], u: NDArray[np.float64], v: NDArray[np.flo
     x, y = np.tan((2.0 * u - 1.0) * np.pi / 4.0), np.tan((2.0 * v - 1.0) * np.pi / 4.0)
     p = c + x[:, None] * a + y[:, None] * b
     r = np.linalg.norm(p, axis=1, keepdims=True)
-    dp = a / r - p * (np.einsum("nk,nk->n", p, a)[:, None] / r**3)  # d(p / |p|) / dx
-    nrm = p / r
-    dp -= nrm * np.einsum("nk,nk->n", dp, nrm)[:, None]
+    dp = a / r - p * (np.einsum("nk,nk->n", p, a)[:, None] / r**3)  # d(p / |p|) / dx: already tangent to the sphere
     return dp / np.linalg.norm(dp, axis=1, keepdims=True)
 
 
