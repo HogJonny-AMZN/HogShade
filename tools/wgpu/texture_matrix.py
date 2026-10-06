@@ -33,7 +33,7 @@ from hogshade.ibl.imageio import preview_srgb8, write_png_rgb8
 from hogshade.material import MaterialError, bind, convert, load, resolve, runtime_textures
 from hogshade.material.runtime import RuntimeTexture
 from hogshade.material.sets import document_for_set
-from hogshade.wgpu_host import Renderer, Scene, load_shader_ball, request_device
+from hogshade.wgpu_host import MESHES, Renderer, Scene, load_mesh, request_device
 from hogshade.wgpu_textures import PARAMETER_SLOT, TextureError
 
 _MODULE_NAME = "tools.wgpu.texture_matrix"
@@ -79,6 +79,12 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out-dir", type=Path, default=OUT_DIR, help="<out-dir>/<set>/main.png")
     ap.add_argument("--environment", default="studio_small_09")
+    ap.add_argument(
+        "--mesh",
+        default="shader-ball",
+        choices=sorted(MESHES),
+        help="what to draw; another mesh writes under <out-dir>/<mesh>/, leaving the shader ball pictures alone",
+    )
     ap.add_argument("--size", type=int, default=512, help="square output, a multiple of 32, at most 1024")
     ap.add_argument("--debug-modes", default="", help="comma-separated v2 debug modes, each a debug-NN.png")
     ap.add_argument("--exposure-ev", type=float, default=0.0, help="display exposure for the PNG only")
@@ -100,18 +106,21 @@ def main(argv: list[str] | None = None) -> int:
     except MaterialError as e:
         _LOGGER.error(f"texture matrix: {e}")
         return 2
+    root = args.out_dir if args.mesh == "shader-ball" else args.out_dir / args.mesh  # another mesh never overwrites
+    _LOGGER.info(f"texture matrix: {len(prepared)} set(s) on the {args.mesh} at {args.size}x{args.size} into {root}")
     _adapter, device = request_device()
-    renderer = Renderer(device, load_shader_ball(), environment=args.environment)
+    renderer = Renderer(device, load_mesh(args.mesh), environment=args.environment)
     legend: dict[str, Any] = {
         "command": "uv run tools/wgpu/texture_matrix.py "
         + " ".join(shlex.quote(a) for a in (sys.argv[1:] if argv is None else argv)),
+        "mesh": args.mesh,
         "environment": args.environment,
         "size": args.size,
         "converted_to": TO_TYPE,
         "sets": {},
     }
     for name, where, binding, textures, losses in prepared:
-        out = args.out_dir / name
+        out = root / name
         out.mkdir(parents=True, exist_ok=True)
         scene = Scene(
             width=args.size, height=args.size, material=binding, environment=args.environment, textures=textures
@@ -152,10 +161,9 @@ def main(argv: list[str] | None = None) -> int:
             f"{name}: slots {', '.join(sorted(plan.sources))}; without a slot: {', '.join(unslotted) or 'none'}; "
             f"forward vs deferred mean {mean_diff:.5f}, max {max_diff:.5f}; wrote {out / 'main.png'}"
         )
-    (args.out_dir / "matrix.json").write_text(json.dumps(legend, indent=2) + "\n", encoding="utf-8", newline="\n")
-    _LOGGER.info(
-        f"{len(prepared)} set(s) rendered in {time.perf_counter() - t0:.1f} s; legend {args.out_dir / 'matrix.json'}"
-    )
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "matrix.json").write_text(json.dumps(legend, indent=2) + "\n", encoding="utf-8", newline="\n")
+    _LOGGER.info(f"{len(prepared)} set(s) rendered in {time.perf_counter() - t0:.1f} s; legend {root / 'matrix.json'}")
     return 0
 
 

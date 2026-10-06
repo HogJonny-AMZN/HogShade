@@ -253,6 +253,54 @@ the document built from the set's maps, converted to legacy v2 and bound; the co
 
 the normal quadrants through the mesh's MikkTSpace frame; the host test reads this view on the texels that lean in U and in V and checks that flipping either channel matches nowhere. Made by `uv run tools/wgpu/texture_matrix.py --only synthetic --debug-modes 1,11`; the file is `verification/wgpu/textures/synthetic/debug-11.png`.
 
+### cobblestone_floor_04 on the quad sphere through the wgpu host (`wgpu`)
+
+![cobblestone_floor_04 on the quad sphere through the wgpu host](../verification/wgpu/textures/quad-sphere/cobblestone_floor_04/main.png)
+
+the cube-on-a-sphere ball: every face is one clean 0 to 1 tile, so the whole texture shows once per face, unmirrored, with no wrap seam (the shader ball's UVs span -1 to 1.66 across tiles); the faces meet at the visible edges. Made by `uv run tools/wgpu/texture_matrix.py --mesh quad-sphere`; the file is `verification/wgpu/textures/quad-sphere/cobblestone_floor_04/main.png`.
+
+### brick_wall_001 on the quad sphere through the wgpu host (`wgpu`)
+
+![brick_wall_001 on the quad sphere through the wgpu host](../verification/wgpu/textures/quad-sphere/brick_wall_001/main.png)
+
+the cube-on-a-sphere ball: every face is one clean 0 to 1 tile, so the whole texture shows once per face, unmirrored, with no wrap seam (the shader ball's UVs span -1 to 1.66 across tiles); the faces meet at the visible edges. Made by `uv run tools/wgpu/texture_matrix.py --mesh quad-sphere`; the file is `verification/wgpu/textures/quad-sphere/brick_wall_001/main.png`.
+
+### brown_planks_03 on the quad sphere through the wgpu host (`wgpu`)
+
+![brown_planks_03 on the quad sphere through the wgpu host](../verification/wgpu/textures/quad-sphere/brown_planks_03/main.png)
+
+the cube-on-a-sphere ball: every face is one clean 0 to 1 tile, so the whole texture shows once per face, unmirrored, with no wrap seam (the shader ball's UVs span -1 to 1.66 across tiles); the faces meet at the visible edges. Made by `uv run tools/wgpu/texture_matrix.py --mesh quad-sphere`; the file is `verification/wgpu/textures/quad-sphere/brown_planks_03/main.png`.
+
+### metal_plate on the quad sphere through the wgpu host (`wgpu`)
+
+![metal_plate on the quad sphere through the wgpu host](../verification/wgpu/textures/quad-sphere/metal_plate/main.png)
+
+the cube-on-a-sphere ball: every face is one clean 0 to 1 tile, so the whole texture shows once per face, unmirrored, with no wrap seam (the shader ball's UVs span -1 to 1.66 across tiles); the faces meet at the visible edges. Made by `uv run tools/wgpu/texture_matrix.py --mesh quad-sphere`; the file is `verification/wgpu/textures/quad-sphere/metal_plate/main.png`.
+
+### grid on the quad sphere through the wgpu host (`wgpu`)
+
+![grid on the quad sphere through the wgpu host](../verification/wgpu/textures/quad-sphere/grid/main.png)
+
+the cube-on-a-sphere ball: every face is one clean 0 to 1 tile, so the whole texture shows once per face, unmirrored, with no wrap seam (the shader ball's UVs span -1 to 1.66 across tiles); the faces meet at the visible edges. Made by `uv run tools/wgpu/texture_matrix.py --mesh quad-sphere`; the file is `verification/wgpu/textures/quad-sphere/grid/main.png`.
+
+### synthetic on the quad sphere through the wgpu host (`wgpu`)
+
+![synthetic on the quad sphere through the wgpu host](../verification/wgpu/textures/quad-sphere/synthetic/main.png)
+
+the cube-on-a-sphere ball: every face is one clean 0 to 1 tile, so the whole texture shows once per face, unmirrored, with no wrap seam (the shader ball's UVs span -1 to 1.66 across tiles); the faces meet at the visible edges. Made by `uv run tools/wgpu/texture_matrix.py --mesh quad-sphere`; the file is `verification/wgpu/textures/quad-sphere/synthetic/main.png`.
+
+### the synthetic set on the shell in Maya 2026: all nine bound textures decoded (`maya-2026`)
+
+![the synthetic set on the shell in Maya 2026: all nine bound textures decoded](../verification/maya-2026/textures/synthetic/main.png)
+
+the set's own document (built from its maps), converted to legacy v2 and bound; Maya's stock polar sphere puts the whole texture across one wrap, so the metalness checker, the colour patch and the V arrow are read here at one-per-sphere scale. Made by `"%JOB_ORCHESTRATOR_ROOT%\.venv\Scripts\python.exe" tools/bats/submit.py --gui --main-thread --module hogshade.jobs.maya_texture_check --param set_dir=content/textures/synthetic --param check=textures --param variant=synthetic --param debug_modes=1,7,8,9,11`; the file is `verification/maya-2026/textures/synthetic/main.png`.
+
+### the synthetic set in Maya, view 7: the metalness the shell reads from the packed _ORM's blue channel (`maya-2026`)
+
+![the synthetic set in Maya, view 7: the metalness the shell reads from the packed _ORM's blue channel](../verification/maya-2026/textures/synthetic/debug-07.png)
+
+the exact 0/1 checker across the sphere: Maya reads the same channel the wgpu host and the cook tests read. Made by `the same command`; the file is `verification/maya-2026/textures/synthetic/debug-07.png`.
+
 ### the metalness debug view of the metal plate: the ORM's blue channel read through ormMap (`maya-2026`)
 
 ![the metalness debug view of the metal plate: the ORM's blue channel read through ormMap](../verification/maya-2026/textures/metal_plate/debug-07.png)
@@ -277,18 +325,18 @@ identical to the left on the main view (0 differing pixels); two debug views dif
 | --- | --- | --- |
 | ![left](../verification/maya-2026/ibl-check/gate/master/main.png) | ![right](../verification/maya-2026/ibl-check/gate/ormmap/main.png) | the S2 gate for the shell change: master's shell and the regenerated one (with ormMap) rendered untextured in one Maya session; the main view pixel-identical, the debug views within one 8-bit step on at most two pixels (the viewport's own run-to-run jitter) |
 
-### The five sets, Maya beside wgpu
+### The six sets, Maya beside wgpu
 
-one cooked set per row, rendered from the same DDS by the two hosts: Maya 2026 through the dx11 shell (a sphere, the viewport's camera), the wgpu host (the shader ball, offscreen). Same colour, same normal relief, same metalness; the differences are mesh, camera and output space, not the material. The synthetic row has no Maya picture yet: the capture waits for the orchestrator's Maya worker (`hogshade.jobs.maya_texture_check --param set_dir=content/textures/synthetic`)
+one cooked set per row, rendered from the same DDS by the two hosts: Maya 2026 through the dx11 shell (a sphere, the viewport's camera), the wgpu host (the shader ball, offscreen). Same colour, same normal relief, same metalness; the differences are mesh, camera and output space, not the material. The quad sphere column is the clean-UV ball: each cube face carries the whole texture once
 
-| | Maya 2026 | wgpu |
-| --- | --- | --- |
-| **cobblestone_floor_04** | ![cobblestone_floor_04, Maya 2026](../verification/maya-2026/textures/cobblestone_floor_04/main.png) | ![cobblestone_floor_04, wgpu](../verification/wgpu/textures/cobblestone_floor_04/main.png) |
-| **brick_wall_001** | ![brick_wall_001, Maya 2026](../verification/maya-2026/textures/brick_wall_001/main.png) | ![brick_wall_001, wgpu](../verification/wgpu/textures/brick_wall_001/main.png) |
-| **brown_planks_03** | ![brown_planks_03, Maya 2026](../verification/maya-2026/textures/brown_planks_03/main.png) | ![brown_planks_03, wgpu](../verification/wgpu/textures/brown_planks_03/main.png) |
-| **metal_plate** | ![metal_plate, Maya 2026](../verification/maya-2026/textures/metal_plate/main.png) | ![metal_plate, wgpu](../verification/wgpu/textures/metal_plate/main.png) |
-| **grid** | ![grid, Maya 2026](../verification/maya-2026/textures/grid/main.png) | ![grid, wgpu](../verification/wgpu/textures/grid/main.png) |
-| **synthetic** |  | ![synthetic, wgpu](../verification/wgpu/textures/synthetic/main.png) |
+| | Maya 2026 | wgpu, shader ball | wgpu, quad sphere |
+| --- | --- | --- | --- |
+| **cobblestone_floor_04** | ![cobblestone_floor_04, Maya 2026](../verification/maya-2026/textures/cobblestone_floor_04/main.png) | ![cobblestone_floor_04, wgpu, shader ball](../verification/wgpu/textures/cobblestone_floor_04/main.png) | ![cobblestone_floor_04, wgpu, quad sphere](../verification/wgpu/textures/quad-sphere/cobblestone_floor_04/main.png) |
+| **brick_wall_001** | ![brick_wall_001, Maya 2026](../verification/maya-2026/textures/brick_wall_001/main.png) | ![brick_wall_001, wgpu, shader ball](../verification/wgpu/textures/brick_wall_001/main.png) | ![brick_wall_001, wgpu, quad sphere](../verification/wgpu/textures/quad-sphere/brick_wall_001/main.png) |
+| **brown_planks_03** | ![brown_planks_03, Maya 2026](../verification/maya-2026/textures/brown_planks_03/main.png) | ![brown_planks_03, wgpu, shader ball](../verification/wgpu/textures/brown_planks_03/main.png) | ![brown_planks_03, wgpu, quad sphere](../verification/wgpu/textures/quad-sphere/brown_planks_03/main.png) |
+| **metal_plate** | ![metal_plate, Maya 2026](../verification/maya-2026/textures/metal_plate/main.png) | ![metal_plate, wgpu, shader ball](../verification/wgpu/textures/metal_plate/main.png) | ![metal_plate, wgpu, quad sphere](../verification/wgpu/textures/quad-sphere/metal_plate/main.png) |
+| **grid** | ![grid, Maya 2026](../verification/maya-2026/textures/grid/main.png) | ![grid, wgpu, shader ball](../verification/wgpu/textures/grid/main.png) | ![grid, wgpu, quad sphere](../verification/wgpu/textures/quad-sphere/grid/main.png) |
+| **synthetic** | ![synthetic, Maya 2026](../verification/maya-2026/textures/synthetic/main.png) | ![synthetic, wgpu, shader ball](../verification/wgpu/textures/synthetic/main.png) | ![synthetic, wgpu, quad sphere](../verification/wgpu/textures/quad-sphere/synthetic/main.png) |
 
 ## Wanted, not yet captured
 

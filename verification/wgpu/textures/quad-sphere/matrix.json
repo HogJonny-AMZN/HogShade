@@ -1,0 +1,181 @@
+{
+  "command": "uv run tools/wgpu/texture_matrix.py --mesh quad-sphere",
+  "mesh": "quad-sphere",
+  "environment": "studio_small_09",
+  "size": 512,
+  "converted_to": "hogshade-legacy-v2",
+  "sets": {
+    "cobblestone_floor_04": {
+      "set": "content/materials/standard/rough",
+      "slots": [
+        "base_color",
+        "normal",
+        "orm"
+      ],
+      "bound": [
+        "ambient_occlusion_map",
+        "base_color",
+        "normal_map",
+        "roughness"
+      ],
+      "without_a_slot": [
+        "height_map"
+      ],
+      "losses": [
+        "specular_color",
+        "specular_anisotropy",
+        "specular_rotation",
+        "specular_occlusion"
+      ],
+      "forward_vs_deferred": {
+        "mean": 0.000978,
+        "max": 0.011719
+      }
+    },
+    "brick_wall_001": {
+      "set": "content/materials/standard/rough",
+      "slots": [
+        "base_color",
+        "normal",
+        "orm"
+      ],
+      "bound": [
+        "ambient_occlusion_map",
+        "base_color",
+        "normal_map",
+        "roughness"
+      ],
+      "without_a_slot": [
+        "height_map"
+      ],
+      "losses": [
+        "specular_color",
+        "specular_anisotropy",
+        "specular_rotation",
+        "specular_occlusion"
+      ],
+      "forward_vs_deferred": {
+        "mean": 0.000651,
+        "max": 0.007324
+      }
+    },
+    "brown_planks_03": {
+      "set": "content/materials/standard/dielectric",
+      "slots": [
+        "base_color",
+        "normal",
+        "orm"
+      ],
+      "bound": [
+        "ambient_occlusion_map",
+        "base_color",
+        "normal_map",
+        "roughness"
+      ],
+      "without_a_slot": [
+        "height_map"
+      ],
+      "losses": [
+        "specular_color",
+        "specular_anisotropy",
+        "specular_rotation",
+        "specular_occlusion"
+      ],
+      "forward_vs_deferred": {
+        "mean": 0.000828,
+        "max": 0.006348
+      }
+    },
+    "metal_plate": {
+      "set": "content/materials/standard/metal",
+      "slots": [
+        "base_color",
+        "normal",
+        "orm"
+      ],
+      "bound": [
+        "ambient_occlusion_map",
+        "base_color",
+        "metalness",
+        "normal_map",
+        "roughness"
+      ],
+      "without_a_slot": [
+        "height_map"
+      ],
+      "losses": [
+        "specular_color",
+        "specular_anisotropy",
+        "specular_rotation",
+        "specular_occlusion"
+      ],
+      "forward_vs_deferred": {
+        "mean": 0.000223,
+        "max": 0.002197
+      }
+    },
+    "grid": {
+      "set": "content/textures/grid",
+      "slots": [
+        "base_color",
+        "cavity",
+        "normal",
+        "orm"
+      ],
+      "bound": [
+        "ambient_occlusion_map",
+        "base_color",
+        "cavity_map",
+        "metalness",
+        "normal_map",
+        "roughness"
+      ],
+      "without_a_slot": [
+        "emission_color",
+        "height_map"
+      ],
+      "losses": [
+        "specular_color",
+        "specular_anisotropy",
+        "specular_rotation",
+        "specular_occlusion"
+      ],
+      "forward_vs_deferred": {
+        "mean": 0.01595,
+        "max": 2.933594
+      }
+    },
+    "synthetic": {
+      "set": "content/textures/synthetic",
+      "slots": [
+        "base_color",
+        "cavity",
+        "normal",
+        "orm"
+      ],
+      "bound": [
+        "ambient_occlusion_map",
+        "base_color",
+        "cavity_map",
+        "metalness",
+        "normal_map",
+        "roughness"
+      ],
+      "without_a_slot": [
+        "emission_color",
+        "height_map",
+        "specular"
+      ],
+      "losses": [
+        "specular_color",
+        "specular_anisotropy",
+        "specular_rotation",
+        "specular_occlusion"
+      ],
+      "forward_vs_deferred": {
+        "mean": 0.006728,
+        "max": 0.518066
+      }
+    }
+  }
+}
