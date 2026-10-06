@@ -21,9 +21,9 @@ replaces the worker set with:
 | `hogshade_maya_gui` | one `maya.exe` with `MAYA_VP2_DEVICE_OVERRIDE=VirtualDeviceDx11` | the dx11Shader host: effect loads, playblasts, captures |
 | `hogshade_python` | one venv Python | the IBL cook and other NumPy jobs |
 | `hogshade_blender` | one headless Blender 5.2 | the Blender host, bakes, the required comparison path |
-| `marmoset` | a bridge to Marmoset Toolbag 4, a fresh Toolbag per job (Job_Orchestrator #75, one-shot by default) | the baked-maps tier of T4; needs a signed-in Toolbag seat, and a Toolbag window flashes per job |
+| `hogshade_marmoset` | a bridge to Marmoset Toolbag 4, a fresh Toolbag per job (Job_Orchestrator #75, one-shot by default) | the baked-maps tier of T4; needs a signed-in Toolbag seat, and a Toolbag window flashes per job |
 
-Named types are the orchestrator's pattern for variants; nothing in HogShade targets a canon type, except `marmoset`, which keeps the canon's name because the Toolbag worker's server knows it by that name and its jobs share nothing with ours.
+Named types are the orchestrator's pattern for variants; nothing in HogShade targets a canon type.
 
 ## Files
 
@@ -32,7 +32,9 @@ Named types are the orchestrator's pattern for variants; nothing in HogShade tar
 | `make_profile.py` | derives the generated files below from the dev checkout's canon config; re-run after pulling Job_Orchestrator and review the diff |
 | `orchestrator_config_hogshade.json` | generated: the profile (canon settings, HogShade's worker types) |
 | `hogshade_maya_env.json` | generated: the Maya worker environment; HogShade root on `PYTHONPATH`, the DirectX 11 override |
+| `hogshade_python_env.json` | generated: the Python worker environment (canon base and Python environment plus the HogShade root) |
 | `hogshade_blender_env.json` | generated: the Blender worker environment with `HOGSHADE_ROOT` |
+| `hogshade_marmoset_env.json` | generated: the Marmoset worker environment, the Python one under the Marmoset type's name; removed by the generator when the canon has no Marmoset type |
 | `run_hogshade_orchestrator.bat` | the launcher: copies the profile into the orchestrator's config folder, starts orchestrator and tray with `--config hogshade` |
 | `submit.py` | submit a job and wait for its result; `--pool` prints the swarm. The jobs: `hogshade.jobs.cook_ibl`, `hogshade.jobs.cook_textures` (the Python worker runs on the workspace `.venv`, so `uv sync --all-extras` gives it the texture encoder), `hogshade.jobs.maya_ibl_check`, `hogshade.jobs.maya_texture_check` (a cooked set on the shell; `--param set_dir=... --param document=...`) and `hogshade.jobs.maya_mikktspace_dump` (headless; Maya's tangent frame of an OBJ as the MikkTSpace parity fixture, `--param obj=...`) |
 | `kill_hogshade_orchestrator.bat` | the kill switch for a wedged orchestrator; see the warning below |
