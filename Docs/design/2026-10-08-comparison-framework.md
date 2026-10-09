@@ -61,14 +61,15 @@ it is not. All three produce the same artifact (a verdict record) and the same r
 ### 2. The unit is a capture set, from a request
 
 A **capture request** (`request.json`, schema-validated) is everything a host needs, in the framework's own
-conventions and nothing host-specific:
+conventions and **nothing host-specific, the host included**: the same request is run through every host and hashes the
+same. The host and its version belong to the adapter invocation and are recorded in the manifest.
 
-- the mesh (name and content hash; MikkTSpace tangents, per the standard),
+- the mesh (a canonical id from `hogshade.compare.meshes`, for example `shader-ball` or `quad-sphere`; each adapter maps
+  the id to its own source and records the mesh's content hash in the manifest; MikkTSpace tangents, per the standard),
 - the material (a document path and hash from the library),
 - the light rig: the HDR file (the cooked IBL), rotation in degrees about +Y, exposure in EV,
 - the camera: eye, target, up, vertical field of view in degrees, near and far, in metres,
-- the image size, the debug mode (one of the model's views, or none), the view transform name, the host and its
-  version.
+- the image size, the debug mode (one of the model's views, or none), the view transform name.
 
 A host's **adapter** turns the request into that host's scene, renders, and writes a **capture set** into one
 directory, `<host>[-<version>]/<check>/<variant>/` (the existing rule), with files named by role:
@@ -81,6 +82,13 @@ directory, `<host>[-<version>]/<check>/<variant>/` (the existing rule), with fil
 | `coverage.png` | 8-bit mask of the pixels the mesh covers, for silhouette exclusion |
 | `manifest.json` | the host, versions (Maya, driver, wgpu, naga), hashes of the inputs, the capture level reached, the wall time |
 | `*.log` | the host's own log (kept on purpose, per the verification rule) |
+
+Which roles a set must hold depends on the level it declares (section 4), so a valid lower-level set is not
+rejected: **L2 and L2p** require `request.json`, `scene.exr`, `display.png`, `coverage.png` and `manifest.json`;
+**L1** requires `request.json`, `display.png`, `coverage.png` and `manifest.json` (no `scene.exr`); **L0** requires
+`request.json`, `manifest.json` and at least one log, since a host that produced nothing must say why. Logs are
+optional at every other level and are listed in the manifest. Any role beyond the level's list is refused as
+unknown, so a typo cannot pass for an extra.
 
 The adapters are jobs where the host needs an application (Maya and Blender through BATS), and plain functions where it
 does not (wgpu). The framework itself never launches a host: it reads capture sets.

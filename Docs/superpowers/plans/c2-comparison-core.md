@@ -6,18 +6,21 @@ PR states. A significant increment: `/local-review diff` before asking for a mer
 
 ## Tasks
 
-- [ ] 1. **The request** (`hogshade/compare/request.py`, `tests/compare/test_request.py`): `CaptureRequest`, canonical
-      JSON, the host-free content hash, `RequestError` naming the field. Verify: round trip; the same request with two
-      hosts hashes equal; a changed field changes the hash; every field's refusal (a size not a multiple of 32, a
-      non-finite number, an unknown mesh name, an `up` parallel to the view direction).
+- [ ] 1. **The request** (`hogshade/compare/request.py`, `tests/compare/test_request.py`): `CaptureRequest` (host-neutral),
+      `meshes.py` (the canonical ids), canonical JSON, the content hash, `RequestError` naming the field. Verify: round
+      trip; a request carrying a `host` field is refused as unknown; a changed field changes the hash; every field's
+      refusal (a size not a multiple of 32, a non-finite number, an unknown mesh id, an `up` parallel to the view
+      direction).
 - [ ] 2. **The capture set** (`hogshade/compare/captureset.py`, `tests/compare/test_captureset.py`): roles, `Manifest`,
-      `write` / `read` over `hogshade.ibl.imageio` (EXR, PNG). Verify: write then read gives the same arrays; a missing
-      role, mismatched sizes, a request whose hash differs from the manifest's, and a level that overstates are each
-      refused with a message naming the role.
+      `write` / `read` over `hogshade.ibl.imageio` (EXR, PNG). Verify: write then read gives the same arrays; the roles
+      each level requires (an L1 set without `scene.exr` reads, an L2 set without it is refused, an L0 set needs a log);
+      a missing role, mismatched sizes, a request whose hash differs from the manifest's, an unknown file, and a level
+      that overstates are each refused with a message naming the role.
 - [ ] 3. **The metrics** (`hogshade/compare/metrics.py`, `tests/compare/test_metrics.py`): absolute and relative error,
-      PSNR, SSIM, coverage overlap, `fraction_within`. Verify: each against a value worked by hand on a small array;
-      identical images give PSNR infinity (a named constant, not a division by zero) and SSIM 1; an empty mask is a
-      refusal, not a mean of nothing.
+      PSNR and SSIM (each with an explicit `data_range`), coverage overlap, `fraction_within`. Verify: each against a
+      value worked by hand on a small array; PSNR on the same arrays with two data ranges differs by exactly the
+      expected decibels; identical images give PSNR infinity (a named constant, not a division by zero) and SSIM 1; a
+      missing or non-positive data range and an empty mask are refusals, not a mean of nothing.
 - [ ] 4. **The verdict and the accepted file** (`hogshade/compare/verdict.py`, `tests/compare/test_verdict.py`):
       `Verdict`, `Threshold`, `judge`, `accepted.json` read and write. Verify: pass, needs-review and fail at, inside
       and outside the bounds in both directions; an accepted difference holds only while both hashes match.
