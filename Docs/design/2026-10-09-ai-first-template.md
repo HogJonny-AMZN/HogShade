@@ -1,8 +1,9 @@
 # The template repository: one upstream for the AI-first framework
 
-**Status:** Proposed. Drafted 2026-10-09 from the owner's statements of that day and the eleven design answers
-(all "as recommended"). It becomes Accepted when the owner says "locked"; until then nothing in it is built, and a
-board yes is not a lock.
+**Status:** Accepted (owner, 2026-10-09: "locked"). Drafted 2026-10-09 from the owner's statements of that day and
+the eleven design answers (all "as recommended"). The owner locked it after being offered two amendments, the
+template running the framework on itself and harness neutrality; both are in the body below, read as part of the lock
+(the owner said nothing against them). Nothing in it is built until each increment's spec and plan are accepted.
 
 Date: 2026-10-09. Parents: [../knowledge/ai-first-framework.md](../knowledge/ai-first-framework.md) (what the
 framework is), [the graph](../knowledge/ai-first-framework-graph.md), [../plan/BOARD.md](../plan/BOARD.md) (the
@@ -58,7 +59,10 @@ documentation standard are taken whole, because HogShade has none.
 
 A private GitHub *template repository*, `ai-first-template`, in the owner's account. It is also a working project:
 its own CI runs every check against its mock `src/`, so a template that does not work fails its own build before any
-repository can be made from it. It follows its own process (a board, a handoff, a ledger of its own).
+repository can be made from it. It follows its own process (a board, a handoff, a ledger of its own); see
+"The template runs the framework on itself".
+
+The tree below is the **payload**: what a new repository receives.
 
 ```text
 ai-first-template/
@@ -104,6 +108,7 @@ project-owned file seeded with the framework's own terms; the docs check reads i
 | `tasking` | on | the Makefile, `tools/check.py` (the gate and CI parity oracle), `tooling.md`, `ci.md`, the hooks | S |
 | `hygiene` | on, empty | the retired-identifier check with an empty list | H |
 | `graph` | on | the generator, its test, the base graph and page, its CI step | H |
+| `harness-adapters` | on | `AGENTS.md` as the single context, the generated adapters, the skills mirrors, `sync_adapters.py`, the `commit-msg` hook, the neutral-wording lint, the conformance probes and the compatibility matrix | new, from the inventory of harnesses |
 | `specimens` | on | the specimens, their map, the walkthrough increment, the generator's coverage check | new |
 | `lanes` | off | lane-prefixed board ids, the pending-review queue and threshold, deferred bugs as issues | S |
 | `branch-ownership` | off | the whose-branch tool | L |
@@ -151,6 +156,55 @@ Taken from SpriteJammer whole, with its hard rule: every recipe is one `uv run` 
 Python (`tools/check.py`), so a machine without Make loses typing and not behaviour. GNU Make 3.81 compatible. The test
 that enforces the rule travels with it. Targets: `help` (default), `init`, `setup`, `check`, `test`, `fix`, `graph`,
 `sync`, `smoke`.
+
+### The template runs the framework on itself
+
+The template is a project as well as a payload, and it follows its own rules while it is developed and maintained.
+To keep the two apart the shippable files live in `payload/`, and the repository root is the template's **own
+instance** of the framework, generated from the payload by `init adopt` with its own `framework.lock`. The root has its
+own board, handoff, journal, ADRs, designs, specs, plans and a project ledger of lessons about developing the template.
+None of that is in the payload.
+
+- The template's CI runs the sync check at the root, so it is its own first downstream. Editing a managed file at the
+  root instead of in `payload/` fails the check.
+- A change to the framework is an increment through the same chain (lock, spec, plan, test-first, review, pull
+  request, owner's merge), and a change to the docs checker has to pass the template's own CI before any other
+  repository can receive it.
+- `init new` is tested by building a repository from `payload/` into a temporary directory and running every check.
+- Improvements flow in one direction: found in any repository, proposed as a pull request to the template (edited in
+  `payload/`), released as a tag, reported by each repository's `--upstream`, ported by hand until `--update` exists.
+- The first version is extracted from HogShade by hand, so self-hosting starts from the second version.
+- A new rule that would flag the template's own older documents is introduced with a grandfathered set, as in HogShade.
+
+### Harness neutrality
+
+The framework does not belong to one AI model or tool. Claude Code, Gemini CLI and GitHub Copilot are the starting
+set; Codex and Cursor are opt-in. The rule: **the least per-harness text, and no duplicated context.**
+
+- **`AGENTS.md` is the only place context lives**, a pointer map into the standards files.
+- **Harness adapters are generated and hold nothing.** `CLAUDE.md` is `@AGENTS.md`; Gemini CLI is pointed at
+  `AGENTS.md` by a one-line `context.fileName` setting in `.gemini/settings.json` rather than a second file;
+  `.github/copilot-instructions.md` is a few lines pointing at `AGENTS.md`. `tools/sync_adapters.py` writes them from the
+  harnesses `framework.toml` enables and `--check` fails if an adapter gains text of its own.
+- **Skills** follow the open `SKILL.md` format with one canonical home, `.agents/skills/`; the generator writes
+  identical mirrors where each enabled harness looks (`.claude/skills/` for Claude Code) and checks them. No symlinks:
+  they are unreliable on Windows.
+- **Enforcement lives where every harness passes**: git hooks, CI and the Makefile. The rule that commits carry no AI
+  attribution is a `commit-msg` hook, not a Claude-only setting. Harness settings, permissions and agent hooks stay
+  per-tool and optional.
+- **Review is a role.** The "fresh eyes" review is written as "review in a context that has not seen the author's
+  reasoning" (a subagent, a second session, another model, Copilot), not as one tool's call. Author and reviewer are
+  roles; the existing practice of one model reviewing another's pull request is the pattern.
+- **Neutral wording.** Managed documents say "agent" or "assistant"; a harness is named only in the adapter list and the
+  compatibility matrix, and a lint enforces it. A user's own memory feature is never the record (the framework already
+  says so).
+- **Conformance probes prove the adapters.** Each enabled harness must reproduce a canary from `AGENTS.md`; CI cannot run
+  every harness, so the compatibility matrix records who ran each probe and when. Whether Copilot's code review reads
+  `AGENTS.md` or only `.github/copilot-instructions.md` is the first thing the probes settle.
+- **Scoped instructions** (nested `AGENTS.md`) wait for a later increment: their loading differs most across harnesses.
+- **The matrix goes stale** because loading rules change often: it carries last-verified dates and is re-checked on a
+  schedule. The facts it starts from were gathered on 2026-10-09, partly from third-party articles, and must be checked
+  against each vendor's current documentation before the build.
 
 ### Specimens and the walkthrough
 
@@ -215,7 +269,7 @@ Things the inventory found wrong in all three, built right once and backported t
 Order answered by the owner. Each leaves the template green and usable; the day-0 test is the acceptance from the
 first.
 
-1. **Core, init, Makefile, and the minimum runtime**: the `core` and `tasking` modules, a minimal `python-uv` (`pyproject.toml`, `uv.lock`, ruff, pytest, the f-string log check), `hygiene` (empty) and `graph` (copied as they stand in HogShade), `init new` and `check`, the template's own CI, the day-0 seed. `ux` and `specimens` are `planned` and skipped. Acceptance: fresh clone, `init new`, `make check` green on both operating systems. About 4 to 6 d.
+1. **Core, init, Makefile, and the minimum runtime**: the `core` and `tasking` modules, a minimal `python-uv` (`pyproject.toml`, `uv.lock`, ruff, pytest, the f-string log check), `hygiene` (empty) and `graph` (copied as they stand in HogShade), `harness-adapters`, `init new` and `check`, the template's own CI, the `payload/` layout with the root generated from it, the day-0 seed. `ux` and `specimens` are `planned` and skipped. Acceptance: fresh clone, `init new`, `make check` green on both operating systems. About 6 to 8 d.
 2. **The mock `src/` and the stack standards**: the faux libraries, the boundary test, `python.md` and `testing.md` in their reconciled form. 1 to 2 d.
 3. **Specimens and the walkthrough**, the `specimens` module and its coverage check, `--clear-specimens`. 2 to 3 d.
 4. **UX**: the `ux` module, the mock-pass stage, `ux.md`, the smoke gate, the faux UI library. ½ to 1 d.
@@ -248,15 +302,19 @@ Later, not in this design: `--update`, the graph overlay, further stacks (WGSL).
 | Increment order | Core, init and Makefile; stack and mock `src/`; specimens; UX; sync check |
 | Contested files | I propose per file (the table above); the owner overrules |
 | Where this lives | HogShade's `Docs/design/` until the template repository exists |
+| The template runs the framework on itself | The shippable files in `payload/`; the root is the template's own instance, synced from it |
+| Harness neutrality | `AGENTS.md` is the only context; generated adapters for Claude Code, Gemini CLI and Copilot (Codex and Cursor opt-in); skills canonical in `.agents/skills/` with generated mirrors; conformance probes |
 | When the repository is created | After the lock, as the first act of increment 1; the creation itself is outward-facing and needs the owner's go at that moment |
 
-## Questions for the owner
+## Answers at the lock (owner, 2026-10-09: "locked")
 
-1. **Is the contested-file table right?** Read the "Pick" column; name any row you disagree with.
-2. **Does `ai-first-template` get a licence statement?** It is private and the owner's; a stated "all rights reserved" line avoids the question when it is shared with an employer's fork or a collaborator.
+1. **The contested-file table stands**: no row was objected to. Where it says "confirm in the extraction", the
+   extraction reads the diff and records the result in the increment's spec.
+2. **The licence line** was not answered. Default, two-way: the template carries a stated "all rights reserved" notice
+   until the owner says otherwise.
 
 ## Terms introduced
 
 **Template repository**, **Framework module**, **Managed file**, **Parametrised file**, **Project-owned file**,
-**Specimen**, **Day 0**, **Initialiser**, **Framework lock** and **Sync check**: all in [../glossary.md](../glossary.md),
+**Specimen**, **Day 0**, **Initialiser**, **Framework lock**, **Sync check**, **Payload**, **Harness adapter** and **Conformance probe**: all in [../glossary.md](../glossary.md),
 added with this document (the glossary rule, ledger entry 20).
