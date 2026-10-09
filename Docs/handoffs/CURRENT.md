@@ -2,7 +2,7 @@
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
 
-**Last updated:** 2026-10-08: the comparison framework's first increment, C-2 (`hogshade/compare/`, `tools/compare.py`), has landed (#76); the glossary rule is mechanised (#77); the write-up of this repository's own AI-first process is in progress (steps 1 and 2 are in review as #79). This line is a snapshot: the history of earlier increments is in the journal and in `git log -p` of this file, where the sit reps removed on 2026-10-08 still are.
+**Last updated:** 2026-10-09: the template repository's requirements and eleven design answers are recorded (below and on the board row); #79 (the framework description and graph) is in review; before that, 2026-10-08: the comparison framework's first increment, C-2 (`hogshade/compare/`, `tools/compare.py`), has landed (#76); the glossary rule is mechanised (#77); the write-up of this repository's own AI-first process is in progress (steps 1 and 2 are in review as #79). This line is a snapshot: the history of earlier increments is in the journal and in `git log -p` of this file, where the sit reps removed on 2026-10-08 still are.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`. `Docs/standards/definition-of-done.md` says what done means and how much to decide alone.
 
@@ -19,12 +19,12 @@ A new session reads this, then `Docs/plan/BOARD.md` (gates first), then `Docs/de
 - **Design chain** for anything new: conversation and lock, design document, spec, plan, code (`Docs/standards/workflow.md`); a board yes is not a lock.
 - **Logging**: f-strings in log calls (done, and mechanised by `tools/check_log_format.py`).
 - **A new word gets its glossary row first** (2026-10-08): ledger entry 20, mechanised by the docs check's `terms` check.
+- **The template repository** (owner, 2026-10-09; the board row is the record): `ai-first-template`, private; the upstream and the "maxi" (every pattern from the three repositories, each an opt-in module) that drives existing and future repositories; day 0 starts the whole process through an init mechanism (`new`, `adopt`, `--github`) and a Makefile; carries the graph generator and base graph, UX as a core stage, a Python/uv stack module, a mock `src/` of faux libraries on a neutral domain, and a specimen for every concept. Answered: report-only sync first, copy plus `framework.lock`, HogShade as the extraction base, Python/uv only in v1, two ledger files, graph overlay later, increment order core+init+Makefile, stack+mock src, specimens, UX, sync check. **Not built, and not yet a locked design:** the pre-spec design comes next. Ledger entry 22: ask before pulling an icebox row forward.
 
 **Open, and only the owner can answer:**
 
 - The three-tier logging architecture for apps (a stream handler, a per-run file, the in-app console handler, configured at the entry point only is the guess); it must be confirmed before it is written into a standard.
 - *Comparison verdict* in the glossary against the board's *Verdict* on an idea: the framework's word was qualified rather than renamed (#76); the owner may prefer to rename the other, or the code identifier.
-- Whether the template repo (the framework write-up's third step) becomes the upstream that each repository's process documents are checked against, or a copy.
 - The Marmoset bake job's design (stateless; a scene path in, files out); nothing built until it is locked.
 
 
