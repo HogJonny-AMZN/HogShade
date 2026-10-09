@@ -161,7 +161,7 @@ that enforces the rule travels with it. Targets: `help` (default), `init`, `setu
 
 The template is a project as well as a payload, and it follows its own rules while it is developed and maintained.
 To keep the two apart the shippable files live in `payload/`, and the repository root is the template's **own
-instance** of the framework, generated from the payload by `init adopt` with its own `framework.lock`. The root has its
+instance** of the framework, generated from the payload with its own `framework.lock`. In increment 1 the root is written by `init new` pointed at the repository itself (`--target .`, the template's own values as `--answers`): it writes the managed and parametrised files from `payload/` and seeds a project-owned file only if it is absent. `init adopt`, which classifies an arbitrary existing repository, comes in increment 5 and is what retrofits the three repositories; the root needs only the simpler path. The root has its
 own board, handoff, journal, ADRs, designs, specs, plans and a project ledger of lessons about developing the template.
 None of that is in the payload.
 
@@ -269,7 +269,7 @@ Things the inventory found wrong in all three, built right once and backported t
 Order answered by the owner. Each leaves the template green and usable; the day-0 test is the acceptance from the
 first.
 
-1. **Core, init, Makefile, and the minimum runtime**: the `core` and `tasking` modules, a minimal `python-uv` (`pyproject.toml`, `uv.lock`, ruff, pytest, the f-string log check), `hygiene` (empty) and `graph` (copied as they stand in HogShade), `harness-adapters`, `init new` and `check`, the template's own CI, the `payload/` layout with the root generated from it, the day-0 seed. `ux` and `specimens` are `planned` and skipped. Acceptance: fresh clone, `init new`, `make check` green on both operating systems. About 6 to 8 d.
+1. **Core, init, Makefile, and the minimum runtime**: the `core` and `tasking` modules, a minimal `python-uv` (`pyproject.toml`, `uv.lock`, ruff, pytest, the f-string log check), `hygiene` (empty) and `graph` (copied as they stand in HogShade), `harness-adapters`, `init new` (including `--target .` for the root) and `check`, the template's own CI, the `payload/` layout with the root generated from it, the day-0 seed. `ux` and `specimens` are `planned` and skipped. Acceptance: fresh clone, `init new`, `make check` green on both operating systems. About 6 to 8 d.
 2. **The mock `src/` and the stack standards**: the faux libraries, the boundary test, `python.md` and `testing.md` in their reconciled form. 1 to 2 d.
 3. **Specimens and the walkthrough**, the `specimens` module and its coverage check, `--clear-specimens`. 2 to 3 d.
 4. **UX**: the `ux` module, the mock-pass stage, `ux.md`, the smoke gate, the faux UI library. ½ to 1 d.
