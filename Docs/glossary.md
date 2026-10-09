@@ -135,4 +135,4 @@ travels between the repos under one vocabulary.
 | **Day 0** | The first commit of a repository made from the template: the initialiser has run, the hooks are installed, the seed files exist and every check is green. |
 | **Initialiser** | `tools/init.py` in the template: `new` for a fresh repository, `adopt` for an existing one, `--github` for the repository settings; idempotent, with `--dry-run` and `--answers`. |
 | **Framework lock** | `framework.lock` in a repository made from the template: the template version it was synced from and the hash of each managed file. |
-| **Sync check** | `tools/framework_sync.py --check`: reports a managed file that differs from the locked template version; report-only in v1. |
+| **Sync check** | `tools/framework_sync.py`: `--check` reports a managed file that differs from the locked template version; `--upstream` reports that the lock is behind the template's latest version and which managed files changed; report-only in v1, `--update` later. |

@@ -104,12 +104,13 @@ project-owned file seeded with the framework's own terms; the docs check reads i
 | `tasking` | on | the Makefile, `tools/check.py` (the gate and CI parity oracle), `tooling.md`, `ci.md`, the hooks | S |
 | `hygiene` | on, empty | the retired-identifier check with an empty list | H |
 | `graph` | on | the generator, its test, the base graph and page, its CI step | H |
+| `specimens` | on | the specimens, their map, the walkthrough increment, the generator's coverage check | new |
 | `lanes` | off | lane-prefixed board ids, the pending-review queue and threshold, deferred bugs as issues | S |
 | `branch-ownership` | off | the whose-branch tool | L |
 | `devblog` | off | the weekly public memo and its privacy boundary | S |
 | `wgsl` | not in v1 | stays HogShade's | H |
 
-A module that is off leaves no files behind; the pattern stays in the template for the next repository to choose.
+A module that is off leaves no files behind; the pattern stays in the template for the next repository to choose. A module marked on that has not been built yet is `planned` in `framework.toml` and `init` skips it, so every increment's template is whole: the defaults are exactly the modules delivered so far. The module table is the one authority on defaults; other text refers to it.
 
 ### The initialiser
 
@@ -123,7 +124,7 @@ A module that is off leaves no files behind; the pattern stays in the template f
   file. This is the retrofit path for the three existing repositories.
 - `init --github`: applies required checks, branch protection and automated review through `gh`. It lists each change
   and asks first, because it is outward-facing.
-- `init --clear-specimens`: removes the faux `src/` and the example files once a real project starts.
+- `init --clear-specimens`: removes the faux `src/`, the specimens and the walkthrough once a real project starts, and turns the `specimens` module off in `framework.toml`; it edits no managed file.
 
 Always: idempotent; `--dry-run` prints the full plan; a written record of what it read, decided and wrote and why; a
 test in the template's own CI that runs `init new` into a temporary directory and requires every check to pass.
@@ -153,9 +154,7 @@ that enforces the rule travels with it. Targets: `help` (default), `init`, `setu
 
 ### Specimens and the walkthrough
 
-Every graph node gets a **specimen** in `Docs/specimens/`: a filled-in example, not a blank. The graph data grows a
-`specimen` field (a path, or `null` with a written reason); `render_framework_graph.py --check` fails on a node with
-neither, so the template cannot gain a concept without an example. One **walkthrough increment**, a fictional feature
+Every graph node gets a **specimen** in `Docs/specimens/`: a filled-in example, not a blank. The map from node to specimen lives in `Docs/specimens/specimens.json` (a path, or `null` with a written reason), not in the managed graph data, and the `specimens` module owns it: `render_framework_graph.py --check` requires the map to cover every node while the module is on, so the template cannot gain a concept without an example. Clearing the specimens removes the map with the files and turns the module off, and the graph data is untouched, so there is never a path to a deleted file and the sync check sees no managed file change. One **walkthrough increment**, a fictional feature
 on the faux libraries, goes through every stage end to end (conversation and lock, design, UX mock pass, spec, plan,
 test-first code, review, pull request, journal, ledger, merge), as a directory of its real artifacts. A new project
 reads it before it starts and deletes it with `--clear-specimens`.
@@ -168,10 +167,12 @@ something to run on, and so the UX mock pass has a real surface. Nothing in them
 
 ### The sync check
 
-`tools/framework_sync.py --check`, report-only in v1: for each managed file, compare the project's copy with the locked
-template version and report a difference as a finding, unless `framework.toml` lists an override with a reason. It is a
-CI step. `--update` (pull a newer template version as a pull request) and the project overlay for the graph come in
-later increments. Files arrive by copy plus the lock: no submodule, no subtree, no package.
+`tools/framework_sync.py`, report-only in v1, two reports:
+
+- `--check` (offline, so CI can run it anywhere): for each managed file, compare the project's copy with the locked template version and report a difference as a finding, unless `framework.toml` lists an override with a reason. It catches local edits to a managed file; it cannot know the template has moved on.
+- `--upstream` (needs the network and `gh`): read the template repository's latest tagged version and report "lock is behind: v1 locked, v3 current, N managed files changed" with the changed paths. It exits non-zero only past a configurable age, so a repository is told it is behind without a red build on the day the template releases; the weekly review routine runs it across the repositories.
+
+Together they deliver the report half of propagation: an improvement made once is visible in every repository as soon as `--upstream` runs. Applying it is `--update` (pull a newer version as a pull request), a later increment, and until it exists the port is by hand, which the report makes visible and does not remove. The project overlay for the graph also comes later. Files arrive by copy plus the lock: no submodule, no subtree, no package.
 
 ## Contested files: the proposed pick for each
 
@@ -214,20 +215,18 @@ Things the inventory found wrong in all three, built right once and backported t
 Order answered by the owner. Each leaves the template green and usable; the day-0 test is the acceptance from the
 first.
 
-1. **Core, init, Makefile**: the `core` and `tasking` modules, `init new` and `check`, the template's own CI, the day-0
-   seed. Acceptance: fresh clone, `init new`, `make check` green. About 3 to 5 d.
-2. **The stack and the mock `src/`**: `python-uv`, `graph`, `hygiene`, the faux libraries, the boundary test. 1 to 2 d.
-3. **Specimens and the walkthrough**, and the `specimen` field with its check. 2 to 3 d.
+1. **Core, init, Makefile, and the minimum runtime**: the `core` and `tasking` modules, a minimal `python-uv` (`pyproject.toml`, `uv.lock`, ruff, pytest, the f-string log check), `hygiene` (empty) and `graph` (copied as they stand in HogShade), `init new` and `check`, the template's own CI, the day-0 seed. `ux` and `specimens` are `planned` and skipped. Acceptance: fresh clone, `init new`, `make check` green on both operating systems. About 4 to 6 d.
+2. **The mock `src/` and the stack standards**: the faux libraries, the boundary test, `python.md` and `testing.md` in their reconciled form. 1 to 2 d.
+3. **Specimens and the walkthrough**, the `specimens` module and its coverage check, `--clear-specimens`. 2 to 3 d.
 4. **UX**: the `ux` module, the mock-pass stage, `ux.md`, the smoke gate, the faux UI library. ½ to 1 d.
-5. **The sync check** and `init adopt`, then the retrofit of HogShade, LargeWorlds and SpriteJammer, one each, 1 to 2 d
-   each. 1 to 2 d for the tool.
+5. **The sync check** (`--check` and `--upstream`) and `init adopt`, then the retrofit of HogShade, LargeWorlds and SpriteJammer, one each, 1 to 2 d each. 1 to 2 d for the tool.
 
 Later, not in this design: `--update`, the graph overlay, further stacks (WGSL).
 
 ## Risks
 
 - **The template becomes a fourth copy.** Mitigation: the sync check, and every improvement made in the template first.
-- **The maxi is too heavy for a small project.** Mitigation: modules; the default is the core plus UX plus Python.
+- **The maxi is too heavy for a small project.** Mitigation: modules; the default is the table's "on" set (the core and the modules every repository needs), and a repository turns off what it does not want.
 - **The initialiser is the hard part** and a bug in it ships to every new repository. Mitigation: its test in the
   template's CI, `--dry-run`, and idempotence.
 - **Idea velocity.** This is a month-scale piece of work whose parts each look small (ledger entries 11 and 22).
@@ -242,21 +241,19 @@ Later, not in this design: `--update`, the graph overlay, further stacks (WGSL).
 | Extraction base | HogShade first; the others win a file only where better |
 | Stacks in v1 | Python and uv only; WGSL stays HogShade's |
 | Delivery | Copy plus `framework.lock` |
-| Default modules | Core, UX and Python/uv on; lanes, branch ownership and devblog off |
+| Default modules | The module table's "on" set: core, journal, UX, Python/uv, tasking, hygiene (empty) and graph; lanes, branch ownership and devblog off |
 | Ledger | Two files: the framework's (managed) and the project's |
 | Graph overlay | A later increment |
 | Mock `src/` | A neutral toy domain: `core`, `app`, a headless `ui` |
 | Increment order | Core, init and Makefile; stack and mock `src/`; specimens; UX; sync check |
 | Contested files | I propose per file (the table above); the owner overrules |
 | Where this lives | HogShade's `Docs/design/` until the template repository exists |
+| When the repository is created | After the lock, as the first act of increment 1; the creation itself is outward-facing and needs the owner's go at that moment |
 
 ## Questions for the owner
 
 1. **Is the contested-file table right?** Read the "Pick" column; name any row you disagree with.
-2. **Create the repository now or after the design is locked?** Creating it is outward-facing; I recommend after
-   the lock, as the first act of increment 1.
-3. **Does `ai-first-template` get a licence statement?** It is private and the owner's; a stated "all rights reserved"
-   line avoids the question when it is shared with an employer's fork or a collaborator.
+2. **Does `ai-first-template` get a licence statement?** It is private and the owner's; a stated "all rights reserved" line avoids the question when it is shared with an employer's fork or a collaborator.
 
 ## Terms introduced
 
