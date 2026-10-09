@@ -47,6 +47,7 @@ uv run python tools/build_shaders.py --check --require-compilers   # after any c
 | `journal-index` | A session file linked from nowhere is a session that did not happen for the next reader |
 | `journal-day` | A day that changed the handoff has a journal file of its own; one file per session *and per day* (owner, 2026-10-03) |
 | `adr-index` | An unindexed ADR is invisible to anyone browsing decisions |
+| `terms` | A design, spec or plan without a `## Terms introduced` section, or naming a term with no glossary row: a word used across documents and code whose meaning only its author holds (ledger entry 20). Documents that predate the rule (2026-10-08) are listed in `TERMS_GRANDFATHERED`; the set only shrinks |
 | `vocabulary` | A retired term used as if current: two names for one concept means an agent retrieves it by neither; the glossary's struck-through rows are the list |
 
 ## The autonomy protocol

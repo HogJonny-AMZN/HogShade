@@ -65,3 +65,9 @@ PR states. A significant increment: `/local-review diff` before asking for a mer
 | 8 | `tests/compare/test_oracles.py` (24): ideal frames pass, V-flipped and shifted ones fail, each normal channel flipped is caught, the geometry pinned by hand, the rays equal the host's inverse view-projection, the refusals |
 | 9 | `tests/compare/test_runner.py` (16) and `tests/tools/test_compare.py` (14): the committed table run on ideal captures, wrong captures, a raising capture, a wrong-request capture, acceptances, `fails_on` controls; `validate`, `list` and `run` with a fake adapter and exit codes. **On the owner's machine** `uv run tools/compare.py run`: 5 pass, 0 needs-review, 0 fail; 4 of 4 controls failed as they should; the report validates |
 | 10 | `check_docs.py`, `check_hygiene.py`, `check_log_format.py`, ruff clean; the spec, the board, the docs map, the handoff, the journal |
+
+## Terms introduced
+
+**Capture request**, **Capture set**, **Capture level**, **Adapter**, **Case**, **Oracle**, **Regression** (case),
+**Parity** (case), **Control**, **Comparison verdict**, **Accepted difference**, **Baseline** and **Data range**: all in
+[../../glossary.md](../../glossary.md), added when the owner noticed they were missing (ledger entry 20).

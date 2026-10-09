@@ -52,6 +52,8 @@ reviews every push automatically; this is the deliberate one.
 - [ ] Tests and lint green on CI, read with `gh pr checks`, not assumed
 - [ ] `tools/build_shaders.py --check --require-compilers` clean, if the core changed
 - [ ] Hygiene grep clean (`review-and-pr` skill)
+- [ ] New terms: every word this coins (a module, dataclass, enum value, level, kind, CLI verb, document type) has its
+      glossary row, and each new design, spec or plan ends with `## Terms introduced` (or says None)
 - [ ] `tools/check_docs.py` clean; docs match reality: BOARD (the row struck or added, gates touched), plan task, spec, `Docs/README.md`, decision log, journal, handoff
 - [ ] Review: `/local-review diff` run and its findings answered above, **or** this increment is not
       significant under the rule, and *Review* says why

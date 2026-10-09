@@ -230,3 +230,80 @@ def test_retired_term_mentioned_as_retired_or_in_a_fence_is_allowed(corpus: Path
 def test_the_corpus_itself_is_clean() -> None:
     findings = check_docs.run(ROOT)
     assert findings == [], "\n".join(str(f) for f in findings)
+
+
+def _glossary(corpus: Path, *terms: str) -> None:
+    rows = "".join(f"| **{t}** | A meaning. |\n" for t in terms)
+    _write(corpus, "Docs/glossary.md", "**Status:** Living\n\n| Term | Meaning |\n| --- | --- |\n" + rows)
+
+
+def test_a_new_design_without_a_terms_section_is_found(corpus: Path) -> None:
+    _write(corpus, "Docs/design/2026-10-09-new.md", "# New\n\n**Status:** Proposed\n\nIt introduces things.\n")
+    findings = check_docs.run(corpus)
+    assert [f.check for f in findings] == ["terms"] and "no `## Terms introduced` section" in findings[0].detail
+
+
+@pytest.mark.parametrize(
+    "rel", ["Docs/design/2026-10-09-new.md", "Docs/superpowers/specs/new.md", "Docs/superpowers/plans/new.md"]
+)
+def test_the_rule_covers_designs_specs_and_plans(corpus: Path, rel: str) -> None:
+    _write(corpus, rel, "# New\n\n**Status:** Proposed\n")
+    assert [f.check for f in check_docs.run(corpus)] == ["terms"]
+
+
+def test_none_and_listed_glossary_terms_pass(corpus: Path) -> None:
+    _glossary(corpus, "Capture set", "Oracle")
+    _write(corpus, "Docs/design/2026-10-09-a.md", "**Status:** Proposed\n\n## Terms introduced\n\nNone.\n")
+    _write(
+        corpus,
+        "Docs/design/2026-10-09-b.md",
+        "**Status:** Proposed\n\n## Terms introduced\n\n**Capture set** and **oracle** (any case), in the glossary.\n",
+    )
+    assert check_docs.run(corpus) == []
+
+
+def test_a_listed_term_with_no_glossary_row_is_found(corpus: Path) -> None:
+    _glossary(corpus, "Oracle")
+    _write(
+        corpus,
+        "Docs/superpowers/specs/new.md",
+        "**Status:** Proposed\n\n## Terms introduced\n\n**Oracle** and **Frobnicator**.\n",
+    )
+    findings = check_docs.run(corpus)
+    assert [f.check for f in findings] == ["terms"] and "'Frobnicator' has no row" in findings[0].detail
+
+
+def test_a_section_that_lists_nothing_and_does_not_say_none_is_found(corpus: Path) -> None:
+    _write(corpus, "Docs/design/2026-10-09-c.md", "**Status:** Proposed\n\n## Terms introduced\n\nSome words.\n")
+    findings = check_docs.run(corpus)
+    assert [f.check for f in findings] == ["terms"] and "lists no `**Term**`" in findings[0].detail
+
+
+def test_the_section_ends_at_the_next_heading_and_a_fence_does_not_count(corpus: Path) -> None:
+    _glossary(corpus, "Oracle")
+    _write(
+        corpus,
+        "Docs/design/2026-10-09-d.md",
+        "**Status:** Proposed\n\n## Terms introduced\n\n**Oracle**.\n\n## Later\n\n**Frobnicator** is bold only.\n",
+    )
+    _write(
+        corpus,
+        "Docs/design/2026-10-09-e.md",
+        "**Status:** Proposed\n\n```\n## Terms introduced\n\nNone\n```\n",
+    )
+    findings = check_docs.run(corpus)
+    assert [(f.check, f.location) for f in findings] == [("terms", "Docs/design/2026-10-09-e.md")]
+
+
+def test_a_grandfathered_document_is_exempt_and_other_directories_are_not_governed(corpus: Path) -> None:
+    old = min(check_docs.TERMS_GRANDFATHERED)
+    _write(corpus, old, "**Status:** Accepted\n\nWritten before the rule.\n")
+    _write(corpus, "Docs/standards/new.md", "**Status:** Accepted\n\nA standard is not a design.\n")
+    _write(corpus, "Docs/knowledge/new.md", "**Status:** Living\n")
+    assert check_docs.run(corpus) == []
+
+
+def test_every_grandfathered_document_still_exists_so_the_set_only_shrinks() -> None:
+    missing = sorted(p for p in check_docs.TERMS_GRANDFATHERED if not (ROOT / p).exists())
+    assert missing == [], f"remove from TERMS_GRANDFATHERED (it only shrinks): {missing}"
+    assert all(p.startswith(check_docs.TERMS_DIRS) for p in check_docs.TERMS_GRANDFATHERED)
