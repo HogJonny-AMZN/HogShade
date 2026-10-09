@@ -315,7 +315,7 @@ The inputs and the proof. Without these, "same shader" produces different pictur
       alternative** because the owner wants to keep following it as it evolves (the ACES 2.0 output
       transforms). One OCIO config in the repo with ACEScg as the working space and both views
       selectable, AgX first: start from an existing config that carries both (the Blender 4.x config
-      is CC0-licensed and ships AgX; the ACES studio configs ship the ACES views; **G2, 2026-10-08: the Blender
+      ships AgX, its licence to be read upstream before it is vendored, the roadmap's earlier "CC0" being unverified; the ACES studio configs ship the ACES views; **G2, 2026-10-08: the Blender
       config is the base, ACEScg set as the working space in our copy; Blender 5.2's installed config already carries
       AgX, ACES 1.3 and 2.0, so nothing is rolled by hand**), or roll our own
       AgX view from the published transform if no config carries both cleanly, and record where it

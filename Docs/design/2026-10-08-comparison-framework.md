@@ -1,6 +1,6 @@
 # The comparison framework: how HogShade proves that hosts agree
 
-**Status:** Proposed. Drafted 2026-10-08 when the owner opened gate G4 ("go on G4") the day after agreeing G2.
+**Status:** Proposed. Drafted 2026-10-08 when the owner opened gate G4 ("go on G4"), in the same message that agreed G2.
 The roadmap fixed the six things this design must cover (owner, 2026-09-26: "designed, not improvised"); this
 document makes them concrete, adds what the project has learned since, and ends with the questions only the owner can
 answer. Nothing here is built, and `tools/wgpu/viewport.py` and `tests/host/test_wgpu_host.py` stay as they are until
@@ -111,11 +111,14 @@ A host reaches a **capture level**, recorded in its manifest, and the framework 
 
 | Level | What the host gives | Honest limit |
 | --- | --- | --- |
-| **L2, scene-referred** | `scene.exr` in ACEScg and the display PNG | The target for every host |
+| **L2, scene-referred** | `scene.exr` tagged ACEScg and the display PNG through the framework's view transform | The target for every host; needs the colour pipeline (increment C-1) |
+| **L2p, provisional** | Scene-linear float, its primaries untagged or not ACEScg, and the host's own preview transform | Enough for oracle and regression cases on one host; **refused by parity cases**, since primaries and view are not those of the other host |
 | **L1, display-referred** | The display PNG from the host's own view transform, 8-bit | A diff here mixes shading and display; flagged as such in the report |
 | **L0, none** | Nothing capturable | The host is not compared |
 
-- **wgpu (native):** L2 today, because `Frames.forward` is scene-linear float; the view transform is the framework's.
+- **wgpu (native):** **L2p today**: `Frames.forward` is scene-linear float, but untagged, and the viewport's display
+  picture is the Reinhard-plus-sRGB placeholder. It becomes L2 with increment C-1 (the ACEScg tag and the
+  framework's views), and the manifest records the level it actually reached, so a set can never claim more.
 - **Maya 2026 (dx11 shell):** **L1 today.** The capture is a playblast of the live viewport into an 8-bit PNG through
   Maya's own colour management, so the "raw first" endpoint is not available. This is the largest open question in the
   design (question 4): what float or HDR output the dx11 viewport can be coaxed into (a debug mode that writes
@@ -139,8 +142,11 @@ record repeats them.
 | SSIM | Display-referred | Structure, on the 8-bit pictures |
 | A perceptual metric for rendering (NVIDIA FLIP) | Display-referred | What a person would notice; question 3 on the dependency |
 
-Masks are part of the case: coverage (only pixels both hosts drew), silhouette exclusion (an edge band), and named
-regions (patches, bins). A case with no mask is a finding, since a background that matches proves nothing.
+Masks are part of the case: coverage, silhouette exclusion (an edge band), and named regions (patches, bins). A case
+with no mask is a finding, since a background that matches proves nothing. **The coverage masks are compared
+first, as a structural metric of their own** (the overlap as a fraction of the union, and a minimum overlap below
+which the case fails): intersecting them is only allowed once that passes, because a shifted, scaled or clipped
+silhouette would otherwise be discarded as "pixels only one host drew" and the rest could still agree.
 
 ### 6. The verdict: pass, needs-review, fail
 
@@ -157,8 +163,10 @@ Three outcomes, as LargeWorlds' noise oracle:
 ### 7. Baselines
 
 A regression case compares against a **baseline**: a committed capture with its hashes. A baseline is made only by
-`tools/compare.py baseline --case ...`, which says what it overwrote, and never by a test. Where it lives is
-question 2 (the EXR is too large for the picture rule).
+`tools/compare.py baseline --case ...`, which says what it overwrote, and never by a test. A baseline must hold
+the **pixels**, not only a hash: after a shader change a regenerated capture is the new picture, and a hash can say
+they differ but cannot rebuild the old one to diff against. Where the scene-referred pixels live is question 2 (the
+EXR is too large for the picture rule).
 
 ### 8. One report
 
@@ -191,7 +199,8 @@ The smallest thing that proves the whole chain, before anything is generalised:
 2. **Oracle cases** on the quad sphere and the synthetic set (the existing probes, ported) and a **regression case**
    on the shader ball. No second host.
 3. The Maya adapter at whatever level the question-4 spike finds, then the **first parity case**: wgpu against Maya on
-   the quad sphere with the synthetic set. That is the "calibration capture in `maya_dx11`" the roadmap puts before C3.
+   the quad sphere with the synthetic set, which needs both hosts at the same level (C-1 gives wgpu L2). That is the
+   "calibration capture in `maya_dx11`" the roadmap puts before C3.
 
 Blender, FLIP, the HTML polish and the engine come after, each its own increment.
 
@@ -209,11 +218,13 @@ Blender, FLIP, the HTML polish and the engine come after, each its own increment
 1. **The first slice.** Is the slice above the right "enough for C3": oracle and regression cases on wgpu, then wgpu
    against Maya on the quad sphere with the synthetic set? *Recommendation: yes. It uses the exact oracles already
    built, and the Maya half is the calibration capture the roadmap asks for.*
-2. **Where baselines live.** The EXR does not fit the picture rule (1 MiB). Options: (a) the display PNG and a hash of
-   the EXR in git, the EXR itself regenerated locally and checked against the hash; (b) EXR baselines in Git LFS under
-   `verification/baselines/` (a `.gitattributes` addition; `content/**` is LFS today); (c) both. *Recommendation: (a).
-   A deterministic host reproduces its own EXR, a hash proves it did, and git stays small; use (b) only for a baseline
-   a machine cannot regenerate (a Maya capture that needs the owner's licence).*
+2. **Where baselines live.** The EXR does not fit the picture rule (1 MiB). A hash alone is not a baseline (it
+   detects a change but cannot supply the old pixels to diff), so the options are: (a) the display PNG in plain git,
+   which gives **display-referred** regression only; (b) the EXR in Git LFS under `verification/baselines/` (a
+   `.gitattributes` addition; `content/**` is LFS today), which gives scene-referred regression too; (c) both.
+   *Recommendation: (c). The PNG is the human-readable baseline in plain git; the EXR is in LFS, kept small by
+   baselining at 512 px in half float (tens of cases, around a megabyte each), and CI checks the pointer and hash
+   even where it does not pull LFS.*
 3. **FLIP.** The roadmap names NVIDIA FLIP. The Python package is a new dependency (compiled, BSD-3), which needs a
    getting-started line and an in-tool message. numpy and OpenEXR cover everything else, and SSIM is a few dozen lines of
    numpy. *Recommendation: build the metric interface now with absolute/relative error, PSNR and SSIM in numpy, and add
@@ -234,7 +245,11 @@ Blender, FLIP, the HTML polish and the engine come after, each its own increment
 | # | Increment | Needs |
 | --- | --- | --- |
 | C-1 | The vendored OCIO config (licence checked) and `hogshade.compare`'s colour module: the views in numpy proved against OCIO | G2, the OCIO Python bindings or a build-time proof |
-| C-2 | The request, capture set, verdict and report schemas; the wgpu adapter; the oracle cases ported | This design accepted |
+| C-2 | The request, capture set, verdict and report schemas; the wgpu adapter at **L2p**; the oracle cases ported | This design accepted. Oracle and regression cases need no more than L2p; the manifest records the level reached |
 | C-3 | Regression cases and `compare.py baseline` | C-2, question 2 |
-| C-4 | The Maya float-capture spike, then the Maya adapter and the first parity case | C-2, the GUI worker, question 4 |
-| C-5 | Blender adapter, FLIP, HTML polish, the v1/v2 legacy parity | C-4, question 3 |
+| C-4 | The Maya float-capture spike (a measurement, its own deliverable) | C-2, the GUI worker, question 4 |
+| C-5 | The Maya adapter and the first parity case, wgpu against Maya on the quad sphere | C-1 (a parity case refuses L2p), C-3, C-4 |
+| C-6 | The Blender adapter and its parity case | C-5 |
+| C-7 | FLIP behind the metric interface | question 3, C-2 |
+| C-8 | The HTML report and the A/B wipe | C-2 |
+| C-9 | The v1 and v2 pixel-identical diff against the legacy effects | C-5 |
