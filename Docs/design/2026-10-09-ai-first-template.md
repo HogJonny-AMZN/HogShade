@@ -313,6 +313,16 @@ Later, not in this design: `--update`, the graph overlay, further stacks (WGSL).
 2. **The licence line** was not answered. Default, two-way: the template carries a stated "all rights reserved" notice
    until the owner says otherwise.
 
+## Amendments after acceptance
+
+- **2026-10-09, found by plan task 1 (a clarification, not a change of substance).** "SpriteJammer's, whole" for the task
+  runner, hooks, CI, `tooling.md`, `ci.md` and `documentation.md` means *its generic parts whole*: the template takes them
+  as the base and leaves out what is specific to SpriteJammer (the LFS hook stubs, the demo targets and launchers, the
+  `content` stage, the private-dependency token step, the devblog design, the `cspell` word list, `readme-current`) and
+  fixes the defects the pass found (no hook installer, substring-matched parity tests, stale counts, the `Adopted`
+  status). The list is in the increment 1 spec's *What the build found*. The owner's pick, SpriteJammer as the source for
+  this layer, is unchanged.
+
 ## Terms introduced
 
 **Template repository**, **Framework module**, **Managed file**, **Parametrised file**, **Project-owned file**,
