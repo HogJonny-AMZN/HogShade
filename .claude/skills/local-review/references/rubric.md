@@ -18,7 +18,7 @@ do not score it.
 | Security | Input trust boundaries, paths from environment variables, no `eval`/`exec`, no secrets, nothing that reads outside the repo root without saying so |
 | Error handling | Specific exception types, context on re-raise across layers, empty and None paths; a check writes its log before its pictures so a crash leaves evidence |
 | Logging | Consistent `_LOGGER` use, appropriate levels, no stray `print()` outside a script's own entry point; no emoji |
-| Coding standards | 120 columns, absolute imports, type hints, module header, `pathlib` for paths with `str()` only at an API boundary, reST docstrings |
+| Coding standards | 120 columns, absolute imports, type hints, module header, `pathlib` for paths with `str()` only at an API boundary, reST docstrings, and **vocabulary**: a new domain noun (a module, dataclass, enum value, level, kind, CLI verb) with no row in `Docs/glossary.md`, or a word the glossary already uses for another concept, is a finding |
 | Core contract | *When `core/` is in scope*: the prefix rule, parameters not globals, NumPy twin and GPU test, mirrored constants, if-chain dispatch on the model ID, generated artifacts current, kept quirks documented |
 
 ## Baseline

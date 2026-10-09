@@ -297,3 +297,9 @@ both be implemented. A change to a locked design is the owner's, so both were pu
 
 The per-level required roles, the optional mask at L1 and the environment hash in the manifest follow from the
 level model already accepted (section 4) and are stated in section 2 so the reader and the spec agree.
+
+## Terms introduced
+
+**Capture request**, **Capture set**, **Capture level**, **Adapter**, **Case**, **Oracle**, **Regression** (case),
+**Parity** (case), **Control**, **Comparison verdict**, **Accepted difference**, **Baseline** and **Data range**: all in
+[../glossary.md](../glossary.md), added when the owner noticed they were missing (ledger entry 20).
