@@ -208,6 +208,19 @@ before it validates the `newline` argument, so a bad value raises with the file 
 newline) emptied a job test and then `tests/texture_cook/test_cook.py`; each came back from git and the lost edit was
 redone. Not mechanised: it is a habit of the script author, and `git` was the safety net both times.
 
+### 20 · A new word that never reaches the glossary
+
+**When you notice** yourself writing a name for a concept the glossary does not hold (a module, a dataclass, an enum
+value, a level or a kind, a CLI verb, a document type), **do** add its glossary row in the same change and before the
+code that uses it, and end every design, spec and plan with the terms it introduces (or "none"). A word used in
+three documents and a package without a row is a word whose meaning only the author holds; "oracle" already means
+something else in LargeWorlds.
+**Because:** 2026-10-08, the comparison framework: the design (#73), the C-2 spec (#74) and the build all used oracle,
+control, capture set, capture level, verdict and a dozen more with no glossary row until the owner asked mid-build
+("oracle is not a term in the glossary"). `AGENTS.md` already says "a new concept gets its word in the glossary first";
+the rule was read at the start of the session and not at the moment of coining. Not mechanised yet: the options (a
+"Terms introduced" section the docs check requires, a PR checkbox) are with the owner.
+
 ## How to add an entry
 
 When process fails again, append in the same PR as the fix: a trigger you would notice, the action

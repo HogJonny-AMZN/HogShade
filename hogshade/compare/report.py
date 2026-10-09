@@ -203,8 +203,10 @@ def _result(data: object, where: str) -> CaseResult:
         raise ReportError(f"{where}: accepted is a boolean and control_ok a boolean or null")
     if (d["expect"] == "fail") != (d["control_ok"] is not None):
         raise ReportError(f"{where}: control_ok is set exactly for a control (expect 'fail')")
-    if d["control_ok"] is not None and d["control_ok"] != (verdict is Verdict.FAIL):
-        raise ReportError(f"{where}: control_ok must be true exactly when the control failed")
+    if d["control_ok"] is not None and d["control_ok"] != (verdict is Verdict.FAIL and d["error"] is None):
+        raise ReportError(
+            f"{where}: control_ok must be true exactly when the control failed by measuring, not by erroring"
+        )
     measurements = []
     if not isinstance(d["measurements"], list):
         raise ReportError(f"{where}.measurements: a list is expected")

@@ -9,6 +9,7 @@ right; the controls and the shifted frames show it is not blind.
 
 from __future__ import annotations
 
+import ideal_frames
 import numpy as np
 import pytest
 
@@ -19,7 +20,6 @@ from hogshade.compare.oracles import OracleError
 from hogshade.compare.request import CaptureRequest
 from hogshade.compare.verdict import Threshold
 from hogshade.testdata import synthetic
-from hogshade.texture_cook.colour import srgb_to_linear
 
 SIZE = 128
 MAP = synthetic.SIZE
@@ -42,41 +42,19 @@ REQUEST = CaptureRequest.from_dict(
 
 
 def _capture(frame: np.ndarray, coverage: np.ndarray, request: CaptureRequest = REQUEST) -> CaptureSet:
-    return CaptureSet(None, request, None, frame.astype(np.float32), None, coverage)  # type: ignore[arg-type]
+    return ideal_frames.capture(frame, coverage, request)
 
 
 def _all_pixels() -> oracles.Probe:
-    """Every probe-able pixel of the picture (stride 1), the geometry the ideal frames are built from."""
-    return oracles.probe(_capture(np.zeros((SIZE, SIZE, 3)), np.ones((SIZE, SIZE), dtype=bool)), stride=1)
+    return ideal_frames.all_pixels(REQUEST)
 
 
 def _ideal_texel(suffix: str, gray: bool, data_range: float = 1.0) -> CaptureSet:
-    p = _all_pixels()
-    image = synthetic.render_map(suffix, None, MAP)
-    cols, rows = oracles._texels(p.u, p.v, MAP)
-    texel = image[rows, cols].astype(np.float64) / 255.0
-    value = np.repeat(texel[:, None], 3, axis=1) if gray else srgb_to_linear(texel)
-    frame = np.zeros((SIZE, SIZE, 3))
-    frame[p.rows, p.cols] = value * data_range
-    coverage = np.zeros((SIZE, SIZE), dtype=bool)
-    coverage[p.rows, p.cols] = True
-    return _capture(frame, coverage)
+    return ideal_frames.ideal_texel(REQUEST, suffix, gray, data_range)
 
 
-def _ideal_normal(data_range: float = 1.0) -> CaptureSet:
-    p = _all_pixels()
-    image = synthetic.render_map("_N", None, MAP)
-    cols, rows = oracles._texels(p.u, p.v, MAP)
-    rg = image[rows, cols][:, :2].astype(np.float64) / 255.0 * 2.0 - 1.0
-    ts = np.stack([rg[:, 0], rg[:, 1], np.sqrt(np.clip(1.0 - (rg**2).sum(1), 0.0, 1.0))], axis=1)
-    b = np.cross(p.normal, p.tangent)
-    w = ts[:, :1] * p.tangent + ts[:, 1:2] * b + ts[:, 2:3] * p.normal
-    w /= np.linalg.norm(w, axis=1, keepdims=True)
-    frame = np.zeros((SIZE, SIZE, 3))
-    frame[p.rows, p.cols] = (w * 0.5 + 0.5) * data_range
-    coverage = np.zeros((SIZE, SIZE), dtype=bool)
-    coverage[p.rows, p.cols] = True
-    return _capture(frame, coverage)
+def _ideal_normal(data_range: float = 1.0, flip_green: bool = False) -> CaptureSet:
+    return ideal_frames.ideal_normal(REQUEST, data_range, flip_green)
 
 
 def _case(check: str, params: dict, data_range: float = 1.0, expect: str = "pass") -> Case:
@@ -199,19 +177,7 @@ def test_the_flipped_expectation_control_fails(channel: str) -> None:
 
 def test_a_frame_with_one_normal_channel_flipped_is_caught() -> None:
     """A host that decodes the green channel the other way: the captured normals flip with the texel's green lean."""
-    p = _all_pixels()
-    image = synthetic.render_map("_N", None, MAP)
-    cols, rows = oracles._texels(p.u, p.v, MAP)
-    rg = image[rows, cols][:, :2].astype(np.float64) / 255.0 * 2.0 - 1.0
-    ts = np.stack([rg[:, 0], -rg[:, 1], np.sqrt(np.clip(1.0 - (rg**2).sum(1), 0.0, 1.0))], axis=1)  # green flipped
-    b = np.cross(p.normal, p.tangent)
-    w = ts[:, :1] * p.tangent + ts[:, 1:2] * b + ts[:, 2:3] * p.normal
-    w /= np.linalg.norm(w, axis=1, keepdims=True)
-    frame = np.zeros((SIZE, SIZE, 3))
-    frame[p.rows, p.cols] = w * 0.5 + 0.5
-    coverage = np.zeros((SIZE, SIZE), dtype=bool)
-    coverage[p.rows, p.cols] = True
-    got = oracles.run(_case("quad-sphere-normal", {}), _capture(frame, coverage))
+    got = oracles.run(_case("quad-sphere-normal", {}), _ideal_normal(flip_green=True))
     assert got["green_authored"] < 0.5 and got["green_flipped"] > 0.5 and got["red_authored"] >= 0.99, got
 
 
