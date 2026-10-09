@@ -1,10 +1,10 @@
 # The comparison framework: how HogShade proves that hosts agree
 
-**Status:** Proposed. Drafted 2026-10-08 when the owner opened gate G4 ("go on G4"), in the same message that agreed G2.
+**Status:** Accepted (owner, 2026-10-08: "as recommended", to all six questions and to G5). Drafted 2026-10-08 when the owner opened gate G4 ("go on G4"), in the same message that agreed G2.
 The roadmap fixed the six things this design must cover (owner, 2026-09-26: "designed, not improvised"); this
-document makes them concrete, adds what the project has learned since, and ends with the questions only the owner can
-answer. Nothing here is built, and `tools/wgpu/viewport.py` and `tests/host/test_wgpu_host.py` stay as they are until
-the spec and plan are accepted.
+document makes them concrete, adds what the project has learned since, and ends with the questions and the owner's
+answers. Nothing here is built, and `tools/wgpu/viewport.py` and `tests/host/test_wgpu_host.py` stay as they are until
+the first increment's spec and plan are accepted ([c2](../superpowers/specs/c2-comparison-core.md)).
 
 Date: 2026-10-08. Parents: [../ROADMAP.md](../ROADMAP.md), track E ("Comparison framework: designed, not improvised");
 [2026-10-03-content-conventions.md](2026-10-03-content-conventions.md), section 7 (the conventions this framework
@@ -253,3 +253,21 @@ Blender, FLIP, the HTML polish and the engine come after, each its own increment
 | C-7 | FLIP behind the metric interface | question 3, C-2 |
 | C-8 | The HTML report and the A/B wipe | C-2 |
 | C-9 | The v1 and v2 pixel-identical diff against the legacy effects | C-5 |
+
+## The answers (2026-10-08)
+
+The owner answered "as recommended" to every question above, so the recommendations stand as written, with the
+baseline revision Copilot's review forced (a baseline holds pixels):
+
+1. The first slice is as written: oracle and regression cases on wgpu, then wgpu against Maya on the quad sphere with
+   the synthetic set.
+2. Baselines: the display PNG in plain git and the scene-referred EXR in LFS, baselined small (512 px, half float);
+   CI checks the pointer and hash even where it does not pull LFS.
+3. FLIP is deferred behind the metric interface (C-7); the first metrics are numpy.
+4. The Maya float-capture spike is the first Maya step (C-4), run when the GPU is free.
+5. The canonical conventions are as in section 3.
+6. `hogshade.compare`, `tools/compare.py`, `verification/accepted.json` and `verification/cases/`.
+
+**G5, answered with them (owner, 2026-10-08: "as recommended"):** no. The verbatim shader ball stays the
+calibration mesh. The vertex-colour and vertex-AO features (C4) are tested with a procedural colour set with known
+values, not the legacy ball's colour sets; a separate "shader ball with CPV" mesh is an optional later row.
