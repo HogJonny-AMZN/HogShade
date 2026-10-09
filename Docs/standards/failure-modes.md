@@ -212,7 +212,7 @@ redone. Not mechanised: it is a habit of the script author, and `git` was the sa
 
 **When you notice** yourself writing a name for a concept the glossary does not hold (a module, a dataclass, an enum
 value, a level or a kind, a CLI verb, a document type), **do** add its glossary row in the same change and before the
-code that uses it, and end every design, spec and plan with the terms it introduces (or "none"). A word used in
+code that uses it, and give every design, spec and plan a `## Terms introduced` section (or "None"). A word used in
 three documents and a package without a row is a word whose meaning only the author holds; "oracle" already means
 something else in LargeWorlds.
 **Because:** 2026-10-08, the comparison framework: the design (#73), the C-2 spec (#74) and the build all used oracle,

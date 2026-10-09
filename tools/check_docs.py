@@ -129,7 +129,8 @@ TERMS_GRANDFATHERED = frozenset(
 )
 _RETIRED_RE = re.compile(r"^\| ~~\*\*([^*]+)\*\*~~ \|", re.MULTILINE)
 _GLOSSARY_ROW_RE = re.compile(r"^\|\s*\*\*([^*]+)\*\*", re.MULTILINE)
-_TERMS_HEADING_RE = re.compile(r"^(#{2,4})\s+Terms introduced\s*$", re.MULTILINE | re.IGNORECASE)
+_TERMS_HEADING_RE = re.compile(r"^##\s+Terms introduced\s*$", re.MULTILINE | re.IGNORECASE)
+_NONE_RE = re.compile(r"none\.?", re.IGNORECASE)
 _BOLD_RE = re.compile(r"\*\*([^*]+)\*\*")
 
 #: An inline link: the destination is ``<...>`` or a run without whitespace or ``)``; an optional title
@@ -362,19 +363,19 @@ def glossary_terms(root: Path = REPO_ROOT) -> set[str]:
 
 
 def _terms_section(text: str) -> str | None:
-    """The body of the ``Terms introduced`` section (to the next heading of the same or a higher level), or None."""
+    """The body of the ``## Terms introduced`` section (to the next ``#`` or ``##`` heading), or None."""
     match = _TERMS_HEADING_RE.search(text)
     if match is None:
         return None
-    level = len(match.group(1))
     rest = text[match.end() :]
-    end = re.search(rf"^#{{1,{level}}}\s", rest, re.MULTILINE)
+    end = re.search(r"^#{1,2}\s", rest, re.MULTILINE)
     return rest[: end.start()] if end else rest
 
 
 def check_terms_introduced(files: Iterable[Path], root: Path = REPO_ROOT) -> list[Finding]:
     """
-    A design, spec or plan written after the rule ends with its terms: a ``## Terms introduced`` section that says
+    A design, spec or plan written after the rule carries its terms: a ``## Terms introduced`` section (level two,
+    wherever it sits) that says
     ``None`` or lists each as ``**Term**``, every one with a row in the glossary. The word is added to the glossary in
     the same change, before the code that uses it (ledger entry 20).
     """
@@ -395,7 +396,8 @@ def check_terms_introduced(files: Iterable[Path], root: Path = REPO_ROOT) -> lis
             )
             continue
         body = section.strip()
-        if body.lower().startswith("none"):
+        first = next((ln.strip() for ln in body.splitlines() if ln.strip()), "")
+        if _NONE_RE.fullmatch(first):  # the whole first line is the word None, not prose that starts with it
             continue
         terms = [t.strip() for t in _BOLD_RE.findall(body)]
         if not terms:

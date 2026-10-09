@@ -303,7 +303,87 @@ def test_a_grandfathered_document_is_exempt_and_other_directories_are_not_govern
     assert check_docs.run(corpus) == []
 
 
-def test_every_grandfathered_document_still_exists_so_the_set_only_shrinks() -> None:
+#: The documents that predated the rule on 2026-10-08, frozen here independently of the set under test. The set in
+#: ``check_docs`` may lose members (a document earns its section); it may never gain one.
+ORIGINALLY_GRANDFATHERED = frozenset(
+    {
+        "Docs/design/2026-09-20-game-shading-feature-catalogue.md",
+        "Docs/design/2026-09-20-modernization-direction.md",
+        "Docs/design/2026-09-20-wysiwyg-blindspots.md",
+        "Docs/design/2026-09-26-decision-log-and-working-knowledge.md",
+        "Docs/design/2026-09-27-material-schema.md",
+        "Docs/design/2026-09-27-pitch-bats-as-the-agents-body.md",
+        "Docs/design/2026-10-02-material-library.md",
+        "Docs/design/2026-10-03-content-conventions.md",
+        "Docs/superpowers/plans/e1-ibl-cook.md",
+        "Docs/superpowers/plans/e2-cook-performance.md",
+        "Docs/superpowers/plans/phase-1-hygiene.md",
+        "Docs/superpowers/plans/phase-2-restructure.md",
+        "Docs/superpowers/plans/s1-material-schema.md",
+        "Docs/superpowers/plans/s2-material-generators.md",
+        "Docs/superpowers/plans/s3-wgpu-binding.md",
+        "Docs/superpowers/plans/s4a-material-library.md",
+        "Docs/superpowers/plans/t1-content-standard.md",
+        "Docs/superpowers/plans/t2-texture-cook.md",
+        "Docs/superpowers/plans/t3-first-texture-set.md",
+        "Docs/superpowers/plans/t3b-wgpu-textures.md",
+        "Docs/superpowers/plans/t4-procedural-set.md",
+        "Docs/superpowers/specs/e1-ibl-cook.md",
+        "Docs/superpowers/specs/e2-cook-performance.md",
+        "Docs/superpowers/specs/phase-1-hygiene.md",
+        "Docs/superpowers/specs/phase-2-restructure.md",
+        "Docs/superpowers/specs/s1-material-schema.md",
+        "Docs/superpowers/specs/s2-material-generators.md",
+        "Docs/superpowers/specs/s3-wgpu-binding.md",
+        "Docs/superpowers/specs/s4a-material-library.md",
+        "Docs/superpowers/specs/t1-content-standard.md",
+        "Docs/superpowers/specs/t2-texture-cook.md",
+        "Docs/superpowers/specs/t3-first-texture-set.md",
+        "Docs/superpowers/specs/t3b-wgpu-textures.md",
+        "Docs/superpowers/specs/t4-procedural-set.md",
+    }
+)
+
+
+def test_the_grandfathered_set_only_shrinks() -> None:
+    """Adding a path to ``TERMS_GRANDFATHERED`` would exempt a new document: this fails unless it was original."""
+    gained = sorted(check_docs.TERMS_GRANDFATHERED - ORIGINALLY_GRANDFATHERED)
+    assert gained == [], f"TERMS_GRANDFATHERED may only shrink; it gained {gained}"
+    assert len(ORIGINALLY_GRANDFATHERED) == 34
+
+
+def test_every_grandfathered_document_still_exists() -> None:
     missing = sorted(p for p in check_docs.TERMS_GRANDFATHERED if not (ROOT / p).exists())
     assert missing == [], f"remove from TERMS_GRANDFATHERED (it only shrinks): {missing}"
     assert all(p.startswith(check_docs.TERMS_DIRS) for p in check_docs.TERMS_GRANDFATHERED)
+
+
+@pytest.mark.parametrize("heading", ["### Terms introduced", "#### Terms introduced", "# Terms introduced"])
+def test_only_a_level_two_heading_counts(corpus: Path, heading: str) -> None:
+    """The contract names the literal ``## Terms introduced``; a deeper (or shallower) heading is not it."""
+    _write(corpus, "Docs/design/2026-10-09-f.md", f"**Status:** Proposed\n\n{heading}\n\nNone.\n")
+    findings = check_docs.run(corpus)
+    assert [f.check for f in findings] == ["terms"] and "no `## Terms introduced` section" in findings[0].detail
+
+
+@pytest.mark.parametrize(
+    "first", ["Nonetheless this has no list.", "None of these are new, honestly", "Nothing new.", "none-ish"]
+)
+def test_prose_that_merely_starts_with_none_does_not_exempt_a_document(corpus: Path, first: str) -> None:
+    _write(corpus, "Docs/design/2026-10-09-g.md", f"**Status:** Proposed\n\n## Terms introduced\n\n{first}\n")
+    findings = check_docs.run(corpus)
+    assert [f.check for f in findings] == ["terms"] and "lists no `**Term**`" in findings[0].detail
+
+
+@pytest.mark.parametrize("first", ["None", "None.", "none", "NONE."])
+def test_the_whole_first_line_being_none_exempts_a_document(corpus: Path, first: str) -> None:
+    _write(corpus, "Docs/design/2026-10-09-h.md", f"**Status:** Proposed\n\n## Terms introduced\n\n{first}\n")
+    assert check_docs.run(corpus) == []
+
+
+def test_the_section_may_sit_anywhere_in_the_document(corpus: Path) -> None:
+    """The rule is that the document carries the section, not where; later amendments may follow it."""
+    _glossary(corpus, "Oracle")
+    text = "**Status:** Proposed\n\n## Terms introduced\n\n**Oracle**.\n\n## Amendments after acceptance\n\nWords.\n"
+    _write(corpus, "Docs/design/2026-10-09-i.md", text)
+    assert check_docs.run(corpus) == []

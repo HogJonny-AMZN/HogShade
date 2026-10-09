@@ -68,7 +68,7 @@ matching one before improvising; add one when a procedure has been done twice.
   contract and *Material* the deltas record; *cook* is not *check*; *twin* is the NumPy reference.
   Synonym drift is the most damaging thing that can happen to a corpus agents load as context: a
   concept with two names is retrieved by neither. A new concept gets its word in the glossary first: add the row in the same change and before the code that uses
-  it, and end every design, spec and plan with a `## Terms introduced` section (the terms in bold, each with a
+  it, and give every design, spec and plan a `## Terms introduced` section (the terms in bold, each with a
   glossary row, or `None`); `tools/check_docs.py` fails a document without one.
 - **A mentioned feature is not a work order.** It goes on the board's Icebox with a cost and a reason,
   in the same session it was said; it is built when the owner says so, when it blocks work in flight,
