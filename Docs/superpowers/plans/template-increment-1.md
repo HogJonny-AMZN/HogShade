@@ -17,7 +17,7 @@ a scratch checkout, not in HogShade.
       the three ledgers (classify each entry framework or project, as a table), the SpriteJammer hooks, Makefile,
       `scripts/check.py`, `tooling.md`, `ci.md`, `documentation.md`. Verify: every "confirm in the extraction" row of the
       design's contested-file table has a recorded pick.
-- [ ] 2. **Create the repository** (owner's go at this moment): private, `ai-first-template`, the owner's account, the
+- [x] 2. **Create the repository** (owner's go at this moment): private, `ai-first-template`, the owner's account, the
       stated "all rights reserved" notice, `payload/` and the root skeleton, the template's own board and handoff.
       Verify: the repository exists and is private (`gh repo view`).
 - [ ] 3. **Schemas and loader** (`framework.toml`, `project.json`, the answers file): validation that names the field.
