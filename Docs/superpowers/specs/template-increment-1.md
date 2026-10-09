@@ -1,9 +1,8 @@
 # Template increment 1 spec: core, init, Makefile, the minimum runtime, harness adapters and the payload
 
-**Status:** Proposed. Drafted 2026-10-09 after the owner's "go", from the locked design
-([../../design/2026-10-09-ai-first-template.md](../../design/2026-10-09-ai-first-template.md), increment 1). It
-becomes Accepted when the owner says so; the repository is created at task 2 of the plan, with the owner's go at that
-moment.
+**Status:** Accepted (owner, 2026-10-09: "accepted"). Drafted 2026-10-09 after the owner's "go", from the locked design
+([../../design/2026-10-09-ai-first-template.md](../../design/2026-10-09-ai-first-template.md), increment 1). The
+repository is created at task 2 of the plan, with the owner's go at that moment.
 
 Board: [../../plan/BOARD.md](../../plan/BOARD.md) (the AI-first framework row). Plan:
 [../plans/template-increment-1.md](../plans/template-increment-1.md). The description of what the framework is:
@@ -96,6 +95,100 @@ the 22 ledger entries are framework entries.
 | The probes are manual and recorded, not run in CI; a harness is enabled only after its probe passed | Mock the harnesses in CI; enable all three and mark probes "not yet run" | CI cannot run the three vendors' agents, and an unproven adapter would pass the gate |
 | The run record is `logs/` (git-ignored), outside every "no file changes" assertion | Omit records on no-ops and dry runs | Idempotence and a record both hold; the dry run's record is its printed plan |
 | The handoff limit is 150 lines, in `framework.toml` | 100 or 200 | HogShade's trimmed handoff is 83; 150 leaves room without allowing a log; configurable with a reason |
+
+## What the build found
+
+Plan tasks 0 and 1, run 2026-10-09 by four read-only passes, each reading its files in full (the harness facts from the
+vendors' own pages; the three repositories' checkers, definitions of done, workflows, PR templates, glossaries, ledgers,
+Python standards, Makefile, gate script, hooks, CI and documentation standard). The reports are not committed; what
+follows is what the build needs from them. HogShade is HS, LargeWorlds LW, SpriteJammer SJ.
+
+### Task 0: what each harness reads (vendor documentation, 2026-10-09)
+
+| Harness | Entry file | Skills | Notes the template acts on |
+| --- | --- | --- | --- |
+| **Claude Code** ([memory](https://code.claude.com/docs/en/memory), [skills](https://code.claude.com/docs/en/skills)) | `CLAUDE.md`; reads `AGENTS.md` natively from v2.1.277, **only when no `CLAUDE.md` exists**; `@path` imports work (four hops); nothing under `.agents/` is read | `.claude/skills/<name>/SKILL.md` only; `.agents/skills` is not documented | A one-line `CLAUDE.md` (`@AGENTS.md`) is the fallback for older versions and for any repository that already has a `CLAUDE.md`; omitting it is valid on 2.1.277 or later. Skills need a mirror here |
+| **Gemini CLI** ([GEMINI.md](https://geminicli.com/docs/cli/gemini-md/), [skills](https://geminicli.com/docs/cli/skills/), [config](https://geminicli.com/docs/reference/configuration/)) | `GEMINI.md`; `context.fileName` in `.gemini/settings.json` takes a string or array and accepts `AGENTS.md`; `@file` imports work (depth 5) | `.gemini/skills/` or the alias `.agents/skills/` (the alias wins) | The one-line settings file is enough. The docs carry a banner that Gemini CLI was replaced by Antigravity CLI on 2026-06-18 for some users; whether that tool behaves the same is **not checked** |
+| **GitHub Copilot** ([support matrix](https://docs.github.com/en/copilot/reference/custom-instructions-support), [code review](https://docs.github.com/en/copilot/concepts/agents/code-review), [skills](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)) | Code review **on GitHub.com** reads `.github/copilot-instructions.md`, `.github/instructions/**/*.instructions.md`, and `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `REVIEW.md`; **in VS Code and Visual Studio it reads only `.github/copilot-instructions.md`**; the cloud agent reads `AGENTS.md` (nearest wins) | `.github/skills`, `.claude/skills` or `.agents/skills`; code review is documented to use `.github/skills` | The design's open question is answered: GitHub.com review reads `AGENTS.md`, but the IDE paths do not, so the thin `.github/copilot-instructions.md` adapter stays. No hard length limit; a soft guideline of about 1,000 lines. Review reads the PR head branch |
+
+Consequence for the layout: `.agents/skills/` stays canonical (Gemini and Copilot read it), and only Claude Code needs a
+generated mirror in `.claude/skills/`. VS Code's own documentation lists `CLAUDE.md` and `AGENTS.md` as read by its local
+agent behind settings (`chat.useAgentsMdFile`, `chat.useClaudeMdFile`; nested `AGENTS.md` is experimental and off by
+default), which supports leaving nested instructions out of this increment. Probes are still to be run per harness
+(acceptance 7); the vendor pages above are the matrix's first sources.
+
+### Task 1: the picks, per artifact
+
+**Docs checker.** Take HS `tools/check_docs.py` as the base: it takes `root` everywhere (SJ's needs a monkeypatched global),
+has the hardened link check (BOM, unclosed fences reported, any URL scheme, case-exact resolution bounded by the root), and
+a generic index check serving both ADRs and the journal. Fold in: from LW `board-landed-rows`, `single-status`,
+`glossary-row` and the replacement-aware retired-term mode; from SJ the `corpus` not-empty guard (a gate that scanned zero
+files once passed), `adr-refs` (SJ's has no `Supersedes` inverse: fix), `nested-claude`, a hardened `orphan`; every
+constant (directory case, exclusions, governed directories, index paths, board sections, grandfathered set) moves to
+`framework.toml`. Defects found in the sources, fixed in the lift and, for HS, backported: HS's `terms` check registers only
+the first bold span in a glossary cell, so a document listing **Plan** fails against the row `| **Spec**, **Plan** |`
+(verified, `check_docs.py:131`); LW's ADR index breaks on a `#fragment`; SJ's `orphan` counts a file's own text;
+`fences` is emitted from inside the link check.
+
+**Definition of done.** Take HS (numbered table with an *Enforced by* column, autonomy protocol, the definition of
+significant). Fold in from LW the identity and DCO section, whose-branch, the scope section ("say plainly what was left
+out"), no test skipped to get green, a handoff update when the owner states a preference, and the ledger entry in the same
+PR; from SJ the `make check` equivalence rule, the README-currency row, the spike and code rows of the ladder, and "what is
+deliberately not here". HS's row 7a promises a landed row keeps its PR number but no HS check enforces it (LW's does): the
+union checker fixes that.
+
+**Workflow.** Take HS's `workflow.md` (roadmap tier, nine records, "ticked when its verification ran", owner merges). Fold in
+SJ's lock state and the spike branch-off, and LW's chain, which is the only place a UX mock pass exists. LW has no workflow
+file; its chain lives in a handoff paragraph and ledger entry 20.
+
+**PR template.** Take HS's (the *New terms* checkbox, *Board: none* rule, *Verified*). Fold in from SJ the rule that a
+deferred defect is a GitHub issue opened before merge, and an optional back-to-back *Measured* section. LW has none, which
+is why its definition of done lacks the decisions-table rule.
+
+**Glossary.** HS's two-column structure and domain sections, plus LW's `Not` column for the confusing terms and its prose
+rules the check cannot carry. The template ships only process rows; domain sections stay project-owned.
+
+**Task layer.** Take SJ's as the base, its generic parts whole and its project-specific parts left out (listed below): the Makefile and its hard rule, `tests/test_tooling.py`, `scripts/check.py` (the stage list
+and the CI parity test), `pre-commit` and `prepare-commit-msg` hooks, `.gitattributes` hook and line-ending rules,
+`dependabot.yml`, `ci.md`, `tooling.md`, `documentation.md`. Leave behind: the LFS hook stubs, the demo targets and
+launchers, the `content` stage, the private-dependency token step, the devblog design, the `cspell` word list,
+`readme-current`. Fix in the lift: there is no hook installer and no check hooks are enabled (add `make hooks` and a check);
+the help and CI-parity tests are substring matches, so a commented-out workflow line passes (parse the YAML); hard-coded
+counts and "four gates" are stale (copy none); `Adopted` is outside the status vocabulary; the pending-review threshold is
+written in four places (one source); `mypy` and `cspell` are configured and never run (run them or leave them out).
+
+**Ledger.** The framework ledger seeds from 24 distinct generic lessons merged out of the 68 entries (HS 22, LW 25, SJ 21);
+every entry's classification, and the merged list, are in
+[../../research/2026-10-09-failure-ledger-classification.md](../../research/2026-10-09-failure-ledger-classification.md). Domain entries (GPU, Maya, wgpu, numba, game loop) stay with their
+projects; Python and uv lessons go to the `python-uv` module's own ledger file; measurement lessons (SJ 1, 13, 14, 21 and
+LW 12) go to an optional appendix. Same lesson in several ledgers is merged once: the heredoc class appears four times,
+"a gate whose failure a pipe swallowed" twice, "board row is not a lock" three times.
+
+**Python standards.** The three agree on a core: the module header (`_MODULE_NAME`, `__version__`, `__updated__`, `_LOGGER`),
+absolute imports in three groups, complete type hints with a dtype on `NDArray`, specific exceptions, f-string logging,
+reST docstrings, 120 columns, `pathlib`. Picks for the conflicts: `X | None` and `list[...]` (LW's `typing.Optional`
+examples are not carried); a 3.11 floor stated as a floor, not "3.12"; f-strings with HS's measured-hot-path exception,
+`# lazy-log:` marker and check; `__version__` before `__updated__`; `from __future__ import annotations` required; no
+`__author__`; `print()` allowed only in a script's `main` summary and demo entry points; `E501` enforced in ruff (the
+formatter does not wrap strings or docstrings). PySide6, GPU, numba, game-loop, Maya and the project invariants stay out.
+
+### Decisions this found, for the owner to overrule (two-way)
+
+| Decision | Alternative | Why |
+| --- | --- | --- |
+| One status vocabulary, the five words; SJ's `Adopted`, `Exploring` and `Locked` migrate at its retrofit | Allow SJ's | The checks can then tell what is current; the spec already fixes the five |
+| The glossary's retired terms use LW's dedicated three-column table (`~~Old~~ \| Use \| Why`) | HS's inline struck-bold row | It carries the replacement, so the check is replacement-aware; HS has one retired row to migrate |
+| The retired-vocabulary check is on by default in a new repository and opt-in for a retrofitted one | Always on; always opt-in | LW found 61 live references the day it tried it; a new repository has none |
+| The chain has a UX mock pass stage for anything a person will touch, after the lock and before the spec | Fold it into the spec | The owner asked that the template deal with UX; LW is the only repository that has the stage |
+| The journal is one file per day in the `journal` module, off for a repository that keeps none | Per session; none | HS's check keys on the day; LW has no journal and says it must not be built unasked |
+| Pending-review and the lane ids are in the `lanes` module, off by default; `readme-current` is left out | Core | They exist for many parallel sessions and a benchmark corpus |
+| A branch per increment; worktrees optional | Worktree required (SJ) | One mechanism in the core; SJ keeps its worktrees as an override |
+
+### Not found here
+
+Whether SJ or HS keep identity and sign-off rules in files other than their definition of done; whether HS's and LW's
+`local-review` skills differ materially from SJ's `ci.md` rule; the full text of LW's board lines about the chain. The
+extraction reads these when it reaches them.
 
 ## Terms introduced
 
