@@ -51,6 +51,34 @@ class CaseError(ValueError):
 
 
 @dataclass(frozen=True)
+class ParamSpec:
+    """One parameter a check takes: its type (``bool``, ``int``, ``float`` or ``str``) and what values it may hold."""
+
+    kind: type
+    required: bool = False
+    minimum: float | None = None  # inclusive, for int and float
+    choices: tuple[Any, ...] | None = None
+
+    def problem(self, value: object) -> str | None:
+        """Why ``value`` is not acceptable, or None. A bool is never an int or a float here."""
+        if self.kind is bool:
+            return None if isinstance(value, bool) else "a true or false is expected"
+        if self.kind is str:
+            if not isinstance(value, str):
+                return "a string is expected"
+        elif self.kind is int:
+            if isinstance(value, bool) or not isinstance(value, int):
+                return "an integer is expected"
+        elif isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            return "a finite number is expected"
+        if self.minimum is not None and value < self.minimum:
+            return f"at least {self.minimum} is expected"
+        if self.choices is not None and value not in self.choices:
+            return f"one of {list(self.choices)} is expected"
+        return None
+
+
+@dataclass(frozen=True)
 class CheckSpec:
     """What the registry knows about a check: the kinds it serves and whether it needs an explicit data range."""
 
@@ -61,6 +89,9 @@ class CheckSpec:
     #: The metrics the check reports. When given, a threshold naming any other is refused (it could only ever fail as
     #: "not measured"); empty means the check does not say, and thresholds are not cross-checked.
     metrics: tuple[str, ...] = ()
+    #: The parameters the check takes. When given, an unknown parameter (a typo that would be ignored), a missing
+    #: required one, or a value of the wrong type or range is refused at load; None means they are not cross-checked.
+    params: Mapping[str, ParamSpec] | None = None
 
 
 @dataclass(frozen=True)
@@ -84,13 +115,17 @@ class Case:
     check: Check
     thresholds: tuple[Threshold, ...]
     expect: str = "pass"
+    #: For a control: the metrics that must be among those that fail. A control that fails only because a pixel count
+    #: fell short never exercised its wrong expectation; naming the flip-sensitive metric here makes that a failed
+    #: control. Empty means any failure counts.
+    fails_on: tuple[str, ...] = ()
 
     @property
     def is_control(self) -> bool:
         return self.expect == "fail"
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "id": self.id,
             "kind": self.kind,
             "request": self.request.to_dict(),
@@ -98,12 +133,15 @@ class Case:
             "thresholds": [t.to_dict() for t in self.thresholds],
             "expect": self.expect,
         }
+        if self.fails_on:
+            out["fails_on"] = list(self.fails_on)
+        return out
 
 
 def _case(data: object, where: str, registry: Mapping[str, CheckSpec] | None) -> Case:
     if not isinstance(data, dict):
         raise CaseError(f"{where}: an object is expected, got {type(data).__name__}")
-    unknown = sorted(set(data) - {"id", "kind", "request", "check", "thresholds", "expect"})
+    unknown = sorted(set(data) - {"id", "kind", "request", "check", "thresholds", "expect", "fails_on"})
     missing = sorted({"id", "kind", "request", "check", "thresholds"} - set(data))
     if unknown or missing:
         raise CaseError(f"{where}: unknown field(s) {unknown}, missing field(s) {missing}")
@@ -148,6 +186,15 @@ def _case(data: object, where: str, registry: Mapping[str, CheckSpec] | None) ->
         thresholds = tuple(Threshold.from_dict(t) for t in thresholds_data)
     except VerdictError as e:
         raise CaseError(f"{where}: thresholds: {e}") from e
+    fails_on = data.get("fails_on", [])
+    if not isinstance(fails_on, list) or not all(isinstance(m, str) for m in fails_on):
+        raise CaseError(f"{where}: fails_on: a list of metric names is expected, got {fails_on!r}")
+    if fails_on and expect != "fail":
+        raise CaseError(f"{where}: fails_on: only a control (expect 'fail') names the metrics that must fail")
+    if sorted(set(fails_on) - {t.metric for t in thresholds}):
+        raise CaseError(
+            f"{where}: fails_on: {sorted(set(fails_on) - {t.metric for t in thresholds})} have no threshold"
+        )
     if registry is not None:
         spec = registry.get(name)
         if spec is None:
@@ -158,13 +205,15 @@ def _case(data: object, where: str, registry: Mapping[str, CheckSpec] | None) ->
             raise CaseError(
                 f"{where}: check.data_range: check {name!r} measures a float frame and needs an explicit peak"
             )
-    if registry is not None and registry[name].metrics:
-        unknown = sorted({t.metric for t in thresholds} - set(registry[name].metrics))
-        if unknown:
-            raise CaseError(
-                f"{where}: thresholds: check {name!r} does not report {unknown}; "
-                f"it reports {list(registry[name].metrics)}"
-            )
+        if spec.metrics:
+            unknown_metrics = sorted({t.metric for t in thresholds} - set(spec.metrics))
+            if unknown_metrics:
+                raise CaseError(
+                    f"{where}: thresholds: check {name!r} does not report {unknown_metrics}; "
+                    f"it reports {list(spec.metrics)}"
+                )
+        if spec.params is not None:
+            _check_params(spec, params, where)
     return Case(
         cid,
         data["kind"],
@@ -172,7 +221,24 @@ def _case(data: object, where: str, registry: Mapping[str, CheckSpec] | None) ->
         Check(name, None if data_range is None else float(data_range), dict(params)),
         thresholds,
         expect,
+        tuple(fails_on),
     )
+
+
+def _check_params(spec: CheckSpec, params: dict[str, Any], where: str) -> None:
+    """Refuse an unknown parameter (it would be silently ignored), a missing required one, or a bad value."""
+    known = spec.params or {}
+    unknown = sorted(set(params) - set(known))
+    if unknown:
+        raise CaseError(f"{where}: check.params: check {spec.name!r} takes no {unknown}; it takes {sorted(known)}")
+    for pname, pspec in known.items():
+        if pname not in params:
+            if pspec.required:
+                raise CaseError(f"{where}: check.params.{pname}: required by check {spec.name!r}")
+            continue
+        problem = pspec.problem(params[pname])
+        if problem:
+            raise CaseError(f"{where}: check.params.{pname}: {problem}, got {params[pname]!r}")
 
 
 def load_file(path: Path, registry: Mapping[str, CheckSpec] | None = None) -> list[Case]:
@@ -180,7 +246,7 @@ def load_file(path: Path, registry: Mapping[str, CheckSpec] | None = None) -> li
     path = Path(path)
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as e:
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
         raise CaseError(f"{path}: not valid JSON ({e})") from e
     if not isinstance(data, dict) or set(data) != {"version", "cases"}:
         raise CaseError(f"{path}: an object with exactly 'version' and 'cases' is expected")

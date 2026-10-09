@@ -248,3 +248,82 @@ def test_an_input_hash_follows_the_file_s_bytes_while_the_request_hash_stays(tmp
     one = _manifest(inputs={"environment:env.hdr": before})
     two = _manifest(inputs={"environment:env.hdr": after})
     assert one.request_hash == two.request_hash and one.inputs != two.inputs
+
+
+def test_a_write_that_fails_part_way_leaves_the_previous_capture_intact_and_no_staging_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The verified fault: the old set was deleted before the new one was written, and a failure left half a set."""
+    from hogshade.texture_cook import png
+
+    scene, display, coverage = _arrays()
+    target = tmp_path / "again"
+    captureset.write(target, REQUEST, _manifest(), scene, display, coverage)
+    before = {p.name: p.read_bytes() for p in target.iterdir()}
+
+    def boom(*_args, **_kwargs):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(png, "write_png", boom)
+    with pytest.raises(OSError, match="disk full"):
+        captureset.write(target, REQUEST, _manifest("L1"), display=display)
+    assert {p.name: p.read_bytes() for p in target.iterdir()} == before, "the previous capture is untouched"
+    assert captureset.read(target).level == "L2p"
+    assert not (tmp_path / ".again.staging").exists(), "the staging directory is cleaned up"
+    monkeypatch.undo()
+    captureset.write(target, REQUEST, _manifest("L1"), display=display)  # and the next write works
+    assert captureset.read(target).level == "L1" and not (tmp_path / ".again.staging").exists()
+
+
+def test_a_first_write_that_fails_leaves_nothing_behind(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from hogshade.ibl import imageio
+
+    scene, display, coverage = _arrays()
+    monkeypatch.setattr(imageio, "write_exr_rgb", lambda *a, **k: (_ for _ in ()).throw(OSError("no space")))
+    with pytest.raises(OSError, match="no space"):
+        captureset.write(tmp_path / "new", REQUEST, _manifest(), scene, display, coverage)
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"versions": 5}, "versions: an object of strings"),
+        ({"versions": {"a": 5}}, "versions: an object of strings"),
+        ({"inputs": {"a": 5}}, "inputs: an object of strings"),
+        ({"request_hash": 5}, "request_hash: a string is expected"),
+        ({"host": ["wgpu"]}, "host: a string is expected"),
+        ({"colour_space": 3}, "colour_space: a string is expected"),
+        ({"logs": "a.log"}, "logs: a list of strings"),
+        ({"notes": [1]}, "notes: a list of strings"),
+        ({"wall_seconds": float("nan")}, "wall_seconds: a finite non-negative number"),
+        ({"wall_seconds": True}, "wall_seconds: a finite non-negative number"),
+        ({"wall_seconds": "fast"}, "wall_seconds: a finite non-negative number"),
+    ],
+)
+def test_a_manifest_field_of_the_wrong_type_is_a_typed_error_not_a_raw_one(change: dict, message: str) -> None:
+    good = _manifest().to_dict()
+    with pytest.raises(CaptureSetError, match=message):
+        Manifest.from_dict({**good, **change})
+
+
+def test_unreadable_files_in_a_set_are_typed_errors(tmp_path: Path) -> None:
+    from hogshade.texture_cook import png
+
+    scene, display, coverage = _arrays()
+    out = captureset.write(tmp_path / "bad", REQUEST, _manifest(), scene, display, coverage)
+    png.write_png(out / "coverage.png", np.zeros((SIZE[1], SIZE[0], 3), dtype=np.uint8))  # RGB, not one channel
+    with pytest.raises(CaptureSetError, match=r"coverage.png: a one-channel PNG is expected, got shape"):
+        captureset.read(out)
+    out = captureset.write(tmp_path / "bad2", REQUEST, _manifest(), scene, display, coverage)
+    (out / "display.png").write_bytes(b"not a png")
+    with pytest.raises(CaptureSetError, match="a picture cannot be read"):
+        captureset.read(out)
+    out = captureset.write(tmp_path / "bad3", REQUEST, _manifest(), scene, display, coverage)
+    (out / "manifest.json").write_bytes(b"\xff\xfe\x00 not utf-8")
+    with pytest.raises(CaptureSetError, match="manifest.json: not valid JSON"):
+        captureset.read(out)
+    out = captureset.write(tmp_path / "bad4", REQUEST, _manifest(), scene, display, coverage)
+    (out / "request.json").write_bytes(b"\xff\xfe")
+    with pytest.raises(CaptureSetError, match="request.json:"):
+        captureset.read(out)

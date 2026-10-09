@@ -11,6 +11,8 @@ import logging
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 sys.path.insert(0, str(ROOT / "tests" / "compare"))  # ideal_frames: the helper that writes captures with no GPU
@@ -204,3 +206,22 @@ def test_run_exits_one_when_a_case_fails(monkeypatch, tmp_path: Path) -> None:
 
 def test_the_module_exposes_the_documented_exit_codes() -> None:
     assert (compare.EXIT_OK, compare.EXIT_FINDINGS, compare.EXIT_REFUSED, compare.EXIT_NO_ADAPTER) == (0, 1, 2, 3)
+
+
+def test_a_broken_adapter_is_a_failure_even_with_allow_skips(monkeypatch, tmp_path: Path) -> None:
+    """Only 'wgpu is absent or found no adapter' is a skip. A bug in the adapter must not turn a headless run green."""
+
+    def broken():
+        raise TypeError("a typo in the adapter")
+
+    monkeypatch.setattr(compare, "make_adapter", broken)
+    with pytest.raises(TypeError, match="a typo in the adapter"):
+        compare.main(["run", "--out", str(tmp_path / "o"), "--allow-skips"])
+    for skip in (ImportError("no wgpu"), RuntimeError("no adapter"), OSError("no driver")):
+
+        def no_gpu(skip=skip):
+            raise skip
+
+        monkeypatch.setattr(compare, "make_adapter", no_gpu)
+        assert compare.main(["run", "--out", str(tmp_path / "o"), "--allow-skips"]) == compare.EXIT_OK
+        assert compare.main(["run", "--out", str(tmp_path / "o")]) == compare.EXIT_NO_ADAPTER

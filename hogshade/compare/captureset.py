@@ -24,7 +24,9 @@ from __future__ import annotations
 import hashlib
 import json
 import logging as _logging
+import math
 import re
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -136,8 +138,13 @@ class Manifest:
             raise CaptureSetError(f"{MANIFEST}: level L2p is for sets not tagged ACEScg; a tagged set declares L2")
         if self.level == "L0" and not self.logs:
             raise CaptureSetError(f"{MANIFEST}: level L0 produced nothing and must list the log that says why")
-        if not isinstance(self.wall_seconds, (int, float)) or self.wall_seconds < 0:
-            raise CaptureSetError(f"{MANIFEST}: wall_seconds: a non-negative number is expected")
+        if (
+            isinstance(self.wall_seconds, bool)
+            or not isinstance(self.wall_seconds, (int, float))
+            or not math.isfinite(self.wall_seconds)
+            or self.wall_seconds < 0
+        ):
+            raise CaptureSetError(f"{MANIFEST}: wall_seconds: a finite non-negative number is expected")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -163,6 +170,19 @@ class Manifest:
         missing = sorted({"host", "level", "request_hash"} - set(data))
         if missing:
             raise CaptureSetError(f"{MANIFEST}: missing field(s) {missing}")
+        for name in ("versions", "inputs"):
+            value = data.get(name, {})
+            if not isinstance(value, dict) or not all(
+                isinstance(k, str) and isinstance(v, str) for k, v in value.items()
+            ):
+                raise CaptureSetError(f"{MANIFEST}: {name}: an object of strings is expected, got {value!r}")
+        for name in ("logs", "notes"):
+            value = data.get(name, [])
+            if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
+                raise CaptureSetError(f"{MANIFEST}: {name}: a list of strings is expected, got {value!r}")
+        for name in ("host", "level", "request_hash", "colour_space"):
+            if name in data and not isinstance(data[name], str):
+                raise CaptureSetError(f"{MANIFEST}: {name}: a string is expected, got {data[name]!r}")
         manifest = cls(
             host=data["host"],
             level=data["level"],
@@ -232,6 +252,8 @@ def write(
     Write a capture set into ``directory`` (created if missing). The roles the manifest's level requires must be given,
     the arrays must match the request's size, the manifest must agree with the request, and ``logs`` must be exactly the
     names the manifest lists. A directory holding files that are not a previous capture set's is refused untouched.
+    The new set is written beside it first and replaces the old only once it is whole, so a failed write leaves
+    the previous capture intact.
     """
     manifest.validate()
     logs = logs or {}
@@ -260,19 +282,28 @@ def write(
         foreign = sorted(p.name for p in directory.iterdir() if p.name not in owned and not _LOG.fullmatch(p.name))
         if foreign:
             raise CaptureSetError(f"{directory}: holds {foreign}, which are not a capture set's; nothing was written")
-        for p in directory.iterdir():  # a previous capture's roles and logs go; this write replaces them whole
-            p.unlink()
-    directory.mkdir(parents=True, exist_ok=True)
-    (directory / REQUEST).write_text(request.to_json(), encoding="utf-8")
-    if scene is not None:
-        imageio.write_exr_rgb(directory / SCENE, np.asarray(scene, dtype=np.float32), half=False)
-    if display is not None:
-        png.write_png(directory / DISPLAY, display)
-    if coverage is not None:
-        png.write_png(directory / COVERAGE, coverage.astype(np.uint8) * 255)
-    for name, text in logs.items():
-        (directory / name).write_text(text, encoding="utf-8")
-    (directory / MANIFEST).write_text(json.dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    staging = directory.parent / f".{directory.name}.staging"
+    if staging.exists():
+        shutil.rmtree(staging)
+    staging.mkdir(parents=True)
+    try:
+        (staging / REQUEST).write_text(request.to_json(), encoding="utf-8")
+        if scene is not None:
+            imageio.write_exr_rgb(staging / SCENE, np.asarray(scene, dtype=np.float32), half=False)
+        if display is not None:
+            png.write_png(staging / DISPLAY, display)
+        if coverage is not None:
+            png.write_png(staging / COVERAGE, coverage.astype(np.uint8) * 255)
+        for name, text in logs.items():
+            (staging / name).write_text(text, encoding="utf-8")
+        manifest_text = json.dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n"
+        (staging / MANIFEST).write_text(manifest_text, encoding="utf-8")
+        if directory.exists():  # the previous capture goes only now that its replacement is whole
+            shutil.rmtree(directory)
+        staging.replace(directory)
+    except BaseException:
+        shutil.rmtree(staging, ignore_errors=True)
+        raise
     _LOGGER.info(f"wrote capture set {directory} at level {manifest.level} for request {request.id} on {manifest.host}")
     return directory
 
@@ -291,7 +322,7 @@ def read(directory: Path) -> CaptureSet:
         raise CaptureSetError(f"{MANIFEST}: missing from {directory}")
     try:
         manifest = Manifest.from_dict(json.loads(manifest_path.read_text(encoding="utf-8")))
-    except json.JSONDecodeError as e:
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
         raise CaptureSetError(f"{MANIFEST}: not valid JSON ({e})") from e
     present = {p.name for p in directory.iterdir() if p.is_file()}
     missing = REQUIRED[manifest.level] - present
@@ -305,15 +336,20 @@ def read(directory: Path) -> CaptureSet:
         raise CaptureSetError(f"{MANIFEST}: lists log(s) {absent_logs} that are not in {directory}")
     try:
         request = CaptureRequest.from_json((directory / REQUEST).read_text(encoding="utf-8"))
-    except RequestError as e:
+    except (RequestError, UnicodeDecodeError) as e:
         raise CaptureSetError(f"{REQUEST}: {e}") from e
     if request.content_hash() != manifest.request_hash:
         raise CaptureSetError(
             f"{REQUEST}: its hash differs from the manifest's request_hash; the set mixes two captures"
         )
-    scene = imageio.read_exr_rgb(directory / SCENE) if SCENE in present else None
-    display = png.read_png(directory / DISPLAY) if DISPLAY in present else None
-    coverage_raw = png.read_png(directory / COVERAGE) if COVERAGE in present else None
-    coverage = None if coverage_raw is None else np.squeeze(coverage_raw, axis=-1) > 127
+    try:
+        scene = imageio.read_exr_rgb(directory / SCENE) if SCENE in present else None
+        display = png.read_png(directory / DISPLAY) if DISPLAY in present else None
+        coverage_raw = png.read_png(directory / COVERAGE) if COVERAGE in present else None
+    except (png.PngError, ValueError, OSError) as e:
+        raise CaptureSetError(f"{directory}: a picture cannot be read ({type(e).__name__}: {e})") from e
+    if coverage_raw is not None and (coverage_raw.ndim != 3 or coverage_raw.shape[2] != 1):
+        raise CaptureSetError(f"{COVERAGE}: a one-channel PNG is expected, got shape {coverage_raw.shape}")
+    coverage = None if coverage_raw is None else coverage_raw[..., 0] > 127
     _check_arrays(request, scene, display, coverage)
     return CaptureSet(directory, request, manifest, scene, display, coverage)

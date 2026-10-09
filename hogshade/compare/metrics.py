@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging as _logging
 import math
+import numbers
 
 import numpy as np
 from numpy.typing import NDArray
@@ -70,6 +71,8 @@ def _values(a: NDArray, b: NDArray, mask: NDArray | None) -> tuple[NDArray, NDAr
     a, b = _pair(a, b)
     m = _mask(a.shape, mask)
     av, bv = a[m].ravel(), b[m].ravel()
+    if av.size == 0:
+        raise MetricError("no values to measure: the pictures are empty")
     bad = int((~np.isfinite(av)).sum() + (~np.isfinite(bv)).sum())
     if bad:
         raise MetricError(f"{bad} non-finite value(s) under the mask")
@@ -77,7 +80,7 @@ def _values(a: NDArray, b: NDArray, mask: NDArray | None) -> tuple[NDArray, NDAr
 
 
 def _range(data_range: float) -> float:
-    if isinstance(data_range, bool) or not isinstance(data_range, (int, float)):
+    if isinstance(data_range, (bool, np.bool_)) or not isinstance(data_range, numbers.Real):
         raise MetricError(f"data_range: a positive number is expected, got {data_range!r}")
     if not math.isfinite(data_range) or data_range <= 0:
         raise MetricError(f"data_range: a positive finite number is expected, got {data_range!r}")
@@ -89,7 +92,12 @@ def abs_rel_error(a: NDArray, b: NDArray, mask: NDArray | None = None, rel_floor
     Absolute error ``|a - b|`` and relative error ``|a - b| / max(|b|, rel_floor)`` (``b`` is the reference) over the
     masked values: the maximum, the mean and the 99th percentile of each, and how many values were measured.
     """
-    if rel_floor <= 0 or not math.isfinite(rel_floor):
+    if (
+        isinstance(rel_floor, (bool, np.bool_))
+        or not isinstance(rel_floor, numbers.Real)
+        or rel_floor <= 0
+        or not math.isfinite(rel_floor)
+    ):
         raise MetricError(f"rel_floor: a positive finite number is expected, got {rel_floor!r}")
     av, bv = _values(a, b, mask)
     err = np.abs(av - bv)

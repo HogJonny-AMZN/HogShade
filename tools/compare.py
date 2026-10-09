@@ -130,7 +130,7 @@ def cmd_run(args: argparse.Namespace, adapter_factory: Callable[[], wgpu_adapter
         return EXIT_REFUSED
     try:
         adapter = (adapter_factory or make_adapter)()
-    except Exception as e:  # noqa: BLE001 - any adapter failure (no wgpu, no GPU) is the same answer: nothing to run on
+    except (ImportError, RuntimeError, OSError) as e:  # wgpu absent, or wgpu found no adapter; anything else is a bug
         _LOGGER.warning(f"no wgpu adapter ({type(e).__name__}: {e}); the oracle cases need a GPU")
         return EXIT_OK if args.allow_skips else EXIT_NO_ADAPTER
     report = runner.run(
@@ -154,7 +154,7 @@ def cmd_run(args: argparse.Namespace, adapter_factory: Callable[[], wgpu_adapter
         if result.is_control and not result.control_ok:
             _LOGGER.error(f"control {result.id} did not fail as it should: the instrument cannot tell right from wrong")
         elif not result.is_control and result.verdict.value != "pass":
-            _LOGGER.error(f"case {result.id}: {result.verdict.value}: {'; '.join(result.notes) or result.error}")
+            _LOGGER.error(f"case {result.id}: {result.verdict.value}: {result.error or '; '.join(result.notes)}")
     return EXIT_OK if report.ok else EXIT_FINDINGS
 
 

@@ -12,11 +12,22 @@ from pathlib import Path
 import pytest
 
 from hogshade.compare import cases
-from hogshade.compare.cases import CaseError, CheckSpec
+from hogshade.compare.cases import CaseError, CheckSpec, ParamSpec
 
 REGISTRY = {
     "texel": CheckSpec(
-        "texel", ("oracle",), needs_data_range=True, description="the texel a pixel must show", metrics=("agreement",)
+        "texel",
+        ("oracle",),
+        needs_data_range=True,
+        description="the texel a pixel must show",
+        metrics=("agreement",),
+        params={
+            "map": ParamSpec(str, required=True),
+            "stride": ParamSpec(int, minimum=1),
+            "tolerance": ParamSpec(float, minimum=0.0),
+            "flip_v": ParamSpec(bool),
+            "mode": ParamSpec(str, choices=("a", "b")),
+        },
     ),
     "coverage": CheckSpec("coverage", ("oracle", "parity"), needs_data_range=False, description="mask overlap"),
 }
@@ -76,10 +87,10 @@ def test_a_control_is_a_case_that_expects_to_fail(tmp_path: Path) -> None:
         **CASE,
         "id": "texel-roughness-v-flipped",
         "expect": "fail",
-        "check": {**CASE["check"], "params": {"flip_v": True}},
+        "check": {**CASE["check"], "params": {"map": "_R", "flip_v": True}},
     }
     (loaded,) = cases.load_file(_write(tmp_path, control), REGISTRY)
-    assert loaded.is_control and loaded.expect == "fail" and loaded.check.params == {"flip_v": True}
+    assert loaded.is_control and loaded.expect == "fail" and loaded.check.params == {"map": "_R", "flip_v": True}
 
 
 @pytest.mark.parametrize(
@@ -171,3 +182,65 @@ def test_a_threshold_on_a_metric_the_check_does_not_report_is_refused(tmp_path: 
         cases.load_file(_write(tmp_path, typo), REGISTRY)
     # a check whose spec lists no metrics is not cross-checked
     assert cases.load_file(_write(tmp_path, {**typo, "check": {"name": "coverage"}}, name="n.json"), REGISTRY)
+
+
+@pytest.mark.parametrize(
+    ("params", "message"),
+    [
+        ({"map": "_R", "flipv": True}, r"check.params: check 'texel' takes no \['flipv'\]; it takes"),
+        ({"stride": 3}, "check.params.map: required by check 'texel'"),
+        ({"map": "_R", "stride": 0}, r"check.params.stride: at least 1 is expected, got 0"),
+        ({"map": "_R", "stride": 2.5}, "check.params.stride: an integer is expected"),
+        ({"map": "_R", "stride": True}, "check.params.stride: an integer is expected"),
+        ({"map": "_R", "tolerance": "x"}, "check.params.tolerance: a finite number is expected"),
+        ({"map": "_R", "tolerance": float("nan")}, "check.params.tolerance: a finite number is expected"),
+        ({"map": "_R", "tolerance": -0.1}, "check.params.tolerance: at least 0.0 is expected"),
+        ({"map": 5}, "check.params.map: a string is expected"),
+        ({"map": "_R", "flip_v": 1}, "check.params.flip_v: a true or false is expected"),
+        ({"map": "_R", "mode": "c"}, r"check.params.mode: one of \['a', 'b'\] is expected"),
+    ],
+)
+def test_a_check_parameter_that_would_be_ignored_or_crash_a_run_is_refused_at_load(
+    tmp_path: Path, params: dict, message: str
+) -> None:
+    """A typo'd parameter used to run as a normal check; a stride of 0 crashed the run with a ZeroDivisionError."""
+    case = _bad("check.params", params)
+    with pytest.raises(CaseError, match=message):
+        cases.load_file(_write(tmp_path, case), REGISTRY)
+
+
+def test_valid_parameters_load_and_a_spec_without_a_parameter_list_is_not_cross_checked(tmp_path: Path) -> None:
+    ok = _bad("check.params", {"map": "_R", "stride": 4, "tolerance": 0.1, "flip_v": False, "mode": "a"})
+    assert cases.load_file(_write(tmp_path, ok), REGISTRY)[0].check.params["stride"] == 4
+    free = {**CASE, "check": {"name": "coverage", "params": {"anything": 1}}}
+    assert cases.load_file(_write(tmp_path, free, name="c2.json"), REGISTRY)
+
+
+def test_a_control_may_name_the_metrics_that_must_fail(tmp_path: Path) -> None:
+    control = {**CASE, "id": "ctl", "expect": "fail", "fails_on": ["agreement"]}
+    (loaded,) = cases.load_file(_write(tmp_path, control), REGISTRY)
+    assert loaded.fails_on == ("agreement",) and loaded.to_dict()["fails_on"] == ["agreement"]
+    assert "fails_on" not in cases.load_file(_write(tmp_path, CASE, name="p.json"), REGISTRY)[0].to_dict()
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"fails_on": ["agreement"]}, "only a control"),
+        ({"expect": "fail", "fails_on": "agreement"}, "a list of metric names"),
+        ({"expect": "fail", "fails_on": [1]}, "a list of metric names"),
+        ({"expect": "fail", "fails_on": ["nope"]}, r"fails_on: \['nope'\] have no threshold"),
+    ],
+)
+def test_fails_on_is_only_for_a_control_and_only_for_metrics_with_a_threshold(
+    tmp_path: Path, change: dict, message: str
+) -> None:
+    with pytest.raises(CaseError, match=message):
+        cases.load_file(_write(tmp_path, {**CASE, "id": "ctl", **change}), REGISTRY)
+
+
+def test_a_case_file_that_is_not_utf8_is_a_typed_error(tmp_path: Path) -> None:
+    path = tmp_path / "latin.json"
+    path.write_bytes(b'{"version": 1, "cases": [], "x": "caf' + bytes([233]) + b'"}')
+    with pytest.raises(CaseError, match="not valid JSON"):
+        cases.load_file(path)

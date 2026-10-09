@@ -212,3 +212,90 @@ def test_captures_land_under_the_output_directory_named_by_request_and_hash(comm
     capture = report.cases[0].capture
     assert capture and (tmp_path / capture / "manifest.json").is_file()
     assert capture.startswith(f"{committed[0].request.id}-{committed[0].request.content_hash()[:8]}")
+
+
+def test_a_capture_that_raises_fails_its_cases_with_the_reason_and_the_run_goes_on(committed, tmp_path: Path) -> None:
+    """The verified fault: one raising capture aborted the run and every earlier result was lost with no report."""
+    ideal = FakeAdapter()
+    calls: list[str] = []
+
+    def flaky(request: CaptureRequest, directory: Path) -> CaptureSet:
+        calls.append(request.id)
+        if request.debug_mode == 9:  # the AO view: the device is lost
+            raise RuntimeError("device lost")
+        return ideal(request, directory)
+
+    report = runner.run(committed, flaky, tmp_path, "fake", "L2p")
+    failed = [c for c in report.cases if c.verdict is Verdict.FAIL and not c.is_control]
+    assert [c.id for c in failed] == ["texel-ao"]
+    assert failed[0].error == "the capture failed: RuntimeError: device lost" and failed[0].capture is None
+    assert report.summary["pass"] == 4 and report.summary["controls_ok"] == 4 and not report.ok
+    assert calls.count("quad-sphere-ao") == 1, "a failed capture is not retried for every case that reads it"
+    assert Report.from_json(report.to_json()) == report
+
+
+def test_a_control_whose_capture_failed_proved_nothing(committed, tmp_path: Path) -> None:
+    control = dataclasses.replace(committed[0], id="ctl", expect="fail")
+
+    def broken(request, directory):
+        raise OSError("disk full")
+
+    report = runner.run([control], broken, tmp_path, "fake", "L2p")
+    assert report.cases[0].control_ok is False and "disk full" in (report.cases[0].error or "") and not report.ok
+
+
+def test_a_capture_of_the_wrong_request_is_a_failed_case_not_a_pass(committed, tmp_path: Path) -> None:
+    """The verified fault: a callable that returned some other request's set was measured, judged and passed."""
+    other = next(c for c in committed if c.request.id == "quad-sphere-metalness")
+    ideal = FakeAdapter()
+
+    def wrong(request: CaptureRequest, directory: Path) -> CaptureSet:
+        return ideal(other.request, directory)
+
+    report = runner.run([committed[0]], wrong, tmp_path, "fake", "L2p")
+    result = report.cases[0]
+    assert (
+        result.verdict is Verdict.FAIL
+        and "is of request 'quad-sphere-metalness', not the 'quad-sphere-roughness'" in (result.error or "")
+    )
+    assert not report.ok
+
+
+def test_a_control_must_fail_on_the_metrics_it_names(committed, tmp_path: Path) -> None:
+    """The review's finding: a control failing only on a short pixel count never used its wrong expectation."""
+    low_pixels = (Threshold("agreement", 0.99, 0.9), Threshold("pixels", 10**6, 10**6))
+    unnamed = dataclasses.replace(committed[0], id="ctl-any", expect="fail", thresholds=low_pixels)
+    named = dataclasses.replace(unnamed, id="ctl-named", fails_on=("agreement",))
+    report = runner.run([unnamed, named], FakeAdapter(), tmp_path, "fake", "L2p")
+    by_id = {c.id: c for c in report.cases}
+    assert by_id["ctl-any"].verdict is Verdict.FAIL and by_id["ctl-any"].control_ok is True, "any failure counts"
+    assert by_id["ctl-named"].verdict is Verdict.FAIL and by_id["ctl-named"].control_ok is False
+    assert Report.from_json(report.to_json()) == report, "a failing control that is not ok is a valid report"
+
+
+def test_the_committed_controls_name_the_metrics_their_wrong_expectation_moves(committed) -> None:
+    named = {c.id: c.fails_on for c in committed if c.is_control}
+    assert named == {
+        "texel-metalness-v-flipped": ("agreement",),
+        "texel-colour-v-flipped": ("agreement",),
+        "normal-green-flipped": ("green_authored", "green_flipped"),
+        "normal-red-flipped": ("red_authored", "red_flipped"),
+    }
+
+
+def test_what_an_acceptance_is_tied_to_covers_the_thresholds_the_range_the_parameters_and_the_code(
+    committed, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    base = committed[0]
+    same = dataclasses.replace(base)
+    assert runner.reference_hash(base) == runner.reference_hash(same)
+    looser = dataclasses.replace(base, thresholds=(Threshold("agreement", 0.9, 0.5),))
+    ranged = dataclasses.replace(base, check=dataclasses.replace(base.check, data_range=2.0))
+    other_params = dataclasses.replace(
+        base, check=dataclasses.replace(base.check, params={**base.check.params, "stride": 5})
+    )
+    hashes = {runner.reference_hash(c) for c in (base, looser, ranged, other_params)}
+    assert len(hashes) == 4, "each change alone changes what an acceptance was given for"
+    before = runner.reference_hash(base)
+    monkeypatch.setattr(oracles, "code_identity", lambda: "f" * 64)
+    assert runner.reference_hash(base) != before, "and so does the oracle's own code"

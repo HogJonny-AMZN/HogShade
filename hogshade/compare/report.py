@@ -7,9 +7,11 @@ measurements (each carrying the ``data_range`` it was taken with), the threshold
 verdict and any acceptance depend on. The same shape serves the host oracles, the regression cases and the parity
 runs, so a reader learns one page; the HTML view is a later increment and reads this file.
 
-A **control** is a case that is supposed to fail. Its ``verdict`` is the raw outcome and ``control_ok`` says whether it
-failed as it should; a control that passes means the instrument cannot tell right from wrong, so the report is not ok.
-The report is ok when no ordinary case fails or still needs review and every control failed as it should.
+A **control** is a case that is supposed to fail. Its ``verdict`` is the raw outcome and ``control_ok`` says whether
+it failed as it should: by measuring, and on the metrics the case names (a control that fails some other way, or
+passes, means the instrument cannot tell right from wrong, so the report is not ok). The report is ok when at least
+one ordinary case ran, none fails or still needs review, and every control failed as it should (an empty report
+proves nothing, so it is not ok).
 """
 
 from __future__ import annotations
@@ -110,7 +112,7 @@ class Report:
     @property
     def ok(self) -> bool:
         s = self.summary
-        return s["fail"] == 0 and s["needs-review"] == 0 and s["controls_ok"] == s["controls"]
+        return s["cases"] > 0 and s["fail"] == 0 and s["needs-review"] == 0 and s["controls_ok"] == s["controls"]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -199,14 +201,14 @@ def _result(data: object, where: str) -> CaseResult:
         verdict = Verdict(d["verdict"])
     except ValueError as e:
         raise ReportError(f"{where}.verdict: pass, needs-review or fail is expected, got {d['verdict']!r}") from e
-    if not isinstance(d["accepted"], bool) or d["control_ok"] not in (True, False, None):
+    if not isinstance(d["id"], str) or not d["id"]:
+        raise ReportError(f"{where}.id: a case id (a non-empty string) is expected, got {d['id']!r}")
+    if not isinstance(d["accepted"], bool) or not (d["control_ok"] is None or isinstance(d["control_ok"], bool)):
         raise ReportError(f"{where}: accepted is a boolean and control_ok a boolean or null")
     if (d["expect"] == "fail") != (d["control_ok"] is not None):
         raise ReportError(f"{where}: control_ok is set exactly for a control (expect 'fail')")
-    if d["control_ok"] is not None and d["control_ok"] != (verdict is Verdict.FAIL and d["error"] is None):
-        raise ReportError(
-            f"{where}: control_ok must be true exactly when the control failed by measuring, not by erroring"
-        )
+    if d["control_ok"] is True and (verdict is not Verdict.FAIL or d["error"] is not None):
+        raise ReportError(f"{where}: control_ok is true only when the control failed by measuring, not by erroring")
     measurements = []
     if not isinstance(d["measurements"], list):
         raise ReportError(f"{where}.measurements: a list is expected")

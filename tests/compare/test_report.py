@@ -60,7 +60,8 @@ def test_the_summary_counts_ordinary_cases_and_controls_apart() -> None:
 
 def test_the_report_is_ok_only_when_every_case_passes_and_every_control_fails() -> None:
     assert _report(_result(), _control()).ok
-    assert _report().ok  # nothing run, nothing wrong (the command refuses an empty table separately)
+    assert not _report().ok, "an empty report proves nothing"
+    assert not _report(_control()).ok, "controls alone prove nothing about a host"
     assert not _report(_result("a", Verdict.FAIL), _control()).ok
     assert not _report(_result("a", Verdict.NEEDS_REVIEW), _control()).ok
 
@@ -107,7 +108,8 @@ def _break(path: str, value) -> str:
         ("cases.0.expect", "maybe", r"report.cases\[0\].expect"),
         ("cases.0.control_ok", True, "control_ok is set exactly for a control"),
         ("cases.1.control_ok", None, "control_ok is set exactly for a control"),
-        ("cases.1.control_ok", False, "control_ok must be true exactly when the control failed"),
+        ("cases.1.verdict", "pass", "control_ok is true only when the control failed by measuring"),
+        ("cases.1.error", "boom", "control_ok is true only when the control failed by measuring"),
         ("cases.0.capture_hash", "short", r"capture_hash: a SHA-256"),
         ("cases.0.measurements", {}, r"measurements: a list"),
         ("cases.0.measurements.0.data_range", 0, r"data_range: a positive number or null"),
@@ -115,6 +117,11 @@ def _break(path: str, value) -> str:
         ("cases.0.thresholds", [{"metric": "m"}], r"thresholds: threshold: unknown field"),
         ("cases.0.notes", "x", r"notes: a list of strings"),
         ("cases.0.capture", 5, r"capture: a string or null"),
+        ("cases.0.id", [1], r"\.id: a case id"),
+        ("cases.0.id", 7, r"\.id: a case id"),
+        ("cases.0.id", "", r"\.id: a case id"),
+        ("cases.0.control_ok", 1, "control_ok a boolean or null"),
+        ("cases.0.accepted", 1, "accepted is a boolean"),
         ("ok", False, "disagrees with the cases it summarises"),
         ("summary.pass", 9, "disagrees with the cases it summarises"),
     ],

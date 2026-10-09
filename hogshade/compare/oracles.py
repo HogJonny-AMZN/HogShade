@@ -20,17 +20,19 @@ the instrument cannot tell right from wrong and the run says so.
 from __future__ import annotations
 
 import functools
+import hashlib
 import logging as _logging
 import math
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from pathlib import Path
 from types import MappingProxyType
 
 import numpy as np
 from numpy.typing import NDArray
 
 from hogshade.compare.captureset import CaptureSet
-from hogshade.compare.cases import Case, CheckSpec
+from hogshade.compare.cases import Case, CheckSpec, ParamSpec
 from hogshade.testdata import quad_sphere as qs
 from hogshade.testdata import synthetic
 
@@ -90,6 +92,8 @@ def _mesh(subdivisions: int):
     positions, normals, uvs, _indices = qs.build(subdivisions)
     side = subdivisions + 1
     tangents = qs.tangent_at(np.repeat(np.arange(6), side * side), uvs[:, 0], uvs[:, 1])
+    for array in (positions, normals, uvs, tangents):
+        array.setflags(write=False)  # one cached copy serves every call, so nothing may change it
     return positions, normals, uvs, tangents
 
 
@@ -178,6 +182,10 @@ def probe(captured: CaptureSet, stride: int = 3, subdivisions: int = qs.SUBDIVIS
     if not len(u):
         raise OracleError("no covered, non-grazing pixel lies on the sphere: nothing to read")
     mesh_u, mesh_v, mesh_normal, mesh_tangent = _mesh_hit(face, u, v, origin[keep], direction[keep], subdivisions)
+    _LOGGER.debug(
+        f"probe {request.id}: stride {stride}, {int(hit.sum())} of {hit.size} rays hit the sphere, {len(u)} kept "
+        f"(covered, facing > {MIN_FACING}, away from face edges) on {len(set(face.tolist()))} face(s)"
+    )
     return Probe(rows[keep], cols[keep], face, mesh_u, mesh_v, mesh_normal, mesh_tangent)
 
 
@@ -203,7 +211,7 @@ def _frame(captured: CaptureSet, data_range: float) -> NDArray[np.float64]:
     return np.asarray(captured.scene, dtype=np.float64) / data_range
 
 
-def quad_sphere_texel(captured: CaptureSet, case: Case) -> dict[str, float]:
+def quad_sphere_texel(case: Case, captured: CaptureSet) -> dict[str, float]:
     """
     The fraction of pixels on a flat part of a synthetic map whose captured value equals that map's texel at the
     pixel's coordinate, within ``tolerance`` of the data range. Parameters: ``map`` (a suffix such as ``_R``),
@@ -218,7 +226,8 @@ def quad_sphere_texel(captured: CaptureSet, case: Case) -> dict[str, float]:
     size = int(p.get("map_size", synthetic.SIZE))
     flip_v = bool(p.get("flip_v", False))
     data_range = case.check.data_range
-    assert data_range is not None  # cases.load refuses a texel check without it
+    if data_range is None:
+        raise OracleError(f"case {case.id}: {case.check.name} needs check.data_range")
     probed = probe(captured, int(p.get("stride", 3)))
     image = synthetic.render_map(suffix, None, size)
     cols, rows = _texels(probed.u, probed.v, size, flip_v)
@@ -232,7 +241,7 @@ def quad_sphere_texel(captured: CaptureSet, case: Case) -> dict[str, float]:
     return {"agreement": agreement, "pixels": float(pixels), "probed": float(len(probed.u))}
 
 
-def quad_sphere_normal(captured: CaptureSet, case: Case) -> dict[str, float]:
+def quad_sphere_normal(case: Case, captured: CaptureSet) -> dict[str, float]:
     """
     For the texels that lean in V (green) and in U (red), the fraction of pixels whose captured shading normal
     equals the world normal the authored texel produces on the analytic frame (``*_authored``) and the fraction that
@@ -244,7 +253,8 @@ def quad_sphere_normal(captured: CaptureSet, case: Case) -> dict[str, float]:
     size = int(p.get("map_size", synthetic.SIZE))
     flip = p.get("flip_expectation")
     data_range = case.check.data_range
-    assert data_range is not None
+    if data_range is None:
+        raise OracleError(f"case {case.id}: {case.check.name} needs check.data_range")
     probed = probe(captured, int(p.get("stride", 3)))
     image = synthetic.render_map("_N", None, size)
     cols, rows = _texels(probed.u, probed.v, size)
@@ -276,7 +286,7 @@ def quad_sphere_normal(captured: CaptureSet, case: Case) -> dict[str, float]:
     return out
 
 
-Check = Callable[[CaptureSet, Case], dict[str, float]]
+CheckFunction = Callable[[Case, CaptureSet], dict[str, float]]
 
 CHECKS: Mapping[str, CheckSpec] = MappingProxyType(
     {
@@ -286,6 +296,15 @@ CHECKS: Mapping[str, CheckSpec] = MappingProxyType(
             True,
             "the fraction of pixels showing the synthetic map's texel at their coordinate (a debug view of the map)",
             ("agreement", "pixels", "probed"),
+            {
+                "map": ParamSpec(str, required=True),
+                "gray": ParamSpec(bool),
+                "spread": ParamSpec(int, minimum=0),
+                "tolerance": ParamSpec(float, minimum=0.0),
+                "stride": ParamSpec(int, minimum=1),
+                "map_size": ParamSpec(int, minimum=32),
+                "flip_v": ParamSpec(bool),
+            },
         ),
         "quad-sphere-normal": CheckSpec(
             "quad-sphere-normal",
@@ -300,15 +319,35 @@ CHECKS: Mapping[str, CheckSpec] = MappingProxyType(
                 "red_authored",
                 "red_flipped",
             ),
+            {
+                "stride": ParamSpec(int, minimum=1),
+                "map_size": ParamSpec(int, minimum=32),
+                "flip_expectation": ParamSpec(str, choices=("green", "red", "both")),
+            },
         ),
     }
 )
 
-FUNCTIONS: Mapping[str, Check] = MappingProxyType(
+FUNCTIONS: Mapping[str, CheckFunction] = MappingProxyType(
     {"quad-sphere-texel": quad_sphere_texel, "quad-sphere-normal": quad_sphere_normal}
 )
 
 
+class UnknownCheck(OracleError):
+    """The case names a check the oracle registry does not have."""
+
+
+def code_identity() -> str:
+    """
+    A hash of this module's source: what a runner folds into an acceptance's reference hash, so that changing the
+    oracle's arithmetic re-opens every needs-review without anyone remembering to bump a version.
+    """
+    return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+
+
 def run(case: Case, captured: CaptureSet) -> dict[str, float]:
-    """Run the case's check on a capture. ``KeyError``: an unregistered check; ``OracleError``: cannot measure."""
-    return FUNCTIONS[case.check.name](captured, case)
+    """Run the case's check on a capture. ``UnknownCheck``: unregistered; ``OracleError``: it cannot measure."""
+    function = FUNCTIONS.get(case.check.name)
+    if function is None:
+        raise UnknownCheck(f"case {case.id}: no check named {case.check.name!r}; the registry has {sorted(FUNCTIONS)}")
+    return function(case, captured)

@@ -174,3 +174,24 @@ def test_the_inputs_that_cannot_be_measured_are_refused() -> None:
     assert metrics.abs_rel_error(bad, B, ok)["count"] == 3  # the NaN is outside the mask, so it is not measured
     with pytest.raises(MetricError, match="a picture is"):
         metrics.psnr(np.zeros(4), np.zeros(4), 1.0)
+
+
+def test_numpy_scalars_are_accepted_as_a_data_range_and_a_floor() -> None:
+    """The verified fault: frame.max() or a float32 peak was refused as 'not a positive number'."""
+    a, b = np.full((4, 4), 0.5), np.full((4, 4), 0.4)
+    for peak in (np.float32(1.0), np.float64(1.0), np.int64(1), np.uint8(1)):
+        assert metrics.psnr(a, b, peak) == pytest.approx(20.0)
+    assert metrics.abs_rel_error(a, b, rel_floor=np.float32(1e-6))["count"] == 16
+    for bad in (np.bool_(True), np.float32(0.0), np.float32("nan")):
+        with pytest.raises(MetricError, match="data_range"):
+            metrics.psnr(a, b, bad)
+    with pytest.raises(MetricError, match="rel_floor"):
+        metrics.abs_rel_error(a, b, rel_floor="x")
+
+
+def test_a_picture_with_no_pixels_is_a_metric_error_not_a_raw_one() -> None:
+    empty = np.zeros((0, 4))
+    with pytest.raises(MetricError, match="the pictures are empty"):
+        metrics.abs_rel_error(empty, empty)
+    with pytest.raises(MetricError, match="the pictures are empty"):
+        metrics.psnr(empty, empty, 1.0)

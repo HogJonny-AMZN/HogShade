@@ -214,5 +214,32 @@ def test_a_camera_that_does_not_see_the_sphere_is_refused() -> None:
 def test_the_registry_and_the_functions_agree_and_every_check_needs_its_range() -> None:
     assert set(oracles.CHECKS) == set(oracles.FUNCTIONS) == {"quad-sphere-texel", "quad-sphere-normal"}
     assert all(spec.needs_data_range and spec.kinds == ("oracle",) for spec in oracles.CHECKS.values())
-    with pytest.raises(KeyError):
+    with pytest.raises(oracles.UnknownCheck, match="no check named 'nope'"):
         oracles.run(_case("nope", {}), _ideal_texel("_R", True))
+
+
+def test_the_texel_arithmetic_is_pinned_by_hand_so_the_ideal_frames_cannot_share_a_regression() -> None:
+    """The ideal frames use _texels, the code under test; this fixes its V flip (row 0 is the top, V is up) by hand."""
+    u, v = np.array([0.25]), np.array([0.75])
+    cols, rows = oracles._texels(u, v, 100)
+    assert (cols[0], rows[0]) == (25, 25)  # V 0.75 is a quarter of the way down from the top
+    cols, rows = oracles._texels(u, v, 100, flip_v=True)
+    assert (cols[0], rows[0]) == (25, 75)  # the control reads V as the row index: wrong
+    cols, rows = oracles._texels(np.array([1.0]), np.array([0.0]), 100)  # the far edge wraps to texel 0
+    assert (cols[0], rows[0]) == (0, 99)
+
+
+def test_the_shared_mesh_arrays_cannot_be_written_to() -> None:
+    for array in oracles._mesh(4):
+        assert not array.flags.writeable
+
+
+def test_the_oracle_code_has_an_identity_that_a_runner_folds_into_an_acceptance() -> None:
+    assert len(oracles.code_identity()) == 64 and oracles.code_identity() == oracles.code_identity()
+
+
+def test_a_missing_data_range_is_an_oracle_error_not_an_assert() -> None:
+    case = _case("quad-sphere-texel", {"map": "_R"})
+    no_range = Case(case.id, case.kind, case.request, Check(case.check.name, None, case.check.params), case.thresholds)
+    with pytest.raises(OracleError, match="needs check.data_range"):
+        oracles.run(no_range, _ideal_texel("_R", True))

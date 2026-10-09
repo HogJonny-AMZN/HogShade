@@ -272,6 +272,9 @@
         }
       },
       "expect": "fail",
+      "fails_on": [
+        "agreement"
+      ],
       "id": "texel-metalness-v-flipped",
       "kind": "oracle",
       "request": {
@@ -338,6 +341,9 @@
         }
       },
       "expect": "fail",
+      "fails_on": [
+        "agreement"
+      ],
       "id": "texel-colour-v-flipped",
       "kind": "oracle",
       "request": {
@@ -486,6 +492,10 @@
         }
       },
       "expect": "fail",
+      "fails_on": [
+        "green_authored",
+        "green_flipped"
+      ],
       "id": "normal-green-flipped",
       "kind": "oracle",
       "request": {
@@ -573,6 +583,10 @@
         }
       },
       "expect": "fail",
+      "fails_on": [
+        "red_authored",
+        "red_flipped"
+      ],
       "id": "normal-red-flipped",
       "kind": "oracle",
       "request": {

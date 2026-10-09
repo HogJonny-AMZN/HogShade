@@ -2,7 +2,9 @@
 
 Evidence, not documentation: the pictures, logs and mirrored application histories that plan tasks cite
 when they are ticked. Prose about them lives in `Docs/`; the tools that write them live in `tools/`;
-the comparison framework (roadmap, track E) grows here with `baselines/` and `reports/`.
+the comparison framework (roadmap, track E) grows here: `cases/` holds its case tables (`tools/compare.py validate` checks
+them, `tools/compare.py run` renders them into `captures/`, which git ignores because the EXRs are large), `accepted.json`
+the differences a person accepted, and `baselines/` and `reports/` come with the regression and parity increments.
 
 Layout, one directory per capture, files named by role only:
 

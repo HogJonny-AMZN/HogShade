@@ -123,6 +123,7 @@ def input_hashes(
         ("environment:brdf_lut.dds", ibl_root / "brdf_lut.dds"),
     ):
         hashes[label] = captureset.sha256_file(path)
+    _LOGGER.debug("input hashes for " + request.id + ": " + ", ".join(f"{k} {v[:12]}" for k, v in hashes.items()))
     return hashes
 
 
@@ -208,11 +209,18 @@ class WgpuAdapter:
         """Render ``request`` and write its capture set into ``out_dir`` at level L2p; the set read back."""
         check_supported(request)
         started = time.perf_counter()
+        _LOGGER.info(
+            f"capturing {request.id} on wgpu: mesh {request.mesh}, environment {request.rig.environment} "
+            f"({request.rig.exposure_ev:+g} EV), {request.size[0]}x{request.size[1]}, debug view {request.debug_mode}, "
+            f"material {request.material or 'none'}, textures {request.textures or 'none'}"
+        )
         binding, textures = bind_request(request, root)
         renderer = self.renderer(request.mesh, request.rig.environment)
         scene = scene_for(request, binding, textures)
         frames = renderer.render(scene)
         scene_linear = np.asarray(frames.forward, dtype=np.float32)
+        covered = float(np.asarray(frames.covered).mean())
+        _LOGGER.info(f"rendered {request.id}: {covered:.1%} of the picture covered, level {LEVEL}")
         display = imageio.preview_srgb8(scene_linear)
         manifest = Manifest(
             host=HOST,
