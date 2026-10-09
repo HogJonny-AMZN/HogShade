@@ -25,6 +25,7 @@ uv run python tools/check_content.py       # textures, sidecars and bindings obe
 uv run python tools/generate_material_ui.py --check   # the Maya block, the reference and the tables are current
 uv run python tools/generate_gallery.py --check       # the picture rules hold and the gallery is current
 uv run python tools/compare.py validate    # the comparison case table, acceptances and any stored report
+uv run python tools/render_framework_graph.py --check   # the framework graph is well formed and its page is current
 uv run pytest                              # the suite; tests/test_check_docs.py runs the checker on the corpus
 uv run python tools/build_shaders.py --check --require-compilers   # after any core change
 ```

@@ -123,3 +123,6 @@ travels between the repos under one vocabulary.
 | **Grandfathered set** | `TERMS_GRANDFATHERED` in `tools/check_docs.py`: the designs, specs and plans that predate the Terms introduced rule. It only shrinks. |
 | **Hygiene** | The check that no retired studio identifier appears in any tracked file outside an allowlist (`tools/check_hygiene.py`, ADR-008). |
 | **Verdict** | The one-line judgement attached to an idea when it is recorded: awesome, good with the value named, or meh with what would fix it. Verdicts order ideas; they never delete them. |
+| **AI-first framework** | The set of artifacts, rules and checks that let a stateless agent session continue a project, stay in its vocabulary and catch its own mistakes: described in `Docs/knowledge/ai-first-framework.md`. Project-agnostic; HogShade, LargeWorlds and SpriteJammer each grew a version of it. |
+| **Framework graph** | `Docs/knowledge/ai-first-framework.graph.json`: the framework's concepts as nodes in eight layers and its relations as typed edges; the page `ai-first-framework-graph.md` is generated from it by `tools/render_framework_graph.py`. |
+| **Mechanise** | To make a rule held by something stronger than prose: a check that goes red in CI or a generator with `--check`; the ladder of strengths is in `Docs/knowledge/ai-first-framework.md`. |
