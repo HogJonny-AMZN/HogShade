@@ -112,6 +112,7 @@ Newest first. `tools/check_docs.py` fails when a session file is missing from th
 
 | Date | Session | What happened |
 | --- | --- | --- |
+| 2026-10-08 | [Session 01](2026-10-08-session-01.md) | Where the repository is against OpenPBR (v0.2.0; C3 blocked on G4 and the calibration capture), and the f-string pass: 71 lazy log calls converted, an AST check in CI |
 | 2026-10-05 | [Session 02](2026-10-05-session-02.md) | The `marmoset` worker type added to HogShade's generated BATS profile on the owner's pasted note (pool 1, no environment file, one-shot by default); no bake job yet |
 | 2026-10-05 | [Session 01](2026-10-05-session-01.md) | The legacy shader ball inspected in Maya (no clean unwrap; two colour sets in v2.0), the quad sphere built and a per-pixel host probe against the mesh's own triangles that agrees 100 percent, the synthetic set captured in Maya |
 | 2026-10-04 | [Session 01](2026-10-04-session-01.md) | The T2 spec and plan (the texture cook): a PNG reader of our own, an encoder seam, the BC encoder spike on the owner's ask, frequency separation specified from the post |

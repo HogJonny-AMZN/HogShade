@@ -133,40 +133,27 @@ def main(argv: list[str] | None = None) -> int:
     defaults = ap.parse_args([])
     _logging.basicConfig(level=_logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     if args.tile % 32 or args.tile <= 0:
-        _LOGGER.error("tile %d is not a positive multiple of 32", args.tile)
+        _LOGGER.error(f"tile {args.tile} is not a positive multiple of 32")
         return 2
 
     t0 = time.perf_counter()
     try:
         prepared, losses = prepare(args.library)
     except MaterialError as e:
-        _LOGGER.error("contact sheet: %s", e)
+        _LOGGER.error(f"contact sheet: {e}")
         return 2
-    _LOGGER.info(
-        "the %s to %s table loses %s for every document",
-        prepared[0][1].material_type,
-        TO_TYPE,
-        ", ".join(losses) or "nothing",
-    )
+    lost = ", ".join(losses) or "nothing"
+    _LOGGER.info(f"the {prepared[0][1].material_type} to {TO_TYPE} table loses {lost} for every document")
     width, height = sheet_layout(len(prepared), args.tile)
     if max(width, height) > MAX_SIDE:
         _LOGGER.error(
-            "%d tiles of %d px make a %dx%d sheet, over the gallery's %d; use a smaller --tile",
-            len(prepared),
-            args.tile,
-            width,
-            height,
-            MAX_SIDE,
+            f"{len(prepared)} tiles of {args.tile} px make a {width}x{height} sheet, "
+            f"over the gallery's {MAX_SIDE}; use a smaller --tile"
         )
         return 2
     _LOGGER.info(
-        "rendering %d documents under %s at %d px tiles into a %dx%d sheet (%s)",
-        len(prepared),
-        args.library,
-        args.tile,
-        width,
-        height,
-        args.environment,
+        f"rendering {len(prepared)} documents under {args.library} at {args.tile} px tiles "
+        f"into a {width}x{height} sheet ({args.environment})"
     )
 
     _adapter, device = request_device()
@@ -179,7 +166,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         frame = renderer.render(scene).forward
         if not np.isfinite(frame).all():
-            _LOGGER.error("%s rendered a non-finite pixel", path)
+            _LOGGER.error(f"{path} rendered a non-finite pixel")
             return 1
         row, col = divmod(cell, COLUMNS)
         y0, x0 = row * (args.tile + LABEL_H), col * args.tile
@@ -225,12 +212,7 @@ def main(argv: list[str] | None = None) -> int:
         json.dumps(record, indent=2) + "\n", encoding="utf-8", newline="\n"
     )
     _LOGGER.info(
-        "wrote %s (%dx%d, %d cells) and its legend in %.1f s",
-        picture,
-        width,
-        height,
-        len(legend),
-        time.perf_counter() - t0,
+        f"wrote {picture} ({width}x{height}, {len(legend)} cells) and its legend in {time.perf_counter() - t0:.1f} s",
     )
     return 0
 

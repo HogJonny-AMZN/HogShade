@@ -90,7 +90,5 @@ def main(parameters: dict) -> dict:
 
     _LOGGER.info(f"maya_ibl_check job: fx={ibl_check.SHADER} env={ibl_check.ENV}")
     result = ibl_check.run_check(quit_after=False)
-    _LOGGER.info(
-        "maya_ibl_check job done: ok=%s, log %s, dir %s", result.get("ok"), result.get("log"), result.get("dir")
-    )
+    _LOGGER.info(f"maya_ibl_check job done: ok={result.get('ok')}, log {result.get('log')}, dir {result.get('dir')}")
     return result

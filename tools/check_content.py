@@ -224,7 +224,7 @@ def check_sidecars(root: Path) -> list[Finding]:
         size = png_size(path)
         stated = data.get("resolution")
         if size == "lfs":
-            _LOGGER.info("resolution of %s unverified: the PNG is an LFS pointer in this checkout", _rel(path, root))
+            _LOGGER.info(f"resolution of {_rel(path, root)} unverified: the PNG is an LFS pointer in this checkout")
         elif isinstance(size, tuple):
             if max(size) > MAX_RESOLUTION:
                 out.append(
@@ -264,11 +264,8 @@ def check_bindings(root: Path) -> list[Finding]:
             continue
         if doc.material_type != STANDARD:
             _LOGGER.info(
-                "%s is %s, not %s: its %d bound texture(s) are not held to the standard's suffix table",
-                _rel(doc_path, root),
-                doc.material_type,
-                STANDARD,
-                len(bound),
+                f"{_rel(doc_path, root)} is {doc.material_type}, not {STANDARD}: its {len(bound)} bound texture(s) "
+                "are not held to the standard's suffix table"
             )
             continue
         mtype = type_of(doc.material_type)
@@ -432,22 +429,20 @@ def main(argv: list[str] | None = None) -> int:
     _logging.basicConfig(level=_logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     root = args.root.resolve()
     counts = _summary(root)
+    roots = ", ".join(CONTENT_ROOTS)
     _LOGGER.info(
-        "checking %d texture candidate(s), %d of them source textures, under %s, and the documents under %s",
-        counts["candidates"],
-        counts["sources"],
-        ", ".join(CONTENT_ROOTS),
-        MATERIALS,
+        f"checking {counts['candidates']} texture candidate(s), {counts['sources']} of them source textures, "
+        f"under {roots}, and the documents under {MATERIALS}"
     )
     findings = run(root)
     for f in findings:
-        _LOGGER.error("%s", f)
+        _LOGGER.error(str(f))
     if findings:
-        _LOGGER.error("content check: %d finding(s)", len(findings))
+        _LOGGER.error(f"content check: {len(findings)} finding(s)")
         return 1
     _LOGGER.info(
-        "content check: the suffix table matches the schema; %d source texture(s) and their bindings obey the standard",
-        counts["sources"],
+        f"content check: the suffix table matches the schema; {counts['sources']} source texture(s) "
+        "and their bindings obey the standard"
     )
     return 0
 

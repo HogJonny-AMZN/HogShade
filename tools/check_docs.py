@@ -358,7 +358,7 @@ def run(root: Path = REPO_ROOT, checks: Sequence[Check] = CHECKS) -> list[Findin
     findings: list[Finding] = []
     for check in checks:
         found = check(files, root)
-        _LOGGER.debug("%s: %d finding(s)", check.__name__, len(found))
+        _LOGGER.debug(f"{check.__name__}: {len(found)} finding(s)")
         findings.extend(found)
     return findings
 

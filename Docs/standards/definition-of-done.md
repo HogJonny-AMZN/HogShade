@@ -18,6 +18,7 @@ mechanised:
 ```bash
 uv run python tools/check_docs.py          # links, status headers, the journal index and day, the ADR index
 uv run python tools/check_hygiene.py       # no studio identifier outside the allowlist
+uv run python tools/check_log_format.py    # log calls are f-strings, not lazy %-format
 uv run pytest                              # the suite; tests/test_check_docs.py runs the checker on the corpus
 uv run python tools/build_shaders.py --check --require-compilers   # after any core change
 ```

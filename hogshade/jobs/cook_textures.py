@@ -84,7 +84,7 @@ def main(parameters: dict) -> dict:
     compress_param = str(parameters.get("compress", "auto")).lower()
     compress_values = {"auto": None, "yes": True, "true": True, "1": True, "no": False, "false": False, "0": False}
     if compress_param not in compress_values:
-        _LOGGER.warning("compress=%r is not one of %s; treated as auto", compress_param, sorted(compress_values))
+        _LOGGER.warning(f"compress={compress_param!r} is not one of {sorted(compress_values)}; treated as auto")
     compress = compress_values.get(compress_param, None)
     individual_param = str(parameters.get("individual", "yes")).strip().lower()
     if individual_param not in ("yes", "true", "1", "no", "false", "0"):
@@ -118,7 +118,7 @@ def main(parameters: dict) -> dict:
             compress=compress,
             encoder=encoder,
         )
-    _LOGGER.info("cook_textures job done: %s, %d texture(s)", set_dir, len(manifest.get("textures", {})))
+    _LOGGER.info(f"cook_textures job done: {set_dir}, {len(manifest.get('textures', {}))} texture(s)")
     return manifest
 
 

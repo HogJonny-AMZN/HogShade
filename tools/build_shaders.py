@@ -133,10 +133,7 @@ def build(out_dir: Path, require_compilers: bool = False) -> dict[str, str]:
     manifest = load_manifest()
     entry = manifest["validate"]["entry_point"]
     _LOGGER.info(
-        "building the core from %d module(s) of core/manifest.toml into %s with %s",
-        len(manifest["module"]),
-        out_dir,
-        naga,
+        f"building the core from {len(manifest['module'])} module(s) of core/manifest.toml into {out_dir} with {naga}",
     )
     core_only = stitch(manifest, with_validate=False)
     with_entry = stitch(manifest, with_validate=True)
@@ -191,7 +188,7 @@ def build(out_dir: Path, require_compilers: bool = False) -> dict[str, str]:
         data = path.read_bytes().replace(b"\r\n", b"\n")
         path.write_bytes(data)
         hashes[key] = hashlib.sha256(data).hexdigest()
-        _LOGGER.info("wrote %s (%d bytes, sha256 %s)", path, len(data), hashes[key][:12])
+        _LOGGER.info(f"wrote {path} ({len(data)} bytes, sha256 {hashes[key][:12]})")
     (out_dir / "generated_manifest.json").write_text(
         json.dumps(
             {
@@ -243,7 +240,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.check:
             stale = check(require_compilers=args.require_compilers)
             if stale:
-                _LOGGER.error("stale generated artifacts: %s", ", ".join(stale))
+                _LOGGER.error(f"stale generated artifacts: {', '.join(stale)}")
                 print("stale generated artifacts:\n  " + "\n  ".join(stale))
                 return 1
             print("generated artifacts are up to date")
@@ -253,7 +250,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{key:9s} {digest[:12]}  {ARTIFACTS[key].relative_to(ROOT)}")
         return 0
     except BuildError as e:
-        _LOGGER.error("build failed: %s", e)
+        _LOGGER.error(f"build failed: {e}")
         return 1
 
 

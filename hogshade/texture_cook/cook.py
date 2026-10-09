@@ -308,7 +308,7 @@ def _rgb(s: Source) -> NDArray[np.float32]:
     """The three colour channels of a source: a grey map broadcast, a fourth channel dropped; both logged."""
     unit = _unit(s)
     if unit.shape[-1] == 1:
-        _LOGGER.info("%s: a grey map, broadcast to RGB", s.path.name)
+        _LOGGER.info(f"{s.path.name}: a grey map, broadcast to RGB")
         return np.repeat(unit, 3, axis=-1)
     if unit.shape[-1] > 3:
         if s.suffix == "_N":
@@ -317,7 +317,7 @@ def _rgb(s: Source) -> NDArray[np.float32]:
             runtime_alpha = f"the runtime alpha is packed from {s.sidecar['pack']['a']}"
         else:
             runtime_alpha = "the runtime alpha is 1.0"
-        _LOGGER.info("%s: the source alpha is dropped (%s)", s.path.name, runtime_alpha)
+        _LOGGER.info(f"{s.path.name}: the source alpha is dropped ({runtime_alpha})")
     return np.ascontiguousarray(unit[..., :3])
 
 
@@ -325,7 +325,7 @@ def _one_channel(s: Source) -> NDArray[np.float32]:
     """The single channel of a one-channel map ``(H, W, 1)``; the first channel of a wider one, logged."""
     unit = _unit(s)
     if unit.shape[-1] > 1:
-        _LOGGER.info("%s: %d channels in a single-channel map; R is taken", s.path.name, unit.shape[-1])
+        _LOGGER.info(f"{s.path.name}: {unit.shape[-1]} channels in a single-channel map; R is taken")
     return np.ascontiguousarray(unit[..., :1])
 
 
@@ -339,7 +339,7 @@ def _single(sources: list[Source], suffix: str, variant: str | None) -> Source |
 def _note_alpha_precision(packed: Source) -> None:
     """A map riding in an 8-bit alpha keeps 8 bits: said once when its source had more."""
     if packed.samples.dtype != np.uint8:
-        _LOGGER.info("%s: %s reduced to 8 bits in the alpha", packed.path.name, packed.samples.dtype.name)
+        _LOGGER.info(f"{packed.path.name}: {packed.samples.dtype.name} reduced to 8 bits in the alpha")
 
 
 def _with_alpha(levels_rgb: list[NDArray[np.float32]], packed: Source | None) -> list[NDArray[np.float32]]:
@@ -371,7 +371,7 @@ def _write(
     else:
         dds2d.write_2d(out_path, [colour.to_uint8(lvl) for lvl in levels_unit], uncompressed)
         record = {"format": uncompressed, "encoder": None}
-    _LOGGER.info("wrote %s: %s, %d mip(s)", out_path.name, record["format"], len(levels_unit))
+    _LOGGER.info(f"wrote {out_path.name}: {record['format']}, {len(levels_unit)} mip(s)")
     return record
 
 
@@ -400,7 +400,7 @@ def _cook_colour(oven: _Oven, s: Source) -> None:
     if packed is not None:
         entry["packed"] = {"A": packed.path.name}
         oven.carrier_of[packed.stem] = out_path.name
-        _LOGGER.info("%s: %s rides in the alpha", out_path.name, packed.path.name)
+        _LOGGER.info(f"{out_path.name}: {packed.path.name} rides in the alpha")
     _finish(oven, out_path, entry, len(levels))
 
 
@@ -411,7 +411,7 @@ def _cook_normal(oven: _Oven, s: Source) -> None:
     convention = s.sidecar["normal_convention"]
     xyz = normals.to_opengl(normals.decode(_rgb(s)), convention)
     if convention != "opengl+y":
-        _LOGGER.info("%s: normal convention %s, Y flipped to opengl+y", s.path.name, convention)
+        _LOGGER.info(f"{s.path.name}: normal convention {convention}, Y flipped to opengl+y")
     levels = [normals.to_rg(normals.encode(lvl)) for lvl in mips.normal_chain(xyz)]
     entry.update(_write(out_path, levels, "R8G8_UNORM", "bc5", oven.encoder, False, oven.bc7_profile))
     entry["normal_convention_in"] = convention
@@ -440,7 +440,7 @@ def _cook_height(oven: _Oven, s: Source, normalise: bool | None = None) -> None:
     else:
         dds2d.write_2d(out_path, [lvl[..., None] for lvl in levels], h.runtime)
         entry.update({"format": h.runtime, "encoder": None})
-    _LOGGER.info("wrote %s: %s (%s source), %d mip(s)", out_path.name, entry["format"], h.precision, len(levels))
+    _LOGGER.info(f"wrote {out_path.name}: {entry['format']} ({h.precision} source), {len(levels)} mip(s)")
     entry["precision"] = h.precision
     _finish(oven, out_path, entry, len(levels))
 
@@ -472,7 +472,7 @@ def _cook_orm(oven: _Oven, variant: str | None) -> None:
             oven.carrier_of[part.stem] = out_path.name
     for channel, what in record.items():
         if what.startswith("filled"):
-            _LOGGER.info("%s: channel %s %s (no %s source)", out_path.name, channel, what, ORM_CHANNEL_SOURCE[channel])
+            _LOGGER.info(f"{out_path.name}: channel {channel} {what} (no {ORM_CHANNEL_SOURCE[channel]} source)")
     levels = mips.data_chain(packed)
     # an _ORM alpha carrier is declared on one of its sources' sidecars as {"pack": {"a": "_H"}} (the shape rules
     # allow one declaration per variant); its target was consumed in cook_set's pre-pass
@@ -482,7 +482,7 @@ def _cook_orm(oven: _Oven, variant: str | None) -> None:
         _note_alpha_precision(extra)
         a_levels = mips.data_chain(_one_channel(extra))
         levels = [pack.put_alpha(lvl, a[..., 0]) for lvl, a in zip(levels, a_levels, strict=True)]
-        _LOGGER.info("%s: %s rides in the alpha", out_path.name, extra.path.name)
+        _LOGGER.info(f"{out_path.name}: {extra.path.name} rides in the alpha")
     entry = {"from": [p.path.name for p in parts.values() if p is not None], "preset": "orm", "size": [w, h]}
     entry.update(_write(out_path, levels, "R8G8B8A8_UNORM", "bc7", oven.encoder, extra is not None, oven.bc7_profile))
     rec = dict(record)
@@ -581,29 +581,26 @@ def _keep_separation(out_dir: Path, textures: dict[str, Any]) -> dict[str, Any] 
             previous = block if isinstance(block, dict) and "source" not in block else {}
             if block and not previous:
                 _LOGGER.warning(
-                    "%s: an earlier single-record separation block (tool 0.2) is discarded; run separate again to "
-                    "record it under its suffix",
-                    manifest_path.name,
+                    f"{manifest_path.name}: an earlier single-record separation block (tool 0.2) is discarded; "
+                    "run separate again to record it under its suffix"
                 )
         except (UnicodeDecodeError, json.JSONDecodeError) as e:
-            _LOGGER.warning("%s: the earlier manifest is unreadable and is replaced (%s)", manifest_path, e)
+            _LOGGER.warning(f"{manifest_path}: the earlier manifest is unreadable and is replaced ({e})")
     kept: dict[str, Any] = {}
     for suffix, record in sorted(previous.items()):
         outputs = record.get("outputs", {}) if isinstance(record, dict) else {}
         missing = [name for name in outputs if not (out_dir / name).is_file()]
         if missing or not outputs:
             _LOGGER.warning(
-                "the earlier %s separation record is dropped: its files are gone (%s)", suffix, ", ".join(missing)
+                f"the earlier {suffix} separation record is dropped: its files are gone ({', '.join(missing)})"
             )
         else:
             kept[suffix] = record
-            _LOGGER.info("the earlier %s separation record is kept (%s)", suffix, ", ".join(sorted(outputs)))
+            _LOGGER.info(f"the earlier {suffix} separation record is kept ({', '.join(sorted(outputs))})")
     named = set(textures) | {name for record in kept.values() for name in record["outputs"]}
     stale = sorted(p.name for p in out_dir.glob("*.dds") if p.name not in named)
     if stale:
-        _LOGGER.warning(
-            "%s holds %d .dds file(s) no record names, left alone: %s", out_dir, len(stale), ", ".join(stale)
-        )
+        _LOGGER.warning(f"{out_dir} holds {len(stale)} .dds file(s) no record names, left alone: {', '.join(stale)}")
     return kept
 
 
@@ -678,7 +675,7 @@ def cook_set(
             s.sidecar_path.write_bytes(_dump(data).encode("utf-8"))
             s.sidecar = data
             oven.written.append(s.sidecar_path)
-            _LOGGER.info("wrote %s: derived %s", s.sidecar_path.name, ", ".join(filled))
+            _LOGGER.info(f"wrote {s.sidecar_path.name}: derived {', '.join(filled)}")
         derived.extend(f"{s.sidecar_path.name}:{k}" for k in data.get("derived", []))
     _drop_stale_individuals(out_dir, oven.textures)
     separations = _keep_separation(out_dir, oven.textures)
@@ -698,7 +695,7 @@ def cook_set(
     if separations:
         manifest["separation"] = separations
     (out_dir / MANIFEST_NAME).write_bytes(_dump(manifest).encode("utf-8"))
-    _LOGGER.info("wrote %s: %d texture record(s)", MANIFEST_NAME, len(oven.textures))
+    _LOGGER.info(f"wrote {MANIFEST_NAME}: {len(oven.textures)} texture record(s)")
     provenance = {
         "cooked_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "wall_seconds": round(time.time() - started, 2),
@@ -710,15 +707,11 @@ def cook_set(
         "encoder_version": encoder.version if encoder else None,
     }
     (out_dir / PROVENANCE_NAME).write_bytes(_dump(provenance).encode("utf-8"))
-    _LOGGER.info("wrote %s", PROVENANCE_NAME)
+    _LOGGER.info(f"wrote {PROVENANCE_NAME}")
+    encoder_name = manifest["compression"]["encoder"] or "uncompressed"
     _LOGGER.info(
-        "%s: %d texture(s) written under %s in %.2f s (%d sidecar field(s) derived; %s)",
-        set_dir.name,
-        len(oven.textures),
-        COOKED_DIR,
-        provenance["wall_seconds"],
-        len(derived),
-        manifest["compression"]["encoder"] or "uncompressed",
+        f"{set_dir.name}: {len(oven.textures)} texture(s) written under {COOKED_DIR} "
+        f"in {provenance['wall_seconds']:.2f} s ({len(derived)} sidecar field(s) derived; {encoder_name})"
     )
     return CookResult(manifest=manifest, written=oven.written + [out_dir / MANIFEST_NAME, out_dir / PROVENANCE_NAME])
 
@@ -811,10 +804,10 @@ def separate_set(
     block = manifest.get("separation")
     earlier = block if isinstance(block, dict) and "source" not in block else {}
     if block and not earlier:
-        _LOGGER.warning("%s: an earlier single-record separation block (tool 0.2) is replaced", manifest_path.name)
+        _LOGGER.warning(f"{manifest_path.name}: an earlier single-record separation block (tool 0.2) is replaced")
     manifest["separation"] = {**earlier, source_suffix: separation}
     manifest_path.write_bytes(_dump(manifest).encode("utf-8"))
-    _LOGGER.info("wrote %s: the %s separation record", manifest_path.name, source_suffix)
+    _LOGGER.info(f"wrote {manifest_path.name}: the {source_suffix} separation record")
     if picture_dir is not None:
         picture_dir = Path(picture_dir)
         picture_dir.mkdir(parents=True, exist_ok=True)
@@ -822,17 +815,11 @@ def separate_set(
             img = arr if arr.shape[-1] == 3 else np.concatenate([arr, np.ones(arr.shape[:2] + (1,), np.float32)], -1)
             path = picture_dir / f"{name}.png"
             png.write_png(path, colour.to_uint8(sep.macro(img[..., :3], picture_size)))
-            _LOGGER.info("wrote %s", path)
+            _LOGGER.info(f"wrote {path}")
+    macro_w, macro_h = separation["macro_size"][:2]
     _LOGGER.info(
-        "%s: separated %s with sigma %.2f (radius %g): error max %.5f mean %.7f over %d clipped texel(s); macro %dx%d",
-        set_dir.name,
-        src.path.name,
-        result.sigma,
-        result.radius,
-        result.error_max,
-        result.error_mean,
-        result.clipped_texels,
-        separation["macro_size"][0],
-        separation["macro_size"][1],
+        f"{set_dir.name}: separated {src.path.name} with sigma {result.sigma:.2f} (radius {result.radius:g}): "
+        f"error max {result.error_max:.5f} mean {result.error_mean:.7f} over {result.clipped_texels} clipped "
+        f"texel(s); macro {macro_w}x{macro_h}"
     )
     return separation

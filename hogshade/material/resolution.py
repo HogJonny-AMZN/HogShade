@@ -86,12 +86,9 @@ def resolve(doc: Document, root: Path | None = None) -> Resolved:
             else:
                 ext[ns] = copy.deepcopy(block)
     paths = tuple(d.path for d in chain if d.path is not None)
+    origin = paths[0] if paths else "<document>"
     _LOGGER.debug(
-        "resolved %s (%s): %d parameters through a chain of %d document(s), ext namespaces %s",
-        paths[0] if paths else "<document>",
-        mtype.name,
-        len(values),
-        len(chain),
-        sorted(ext),
+        f"resolved {origin} ({mtype.name}): {len(values)} parameters through a chain of {len(chain)} document(s), "
+        f"ext namespaces {sorted(ext)}"
     )
     return Resolved(material_type=mtype.name, version=mtype.version, values=values, ext=ext, chain=paths)
