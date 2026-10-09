@@ -23,18 +23,20 @@ a scratch checkout, not in HogShade.
 - [ ] 3. **Schemas and loader** (`framework.toml`, `project.json`, the answers file): validation that names the field.
       Verify: a test per refusal; a valid file round-trips.
 - [ ] 4. **`init new`**: `--answers`, `--dry-run`, `--target`, idempotence, the run record, exit codes. Verify: a second run
-      changes no file; `--dry-run` writes nothing; each refused input exits 1 naming the field.
+      changes no tracked or generated file (the git-ignored run record under `logs/` is excluded); `--dry-run` writes no file
+      and prints the plan; each refused input exits 1 naming the field.
 - [ ] 5. **The seed**: entry file and docs map, glossary, board, handoff ("Day 0"), journal, ADR-001, the framework ledger
       and an empty project ledger, the standards in reconciled form, the PR template, the skills. Verify: `check_docs.py`
       is clean on a generated repository.
-- [ ] 6. **`check_docs.py`, unified**, with the closed status set for specs and plans and the handoff line limit; port the
-      tests from HogShade and add one per new rule. Verify: acceptance 4 for each rule.
+- [ ] 6. **`check_docs.py`, unified**, with the closed status set (`Proposed|Accepted|Living|Superseded|Abandoned`, in the first 12 lines, for specs and plans
+      too) and the handoff limit (150 lines, `handoff_max_lines`), as the spec's *The two new docs rules* define them; port
+      the tests from HogShade and add one per new rule, including a value just over the limit and a free-form status. Verify: acceptance 4 for each rule.
 - [ ] 7. **`check_hygiene.py`, `check_log_format.py` and the graph generator** with their tests (the graph and its page
       are the base graph as it stands). Verify: acceptance 4; the generated page is current.
 - [ ] 8. **The gate**: `tools/check.py`, the `Makefile`, the hooks (pre-commit, `commit-msg`), the CI workflow on Windows and
       Linux. Verify: acceptance 5 and 8.
 - [ ] 9. **The harness layer**: `sync_adapters.py` and `--check`, the adapters, the skills mirrors, the neutral-wording lint,
-      the probes. Verify: acceptance 6 and 7.
+      the probes; enable a harness only after its probe passed. Verify: acceptance 6 and 7.
 - [ ] 10. **Self-hosting**: generate the root with `init new --target .`, add the regeneration test. Verify: acceptance 2.
 - [ ] 11. **Day 0 on both systems**: the CI job that builds a repository into a temporary directory and runs `make check`.
       Verify: acceptance 1 and 3, green on Windows and Linux.
