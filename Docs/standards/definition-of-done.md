@@ -1,7 +1,7 @@
 # Definition of done, and the autonomy protocol
 
 **Status:** Accepted (owner, 2026-09-27, ported from SpriteJammer with its reasoning)
-**Last updated:** 2026-09-27
+**Last updated:** 2026-10-08
 
 ## Principle
 
@@ -16,9 +16,15 @@ An increment ends with the docs comprehensively updated so nothing drifts. A che
 mechanised:
 
 ```bash
+uv run ruff check hogshade tests tools Spikes           # lint
+uv run ruff format --check hogshade tests tools Spikes    # formatting
 uv run python tools/check_docs.py          # links, status headers, the journal index and day, the ADR index
 uv run python tools/check_hygiene.py       # no studio identifier outside the allowlist
 uv run python tools/check_log_format.py    # log calls are f-strings, not lazy %-format
+uv run python tools/check_content.py       # textures, sidecars and bindings obey the content standard
+uv run python tools/generate_material_ui.py --check   # the Maya block, the reference and the tables are current
+uv run python tools/generate_gallery.py --check       # the picture rules hold and the gallery is current
+uv run python tools/compare.py validate    # the comparison case table, acceptances and any stored report
 uv run pytest                              # the suite; tests/test_check_docs.py runs the checker on the corpus
 uv run python tools/build_shaders.py --check --require-compilers   # after any core change
 ```
