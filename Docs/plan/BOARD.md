@@ -1,8 +1,7 @@
 # The Board
 
 **Status:** Living. Updated at the end of every increment, as the definition of done says.
-**Updated:** 2026-10-04: the T3b spec and plan drafted (`docs/t3b-spec`); #59 and #60 merged (the labels row struck); T3 merged (#57, #58) and struck; the Maya menu bug resolved by the owner; the Maya 2026.3 menu bug under the GUI worker filed; the T3 spec and plan drafted (`docs/t3-spec`); T2 merged (#53, #54, #55) and struck; f-strings in log calls boarded; the T2 spec and plan; the BC encoder chosen (`ispc_texcomp`) and the spike closed on it; neural texture
-compression in the Icebox. (The line went unchanged from 2026-09-27 through eleven increments; Copilot on #53 caught it.)
+**Updated:** 2026-10-08: G2, G4 and G5 closed; the comparison framework's design accepted and its first increment, C-2, built (#76); the glossary rule mechanised (#77); the AI-first framework write-up boarded. The rows carry the detail and `git log` is the history; if this line is older than the newest struck row, it is wrong (it once went unchanged through eleven increments).
 
 [`../ROADMAP.md`](../ROADMAP.md) is the *roadmap*: the tracks, the phases, the order, what each is
 for. [`../handoffs/CURRENT.md`](../handoffs/CURRENT.md) is the *handoff*: where work is right now and

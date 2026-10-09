@@ -115,4 +115,11 @@ travels between the repos under one vocabulary.
 | **Handoff** | `Docs/handoffs/CURRENT.md`, the living snapshot a new session reads first. |
 | **Decision log** | `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, the index of decisions made in conversation and where each is formalised. |
 | **Ledger** | `Docs/standards/failure-modes.md`, how the process has failed here, as triggers. |
+| **Definition of done** | What ends an increment: the checks green and the repository's account of itself still true (docs, board, handoff, journal, ledger); `Docs/standards/definition-of-done.md`. |
+| **Significant increment** | One that earns the deliberate review: a new core module or model, a host or contract change, a new job or tool, or about 200 or more changed lines of Python or WGSL outside tests. Not docs-only, a dependency bump, test-only or a small fix. |
+| **Autonomy protocol** | Keep going until a human decision is needed: decide a two-way door and log it, stop and ask at a one-way door; more than eight logged decisions in one PR means split it. |
+| **Status** | The word on a document's `**Status:**` line: `Proposed`, `Accepted`, `Living`, `Superseded` (saying by what) or `Abandoned`; a proposed document is a hypothesis, not a fact. |
+| **Terms introduced** | The section every design, spec and plan carries, naming the glossary terms it introduces in bold or saying None; the docs check's `terms` check enforces it. |
+| **Grandfathered set** | `TERMS_GRANDFATHERED` in `tools/check_docs.py`: the designs, specs and plans that predate the Terms introduced rule. It only shrinks. |
+| **Hygiene** | The check that no retired studio identifier appears in any tracked file outside an allowlist (`tools/check_hygiene.py`, ADR-008). |
 | **Verdict** | The one-line judgement attached to an idea when it is recorded: awesome, good with the value named, or meh with what would fix it. Verdicts order ideas; they never delete them. |
