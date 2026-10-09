@@ -3,7 +3,7 @@
 
 **Status:** Living. Generated from `ai-first-framework.graph.json` by `tools/render_framework_graph.py --write`; edit the data, not this page. The description is [ai-first-framework.md](ai-first-framework.md).
 
-91 concepts in 8 layers, joined by 145 typed edges. Nothing here names a project. *Seen in* says where a concept exists today: **H** HogShade, **L** LargeWorlds, **S** SpriteJammer.
+91 concepts in 8 layers, joined by 143 typed edges. Nothing here names a project. *Seen in* says where a concept exists today: **H** HogShade, **L** LargeWorlds, **S** SpriteJammer.
 
 ## Reading the diagrams
 
@@ -17,7 +17,7 @@ Shapes say what a node is: a rectangle is an artifact (a file or directory), a r
 | `feeds` | A's output is B's input (18) |
 | `gates` | B may not proceed until A passes (9) |
 | `enforces` | A makes B binding (5) |
-| `mechanises` | A is the automatic check for rule B (10) |
+| `mechanises` | A is the automatic check for rule B (8) |
 | `constrains` | A bounds how B is written or used (55) |
 | `defines` | A is where B is defined (8) |
 | `annotates` | A is a mark carried by B (5) |
@@ -51,9 +51,8 @@ flowchart TB
   intent -->|2| state
   mechanics -->|3| decision
   mechanics -->|3| evidence
-  mechanics -->|1| narrative
   mechanics -->|9| rule
-  mechanics -->|2| state
+  mechanics -->|1| state
   narrative -->|1| decision
   narrative -->|1| rule
   narrative -->|1| state
@@ -171,7 +170,6 @@ flowchart LR
   status_vocabulary -.->|constrains| handoff
   memory_not_record -.->|constrains| handoff
   parallel_sessions -.->|constrains| board
-  docs_check ==>|mechanises| landed_row
   docs_check -->|enforces| board
   classDef artifact fill:#e8f0fe,stroke:#4a6fa5
   class entry_file,handoff,board,roadmap,pre_spec_design artifact
@@ -197,7 +195,7 @@ flowchart LR
 | **Landed row** (`landed-row`) | concept | HL | A finished board row is struck through and keeps its PR number; nothing is deleted. |
 | **Snapshot, not log** (`snapshot-not-log`) | rule | HLS | The handoff states now; history belongs to the journal and to git, so the handoff never accretes sit reps. |
 | **Conversation-only context** (`conversation-only-context`) | concept | HLS | What the owner said that is written nowhere else (preferences, rejected options): recorded first in the handoff, or it is lost. |
-| **Where to be skeptical** (`skeptic-list`) | concept | HLS | The handoff names the documents and claims known to be stale or soft, so a reader knows what not to trust. |
+| **Where to be skeptical** (`skeptic-list`) | concept | LS | The handoff names the documents and claims known to be stale or soft, so a reader knows what not to trust. |
 | **Freeze a handoff** (`freeze`) | ritual | LS | Copy the handoff to a dated file and cut the live one to what is still true; used when a phase closes. |
 | **Lane-prefixed ids** (`lane-ids`) | concept | S | A session mints board ids only in its own lane, against the main branch, so two sessions never mint the same id. |
 | **Deferred bugs are issues** (`deferred-bug-as-issue`) | rule | S | The board tracks features, spikes and gates; a deferred defect is a tracker issue opened before the PR merges. |
@@ -524,7 +522,6 @@ flowchart LR
   trailing_arrow("Trailing arrow")
   parallel_sessions{{"Parallel sessions"}}
   devblog["Devblog"]
-  docs_check[["Docs check"]]
   who_owns_what -.->|constrains| journal
   supersede_not_rewrite -.->|constrains| journal
   journal -->|records| beliefs_changed
@@ -535,15 +532,12 @@ flowchart LR
   journal ==>|feeds| failure_ledger
   journal -->|links-to| decision_log
   devblog -.->|reads| journal
-  docs_check ==>|mechanises| per_day_journal
   classDef artifact fill:#e8f0fe,stroke:#4a6fa5
   class board,decision_log,failure_ledger,journal,devblog artifact
   classDef concept fill:#f3f3f3,stroke:#888
   class beliefs_changed,trailing_arrow concept
   classDef rule fill:#fff4d6,stroke:#b8860b
   class who_owns_what,supersede_not_rewrite,per_day_journal,parallel_sessions rule
-  classDef check fill:#e3f6e3,stroke:#3a7d3a
-  class docs_check check
 ```
 
 | Concept | Kind | Seen in | What it is |
@@ -614,7 +608,6 @@ flowchart LR
 ```mermaid
 flowchart LR
   board["Board"]
-  landed_row("Landed row")
   adr["ADR"]
   decisions_table["PR decisions table"]
   owner_merges{{"The owner's merge is the review"}}
@@ -630,7 +623,6 @@ flowchart LR
   identity_rule{{"Owner identity only"}}
   process_ownership{{"Process ownership"}}
   hygiene{{"Hygiene"}}
-  per_day_journal{{"One file per day"}}
   review_record["Review record"]
   knowledge_file["Knowledge file"]
   generated_doc("Generated document")
@@ -660,8 +652,6 @@ flowchart LR
   docs_check ==>|mechanises| status_vocabulary
   docs_check ==>|mechanises| retired_term
   docs_check ==>|mechanises| terms_introduced
-  docs_check ==>|mechanises| landed_row
-  docs_check ==>|mechanises| per_day_journal
   docs_check -->|enforces| board
   hygiene_check ==>|mechanises| hygiene
   boundary_test -->|enforces| adr
@@ -687,9 +677,9 @@ flowchart LR
   classDef artifact fill:#e8f0fe,stroke:#4a6fa5
   class board,adr,decisions_table,standard,definition_of_done,failure_ledger,review_record,knowledge_file,pr_template,skill artifact
   classDef concept fill:#f3f3f3,stroke:#888
-  class landed_row,significant_increment,retired_term,status_vocabulary,generated_doc,executable_docs concept
+  class significant_increment,retired_term,status_vocabulary,generated_doc,executable_docs concept
   classDef rule fill:#fff4d6,stroke:#b8860b
-  class owner_merges,terms_introduced,claims_after_evidence,not_covered,identity_rule,process_ownership,hygiene,per_day_journal rule
+  class owner_merges,terms_introduced,claims_after_evidence,not_covered,identity_rule,process_ownership,hygiene rule
   classDef check fill:#e3f6e3,stroke:#3a7d3a
   class docs_check,hygiene_check,boundary_test,ci_pipeline,ci_parity_oracle,git_hooks,branch_ownership_tool,smoke_gate check
   classDef ritual fill:#fde8f0,stroke:#a5476b

@@ -1,8 +1,9 @@
 # The AI-first repository framework
 
 **Status:** Living. Written 2026-10-08 from a read of three repositories that grew it independently
-(HogShade, LargeWorlds, SpriteJammer); every claim about what exists today was read from a file, and the
-ones about how it has failed cite the ledger entry or the pull request. The concepts and their
+(HogShade, LargeWorlds, SpriteJammer). The claims about HogShade were checked against its files; the
+claims about the other two come from the read-only inventories of that date and are marked as such, so
+treat them as leads until a template's sync check reads them. The concepts and their
 relations are data: [ai-first-framework.graph.json](ai-first-framework.graph.json), drawn in
 [ai-first-framework-graph.md](ai-first-framework-graph.md). Nothing below depends on what the three
 repositories build.
@@ -67,35 +68,27 @@ done, however green its tests.
 
 ## The principles
 
-Each is a node in the graph and has a home file in the repository that states it once.
+Each is a node in the graph; the link is the file that states it, and the one rule that states it is
+there, not here.
 
-1. **A pointer does not go stale; a summary does.** The entry file, the docs map and every index point and
-   never state a count, a phase or a status. The one place that states status is the board.
-2. **One rule, one home.** A rule is stated once, in a standard; everything else links to it. Three copies of
-   a rule is none: they diverge, and the reader cannot tell which one wins. Where two files disagree, the
-   entry file names the canonical one.
-3. **A snapshot is not a log.** The handoff says what is true now and is cut when it grows; history belongs to
-   the journal and to git. A handoff that accretes status reports becomes the document no one trusts.
-4. **A mentioned feature is not a work order.** An idea said out loud lands on the icebox with a cost and a
-   verdict. It is built when the owner says so, when it blocks work in flight, or when it is smaller than the
-   conversation about it. A board yes is not a lock.
-5. **Two kinds of door.** A two-way door (cheap to reverse) is decided, logged in the pull request's decisions
-   table and continued past. A one-way door (expensive to reverse, outward-facing, or the owner's) is asked.
-   More than eight logged decisions in one pull request means the work should have been split.
-6. **Supersede, do not rewrite.** A decision, a journal entry, a review and a ledger entry are history.
-   Changing the past silently is what a locked design amendment section, a superseding ADR and a struck-through
-   glossary row exist to prevent.
-7. **Claims follow evidence.** Nothing is reported done, passing or fixed before the check ran; a number is
-   quoted with its commit; a check is believed only after it has produced the other answer (a control that
-   must fail); a pull request says what it did not cover.
-8. **One word per concept.** The glossary is the vocabulary; a retired term is struck through and kept so the
-   docs check can refuse it. A document that introduces a word says so in a *Terms introduced* section, and a
-   check reads the section against the glossary.
-9. **Mechanise the class.** When process fails, the fix is an entry in the ledger written as a trigger ("when
-   you notice X, do Y") in the same change as the repair, and, where a check can hold the class, the check.
-   The ledger works by being loaded before work begins; unread, it is a diary.
-10. **The owner's merge is the review.** The assistant never merges. What the owner needs in order to merge in
-    minutes is on the page: the decisions table, what went wrong, what was not covered.
+1. **A pointer does not go stale; a summary does.** [AGENTS.md](../../AGENTS.md) points and states no count
+   or status; the only status is [the board](../plan/BOARD.md).
+2. **One rule, one home.** A rule lives in a [standard](../standards/); everything else links to it.
+3. **A snapshot is not a log.** [The handoff](../handoffs/CURRENT.md) is cut to what is true now; history
+   is the [journal](../journal/README.md) and git.
+4. **A mentioned feature is not a work order.** It lands on [the board's](../plan/BOARD.md) icebox with a cost;
+   a design is built from only once the owner has locked it ([workflow](../standards/workflow.md)).
+5. **Two kinds of door.** Two-way doors are decided and logged; one-way doors are asked
+   ([definition of done](../standards/definition-of-done.md), the autonomy protocol).
+6. **Supersede, do not rewrite.** History is amended in a section of its own or replaced by a new record
+   ([ADRs](../decisions/README.md)).
+7. **Claims follow evidence.** Done, passing and fixed are reported after the check ran, and a check is
+   believed only after it has produced the other answer ([ledger](../standards/failure-modes.md), entries 2 and 6).
+8. **One word per concept.** [The glossary](../glossary.md); a new word gets its row first (ledger entry 20).
+9. **Mechanise the class.** A process failure becomes a ledger entry in the same change, and a check where
+   one can hold it ([ledger](../standards/failure-modes.md)).
+10. **The owner's merge is the review.** The assistant never merges; the decisions table is what the owner
+    reads to merge in minutes ([pull request template](../../.github/pull_request_template.md)).
 
 ## The mechanisation ladder
 
@@ -121,14 +114,14 @@ failures in the repository that describes them:
 
 - **The handoff became a log.** HogShade's grew to 270 lines, with a 5,300-character "last updated" line and
   about 200 lines of status reports from three weeks, which is ledger entry 15, in the file that entry names.
-  SpriteJammer's is 77 KB. Fix: cut to a snapshot (a line, the state, what the owner said that is written
+  The inventory found SpriteJammer's far larger still. Fix: cut to a snapshot (a line, the state, what the owner said that is written
   nowhere else, the open questions). Open: no check compares a document's date with its content.
 - **A hand-kept count went stale.** The ledger header listed the entries that had checks and was wrong within
   weeks; a board header that said when it was updated went unchanged through eleven increments. Fix: state
   the fact where it lives, or not at all.
-- **A rule restated in many places.** LargeWorlds states its whose-branch rule in seven files and carries a
-  656-line instruction file with duplicated standards. Its own audit found and split this once; the lesson is
-  that a rule restated for convenience is a drift scheduled.
+- **A rule restated in many places.** The inventory found LargeWorlds stating its whose-branch rule in several
+  files and carrying a long instruction file with duplicated standards, which its own audit had already split
+  once. A rule restated for convenience is a drift scheduled.
 - **A promise of a future document that landed and was never updated.** The entry file kept saying the
   standards "arrive in a later pass" for eleven days after they had.
 - **Status vocabulary without a closed set.** Free-form status words on specs and plans (LargeWorlds) mean the
@@ -150,10 +143,10 @@ project.
 | --- | --- | --- | --- | --- |
 | Entry file with tool pointers; handoff; board; glossary; ledger; standards; ADRs | yes | yes | yes | The core |
 | Journal, one file per session | yes | no | yes | L keeps its narrative in the handoff and git, and pays for it |
-| One journal file per day, session numbers restarting | yes | n/a | not checked | A docs-check rule in H |
-| Terms-introduced section and its check | yes | no | no | Mechanised 2026-10-08 |
+| One journal file per day, session numbers restarting | yes | n/a | not checked | A convention in H; the docs check requires a journal file for the handoff's day |
+| Terms-introduced section and its check | yes | no | no | Mechanised 2026-10-08 (HogShade ledger entry 20) |
 | Controls and amendments after acceptance | yes | no | no | Came from the comparison framework |
-| Branch-ownership tool (`whose_branch`) | no | yes | no | Needed because many sessions share one owner identity |
+| Branch-ownership tool | no | yes | no | Needed because many sessions share one owner identity (L's `tools/whose_branch.py`) |
 | Pending-review queue, lane ids, deferred bugs as issues | no | no | yes | Needed by many parallel lanes |
 | CI parity oracle (local runner and CI share one stage list) | no | no | yes | |
 | Weekly devblog with a privacy boundary | no | no | yes | Public-facing writing is a separate pipeline |
