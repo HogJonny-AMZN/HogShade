@@ -80,6 +80,21 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def pixel_hash(directory: Path) -> str:
+    """
+    SHA-256 of what a capture set shows: the request and whichever pictures it holds, by role. The manifest (a wall
+    time, the versions) and the logs are left out, so two captures of one request on one host hash alike when their
+    pixels do.
+    """
+    directory = Path(directory)
+    digest = hashlib.sha256()
+    for role in (REQUEST, SCENE, DISPLAY, COVERAGE):
+        path = directory / role
+        if path.is_file():
+            digest.update(f"{role}:{sha256_file(path)}\n".encode())
+    return digest.hexdigest()
+
+
 class CaptureSetError(ValueError):
     """A capture set that is malformed, or a write that would make one; the message names the role or file."""
 
