@@ -5,7 +5,7 @@
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then
 `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`. No plan is in flight: S1 to S4a and T1 to T3b
-are done, their plans ticked; T3b is merged (#61 with #62 inside it). Next: T4, the showcase set, with the owner; the f-string pass is a board row. `Docs/standards/definition-of-done.md` says what done means and how much to decide alone.
+are done, their plans ticked; T3b is merged (#61 with #62 inside it). Next: T4, the showcase set, with the owner; the f-string pass is done (#72). `Docs/standards/definition-of-done.md` says what done means and how much to decide alone.
 
 ## In flight
 
@@ -68,7 +68,7 @@ flight. Next, recommended in this order: T3b (wgpu samples the runtime set: DDS 
 `texture-compression-bc` feature, a material bind group, the two material halves; spec first), because T4 needs the
 owner's authoring time and T3b does not; T4, the showcase set with the owner (the board row carries the owner's
 "full leverage" direction); the f-string pass. Open with the owner: the three-tier
-logging architecture for apps (the owner will find it); the f-string conversion pass is a board row.
+logging architecture for apps (the owner will find it); the f-string conversion pass is done (#72).
 
 **Sit rep, 2026-10-02, late night.** #40 merged: the S4 design is in with eight questions and the owner
 has not answered them yet; nothing of S4 is built until they do. The owner said two things worth more than

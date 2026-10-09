@@ -708,10 +708,10 @@ def cook_set(
     }
     (out_dir / PROVENANCE_NAME).write_bytes(_dump(provenance).encode("utf-8"))
     _LOGGER.info(f"wrote {PROVENANCE_NAME}")
-    encoder = manifest["compression"]["encoder"] or "uncompressed"
+    encoder_name = manifest["compression"]["encoder"] or "uncompressed"
     _LOGGER.info(
         f"{set_dir.name}: {len(oven.textures)} texture(s) written under {COOKED_DIR} "
-        f"in {provenance['wall_seconds']:.2f} s ({len(derived)} sidecar field(s) derived; {encoder})"
+        f"in {provenance['wall_seconds']:.2f} s ({len(derived)} sidecar field(s) derived; {encoder_name})"
     )
     return CookResult(manifest=manifest, written=oven.written + [out_dir / MANIFEST_NAME, out_dir / PROVENANCE_NAME])
 
