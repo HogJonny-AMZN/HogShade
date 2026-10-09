@@ -86,6 +86,9 @@ spec's acceptance gate passed and the roadmap, the README and any affected desig
   frequency separation as a cook operation, the sources (Poly Haven, the owner's legacy test tiles, a showcase
   set); the eight answers (`T_` and `_BC` in the owner's words, the rest on the owner's go); increments T1 to T4
   (T3 is S4b).
+- [design/2026-10-08-comparison-framework.md](design/2026-10-08-comparison-framework.md): the comparison framework
+  (gate G4, Proposed): oracle, regression and parity cases, capture sets from a request, per-feature metrics, the
+  pass / needs-review / fail verdict, baselines and one report
 - [design/2026-10-02-material-library.md](design/2026-10-02-material-library.md): the library of materials
   (S4, track F), Accepted 2026-10-03 (the owner's "go"): the base set as standard documents with a reverse
   conversion table, the roster of parents and children with sourced values, title and provenance in the
