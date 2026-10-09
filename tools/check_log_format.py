@@ -18,9 +18,11 @@ CI runs it as a step; ``tests/test_check_log_format.py`` runs it on fixtures and
 from __future__ import annotations
 
 import ast
+import io
 import logging as _logging
 import re
 import sys
+import tokenize
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -37,14 +39,18 @@ SCANNED = ("hogshade", "tools", "tests", "hosts")
 #: Directories never scanned.
 SKIPPED_PARTS = frozenset({".venv", "build", ".git", "node_modules", "legacy"})
 
-#: The logging methods that take a message.
-LEVELS = frozenset({"debug", "info", "warning", "warn", "error", "exception", "critical"})
+#: The logging methods that take a message first.
+LEVELS = frozenset({"debug", "info", "warning", "warn", "error", "exception", "critical", "fatal"})
 
-#: A ``%`` conversion in a message (``%s``, ``%d``, ``%.2f``, ``%(name)s``), not a literal ``%%``.
-_PLACEHOLDER = re.compile(r"(?<!%)%[#0\- +]*(\d+|\*)?(\.\d+)?[sdrifxXeEgGc]|%\(")
+#: ``Logger.log(level, message, ...)`` takes the message second.
+LEVEL_FIRST = "log"
 
-#: The marker that lets a measured hot path keep a lazy call.
-MARKER = "# lazy-log:"
+#: A ``%`` conversion in a message, the whole of ``str``'s grammar (``%s``, ``%d``, ``%.2f``, ``%-8.3f``, ``%*d``,
+#: ``%.*f``, ``%ld``, ``%o``, ``%u``, ``%a``, ``%(name)s``), not a literal ``%%``.
+_PLACEHOLDER = re.compile(r"(?<!%)%(\([^)]*\))?[#0\- +]*(\d+|\*)?(\.(\d+|\*))?[hlL]?[diouxXeEfFgGcrsa]")
+
+#: The comment that lets a measured hot path keep a lazy call: ``# lazy-log: <the measurement>``.
+MARKER = re.compile(r"^#\s*lazy-log:\s*(?P<measurement>.*)$")
 
 
 @dataclass(frozen=True)
@@ -62,24 +68,40 @@ def _logger_name(node: ast.expr) -> str:
     return ""
 
 
+def _comments(source: str) -> dict[int, str]:
+    """The comment on each line that has one, by line number, from the tokenizer (never from string contents)."""
+    out: dict[int, str] = {}
+    try:
+        for tok in tokenize.generate_tokens(io.StringIO(source).readline):
+            if tok.type == tokenize.COMMENT:
+                out[tok.start[0]] = tok.string
+    except (tokenize.TokenError, IndentationError):
+        pass
+    return out
+
+
 def check_source(source: str, path: str = "<source>") -> list[Finding]:
     """The findings in ``source``: a lazy ``%`` log call without the hot-path marker. A syntax error is not ours."""
     try:
         tree = ast.parse(source)
     except SyntaxError:
         return []
-    lines = source.splitlines()
+    comments = _comments(source)
     out: list[Finding] = []
     for node in ast.walk(tree):
         if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)):
             continue
-        if node.func.attr not in LEVELS or "log" not in _logger_name(node.func.value).lower() or not node.args:
+        attr = node.func.attr
+        if (attr not in LEVELS and attr != LEVEL_FIRST) or "log" not in _logger_name(node.func.value).lower():
             continue
-        first = node.args[0]
+        args = node.args[1:] if attr == LEVEL_FIRST else node.args
+        if not args:
+            continue
+        first = args[0]
         if (
             isinstance(first, ast.Constant)
             and isinstance(first.value, str)
-            and len(node.args) > 1
+            and len(args) > 1
             and _PLACEHOLDER.search(first.value)
         ):
             reason = "a lazy %-format log call with arguments"
@@ -87,7 +109,11 @@ def check_source(source: str, path: str = "<source>") -> list[Finding]:
             reason = "a %-operator log message"
         else:
             continue
-        if MARKER in lines[node.lineno - 1]:
+        marker = MARKER.match(comments.get(node.lineno, ""))
+        if marker and marker.group("measurement").strip():
+            continue
+        if marker:
+            out.append(Finding(path, node.lineno, "the lazy-log marker needs the measurement after the colon"))
             continue
         out.append(Finding(path, node.lineno, f"{reason}: write the message as an f-string"))
     return out
