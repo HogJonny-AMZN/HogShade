@@ -116,3 +116,6 @@ travels between the repos under one vocabulary.
 | **Decision log** | `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, the index of decisions made in conversation and where each is formalised. |
 | **Ledger** | `Docs/standards/failure-modes.md`, how the process has failed here, as triggers. |
 | **Verdict** | The one-line judgement attached to an idea when it is recorded: awesome, good with the value named, or meh with what would fix it. Verdicts order ideas; they never delete them. |
+| **AI-first framework** | The set of artifacts, rules and checks that let a stateless agent session continue a project, stay in its vocabulary and catch its own mistakes: described in `Docs/knowledge/ai-first-framework.md`. Project-agnostic; HogShade, LargeWorlds and SpriteJammer each grew a version of it. |
+| **Framework graph** | `Docs/knowledge/ai-first-framework.graph.json`: the framework's concepts as nodes in eight layers and its relations as typed edges; the page `ai-first-framework-graph.md` is generated from it by `tools/render_framework_graph.py`. |
+| **Mechanise** | To move a rule up the ladder from prose to a checklist line, a rubric line, a check that goes red in CI, or a generator with `--check`; a ledger entry is mechanised when a check holds its class. |

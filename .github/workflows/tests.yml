@@ -64,5 +64,8 @@ jobs:
       - name: Comparison (the case table, the acceptances and any stored report are valid)
         run: uv run tools/compare.py validate
 
+      - name: Framework graph (the AI-first framework data is well formed; its page is generated)
+        run: uv run tools/render_framework_graph.py --check
+
       - name: Tests
         run: uv run pytest -q

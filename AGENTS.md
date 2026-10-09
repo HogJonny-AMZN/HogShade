@@ -33,6 +33,7 @@ the phase 2 standards pass; until then these pointers are the contract.)
 | Topic | File |
 | --- | --- |
 | Job_Orchestrator (BATS): the developer track, worker types, jobs, rules | [Docs/knowledge/job-orchestrator.md](Docs/knowledge/job-orchestrator.md), [tools/bats/AGENTS.md](tools/bats/AGENTS.md) |
+| The AI-first framework: what this repository's process is made of, why, and how it fails; the graph of its concepts | [Docs/knowledge/ai-first-framework.md](Docs/knowledge/ai-first-framework.md), [the graph](Docs/knowledge/ai-first-framework-graph.md) |
 | Tools layout per host | [tools/README.md](tools/README.md) |
 | The journal: why, cadence, entry format, the `→ BATS:` line | [Docs/journal/README.md](Docs/journal/README.md) |
 | The vocabulary, one word per concept, retired terms struck through | [Docs/glossary.md](Docs/glossary.md) |

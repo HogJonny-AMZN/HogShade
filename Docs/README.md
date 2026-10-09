@@ -56,6 +56,7 @@ link, a governed document without a status line, or a session missing from the j
 | Deciding something the owner has not | The autonomy protocol in `standards/definition-of-done.md` |
 | Running anything in Maya or Blender | `knowledge/job-orchestrator.md`, then the `bats-job` and `maya-check` skills |
 | Touching the core | `standards/wgsl.md`, then `decisions/README.md` (ADR-002 to ADR-005), `superpowers/specs/phase-2-restructure.md` "Interfaces", `core/manifest.toml`, the `shader-build` and `local-review` skills |
+| Describing, auditing or copying the process itself | `knowledge/ai-first-framework.md`, then the generated `knowledge/ai-first-framework-graph.md` |
 | Writing any Python | `standards/python.md` |
 | Adding a texture, a material, a light rig or a capture | `standards/content.md` |
 | Making a structural decision | `decisions/README.md`: read the ADRs, then add one |
