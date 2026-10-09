@@ -58,27 +58,29 @@ def test_frame_layout_matches_the_wgsl_struct() -> None:
     assert wgsl_order == list(wgpu_host.FRAME_DTYPE.names)
 
 
-#: The frame uniform of three scenes as the host packed them before the explicit camera existed (task 6 of the C-2 plan,
-#: 2026-10-08): the orbit scenes must still produce these bytes.
-ORBIT_FRAME_HASHES = {
-    "default": ("fd696f51c24dc36a3fb41cbad6b66364baf04b5060e54e1718c6cd79703cde79", {}),
-    "orbit": (
-        "bb07b27d1566d21ea709bf005134f22935aaac596181fe88e4f5f662708e0b22",
-        {"yaw_deg": 10.0, "pitch_deg": 5.0, "distance": 3.0, "width": 512, "height": 256},
-    ),
-    "lit": (
-        "5ac49d2f7ba064e4f693dec7e6cd500e6c91cbb8f2dc9f25fb74189b850b3455",
-        {"light_dir": (0.1, 0.9, 0.2), "light_intensity": 1.5, "env_exposure": 2.0, "debug_mode": 8},
-    ),
+#: Orbit scenes as the host built their camera before the explicit camera existed (task 6 of the C-2 plan, 2026-10-08).
+ORBIT_SCENES = {
+    "default": {},
+    "orbit": {"yaw_deg": 10.0, "pitch_deg": 5.0, "distance": 3.0, "width": 512, "height": 256},
+    "lit": {"light_dir": (0.1, 0.9, 0.2), "light_intensity": 1.5, "env_exposure": 2.0, "debug_mode": 8},
 }
 
 
-@pytest.mark.parametrize("name", sorted(ORBIT_FRAME_HASHES))
-def test_an_orbit_scene_packs_the_same_frame_bytes_as_before_the_explicit_camera(name: str) -> None:
-    import hashlib
-
-    want, kwargs = ORBIT_FRAME_HASHES[name]
-    assert hashlib.sha256(wgpu_host.Scene(**kwargs).frame_bytes(7)).hexdigest() == want
+@pytest.mark.parametrize("name", sorted(ORBIT_SCENES))
+def test_an_orbit_scene_builds_its_camera_exactly_as_it_did_before_the_explicit_camera(name: str) -> None:
+    """
+    The original formula, written out here: a look-at from the orbit's eye to a fixed target with Y up, and the
+    perspective of the scene's field of view. The orbit must still produce exactly that, on any platform (a hash of
+    the packed float bytes would pin one machine's arithmetic: CI's numpy differs in the last bits).
+    """
+    scene = wgpu_host.Scene(**ORBIT_SCENES[name])
+    eye = wgpu_host.orbit_eye(scene.yaw_deg, scene.pitch_deg, scene.distance)
+    view = wgpu_host.look_at(eye, np.array([0.0, 0.05, 0.0]), np.array([0.0, 1.0, 0.0]))
+    proj = wgpu_host.perspective(scene.fov_y_deg, scene.width / scene.height, wgpu_host.NEAR_PLANE, wgpu_host.FAR_PLANE)
+    got_vp, got_eye = scene.view_proj()
+    np.testing.assert_array_equal(got_vp, proj @ view)
+    np.testing.assert_array_equal(got_eye, eye)
+    assert scene.camera is None
 
 
 def test_an_explicit_camera_at_the_orbit_s_eye_gives_the_orbit_s_view_projection() -> None:

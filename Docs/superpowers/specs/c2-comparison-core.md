@@ -117,8 +117,11 @@ with their controls reproducing the existing probes' agreement (about 100 percen
   in a sibling directory and replaces the old set only once the new one is whole (it used to delete first, and a failed
   write left half a set); the runner always yields a report (a capture that raises, or is of the wrong request, fails
   its case and the run goes on); a report with no ordinary case is not ok.
-- **The wgpu host needed one change:** `Scene.camera`, an optional explicit `(eye, target, up)`. The frame uniform of
-  three orbit scenes is pinned by hash from before the change, so the orbit is provably untouched.
+- **The wgpu host needed one change:** `Scene.camera`, an optional explicit `(eye, target, up)`. A test recomputes the
+  orbit's original formula (a look-at from the orbit's eye to a fixed target, and the perspective) for three scenes and
+  requires `view_proj` to equal it exactly, so the orbit is provably untouched. **CI caught a first version that pinned
+  a SHA-256 of the packed frame bytes taken on the owner's machine: float bytes differ in the last bits between numpy
+  builds, so a hash of floats pins one platform's arithmetic, not the behaviour.**
 - **The coverage test's first bound was a guess**: a unit sphere four metres away under a 32 degree field fills about
   0.63 of the picture (pi/4 of the (tan 14.4 / tan 16) square), not under 0.6. Worked out, then asserted.
 - **Local review** (`/local-review diff`, one round): Design 7, Architecture 7, Readability 8, Maintainability 7, Performance 8,

@@ -221,6 +221,17 @@ control, capture set, capture level, verdict and a dozen more with no glossary r
 the rule was read at the start of the session and not at the moment of coining. Not mechanised yet: the options (a
 "Terms introduced" section the docs check requires, a PR checkbox) are with the owner.
 
+### 21 · A hash of floats that pins one machine's arithmetic
+
+**When you notice** yourself pinning the SHA-256 of an array's bytes that came out of floating-point arithmetic (a
+matrix, a packed uniform, a rendered frame), **do** recompute the same value in the test by the original formula and
+compare the two (exactly, on the same machine, or with a stated tolerance across them); keep a hash for bytes that are
+read, never computed. A computed float's last bits depend on the numpy build, the CPU and the compiler, so a hash taken
+on your machine fails on CI for no reason a reader can act on.
+**Because:** 2026-10-08, #76: three tests pinned the SHA-256 of `Scene.frame_bytes` for the orbit camera, taken on the
+owner's machine, and failed on the Windows CI leg with different bytes; they were replaced by the original look-at and
+perspective written out in the test. Not mechanised: it is a habit, and CI is the check that caught it.
+
 ## How to add an entry
 
 When process fails again, append in the same PR as the fix: a trigger you would notice, the action
