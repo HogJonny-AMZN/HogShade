@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Any
 
 _MODULE_NAME = "tools.render_framework_graph"
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __updated__ = "2026-10-08"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
@@ -177,6 +177,8 @@ def problems(data: Any) -> list[str]:
         touched.update((a, b))
     for orphan in sorted(ids - touched):
         found.append(f"node {orphan} has no edge")
+    for rel in sorted(set(relations) - {e["relation"] for e in data["edges"] if _text(e.get("relation"))}):
+        found.append(f"relation '{rel}' is declared and never used")
     used_layers = {n.get("layer") for n in data["nodes"]}
     for layer in layers:
         if layer not in used_layers:

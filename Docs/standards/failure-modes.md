@@ -234,6 +234,17 @@ on your machine fails on CI for no reason a reader can act on.
 owner's machine, and failed on the Windows CI leg with different bytes; they were replaced by the original look-at and
 perspective written out in the test. Not mechanised: it is a habit, and CI is the check that caught it.
 
+### 22 · An icebox row built without the chain
+
+**When you notice** that a board row is about to be built because the owner replied to a menu of options or asked
+"what next", **do** ask "pull it forward now?" in those words, and write the spec and the plan before the first file:
+a new tool is a significant increment whatever its size. A reply to a list is not a lock, and a row's cost estimate is
+not a design.
+**Because:** 2026-10-08, #79: the AI-first framework row said it waited behind C-2; after C-2 merged the owner answered
+"best recommendations" to several options, I took it as a go on the whole write-up, and built the description, the
+graph and a 300-line generator with no spec or plan. The owner asked why an iceboxed idea had been built, and Copilot
+found the missing records. Not mechanised: whether a reply is a go is a judgement; the spec and plan are.
+
 ## How to add an entry
 
 When process fails again, append in the same PR as the fix: a trigger you would notice, the action

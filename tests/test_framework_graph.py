@@ -35,9 +35,12 @@ def test_the_committed_page_is_current() -> None:
     assert found == [] and diff == "", diff[:2000]
 
 
-def test_every_declared_relation_is_used(data: dict) -> None:
-    used = {e["relation"] for e in data["edges"]}
-    assert set(data["relations"]) == used
+def test_a_declared_relation_that_is_never_used_is_found(data: dict) -> None:
+    def drop_reads(d: dict) -> None:
+        d["edges"] = [e for e in d["edges"] if e["relation"] != "reads"]
+
+    found = _mutated(data, drop_reads)
+    assert "relation 'reads' is declared and never used" in found
 
 
 def test_the_graph_names_no_project(data: dict) -> None:
@@ -175,3 +178,16 @@ def test_main_reports_a_broken_or_missing_data_file(tmp_path: Path) -> None:
     _graph_in(tmp_path / "bad", '{"layers": {}, "kinds": {}, "relations": {}, "nodes": [], "edges": 5}')
     assert rfg.main(["--check"], root=tmp_path / "bad") == 1
     assert rfg.main(["--write"], root=tmp_path / "bad") == 2
+
+
+def test_a_crlf_page_is_current(tmp_path: Path) -> None:
+    """A Windows working copy checks out CRLF; `--check` must call it current, and a real drift still stale."""
+    knowledge = _graph_in(tmp_path)
+    rfg.write(tmp_path)
+    page = knowledge / "ai-first-framework-graph.md"
+    lf, crlf = bytes([10]), bytes([13, 10])
+    page.write_bytes(page.read_bytes().replace(lf, crlf))
+    assert crlf in page.read_bytes()
+    assert rfg.check(tmp_path) == ([], "")
+    page.write_bytes(page.read_bytes() + b"drift" + crlf)
+    assert rfg.check(tmp_path)[1] != ""
