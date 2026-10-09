@@ -1,6 +1,6 @@
 # C-2 spec: the comparison core, its wgpu adapter and the first oracle cases
 
-**Status:** Proposed. Drafted 2026-10-08 from the accepted design
+**Status:** Accepted (owner, 2026-10-08: "go"); built, #76. Drafted 2026-10-08 from the accepted design
 ([../../design/2026-10-08-comparison-framework.md](../../design/2026-10-08-comparison-framework.md), increment C-2).
 The first increment of the framework; nothing here needs Maya, Blender or a colour pipeline beyond what the wgpu
 host has today.
@@ -94,6 +94,46 @@ with their controls reproducing the existing probes' agreement (about 100 percen
 3. A capture set the run wrote is readable by `captureset.read`, its request hash matches, and its manifest says L2p.
 4. The check classes in the design's table that C-2 touches (UV origin, normal convention, channel routing on wgpu)
    are the cases themselves; nothing is marked proved that no case proves.
+
+## What the build found (2026-10-08, `feat/c2-comparison-core`)
+
+- **The chain works end to end on the owner's machine** (RTX 5090, Vulkan, wgpu-py 0.32), at 512 px on the synthetic set:
+  the five ordinary cases pass and all four controls fail as they should. The oracle reads 7,837 flat roughness pixels,
+  9,047 metalness, 1,158 AO and 3,371 colour, every one at agreement 1.0; the normal check reads 1,523 green-leaning and
+  6,589 red-leaning pixels, authored 1.0 and flipped 0.0. The controls: metalness with V flipped agrees 0.011, colour 0.54,
+  and a flipped green or red expectation drives that channel's authored fraction to 0.0. These are the numbers the host
+  tests reported before (1,522 and 6,593 then; the small difference is the oracle's rays now coming from the request,
+  not the host's `Scene`).
+- **The independence claim is tested, not asserted.** The oracle builds rays from the request's camera by basis vectors;
+  a test shows they equal the inverse of the host's view-projection to 1e-9 for the same camera, and separate pixels whose
+  answer is worked by hand (the middle of the picture is the +Z face's (0.5, 0.5), normal +Z, u along +X) pin the geometry.
+- **A control is not ok merely because it failed.** The local review found that a control failing only because a pixel
+  count fell short never used its wrong expectation. A control now names the metrics that must fail (`fails_on`), the
+  committed controls name theirs, and `control_ok` is true only when it failed by measuring, on those metrics.
+- **What the spec had not said, added in the build:** `CheckSpec` declares its metrics and its parameters (an unknown
+  parameter ran as a normal check, `stride: 0` crashed a run), so a typo is refused at load; an acceptance's reference
+  hash covers the check's parameters, the data range, the thresholds and a hash of the oracle's own source (so changing the
+  oracle's arithmetic re-opens every needs-review without anyone remembering to bump a version); `captureset.write` stages
+  in a sibling directory and replaces the old set only once the new one is whole (it used to delete first, and a failed
+  write left half a set); the runner always yields a report (a capture that raises, or is of the wrong request, fails
+  its case and the run goes on); a report with no ordinary case is not ok.
+- **The wgpu host needed one change:** `Scene.camera`, an optional explicit `(eye, target, up)`. The frame uniform of
+  three orbit scenes is pinned by hash from before the change, so the orbit is provably untouched.
+- **The coverage test's first bound was a guess**: a unit sphere four metres away under a 32 degree field fills about
+  0.63 of the picture (pi/4 of the (tan 14.4 / tan 16) square), not under 0.6. Worked out, then asserted.
+- **Local review** (`/local-review diff`, one round): Design 7, Architecture 7, Readability 8, Maintainability 7, Performance 8,
+  Security 8, Error handling 5, Logging 6, Coding standards 8; needs work (lowest 5). Fixed: the non-atomic write, raw
+  `TypeError` and `UnicodeDecodeError` escaping typed errors, the run that aborted with no report, a `KeyError` in a check
+  masquerading as "could not measure", the thin logging in the adapter, runner and tool, the runner trusting whatever
+  capture it was handed, thresholds and range missing from the acceptance hash, unvalidated check parameters, an empty
+  report that was ok, numpy scalars refused as a data range, an adapter failure reported as "no adapter" (and green under
+  `--allow-skips`), and an `assert` for an invariant. Declined with reasons: `_flat_around`'s per-pixel loop (about 14k
+  iterations at 512 px, fine; revisit at 4096), the duplicated `_SHA256` and `_ID` patterns and object-field validators
+  across request, captureset, verdict and report (a shared validation module is worth it when a fourth consumer appears,
+  C-3), and the `sys.path` insertion in the tools test (it works under the repo's import mode; the sibling pattern would
+  make every test take the module as a parameter).
+- **GPU tests are skipped on CI** (no adapter, LFS not hydrated); the CPU tests prove the logic with a fake adapter that
+  writes real capture sets, and the owner's run is the acceptance.
 
 ## Questions
 
