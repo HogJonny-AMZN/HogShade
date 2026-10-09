@@ -202,7 +202,8 @@ def test_a_capture_writes_a_readable_l2p_set_with_every_input_hashed(wgpu_adapte
     assert got.level == "L2p" and got.manifest.host == "wgpu" and got.manifest.colour_space == "unspecified"
     assert got.request == request and got.manifest.request_hash == request.content_hash()
     assert got.scene.shape == (256, 256, 3) and got.scene.dtype == np.float32 and got.display.shape == (256, 256, 3)
-    assert 0.15 < got.coverage.mean() < 0.6, "the sphere fills a sensible part of the picture"
+    # a unit sphere 4 m away under a 32 degree field: pi/4 of the (tan 14.4 / tan 16) square, about 0.63 of the picture
+    assert 0.55 < got.coverage.mean() < 0.70, got.coverage.mean()
     assert set(got.manifest.inputs) >= {
         "request",
         "mesh",
