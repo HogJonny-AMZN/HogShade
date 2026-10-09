@@ -79,7 +79,7 @@ def migrate(
     for m in sorted(migrations, key=lambda m: m["from"]):
         if m["from"] < from_version:
             continue
-        _LOGGER.debug("migrating a document from version %d to %d (%d ops)", m["from"], m["to"], len(m["ops"]))
+        _LOGGER.debug(f"migrating a document from version {m['from']} to {m['to']} ({len(m['ops'])} ops)")
         for op in m["ops"]:
             kind = op["op"]
             if kind == "rename" and op["from"] in out:
@@ -115,7 +115,7 @@ def from_data(data: Any, path: Path | None = None, root: Path | None = None) -> 
         raise MaterialError(f"{where}: values is an object")
     if version < mtype.version:
         values = migrate(values, mtype.migrations, version)
-        _LOGGER.info("%s: migrated from %s version %d to %d", where, name, version, mtype.version)
+        _LOGGER.info(f"{where}: migrated from {name} version {version} to {mtype.version}")
     ext = data.get("ext", {})
     if not isinstance(ext, dict):
         raise MaterialError(f"{where}: ext is an object of namespaces")

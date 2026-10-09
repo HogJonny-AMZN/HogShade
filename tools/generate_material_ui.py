@@ -127,16 +127,16 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.write:
             for path in write():
-                _LOGGER.info("wrote %s", _rel(path))
+                _LOGGER.info(f"wrote {_rel(path)}")
             return 0
         stale = check()
     except MaterialError as e:
-        _LOGGER.error("material UI: %s", e)
+        _LOGGER.error(f"material UI: {e}")
         return 2
     if stale:
         for diff in stale:
             sys.stdout.write(diff)
-        _LOGGER.error("material UI check: %d stale output(s); run tools/generate_material_ui.py --write", len(stale))
+        _LOGGER.error(f"material UI check: {len(stale)} stale output(s); run tools/generate_material_ui.py --write")
         return 1
     _LOGGER.info(
         "material UI check: the Maya block, the docs reference, the library index and the content tables are current"

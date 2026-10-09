@@ -66,12 +66,7 @@ def main(argv: list[str] | None = None) -> int:
 
     t0 = time.perf_counter()
     _LOGGER.info(
-        "rendering %s under %s at %dx%d, debug mode %d",
-        args.material,
-        args.environment,
-        args.size,
-        args.size,
-        args.debug_mode,
+        f"rendering {args.material} under {args.environment} at {args.size}x{args.size}, debug mode {args.debug_mode}",
     )
     resolved = resolve(load(args.material))
     if resolved.material_type == "hogshade-standard":  # the host carries legacy v2; the reverse table gets us there
@@ -115,25 +110,20 @@ def main(argv: list[str] | None = None) -> int:
     covered = frames.covered
     lit = frames.forward[covered]
     _LOGGER.info(
-        "GB3 %s, model %s; mesh %d vertices, %d triangles",
-        renderer.gb3_format,
-        binding.model,
-        len(mesh.vertices),
-        len(mesh.indices) // 3,
+        f"GB3 {renderer.gb3_format}, model {binding.model}; mesh {len(mesh.vertices)} vertices, "
+        f"{len(mesh.indices) // 3} triangles"
     )
+    uncarried = ", ".join(u.parameter for u in binding.unsupported) or "none"
     _LOGGER.info(
-        "material %s (%s): %d parameter(s) the host does not carry: %s",
-        args.material,
-        binding.material_type,
-        len(binding.unsupported),
-        ", ".join(u.parameter for u in binding.unsupported) or "none",
+        f"material {args.material} ({binding.material_type}): {len(binding.unsupported)} parameter(s) "
+        f"the host does not carry: {uncarried}"
     )
     print(
         f"ball covers {int(covered.sum())} of {covered.size} pixels; "
         f"mean linear radiance {lit.mean():.4f}, max {lit.max():.4f}"
     )
     print(f"forward vs deferred over covered pixels: mean {mean_diff:.5f}, max {max_diff:.5f}")
-    _LOGGER.info("wrote %s and %s in %.1f s", out, deferred_path, elapsed)
+    _LOGGER.info(f"wrote {out} and {deferred_path} in {elapsed:.1f} s")
     finite = np.isfinite(frames.forward).all() and np.isfinite(frames.deferred).all()
     return 0 if covered.any() and finite else 1
 

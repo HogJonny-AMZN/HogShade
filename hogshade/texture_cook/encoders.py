@@ -125,11 +125,11 @@ def default_encoder() -> Encoder | None:
     try:
         return IspcEncoder()
     except ImportError:
-        _LOGGER.warning("no block encoder: ispc_texcomp is not installed; %s", INSTALL_HINT)
+        _LOGGER.warning(f"no block encoder: ispc_texcomp is not installed; {INSTALL_HINT}")
         return None
     except OSError as e:
         _LOGGER.warning(
-            "no block encoder: ispc_texcomp is installed but its library did not load (%s); %s", e, INSTALL_HINT
+            f"no block encoder: ispc_texcomp is installed but its library did not load ({e}); {INSTALL_HINT}"
         )
         return None
 

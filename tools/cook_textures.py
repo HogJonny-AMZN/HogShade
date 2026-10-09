@@ -107,10 +107,10 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(sep, indent=2))
         return 0
     except CookError as e:
-        _LOGGER.error("texture cook: %s", e)
+        _LOGGER.error(f"texture cook: {e}")
         return 2
     except (ValueError, OSError) as e:  # a defect or a disk problem past the checks: the two-part message, no traceback
-        _LOGGER.error("texture cook failed on %s: %s: %s", args.set_dir, type(e).__name__, e)
+        _LOGGER.error(f"texture cook failed on {args.set_dir}: {type(e).__name__}: {e}")
         return 2
 
 

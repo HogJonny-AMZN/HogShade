@@ -148,9 +148,8 @@ def index(root: str | Path, table_to: str = "hogshade-legacy-v2") -> str:
     if problems:
         raise MaterialError(f"the library at {root} has findings: " + "; ".join(problems))
     type_names = sorted({d.material_type for _, d in docs})
-    _LOGGER.info(
-        "indexed %d documents in %d families under %s (%s)", len(docs), len({f for f, _ in docs}), root, type_names
-    )
+    families = len({f for f, _ in docs})
+    _LOGGER.info(f"indexed {len(docs)} documents in {families} families under {root} ({type_names})")
     out = [
         INDEX_HEADER,
         "# The library of materials",
@@ -184,14 +183,12 @@ def index(root: str | Path, table_to: str = "hogshade-legacy-v2") -> str:
     out.append("")
     table = None
     if len(type_names) != 1:
-        _LOGGER.warning(
-            "the library holds %d types; the losses section needs one type and is left out", len(type_names)
-        )
+        _LOGGER.warning(f"the library holds {len(type_names)} types; the losses section needs one type and is left out")
     else:
         try:
             table = load_table(type_names[0], table_to)
         except MaterialError as e:
-            _LOGGER.warning("no losses section: %s", e)
+            _LOGGER.warning(f"no losses section: {e}")
     if table is not None:
         out += [f"## What `{type_names[0]}` to `{table_to}` loses", ""]
         out += [f"- `{d['from']}`: {d['reason']}." for d in table["dropped"]]

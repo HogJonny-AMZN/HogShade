@@ -270,8 +270,10 @@ def check(root: Path = ROOT) -> tuple[list[Finding], str]:
     """The manifest's findings, and a unified diff when the committed page is stale (empty when current, or when
     there are findings: a manifest that breaks a rule is never rendered)."""
     manifest = load_manifest(root / "verification" / "gallery.json")
+    sections, pictures, pairs, wanted = _counts(manifest)
     _LOGGER.info(
-        "checking %d sections, %d pictures, %d pairs, %d wanted from verification/gallery.json", *_counts(manifest)
+        f"checking {sections} sections, {pictures} pictures, {pairs} pairs, {wanted} wanted "
+        "from verification/gallery.json"
     )
     findings = check_manifest(manifest, root)
     if findings:
@@ -300,7 +302,8 @@ def write(root: Path = ROOT) -> Path:
         raise GalleryError("the manifest has findings: " + "; ".join(str(f) for f in findings))
     page = root / "Docs" / "gallery.md"
     page.write_text(render(manifest), encoding="utf-8", newline="\n")
-    _LOGGER.info("wrote %s: %d sections, %d pictures, %d pairs, %d wanted", page.name, *_counts(manifest))
+    sections, pictures, pairs, wanted = _counts(manifest)
+    _LOGGER.info(f"wrote {page.name}: {sections} sections, {pictures} pictures, {pairs} pairs, {wanted} wanted")
     return page
 
 
@@ -315,16 +318,16 @@ def main(argv: list[str] | None = None) -> int:
         try:
             write()
         except GalleryError as e:
-            _LOGGER.error("%s", e)
+            _LOGGER.error(str(e))
             return 2
         return 0
     try:
         findings, diff = check()
     except GalleryError as e:
-        _LOGGER.error("%s", e)
+        _LOGGER.error(str(e))
         return 1
     for f in findings:
-        _LOGGER.error("%s", f)
+        _LOGGER.error(str(f))
     if diff:
         sys.stdout.write(diff)
         _LOGGER.error("Docs/gallery.md is stale; run tools/generate_gallery.py --write")

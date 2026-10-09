@@ -83,7 +83,7 @@ def normalise(height: Height) -> tuple[Height, dict[str, float]]:
     span = hi - lo if hi > lo else 1.0
     unit = (s.astype(np.float32) - lo) / span
     out = np.clip(np.rint(unit * 65535.0), 0, 65535).astype(np.uint16)
-    _LOGGER.info("height normalised from [%g, %g] to R16_UNORM", lo, hi)
+    _LOGGER.info(f"height normalised from [{lo:g}, {hi:g}] to R16_UNORM")
     return Height(samples=out, precision="16-bit", runtime="R16_UNORM"), {"min": lo, "max": hi}
 
 

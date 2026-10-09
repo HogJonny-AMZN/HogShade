@@ -530,11 +530,8 @@ class Renderer:
         self._neutral["sampler"] = material_sampler(device)
         self.bind_material_none = self._material_group(MaterialPlan())
         _LOGGER.info(
-            "wgpu host ready: mesh %d vertices, environment %s (%d specular mips), GB3 %s",
-            len(mesh.vertices),
-            environment,
-            self.specular_mip_count,
-            self.gb3_format,
+            f"wgpu host ready: mesh {len(mesh.vertices)} vertices, environment {environment} "
+            f"({self.specular_mip_count} specular mips), GB3 {self.gb3_format}"
         )
 
     # ---- resources

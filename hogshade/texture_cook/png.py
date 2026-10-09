@@ -132,7 +132,7 @@ def unfilter(data: bytes, height: int, stride: int, bpp: int, backend: str = "au
     if backend == "numpy" or not HAVE_NUMBA:
         if height * stride > 1 << 22 and not HAVE_NUMBA:
             _LOGGER.warning(
-                "unfiltering %dx%d bytes in Python; install the jit extra for the numba kernel", height, stride
+                f"unfiltering {height}x{stride} bytes in Python; install the jit extra for the numba kernel"
             )
         return _unfilter_py(arr, height, stride, bpp)
     return _unfilter_nb(arr, height, stride, bpp)
