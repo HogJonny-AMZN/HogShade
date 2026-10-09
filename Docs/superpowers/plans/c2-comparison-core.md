@@ -6,25 +6,33 @@ PR states. A significant increment: `/local-review diff` before asking for a mer
 
 ## Tasks
 
-- [ ] 1. **The request** (`hogshade/compare/request.py`, `tests/compare/test_request.py`): `CaptureRequest`, canonical
-      JSON, the host-free content hash, `RequestError` naming the field. Verify: round trip; the same request with two
-      hosts hashes equal; a changed field changes the hash; every field's refusal (a size not a multiple of 32, a
-      non-finite number, an unknown mesh name, an `up` parallel to the view direction).
+- [ ] 1. **The request** (`hogshade/compare/request.py`, `tests/compare/test_request.py`): `CaptureRequest` (host-neutral),
+      `meshes.py` (the canonical ids), canonical JSON, the content hash, `RequestError` naming the field. Verify: round
+      trip; a request carrying a `host` field is refused as unknown; a changed field changes the hash; every field's
+      refusal (a size not a multiple of 32, a non-finite number, an unknown mesh id, an `up` parallel to the view
+      direction).
 - [ ] 2. **The capture set** (`hogshade/compare/captureset.py`, `tests/compare/test_captureset.py`): roles, `Manifest`,
-      `write` / `read` over `hogshade.ibl.imageio` (EXR, PNG). Verify: write then read gives the same arrays; a missing
-      role, mismatched sizes, a request whose hash differs from the manifest's, and a level that overstates are each
-      refused with a message naming the role.
+      `write` / `read`, EXR through `hogshade.ibl.imageio` (`read_exr_rgb`, `write_exr_rgb`) and PNG through
+      `hogshade.texture_cook.png` (`read_png`, `write_png`: uint8 grayscale and RGB, so the one-channel coverage mask and
+      the display picture both round-trip; a grayscale PNG reads back as (H, W, 1), checked 2026-10-08; `imageio`'s PNG writer is RGB-only and there is no reader there). Verify: write then read gives the same arrays; the roles
+      each level requires (an L1 set without `scene.exr` or `coverage.png` reads, an L2 set without either is refused, an
+      L0 set needs a log); the manifest records a hash for the environment files the rig named, and replacing one in
+      place changes it while the request hash stays;
+      a missing role, mismatched sizes, a request whose hash differs from the manifest's, an unknown file, and a level
+      that overstates are each refused with a message naming the role.
 - [ ] 3. **The metrics** (`hogshade/compare/metrics.py`, `tests/compare/test_metrics.py`): absolute and relative error,
-      PSNR, SSIM, coverage overlap, `fraction_within`. Verify: each against a value worked by hand on a small array;
-      identical images give PSNR infinity (a named constant, not a division by zero) and SSIM 1; an empty mask is a
-      refusal, not a mean of nothing.
+      PSNR and SSIM (each with an explicit `data_range`), coverage overlap, `fraction_within`. Verify: each against a
+      value worked by hand on a small array; PSNR on the same arrays with two data ranges differs by exactly the
+      expected decibels; identical images give PSNR infinity (a named constant, not a division by zero) and SSIM 1; a
+      missing or non-positive data range and an empty mask are refusals, not a mean of nothing.
 - [ ] 4. **The verdict and the accepted file** (`hogshade/compare/verdict.py`, `tests/compare/test_verdict.py`):
       `Verdict`, `Threshold`, `judge`, `accepted.json` read and write. Verify: pass, needs-review and fail at, inside
       and outside the bounds in both directions; an accepted difference holds only while both hashes match.
 - [ ] 5. **The case table and the report** (`hogshade/compare/cases.py`, `report.py`, `verification/cases/`,
       `tests/compare/test_cases.py`, `test_report.py`): schemas, `expect: fail` controls, the report with `control_ok`.
-      Verify: a malformed case is refused with its file and field; a stored report validates; a control that passes
-      makes the run fail.
+      Verify: a malformed case is refused with its file and field; a missing or non-positive `check.data_range` is refused;
+      a stored report validates and round-trips with each measurement's `data_range`; a control that passes makes the run
+      fail.
 - [ ] 6. **The host maps the request** (`hogshade/wgpu_host.py`, `tests/host/`): `Scene` takes an optional explicit
       camera; `view_proj` uses it; the existing orbit scenes render the same bytes (a test pins this). Verify: the
       default scene's frame bytes are unchanged; an explicit camera at the orbit's eye gives the same `view_proj`.
