@@ -1,18 +1,18 @@
 # Template increment 1 plan
 
-**Status:** Proposed. Spec: [../specs/template-increment-1.md](../specs/template-increment-1.md). Nothing is ticked: the
-build has not started. Test-first throughout; each group of tasks is its own pull request in the template repository
+**Status:** Accepted (owner, 2026-10-09: "accepted"). Spec: [../specs/template-increment-1.md](../specs/template-increment-1.md). Tasks
+are ticked as their verification runs. Test-first throughout; each group of tasks is its own pull request in the template repository
 (none over eight logged decisions), and each is a significant increment, so `/local-review diff` runs before the merge.
 Until the repository exists, the extraction reads the three repositories under `D:\Depot\` and the work is staged in
 a scratch checkout, not in HogShade.
 
 ## Tasks
 
-- [ ] 0. **Verify the harness facts against vendor documentation** (Claude Code memory and skills, Gemini CLI context files
+- [x] 0. **Verify the harness facts against vendor documentation** (Claude Code memory and skills, Gemini CLI context files
       and skills, Copilot custom instructions and code review). Verify: the compatibility matrix lists, per harness, what
       it reads, the source URL and the date; the design's unconfirmed question (does Copilot code review read
       `AGENTS.md`?) is answered or marked open with the experiment that settles it.
-- [ ] 1. **The extraction diffs.** Read in full and record in the spec's *What the build found*: the three `check_docs.py`
+- [x] 1. **The extraction diffs.** Read in full and record in the spec's *What the build found*: the three `check_docs.py`
       (what each added), the three definitions of done, the three Python standards, the workflow files, the PR templates,
       the three ledgers (classify each entry framework or project, as a table), the SpriteJammer hooks, Makefile,
       `scripts/check.py`, `tooling.md`, `ci.md`, `documentation.md`. Verify: every "confirm in the extraction" row of the
