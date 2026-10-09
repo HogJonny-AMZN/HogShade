@@ -100,7 +100,7 @@ def _break(path: str, value) -> str:
     [
         ("version", 2, "version 1 is expected"),
         ("extra", 1, r"report: unknown field\(s\) \['extra'\]"),
-        ("run.host", "", "host and level are strings"),
+        ("run.host", "", "report.run.host: a non-empty string"),
         ("run.versions", [], "report.run.versions"),
         ("cases", {}, "report.cases: a list"),
         ("cases.0.kind", "magic", r"report.cases\[0\].kind"),
@@ -113,10 +113,17 @@ def _break(path: str, value) -> str:
         ("cases.0.capture_hash", "short", r"capture_hash: a SHA-256"),
         ("cases.0.measurements", {}, r"measurements: a list"),
         ("cases.0.measurements.0.data_range", 0, r"data_range: a positive number or null"),
-        ("cases.0.measurements.0.value", True, "a numeric value"),
+        ("cases.0.measurements.0.value", True, "a finite number or null"),
         ("cases.0.thresholds", [{"metric": "m"}], r"thresholds: threshold: unknown field"),
         ("cases.0.notes", "x", r"notes: a list of strings"),
         ("cases.0.capture", 5, r"capture: a string or null"),
+        ("cases.0.error", "boom", "means no measurement was made, so the verdict is fail"),
+        ("run.level", "L9", r"report.run.level: one of \['L2', 'L2p', 'L1', 'L0'\]"),
+        ("run.level", "", r"report.run.level"),
+        ("run.versions", {"a": 1}, "report.run.versions: an object of strings"),
+        ("run.versions", {"a": None}, "report.run.versions: an object of strings"),
+        ("run.host", "", "report.run.host"),
+        ("cases.0.measurements.0.value", float("inf"), "a finite number or null"),
         ("cases.0.id", [1], r"\.id: a case id"),
         ("cases.0.id", 7, r"\.id: a case id"),
         ("cases.0.id", "", r"\.id: a case id"),
@@ -140,3 +147,13 @@ def test_duplicate_case_ids_and_bad_json_are_refused() -> None:
         Report.from_json("{nope")
     with pytest.raises(ReportError, match="an object is expected"):
         Report.from_json("[]")
+
+
+def test_a_measurement_that_was_not_a_finite_number_is_null_and_the_json_is_standard() -> None:
+    """A NaN or infinity cannot be written as JSON: the measurement is recorded as null and the case fails."""
+    report = _report(_result("a", Verdict.FAIL, measurements=(Measurement("agreement", None, 1.0),)))
+    text = report.to_json()
+    assert "NaN" not in text and "Infinity" not in text and '"value": null' in text
+    assert Report.from_json(text) == report
+    with pytest.raises(ValueError, match="Out of range float values"):
+        _report(_result("b", measurements=(Measurement("agreement", float("nan"), 1.0),))).to_json()

@@ -142,7 +142,7 @@ def test_an_empty_table_is_a_finding(tmp_path: Path, caplog) -> None:
 
 def test_run_without_an_adapter_exits_three_or_zero_with_allow_skips(monkeypatch, tmp_path: Path) -> None:
     def no_gpu():
-        raise RuntimeError("no adapter")
+        raise compare.wgpu_adapter.NoAdapter("RuntimeError: no adapter")
 
     monkeypatch.setattr(compare, "make_adapter", no_gpu)
     out = tmp_path / "out"
@@ -209,19 +209,27 @@ def test_the_module_exposes_the_documented_exit_codes() -> None:
 
 
 def test_a_broken_adapter_is_a_failure_even_with_allow_skips(monkeypatch, tmp_path: Path) -> None:
-    """Only 'wgpu is absent or found no adapter' is a skip. A bug in the adapter must not turn a headless run green."""
+    """Only NoAdapter (wgpu absent, or no device found) is a skip. Any other error, RuntimeError included, is a bug."""
+    for bug in (TypeError("a typo in the adapter"), RuntimeError("adapter initialization bug"), OSError("disk")):
 
-    def broken():
-        raise TypeError("a typo in the adapter")
+        def broken(bug=bug):
+            raise bug
 
-    monkeypatch.setattr(compare, "make_adapter", broken)
-    with pytest.raises(TypeError, match="a typo in the adapter"):
-        compare.main(["run", "--out", str(tmp_path / "o"), "--allow-skips"])
-    for skip in (ImportError("no wgpu"), RuntimeError("no adapter"), OSError("no driver")):
+        monkeypatch.setattr(compare, "make_adapter", broken)
+        with pytest.raises(type(bug), match=str(bug)):
+            compare.main(["run", "--out", str(tmp_path / "o"), "--allow-skips"])
 
-        def no_gpu(skip=skip):
-            raise skip
+    def no_gpu():
+        raise compare.wgpu_adapter.NoAdapter("ImportError: no wgpu")
 
-        monkeypatch.setattr(compare, "make_adapter", no_gpu)
-        assert compare.main(["run", "--out", str(tmp_path / "o"), "--allow-skips"]) == compare.EXIT_OK
-        assert compare.main(["run", "--out", str(tmp_path / "o")]) == compare.EXIT_NO_ADAPTER
+    monkeypatch.setattr(compare, "make_adapter", no_gpu)
+    assert compare.main(["run", "--out", str(tmp_path / "o"), "--allow-skips"]) == compare.EXIT_OK
+    assert compare.main(["run", "--out", str(tmp_path / "o")]) == compare.EXIT_NO_ADAPTER
+
+
+def test_a_non_utf8_accepted_file_is_a_finding_not_a_crash(tmp_path: Path, caplog) -> None:
+    path = tmp_path / "accepted.json"
+    path.write_bytes(b"{" + bytes([233, 255]) + b"}")
+    with caplog.at_level(logging.ERROR):
+        assert compare.main(["validate", "--accepted", str(path)]) == 1
+    assert "accepted.json" in caplog.text and "not valid JSON" in caplog.text

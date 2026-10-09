@@ -29,7 +29,7 @@ __updated__ = "2026-10-08"
 _LOGGER = _logging.getLogger(_MODULE_NAME)
 
 #: What PSNR reports for identical pictures (the mean squared error is zero, so the ratio is unbounded).
-PSNR_IDENTICAL = math.inf
+PSNR_IDENTICAL = 200.0
 
 #: The SSIM window: 11 pixels square, Gaussian, sigma 1.5, K1 0.01, K2 0.03 (Wang et al., 2004).
 SSIM_WINDOW = 11

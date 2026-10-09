@@ -51,6 +51,10 @@ NOTES = (
 )
 
 
+class NoAdapter(RuntimeError):
+    """wgpu is absent or found no usable GPU adapter: the one failure a headless run may skip (``--allow-skips``)."""
+
+
 class UnsupportedRequest(ValueError):
     """A request the wgpu host cannot honour; the message names what and says why."""
 
@@ -184,7 +188,10 @@ class WgpuAdapter:
 
     def __init__(self, device: Any = None, device_info: dict[str, Any] | None = None) -> None:
         if device is None:
-            adapter, device = wgpu_host.request_device()
+            try:
+                adapter, device = wgpu_host.request_device()
+            except Exception as e:
+                raise NoAdapter(f"{type(e).__name__}: {e}") from e
             device_info = dict(adapter.info)
         self.device = device
         self.device_info = device_info or {}

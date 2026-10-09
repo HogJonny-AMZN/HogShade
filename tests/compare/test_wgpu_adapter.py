@@ -235,3 +235,16 @@ def test_an_exposure_of_one_stop_doubles_the_environment_lit_pixels(wgpu_adapter
     covered = dim.coverage & bright.coverage
     ratio = bright.scene[covered].sum() / dim.scene[covered].sum()
     assert 1.5 < ratio < 2.5, ratio
+
+
+def test_a_failure_to_find_a_device_is_the_one_error_a_headless_run_may_skip(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Catching every RuntimeError let an adapter bug pass for 'no GPU'. Discovery failures become NoAdapter."""
+    for failure in (ImportError("no wgpu"), RuntimeError("Cannot get adapter"), OSError("no driver")):
+
+        def request_device(*_a, _failure=failure, **_k):
+            raise _failure
+
+        monkeypatch.setattr(wgpu_host, "request_device", request_device)
+        with pytest.raises(adapter.NoAdapter, match=type(failure).__name__):
+            adapter.WgpuAdapter()
+    assert issubclass(adapter.NoAdapter, RuntimeError) and not issubclass(UnsupportedRequest, adapter.NoAdapter)

@@ -188,3 +188,10 @@ def test_the_file_round_trips_and_a_missing_one_is_no_acceptances(tmp_path: Path
 def test_a_malformed_accepted_file_is_refused_with_where(text: str, message: str) -> None:
     with pytest.raises(VerdictError, match=message):
         AcceptedDifferences.from_json(text)
+
+
+def test_an_accepted_file_that_is_not_utf8_is_a_typed_error(tmp_path: Path) -> None:
+    path = tmp_path / "accepted.json"
+    path.write_bytes(b'{"version": 1, "accepted": {}, "x": "caf' + bytes([233]) + b'"}')
+    with pytest.raises(VerdictError, match="not valid JSON"):
+        AcceptedDifferences.load(path)

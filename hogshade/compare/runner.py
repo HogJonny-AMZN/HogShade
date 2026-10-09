@@ -18,6 +18,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging as _logging
+import math
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
@@ -96,7 +97,7 @@ def run(
     for case in cases:
         key = case.request.content_hash()
         if key not in captured:
-            captured[key] = _capture_once(capture, case, out_dir)
+            captured[key] = _capture_once(capture, case, out_dir, host, level)
         got = captured[key]
         if isinstance(got, str):
             results.append(_failed(case, got))
@@ -111,8 +112,11 @@ def run(
     return report
 
 
-def _capture_once(capture: Capture, case: Case, out_dir: Path) -> CaptureSet | str:
-    """The capture of ``case``'s request, or the reason there is none (including a capture of the wrong request)."""
+def _capture_once(capture: Capture, case: Case, out_dir: Path, host: str, level: str) -> CaptureSet | str:
+    """
+    The capture of ``case``'s request, or the reason there is none: it raised, it is of another request, or its manifest
+    names a different host or level than the run reports (an L1 capture must not be reported as L2p).
+    """
     directory = out_dir / _slug(case.request)
     _LOGGER.info(f"capturing {case.request.id} for case {case.id} into {directory}")
     try:
@@ -124,6 +128,13 @@ def _capture_once(capture: Capture, case: Case, out_dir: Path) -> CaptureSet | s
     if got.request.content_hash() != case.request.content_hash():
         reason = f"the capture is of request {got.request.id!r}, not the {case.request.id!r} that was asked for"
         _LOGGER.error(reason)
+        return reason
+    if got.manifest.host != host or got.manifest.level != level:
+        reason = (
+            f"the capture's manifest says host {got.manifest.host!r} at level {got.manifest.level}, "
+            f"but the run is {host!r} at level {level}"
+        )
+        _LOGGER.error(f"{case.request.id}: {reason}")
         return reason
     return got
 
@@ -169,7 +180,12 @@ def _run_case(case: Case, got: CaptureSet, accepted: AcceptedDifferences, out_di
     except VerdictError as e:  # unreachable for a loaded case (thresholds are validated), kept for a hand-built one
         raise RunnerError(f"case {case.id}: {e}") from e
     ref_hash = reference_hash(case)
-    measurements = tuple(Measurement(m, float(v), case.check.data_range) for m, v in sorted(measured.items()))
+    measurements = tuple(
+        Measurement(
+            m, float(v) if math.isfinite(v) else None, case.check.data_range
+        )  # JSON cannot hold NaN or infinity
+        for m, v in sorted(measured.items())
+    )
     notes = tuple(f"{m.metric}: {m.verdict.value} ({m.reason})" for m in judgement.metrics)
     base = {
         "id": case.id,
@@ -189,6 +205,8 @@ def _run_case(case: Case, got: CaptureSet, accepted: AcceptedDifferences, out_di
     outcome = resolve(judgement, case.id, capture_hash, ref_hash, accepted)
     if outcome.accepted:
         notes = (*notes, f"accepted: {outcome.reason}")
-    shown = ", ".join(f"{m.metric} {m.value:g}" for m in measurements if m.metric not in ("probed",))
+    shown = ", ".join(
+        f"{m.metric} {'n/a' if m.value is None else format(m.value, 'g')}" for m in measurements if m.metric != "probed"
+    )
     _LOGGER.info(f"case {case.id}: {outcome.verdict.value}{' (accepted)' if outcome.accepted else ''} ({shown})")
     return CaseResult(verdict=outcome.verdict, accepted=outcome.accepted, notes=notes, **base)

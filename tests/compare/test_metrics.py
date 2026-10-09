@@ -45,8 +45,17 @@ def test_psnr_is_the_decibels_the_data_range_implies() -> None:
     assert metrics.psnr(a, b, 0.5) == pytest.approx(20.0 - 20.0 * math.log10(2.0))
 
 
-def test_identical_pictures_have_the_named_infinite_psnr() -> None:
-    assert metrics.psnr(A, A, 1.0) == metrics.PSNR_IDENTICAL == math.inf
+def test_identical_pictures_have_the_named_finite_psnr_a_threshold_can_pass_and_json_can_hold() -> None:
+    """Copilot: infinity made a PSNR threshold fail the best possible comparison and wrote non-standard JSON."""
+    from hogshade.compare.verdict import Threshold, Verdict
+
+    assert metrics.psnr(A, A, 1.0) == metrics.PSNR_IDENTICAL == 200.0 and math.isfinite(metrics.PSNR_IDENTICAL)
+    assert Threshold("psnr", 40.0, 30.0).judge(metrics.PSNR_IDENTICAL) is Verdict.PASS
+    import json
+
+    assert json.loads(json.dumps({"psnr": metrics.PSNR_IDENTICAL}, allow_nan=False)) == {"psnr": 200.0}
+    # and nearly identical pictures are well below it
+    assert metrics.psnr(A, A + 1e-9, 1.0) < metrics.PSNR_IDENTICAL
 
 
 @pytest.mark.parametrize("bad", [0, -1.0, float("nan"), float("inf"), None, "1", True])

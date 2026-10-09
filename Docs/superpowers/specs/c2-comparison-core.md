@@ -135,6 +135,15 @@ with their controls reproducing the existing probes' agreement (about 100 percen
   across request, captureset, verdict and report (a shared validation module is worth it when a fourth consumer appears,
   C-3), and the `sys.path` insertion in the tools test (it works under the repo's import mode; the sibling pattern would
   make every test take the module as a parameter).
+- **Copilot** (nine comments, all valid): an unrelated `.log` in a target directory passed the foreignness check and was
+  deleted by the replace (only the logs a previous set's own manifest listed are its to replace now); PSNR of identical
+  pictures was infinity, which a threshold judged a failure and JSON cannot hold (it is the finite `PSNR_IDENTICAL`, 200 dB,
+  and a measurement that is not finite is recorded as null with the case failed, the report written with `allow_nan=False`);
+  the report accepted an error beside a pass verdict, any string as a level and any values under versions; `--allow-skips`
+  treated every `RuntimeError` as no GPU (device discovery now raises `NoAdapter`, the only skippable error); the runner
+  checked a capture's request but not its manifest's host and level, so an L1 capture could be reported as L2p; a non-UTF-8
+  `accepted.json` crashed `validate`; the glossary defined *Verdict* twice (the framework's is now *Comparison verdict*);
+  and the handoff still said C-2 awaited a go.
 - **GPU tests are skipped on CI** (no adapter, LFS not hydrated); the CPU tests prove the logic with a fake adapter that
   writes real capture sets, and the owner's run is the acceptance.
 

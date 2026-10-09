@@ -18,11 +18,13 @@ from __future__ import annotations
 
 import json
 import logging as _logging
+import math
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
+from hogshade.compare.captureset import LEVELS
 from hogshade.compare.cases import EXPECTATIONS, KINDS
 from hogshade.compare.verdict import Threshold, Verdict, VerdictError
 
@@ -44,7 +46,7 @@ class Measurement:
     """One measured value and the data range it was taken with (null for a check that needs none)."""
 
     metric: str
-    value: float
+    value: float | None  # None when the check made a number JSON cannot hold (NaN, infinity): the case fails
     data_range: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -124,7 +126,7 @@ class Report:
         }
 
     def to_json(self) -> str:
-        return json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n"
+        return json.dumps(self.to_dict(), indent=2, sort_keys=True, allow_nan=False) + "\n"
 
     @classmethod
     def from_json(cls, text: str) -> Report:
@@ -140,10 +142,14 @@ class Report:
         if top["version"] != REPORT_VERSION:
             raise ReportError(f"report: version {REPORT_VERSION} is expected, got {top['version']!r}")
         run = _object(top["run"], "report.run", {"host", "level", "versions"})
-        if not isinstance(run["host"], str) or not run["host"] or not isinstance(run["level"], str):
-            raise ReportError("report.run: host and level are strings, host non-empty")
-        if not isinstance(run["versions"], dict):
-            raise ReportError("report.run.versions: an object is expected")
+        if not isinstance(run["host"], str) or not run["host"]:
+            raise ReportError(f"report.run.host: a non-empty string is expected, got {run['host']!r}")
+        if run["level"] not in LEVELS:
+            raise ReportError(f"report.run.level: one of {list(LEVELS)} is expected, got {run['level']!r}")
+        if not isinstance(run["versions"], dict) or not all(
+            isinstance(k, str) and isinstance(v, str) for k, v in run["versions"].items()
+        ):
+            raise ReportError(f"report.run.versions: an object of strings is expected, got {run['versions']!r}")
         if not isinstance(top["cases"], list):
             raise ReportError("report.cases: a list is expected")
         results = tuple(_result(c, f"report.cases[{i}]") for i, c in enumerate(top["cases"]))
@@ -207,6 +213,8 @@ def _result(data: object, where: str) -> CaseResult:
         raise ReportError(f"{where}: accepted is a boolean and control_ok a boolean or null")
     if (d["expect"] == "fail") != (d["control_ok"] is not None):
         raise ReportError(f"{where}: control_ok is set exactly for a control (expect 'fail')")
+    if d["error"] is not None and verdict is not Verdict.FAIL:
+        raise ReportError(f"{where}: an error ({d['error']!r}) means no measurement was made, so the verdict is fail")
     if d["control_ok"] is True and (verdict is not Verdict.FAIL or d["error"] is not None):
         raise ReportError(f"{where}: control_ok is true only when the control failed by measuring, not by erroring")
     measurements = []
@@ -217,9 +225,9 @@ def _result(data: object, where: str) -> CaseResult:
         if (
             not isinstance(md["metric"], str)
             or isinstance(md["value"], bool)
-            or not isinstance(md["value"], (int, float))
+            or not (md["value"] is None or (isinstance(md["value"], (int, float)) and math.isfinite(md["value"])))
         ):
-            raise ReportError(f"{where}.measurements[{j}]: a metric name and a numeric value are expected")
+            raise ReportError(f"{where}.measurements[{j}]: a metric name and a finite number or null are expected")
         dr = md["data_range"]
         if dr is not None and (isinstance(dr, bool) or not isinstance(dr, (int, float)) or dr <= 0):
             raise ReportError(

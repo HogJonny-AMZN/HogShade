@@ -327,3 +327,31 @@ def test_unreadable_files_in_a_set_are_typed_errors(tmp_path: Path) -> None:
     (out / "request.json").write_bytes(b"\xff\xfe")
     with pytest.raises(CaptureSetError, match="request.json:"):
         captureset.read(out)
+
+
+def test_an_unrelated_log_in_the_target_is_foreign_and_survives(tmp_path: Path) -> None:
+    """Any file ending in .log used to pass the check and be deleted by the replace; only the logs a previous set's
+    own manifest listed are its to replace."""
+    scene, display, coverage = _arrays()
+    target = tmp_path / "set"
+    captureset.write(target, REQUEST, _manifest(logs=("mine.log",)), scene, display, coverage, {"mine.log": "x"})
+    (target / "precious.log").write_text("keep me", encoding="utf-8")
+    with pytest.raises(CaptureSetError, match=r"holds \['precious.log'\], which are not a capture set's"):
+        captureset.write(target, REQUEST, _manifest("L1"), display=display)
+    assert (target / "precious.log").read_text(encoding="utf-8") == "keep me" and (target / "mine.log").exists()
+    # a directory with no manifest at all has no logs of its own: any log in it is foreign
+    bare = tmp_path / "bare"
+    bare.mkdir()
+    (bare / "notes.log").write_text("not ours", encoding="utf-8")
+    with pytest.raises(CaptureSetError, match=r"holds \['notes.log'\]"):
+        captureset.write(bare, REQUEST, _manifest("L1"), display=display)
+    assert (bare / "notes.log").exists()
+
+
+def test_a_previous_sets_own_logs_are_still_replaced(tmp_path: Path) -> None:
+    scene, display, coverage = _arrays()
+    target = tmp_path / "set"
+    captureset.write(target, REQUEST, _manifest(logs=("old.log",)), scene, display, coverage, {"old.log": "x"})
+    captureset.write(target, REQUEST, _manifest(logs=("new.log",)), scene, display, coverage, {"new.log": "y"})
+    names = sorted(p.name for p in target.iterdir())
+    assert "new.log" in names and "old.log" not in names

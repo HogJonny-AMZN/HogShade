@@ -225,7 +225,11 @@ class AcceptedDifferences:
         path = Path(path)
         if not path.exists():
             return cls()
-        return cls.from_json(path.read_text(encoding="utf-8"), str(path))
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError as e:
+            raise VerdictError(f"{path}: not valid JSON ({e})") from e
+        return cls.from_json(text, str(path))
 
 
 @dataclass(frozen=True)

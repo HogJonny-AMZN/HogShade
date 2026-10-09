@@ -82,6 +82,15 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _previous_logs(directory: Path) -> frozenset[str]:
+    """The logs a previous capture set in ``directory`` listed in its manifest (none when it has no readable one)."""
+    try:
+        logs = json.loads((directory / MANIFEST).read_text(encoding="utf-8")).get("logs", [])
+    except (OSError, ValueError, AttributeError):  # no manifest, not JSON, not UTF-8, or not an object
+        return frozenset()
+    return frozenset(name for name in logs if isinstance(name, str) and _LOG.fullmatch(name))
+
+
 def pixel_hash(directory: Path) -> str:
     """
     SHA-256 of what a capture set shows: the request and whichever pictures it holds, by role. The manifest (a wall
@@ -278,8 +287,8 @@ def write(
     _check_arrays(request, scene, display, coverage)
     directory = Path(directory)
     if directory.exists():
-        owned = {REQUEST, SCENE, DISPLAY, COVERAGE, MANIFEST}
-        foreign = sorted(p.name for p in directory.iterdir() if p.name not in owned and not _LOG.fullmatch(p.name))
+        owned = {REQUEST, SCENE, DISPLAY, COVERAGE, MANIFEST} | _previous_logs(directory)
+        foreign = sorted(p.name for p in directory.iterdir() if p.name not in owned)
         if foreign:
             raise CaptureSetError(f"{directory}: holds {foreign}, which are not a capture set's; nothing was written")
     staging = directory.parent / f".{directory.name}.staging"

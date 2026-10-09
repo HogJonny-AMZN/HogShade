@@ -299,3 +299,36 @@ def test_what_an_acceptance_is_tied_to_covers_the_thresholds_the_range_the_param
     before = runner.reference_hash(base)
     monkeypatch.setattr(oracles, "code_identity", lambda: "f" * 64)
     assert runner.reference_hash(base) != before, "and so does the oracle's own code"
+
+
+def test_a_capture_whose_manifest_disagrees_with_the_run_is_a_failed_case(committed, tmp_path: Path) -> None:
+    """An L1 capture could be reported as L2p, or one host's as another's, because only the request was checked."""
+    ideal = FakeAdapter()
+
+    def as_l1(request: CaptureRequest, directory: Path) -> CaptureSet:
+        got = ideal(request, directory)
+        manifest = Manifest(host="fake", level="L1", request_hash=request.content_hash())
+        captureset.write(directory, request, manifest, display=got.display)
+        return captureset.read(directory)
+
+    report = runner.run([committed[0]], as_l1, tmp_path / "a", "fake", "L2p")
+    assert report.cases[0].verdict is Verdict.FAIL and "at level L1, but the run is 'fake' at level L2p" in (
+        report.cases[0].error or ""
+    )
+    other_host = runner.run([committed[0]], ideal, tmp_path / "b", "maya", "L2p")
+    assert other_host.cases[0].verdict is Verdict.FAIL and "host 'fake' at level L2p, but the run is 'maya'" in (
+        other_host.cases[0].error or ""
+    )
+    assert not report.ok and not other_host.ok
+
+
+def test_a_check_that_returns_a_non_finite_number_fails_and_the_report_is_still_standard_json(
+    committed, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(oracles, "run", lambda case, got: {"agreement": float("nan"), "pixels": 500.0})
+    report = runner.run([committed[0]], FakeAdapter(), tmp_path, "fake", "L2p")
+    result = report.cases[0]
+    assert result.verdict is Verdict.FAIL
+    assert {m.metric: m.value for m in result.measurements} == {"agreement": None, "pixels": 500.0}
+    text = report.to_json()
+    assert "NaN" not in text and Report.from_json(text) == report
