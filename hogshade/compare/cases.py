@@ -58,6 +58,9 @@ class CheckSpec:
     kinds: tuple[str, ...]
     needs_data_range: bool
     description: str
+    #: The metrics the check reports. When given, a threshold naming any other is refused (it could only ever fail as
+    #: "not measured"); empty means the check does not say, and thresholds are not cross-checked.
+    metrics: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -154,6 +157,13 @@ def _case(data: object, where: str, registry: Mapping[str, CheckSpec] | None) ->
         if spec.needs_data_range and data_range is None:
             raise CaseError(
                 f"{where}: check.data_range: check {name!r} measures a float frame and needs an explicit peak"
+            )
+    if registry is not None and registry[name].metrics:
+        unknown = sorted({t.metric for t in thresholds} - set(registry[name].metrics))
+        if unknown:
+            raise CaseError(
+                f"{where}: thresholds: check {name!r} does not report {unknown}; "
+                f"it reports {list(registry[name].metrics)}"
             )
     return Case(
         cid,

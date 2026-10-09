@@ -69,3 +69,6 @@ content/**/source_8k.exr
 
 # setuptools build tree (uv build in the wheel test)
 build/
+
+# Comparison framework captures: EXRs are large; only chosen pictures are committed (verification/README.md)
+captures/

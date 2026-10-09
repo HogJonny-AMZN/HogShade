@@ -15,7 +15,9 @@ from hogshade.compare import cases
 from hogshade.compare.cases import CaseError, CheckSpec
 
 REGISTRY = {
-    "texel": CheckSpec("texel", ("oracle",), needs_data_range=True, description="the texel a pixel must show"),
+    "texel": CheckSpec(
+        "texel", ("oracle",), needs_data_range=True, description="the texel a pixel must show", metrics=("agreement",)
+    ),
     "coverage": CheckSpec("coverage", ("oracle", "parity"), needs_data_range=False, description="mask overlap"),
 }
 REQUEST = {
@@ -157,3 +159,15 @@ def test_a_directory_loads_in_order_and_case_ids_are_unique_across_files(tmp_pat
         cases.load(tmp_path, REGISTRY)
     with pytest.raises(CaseError, match="not a directory"):
         cases.load(tmp_path / "missing")
+
+
+def test_a_threshold_on_a_metric_the_check_does_not_report_is_refused(tmp_path: Path) -> None:
+    """It could only ever fail as 'not measured': a typo in a metric name is caught when the table loads."""
+    typo = _bad(
+        "thresholds",
+        [{"metric": "agreemnt", "pass_at": 0.99, "fail_at": 0.9, "direction": "higher"}],
+    )
+    with pytest.raises(CaseError, match=r"check 'texel' does not report \['agreemnt'\]; it reports \['agreement'\]"):
+        cases.load_file(_write(tmp_path, typo), REGISTRY)
+    # a check whose spec lists no metrics is not cross-checked
+    assert cases.load_file(_write(tmp_path, {**typo, "check": {"name": "coverage"}}, name="n.json"), REGISTRY)

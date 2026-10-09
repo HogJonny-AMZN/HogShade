@@ -285,12 +285,21 @@ CHECKS: Mapping[str, CheckSpec] = MappingProxyType(
             ("oracle",),
             True,
             "the fraction of pixels showing the synthetic map's texel at their coordinate (a debug view of the map)",
+            ("agreement", "pixels", "probed"),
         ),
         "quad-sphere-normal": CheckSpec(
             "quad-sphere-normal",
             ("oracle",),
             True,
             "the normal map's red and green conventions against the analytic tangent frame (the shading-normal view)",
+            (
+                "green_pixels",
+                "green_authored",
+                "green_flipped",
+                "red_pixels",
+                "red_authored",
+                "red_flipped",
+            ),
         ),
     }
 )
