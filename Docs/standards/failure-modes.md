@@ -212,14 +212,16 @@ redone. Not mechanised: it is a habit of the script author, and `git` was the sa
 
 **When you notice** yourself writing a name for a concept the glossary does not hold (a module, a dataclass, an enum
 value, a level or a kind, a CLI verb, a document type), **do** add its glossary row in the same change and before the
-code that uses it, and end every design, spec and plan with the terms it introduces (or "none"). A word used in
+code that uses it, and give every design, spec and plan a `## Terms introduced` section (or "None"). A word used in
 three documents and a package without a row is a word whose meaning only the author holds; "oracle" already means
 something else in LargeWorlds.
 **Because:** 2026-10-08, the comparison framework: the design (#73), the C-2 spec (#74) and the build all used oracle,
 control, capture set, capture level, verdict and a dozen more with no glossary row until the owner asked mid-build
 ("oracle is not a term in the glossary"). `AGENTS.md` already says "a new concept gets its word in the glossary first";
-the rule was read at the start of the session and not at the moment of coining. Not mechanised yet: the options (a
-"Terms introduced" section the docs check requires, a PR checkbox) are with the owner.
+the rule was read at the start of the session and not at the moment of coining. **Mechanised** (the owner, 2026-10-08,
+"best recommendations"): the docs check's `terms` check fails a design, spec or plan without a `## Terms introduced`
+section or naming a term with no glossary row; the PR template has the checkbox; the review rubric names the finding.
+It cannot see a word coined only in code, which is what the checkbox and the rubric are for.
 
 ### 21 · A hash of floats that pins one machine's arithmetic
 

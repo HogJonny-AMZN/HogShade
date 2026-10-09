@@ -2,7 +2,7 @@
 
 **Status:** Living. Written 2026-10-03 from the accepted conventions design (T1); one page for a human artist and
 an agent at once, with the why on every rule and the check that holds it.
-**Last updated:** 2026-10-03
+**Last updated:** 2026-10-04
 **Read with:** [python.md](python.md) for the tools, [definition-of-done.md](definition-of-done.md),
 [../design/2026-10-03-content-conventions.md](../design/2026-10-03-content-conventions.md) for the decisions and
 the owner's answers, [../glossary.md](../glossary.md) for the words.

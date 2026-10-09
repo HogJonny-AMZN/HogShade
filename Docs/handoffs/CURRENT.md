@@ -2,21 +2,21 @@
 
 **Status:** Living. Rewritten whenever work is interrupted, a decision changes, or a PR lands.
 
-**Last updated:** 2026-10-08: the comparison framework's first increment, C-2 (`hogshade/compare/`, `tools/compare.py`), has landed (#76); the glossary rule is mechanised (#77, in review); the write-up of this repository's own AI-first process is in progress. This line is a snapshot: the history of earlier increments is in the journal and in `git log -p` of this file, where the sit reps removed on 2026-10-08 still are.
+**Last updated:** 2026-10-08: the comparison framework's first increment, C-2 (`hogshade/compare/`, `tools/compare.py`), has landed (#76); the glossary rule is mechanised (#77); the write-up of this repository's own AI-first process is in progress (steps 1 and 2 are in review as #79). This line is a snapshot: the history of earlier increments is in the journal and in `git log -p` of this file, where the sit reps removed on 2026-10-08 still are.
 
 A new session reads this, then `Docs/plan/BOARD.md` (gates first), then `Docs/design/2026-09-26-decision-log-and-working-knowledge.md`, then the newest file in `Docs/journal/`, then `Docs/ROADMAP.md`. `Docs/standards/definition-of-done.md` says what done means and how much to decide alone.
 
 ## In flight
 
-**State, 2026-10-08.** No plan is in flight. Landed: S1 to S4a (the material schema, its generators, the wgpu binding, the base library), T1 to T3b and T4 tier 1 (the content standard, the texture cook, the first sets, wgpu sampling, the synthetic set), the Marmoset worker (`hogshade_marmoset`), the f-string pass, and C-2. In review: #77. Boarded and unblocked, with no spec yet: C-1 (vendor Blender's OCIO config with ACEScg as the working space; **read the upstream licence first**), C-3 (regression cases and baselines), C-4 (the Maya float-capture spike; needs the GPU free), and the AI-first framework write-up (the description, then the graph as data, then a template repo; design first for the last). T4 tiers 2 to 4 and the authored showcase set stay with the owner.
+**State, 2026-10-08.** No plan is in flight. Landed: S1 to S4a (the material schema, its generators, the wgpu binding, the base library), T1 to T3b and T4 tier 1 (the content standard, the texture cook, the first sets, wgpu sampling, the synthetic set), the Marmoset worker (`hogshade_marmoset`), the f-string pass, and C-2. Boarded and unblocked, with no spec yet: C-1 (vendor Blender's OCIO config with ACEScg as the working space; **read the upstream licence first**), C-3 (regression cases and baselines), C-4 (the Maya float-capture spike; needs the GPU free), and the AI-first framework write-up (the description, then the graph as data, then a template repo; design first for the last). T4 tiers 2 to 4 and the authored showcase set stay with the owner.
 
-**What the owner has said that is written nowhere else, and still holds:**
+**What the owner has said that still holds** (a summary: where a record exists, the board, the design or the standard is the authority, not this list):
 
 - **MikkTSpace is required** (2026-10-04): our own generator on arbitrary data, the normals as given, `Mesh.tangent_basis` flagging an unknown basis with a warning and regeneration. Maya's MikkTSpace is the preference `polyUseMikkTSpaceTangents` (off by default), set at boot by the orchestrator's Maya workers (Job_Orchestrator #73).
 - **The comparison framework design is accepted as amended** (2026-10-08, "as recommended"): the capture request is host-neutral, the material hash lives in the manifest only, baselines hold pixels (the PNG in git, the scene-referred EXR in LFS). G4 and G5 are closed: the verbatim shader ball stays the calibration mesh.
 - **G2 is closed** (2026-10-08): Blender's OCIO config is the base, with ACEScg as the working space; the licence is still to be read before it is vendored.
 - **T4**: CC0 assets are "a box of chocolates"; "at some point, even if I have to curate it, we need materials + texture assets with full leverage". The showcase set is authored with the owner.
-- **Design chain** for anything new: conversation and lock, design document, UX mock pass, spec, plan, code; a board yes is not a lock.
+- **Design chain** for anything new: conversation and lock, design document, spec, plan, code (`Docs/standards/workflow.md`); a board yes is not a lock.
 - **Logging**: f-strings in log calls (done, and mechanised by `tools/check_log_format.py`).
 - **A new word gets its glossary row first** (2026-10-08): ledger entry 20, mechanised by the docs check's `terms` check.
 
