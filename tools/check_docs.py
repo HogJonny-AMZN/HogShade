@@ -20,6 +20,9 @@ Checks:
   so the tracker cannot be deleted or quietly collapsed into a list
 - **vocabulary**: a term the glossary has retired (a struck-through row, ``~~**Term**~~``) is not used as
   current anywhere else in the corpus; SpriteJammer boarded this check, this repo built it
+- **terms**: every design, spec and plan carries a ``## Terms introduced`` section naming the glossary terms it
+  introduces (``**Term**``, each with a row in ``Docs/glossary.md``) or saying ``None``; the documents that
+  predate the rule (2026-10-08) are listed in ``TERMS_GRANDFATHERED`` and that set only shrinks (ledger entry 20)
 - **fences**: a fenced code block that never closes; without this the links and status checks would be
   silently vacuous for the rest of that file (local review, 2026-09-27)
 
@@ -81,7 +84,54 @@ HANDOFF = "Docs/handoffs/CURRENT.md"
 BOARD = "Docs/plan/BOARD.md"
 BOARD_SECTIONS = ("## Gates", "## Now", "## Next", "## Blocked", "## Icebox")
 GLOSSARY = "Docs/glossary.md"
+
+#: Where the terms rule applies, and the documents that predate it (2026-10-08, the owner: "oracle is not a term in the
+#: glossary"). Do not add to this set: a document written after the rule carries its section, and one that is
+#: substantially revised earns the section and leaves the set.
+TERMS_DIRS = ("Docs/design/", "Docs/superpowers/specs/", "Docs/superpowers/plans/")
+TERMS_GRANDFATHERED = frozenset(
+    {
+        "Docs/design/2026-09-20-game-shading-feature-catalogue.md",
+        "Docs/design/2026-09-20-modernization-direction.md",
+        "Docs/design/2026-09-20-wysiwyg-blindspots.md",
+        "Docs/design/2026-09-26-decision-log-and-working-knowledge.md",
+        "Docs/design/2026-09-27-material-schema.md",
+        "Docs/design/2026-09-27-pitch-bats-as-the-agents-body.md",
+        "Docs/design/2026-10-02-material-library.md",
+        "Docs/design/2026-10-03-content-conventions.md",
+        "Docs/superpowers/plans/e1-ibl-cook.md",
+        "Docs/superpowers/plans/e2-cook-performance.md",
+        "Docs/superpowers/plans/phase-1-hygiene.md",
+        "Docs/superpowers/plans/phase-2-restructure.md",
+        "Docs/superpowers/plans/s1-material-schema.md",
+        "Docs/superpowers/plans/s2-material-generators.md",
+        "Docs/superpowers/plans/s3-wgpu-binding.md",
+        "Docs/superpowers/plans/s4a-material-library.md",
+        "Docs/superpowers/plans/t1-content-standard.md",
+        "Docs/superpowers/plans/t2-texture-cook.md",
+        "Docs/superpowers/plans/t3-first-texture-set.md",
+        "Docs/superpowers/plans/t3b-wgpu-textures.md",
+        "Docs/superpowers/plans/t4-procedural-set.md",
+        "Docs/superpowers/specs/e1-ibl-cook.md",
+        "Docs/superpowers/specs/e2-cook-performance.md",
+        "Docs/superpowers/specs/phase-1-hygiene.md",
+        "Docs/superpowers/specs/phase-2-restructure.md",
+        "Docs/superpowers/specs/s1-material-schema.md",
+        "Docs/superpowers/specs/s2-material-generators.md",
+        "Docs/superpowers/specs/s3-wgpu-binding.md",
+        "Docs/superpowers/specs/s4a-material-library.md",
+        "Docs/superpowers/specs/t1-content-standard.md",
+        "Docs/superpowers/specs/t2-texture-cook.md",
+        "Docs/superpowers/specs/t3-first-texture-set.md",
+        "Docs/superpowers/specs/t3b-wgpu-textures.md",
+        "Docs/superpowers/specs/t4-procedural-set.md",
+    }
+)
 _RETIRED_RE = re.compile(r"^\| ~~\*\*([^*]+)\*\*~~ \|", re.MULTILINE)
+_GLOSSARY_ROW_RE = re.compile(r"^\|\s*\*\*([^*]+)\*\*", re.MULTILINE)
+_TERMS_HEADING_RE = re.compile(r"^##\s+Terms introduced\s*$", re.MULTILINE | re.IGNORECASE)
+_NONE_RE = re.compile(r"none\.?", re.IGNORECASE)
+_BOLD_RE = re.compile(r"\*\*([^*]+)\*\*")
 
 #: An inline link: the destination is ``<...>`` or a run without whitespace or ``)``; an optional title
 #: (``"..."`` or ``'...'``) may follow. Titles are not paths.
@@ -304,6 +354,62 @@ def check_board(files: Iterable[Path], root: Path = REPO_ROOT) -> list[Finding]:
 Check = Callable[[Iterable[Path], Path], list[Finding]]
 
 
+def glossary_terms(root: Path = REPO_ROOT) -> set[str]:
+    """The glossary's current terms (the bold first cell of each row), lowercase; retired ones are not current."""
+    path = root / GLOSSARY
+    if not path.exists():
+        return set()
+    return {m.group(1).strip().lower() for m in _GLOSSARY_ROW_RE.finditer(strip_fences(_read(path)))}
+
+
+def _terms_section(text: str) -> str | None:
+    """The body of the ``## Terms introduced`` section (to the next ``#`` or ``##`` heading), or None."""
+    match = _TERMS_HEADING_RE.search(text)
+    if match is None:
+        return None
+    rest = text[match.end() :]
+    end = re.search(r"^#{1,2}\s", rest, re.MULTILINE)
+    return rest[: end.start()] if end else rest
+
+
+def check_terms_introduced(files: Iterable[Path], root: Path = REPO_ROOT) -> list[Finding]:
+    """
+    A design, spec or plan written after the rule carries its terms: a ``## Terms introduced`` section (level two,
+    wherever it sits) that says
+    ``None`` or lists each as ``**Term**``, every one with a row in the glossary. The word is added to the glossary in
+    the same change, before the code that uses it (ledger entry 20).
+    """
+    findings: list[Finding] = []
+    known = glossary_terms(root)
+    for path in files:
+        rel = _rel(path, root)
+        if not rel.startswith(TERMS_DIRS) or rel in TERMS_GRANDFATHERED:
+            continue
+        section = _terms_section(strip_fences(_read(path)))
+        if section is None:
+            findings.append(
+                Finding(
+                    "terms",
+                    rel,
+                    "no `## Terms introduced` section: list the glossary terms this introduces, or say None",
+                )
+            )
+            continue
+        body = section.strip()
+        first = next((ln.strip() for ln in body.splitlines() if ln.strip()), "")
+        if _NONE_RE.fullmatch(first):  # the whole first line is the word None, not prose that starts with it
+            continue
+        terms = [t.strip() for t in _BOLD_RE.findall(body)]
+        if not terms:
+            findings.append(Finding("terms", rel, "`Terms introduced` lists no `**Term**` and does not say None"))
+        for term in terms:
+            if term.lower() not in known:
+                findings.append(
+                    Finding("terms", rel, f"term {term!r} has no row in {GLOSSARY}; add it before using it")
+                )
+    return findings
+
+
 def retired_terms(root: Path = REPO_ROOT) -> list[str]:
     """The glossary's struck-through terms, lowercase."""
     path = root / GLOSSARY
@@ -349,6 +455,7 @@ CHECKS: tuple[Check, ...] = (
     check_adr_index,
     check_board,
     check_vocabulary,
+    check_terms_introduced,
 )
 
 

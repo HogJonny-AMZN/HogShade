@@ -151,3 +151,9 @@ with their controls reproducing the existing probes' agreement (about 100 percen
 
 None open: the design's six answers bind this spec. If the build finds one the design got wrong, the spec is amended
 and the finding goes under a *What the build found* section, as for T4.
+
+## Terms introduced
+
+**Capture request**, **Capture set**, **Capture level**, **Adapter**, **Case**, **Oracle**, **Regression** (case),
+**Parity** (case), **Control**, **Comparison verdict**, **Accepted difference**, **Baseline** and **Data range**: all in
+[../../glossary.md](../../glossary.md), added when the owner noticed they were missing (ledger entry 20).
