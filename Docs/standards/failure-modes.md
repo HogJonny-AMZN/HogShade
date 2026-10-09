@@ -1,7 +1,7 @@
 # Failure modes
 
 **Status:** Living. Append-only, like the ADRs.
-**Last updated:** 2026-09-27 (seeded in the standards pass from this repository's own week)
+**Last updated:** 2026-10-08 (seeded in the standards pass; entries since are dated in their own text)
 **Read with:** [definition-of-done.md](definition-of-done.md), [../plan/BOARD.md](../plan/BOARD.md) "How this stays honest", [../journal/README.md](../journal/README.md)
 
 **This is the ledger of how the work has gone wrong**, not the work. Every entry is a defect in
@@ -10,7 +10,7 @@ usable at the moment it applies. The shape is LargeWorlds' ledger, which took it
 
 It works by being read: `Docs/` is loaded before work starts, so retrieval is the enforcement.
 Where a class can be mechanised, mechanise it and link the check here; the entry then says why the
-check exists. Entries 3, 4, 6, 8 and 9 have checks today.
+check exists. An entry that has a check says so in its own text.
 
 ## The ledger
 

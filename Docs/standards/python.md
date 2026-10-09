@@ -1,7 +1,7 @@
 # Python coding standards
 
 **Status:** Accepted (the standards pass, 2026-09-27; ported from LargeWorlds and SpriteJammer, kept to what applies here)
-**Last updated:** 2026-09-27
+**Last updated:** 2026-10-08
 **Read with:** [wgsl.md](wgsl.md) for the core, [definition-of-done.md](definition-of-done.md), [failure-modes.md](failure-modes.md)
 
 Python in this repository is three things, and the rules differ slightly for each:

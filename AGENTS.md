@@ -1,8 +1,7 @@
 # AGENTS.md
 
 Tool-neutral entry point for any coding agent in this repository. Short on purpose: the knowledge
-lives in small topic files, and this is the map. (The full standards and agent context arrive in
-the phase 2 standards pass; until then these pointers are the contract.)
+lives in small topic files, and this is the map.
 
 ## Read first
 
