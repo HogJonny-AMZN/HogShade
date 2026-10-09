@@ -58,6 +58,54 @@ def test_frame_layout_matches_the_wgsl_struct() -> None:
     assert wgsl_order == list(wgpu_host.FRAME_DTYPE.names)
 
 
+#: Orbit scenes as the host built their camera before the explicit camera existed (task 6 of the C-2 plan, 2026-10-08).
+ORBIT_SCENES = {
+    "default": {},
+    "orbit": {"yaw_deg": 10.0, "pitch_deg": 5.0, "distance": 3.0, "width": 512, "height": 256},
+    "lit": {"light_dir": (0.1, 0.9, 0.2), "light_intensity": 1.5, "env_exposure": 2.0, "debug_mode": 8},
+}
+
+
+@pytest.mark.parametrize("name", sorted(ORBIT_SCENES))
+def test_an_orbit_scene_builds_its_camera_exactly_as_it_did_before_the_explicit_camera(name: str) -> None:
+    """
+    The original formula, written out here: a look-at from the orbit's eye to a fixed target with Y up, and the
+    perspective of the scene's field of view. The orbit must still produce exactly that, on any platform (a hash of
+    the packed float bytes would pin one machine's arithmetic: CI's numpy differs in the last bits).
+    """
+    scene = wgpu_host.Scene(**ORBIT_SCENES[name])
+    eye = wgpu_host.orbit_eye(scene.yaw_deg, scene.pitch_deg, scene.distance)
+    view = wgpu_host.look_at(eye, np.array([0.0, 0.05, 0.0]), np.array([0.0, 1.0, 0.0]))
+    proj = wgpu_host.perspective(scene.fov_y_deg, scene.width / scene.height, wgpu_host.NEAR_PLANE, wgpu_host.FAR_PLANE)
+    got_vp, got_eye = scene.view_proj()
+    np.testing.assert_array_equal(got_vp, proj @ view)
+    np.testing.assert_array_equal(got_eye, eye)
+    assert scene.camera is None
+
+
+def test_an_explicit_camera_at_the_orbit_s_eye_gives_the_orbit_s_view_projection() -> None:
+    orbit = wgpu_host.Scene(yaw_deg=32.0, pitch_deg=18.0, distance=4.0)
+    eye = wgpu_host.orbit_eye(32.0, 18.0, 4.0)
+    explicit = wgpu_host.Scene(
+        yaw_deg=0.0, pitch_deg=0.0, distance=1.0, camera=(tuple(eye), (0.0, 0.05, 0.0), (0.0, 1.0, 0.0))
+    )
+    np.testing.assert_array_equal(explicit.view_proj()[0], orbit.view_proj()[0])
+    np.testing.assert_array_equal(explicit.view_proj()[1], eye)
+    assert explicit.frame_bytes(7) == orbit.frame_bytes(7), "the orbit fields are ignored once a camera is given"
+
+
+def test_an_explicit_camera_looks_where_it_is_told() -> None:
+    scene = wgpu_host.Scene(camera=((3.0, 0.0, 0.0), (0.0, 0.0, 0.0), (0.0, 1.0, 0.0)))
+    vp, eye = scene.view_proj()
+    np.testing.assert_array_equal(eye, [3.0, 0.0, 0.0])
+    centre = vp @ np.array([0.0, 0.0, 0.0, 1.0])
+    ndc = centre[:3] / centre[3]
+    np.testing.assert_allclose(ndc[:2], [0.0, 0.0], atol=1e-12)  # the target is at the centre of the picture
+    assert 0.0 < ndc[2] < 1.0  # and inside the (0, 1) clip depth range
+    point = vp @ np.array([0.0, 0.0, -1.0, 1.0])  # -Z is to the camera's right when it looks down -X with Y up
+    assert point[0] / point[3] > 0.0
+
+
 V1_LOBES = {
     "model": "legacy-v1",
     "rough_is_gloss": True,

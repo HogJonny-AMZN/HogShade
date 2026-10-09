@@ -61,5 +61,8 @@ jobs:
       - name: Content (textures, sidecars and bindings obey Docs/standards/content.md)
         run: uv run tools/check_content.py
 
+      - name: Comparison (the case table, the acceptances and any stored report are valid)
+        run: uv run tools/compare.py validate
+
       - name: Tests
         run: uv run pytest -q

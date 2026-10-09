@@ -1,0 +1,670 @@
+{
+  "cases": [
+    {
+      "check": {
+        "data_range": 1.0,
+        "name": "quad-sphere-texel",
+        "params": {
+          "gray": true,
+          "map": "_R",
+          "spread": 0
+        }
+      },
+      "expect": "pass",
+      "id": "texel-roughness",
+      "kind": "oracle",
+      "request": {
+        "camera": {
+          "eye": [
+            2.0159326774372914,
+            1.2360679774997896,
+            3.2261666719250712
+          ],
+          "far": 50.0,
+          "fov_y_deg": 32.0,
+          "near": 0.1,
+          "target": [
+            0.0,
+            0.05,
+            0.0
+          ],
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "debug_mode": 8,
+        "id": "quad-sphere-roughness",
+        "material": null,
+        "mesh": "quad-sphere",
+        "rig": {
+          "environment": "studio_small_09",
+          "exposure_ev": 0.0,
+          "rotation_deg": 0.0
+        },
+        "size": [
+          512,
+          512
+        ],
+        "textures": "content/textures/synthetic",
+        "view": "preview"
+      },
+      "thresholds": [
+        {
+          "direction": "higher",
+          "fail_at": 0.9,
+          "metric": "agreement",
+          "pass_at": 0.99
+        },
+        {
+          "direction": "higher",
+          "fail_at": 50,
+          "metric": "pixels",
+          "pass_at": 400
+        }
+      ]
+    },
+    {
+      "check": {
+        "data_range": 1.0,
+        "name": "quad-sphere-texel",
+        "params": {
+          "gray": true,
+          "map": "_M",
+          "spread": 0
+        }
+      },
+      "expect": "pass",
+      "id": "texel-metalness",
+      "kind": "oracle",
+      "request": {
+        "camera": {
+          "eye": [
+            2.0159326774372914,
+            1.2360679774997896,
+            3.2261666719250712
+          ],
+          "far": 50.0,
+          "fov_y_deg": 32.0,
+          "near": 0.1,
+          "target": [
+            0.0,
+            0.05,
+            0.0
+          ],
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "debug_mode": 7,
+        "id": "quad-sphere-metalness",
+        "material": null,
+        "mesh": "quad-sphere",
+        "rig": {
+          "environment": "studio_small_09",
+          "exposure_ev": 0.0,
+          "rotation_deg": 0.0
+        },
+        "size": [
+          512,
+          512
+        ],
+        "textures": "content/textures/synthetic",
+        "view": "preview"
+      },
+      "thresholds": [
+        {
+          "direction": "higher",
+          "fail_at": 0.9,
+          "metric": "agreement",
+          "pass_at": 0.99
+        },
+        {
+          "direction": "higher",
+          "fail_at": 50,
+          "metric": "pixels",
+          "pass_at": 400
+        }
+      ]
+    },
+    {
+      "check": {
+        "data_range": 1.0,
+        "name": "quad-sphere-texel",
+        "params": {
+          "gray": true,
+          "map": "_AO",
+          "spread": 16
+        }
+      },
+      "expect": "pass",
+      "id": "texel-ao",
+      "kind": "oracle",
+      "request": {
+        "camera": {
+          "eye": [
+            2.0159326774372914,
+            1.2360679774997896,
+            3.2261666719250712
+          ],
+          "far": 50.0,
+          "fov_y_deg": 32.0,
+          "near": 0.1,
+          "target": [
+            0.0,
+            0.05,
+            0.0
+          ],
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "debug_mode": 9,
+        "id": "quad-sphere-ao",
+        "material": null,
+        "mesh": "quad-sphere",
+        "rig": {
+          "environment": "studio_small_09",
+          "exposure_ev": 0.0,
+          "rotation_deg": 0.0
+        },
+        "size": [
+          512,
+          512
+        ],
+        "textures": "content/textures/synthetic",
+        "view": "preview"
+      },
+      "thresholds": [
+        {
+          "direction": "higher",
+          "fail_at": 0.9,
+          "metric": "agreement",
+          "pass_at": 0.99
+        },
+        {
+          "direction": "higher",
+          "fail_at": 50,
+          "metric": "pixels",
+          "pass_at": 400
+        }
+      ]
+    },
+    {
+      "check": {
+        "data_range": 1.0,
+        "name": "quad-sphere-texel",
+        "params": {
+          "gray": false,
+          "map": "_BC",
+          "spread": 0
+        }
+      },
+      "expect": "pass",
+      "id": "texel-colour",
+      "kind": "oracle",
+      "request": {
+        "camera": {
+          "eye": [
+            2.0159326774372914,
+            1.2360679774997896,
+            3.2261666719250712
+          ],
+          "far": 50.0,
+          "fov_y_deg": 32.0,
+          "near": 0.1,
+          "target": [
+            0.0,
+            0.05,
+            0.0
+          ],
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "debug_mode": 1,
+        "id": "quad-sphere-colour",
+        "material": null,
+        "mesh": "quad-sphere",
+        "rig": {
+          "environment": "studio_small_09",
+          "exposure_ev": 0.0,
+          "rotation_deg": 0.0
+        },
+        "size": [
+          512,
+          512
+        ],
+        "textures": "content/textures/synthetic",
+        "view": "preview"
+      },
+      "thresholds": [
+        {
+          "direction": "higher",
+          "fail_at": 0.9,
+          "metric": "agreement",
+          "pass_at": 0.99
+        },
+        {
+          "direction": "higher",
+          "fail_at": 50,
+          "metric": "pixels",
+          "pass_at": 400
+        }
+      ]
+    },
+    {
+      "check": {
+        "data_range": 1.0,
+        "name": "quad-sphere-texel",
+        "params": {
+          "flip_v": true,
+          "gray": true,
+          "map": "_M",
+          "spread": 0
+        }
+      },
+      "expect": "fail",
+      "fails_on": [
+        "agreement"
+      ],
+      "id": "texel-metalness-v-flipped",
+      "kind": "oracle",
+      "request": {
+        "camera": {
+          "eye": [
+            2.0159326774372914,
+            1.2360679774997896,
+            3.2261666719250712
+          ],
+          "far": 50.0,
+          "fov_y_deg": 32.0,
+          "near": 0.1,
+          "target": [
+            0.0,
+            0.05,
+            0.0
+          ],
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "debug_mode": 7,
+        "id": "quad-sphere-metalness",
+        "material": null,
+        "mesh": "quad-sphere",
+        "rig": {
+          "environment": "studio_small_09",
+          "exposure_ev": 0.0,
+          "rotation_deg": 0.0
+        },
+        "size": [
+          512,
+          512
+        ],
+        "textures": "content/textures/synthetic",
+        "view": "preview"
+      },
+      "thresholds": [
+        {
+          "direction": "higher",
+          "fail_at": 0.9,
+          "metric": "agreement",
+          "pass_at": 0.99
+        },
+        {
+          "direction": "higher",
+          "fail_at": 50,
+          "metric": "pixels",
+          "pass_at": 400
+        }
+      ]
+    },
+    {
+      "check": {
+        "data_range": 1.0,
+        "name": "quad-sphere-texel",
+        "params": {
+          "flip_v": true,
+          "gray": false,
+          "map": "_BC",
+          "spread": 0
+        }
+      },
+      "expect": "fail",
+      "fails_on": [
+        "agreement"
+      ],
+      "id": "texel-colour-v-flipped",
+      "kind": "oracle",
+      "request": {
+        "camera": {
+          "eye": [
+            2.0159326774372914,
+            1.2360679774997896,
+            3.2261666719250712
+          ],
+          "far": 50.0,
+          "fov_y_deg": 32.0,
+          "near": 0.1,
+          "target": [
+            0.0,
+            0.05,
+            0.0
+          ],
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "debug_mode": 1,
+        "id": "quad-sphere-colour",
+        "material": null,
+        "mesh": "quad-sphere",
+        "rig": {
+          "environment": "studio_small_09",
+          "exposure_ev": 0.0,
+          "rotation_deg": 0.0
+        },
+        "size": [
+          512,
+          512
+        ],
+        "textures": "content/textures/synthetic",
+        "view": "preview"
+      },
+      "thresholds": [
+        {
+          "direction": "higher",
+          "fail_at": 0.9,
+          "metric": "agreement",
+          "pass_at": 0.99
+        },
+        {
+          "direction": "higher",
+          "fail_at": 50,
+          "metric": "pixels",
+          "pass_at": 400
+        }
+      ]
+    },
+    {
+      "check": {
+        "data_range": 1.0,
+        "name": "quad-sphere-normal",
+        "params": {}
+      },
+      "expect": "pass",
+      "id": "normal-conventions",
+      "kind": "oracle",
+      "request": {
+        "camera": {
+          "eye": [
+            2.0159326774372914,
+            1.2360679774997896,
+            3.2261666719250712
+          ],
+          "far": 50.0,
+          "fov_y_deg": 32.0,
+          "near": 0.1,
+          "target": [
+            0.0,
+            0.05,
+            0.0
+          ],
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "debug_mode": 11,
+        "id": "quad-sphere-normal",
+        "material": null,
+        "mesh": "quad-sphere",
+        "rig": {
+          "environment": "studio_small_09",
+          "exposure_ev": 0.0,
+          "rotation_deg": 0.0
+        },
+        "size": [
+          512,
+          512
+        ],
+        "textures": "content/textures/synthetic",
+        "view": "preview"
+      },
+      "thresholds": [
+        {
+          "direction": "higher",
+          "fail_at": 0.9,
+          "metric": "green_authored",
+          "pass_at": 0.99
+        },
+        {
+          "direction": "lower",
+          "fail_at": 0.1,
+          "metric": "green_flipped",
+          "pass_at": 0.01
+        },
+        {
+          "direction": "higher",
+          "fail_at": 0.9,
+          "metric": "red_authored",
+          "pass_at": 0.99
+        },
+        {
+          "direction": "lower",
+          "fail_at": 0.1,
+          "metric": "red_flipped",
+          "pass_at": 0.01
+        },
+        {
+          "direction": "higher",
+          "fail_at": 50,
+          "metric": "green_pixels",
+          "pass_at": 150
+        },
+        {
+          "direction": "higher",
+          "fail_at": 50,
+          "metric": "red_pixels",
+          "pass_at": 150
+        }
+      ]
+    },
+    {
+      "check": {
+        "data_range": 1.0,
+        "name": "quad-sphere-normal",
+        "params": {
+          "flip_expectation": "green"
+        }
+      },
+      "expect": "fail",
+      "fails_on": [
+        "green_authored",
+        "green_flipped"
+      ],
+      "id": "normal-green-flipped",
+      "kind": "oracle",
+      "request": {
+        "camera": {
+          "eye": [
+            2.0159326774372914,
+            1.2360679774997896,
+            3.2261666719250712
+          ],
+          "far": 50.0,
+          "fov_y_deg": 32.0,
+          "near": 0.1,
+          "target": [
+            0.0,
+            0.05,
+            0.0
+          ],
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "debug_mode": 11,
+        "id": "quad-sphere-normal",
+        "material": null,
+        "mesh": "quad-sphere",
+        "rig": {
+          "environment": "studio_small_09",
+          "exposure_ev": 0.0,
+          "rotation_deg": 0.0
+        },
+        "size": [
+          512,
+          512
+        ],
+        "textures": "content/textures/synthetic",
+        "view": "preview"
+      },
+      "thresholds": [
+        {
+          "direction": "higher",
+          "fail_at": 0.9,
+          "metric": "green_authored",
+          "pass_at": 0.99
+        },
+        {
+          "direction": "lower",
+          "fail_at": 0.1,
+          "metric": "green_flipped",
+          "pass_at": 0.01
+        },
+        {
+          "direction": "higher",
+          "fail_at": 0.9,
+          "metric": "red_authored",
+          "pass_at": 0.99
+        },
+        {
+          "direction": "lower",
+          "fail_at": 0.1,
+          "metric": "red_flipped",
+          "pass_at": 0.01
+        },
+        {
+          "direction": "higher",
+          "fail_at": 50,
+          "metric": "green_pixels",
+          "pass_at": 150
+        },
+        {
+          "direction": "higher",
+          "fail_at": 50,
+          "metric": "red_pixels",
+          "pass_at": 150
+        }
+      ]
+    },
+    {
+      "check": {
+        "data_range": 1.0,
+        "name": "quad-sphere-normal",
+        "params": {
+          "flip_expectation": "red"
+        }
+      },
+      "expect": "fail",
+      "fails_on": [
+        "red_authored",
+        "red_flipped"
+      ],
+      "id": "normal-red-flipped",
+      "kind": "oracle",
+      "request": {
+        "camera": {
+          "eye": [
+            2.0159326774372914,
+            1.2360679774997896,
+            3.2261666719250712
+          ],
+          "far": 50.0,
+          "fov_y_deg": 32.0,
+          "near": 0.1,
+          "target": [
+            0.0,
+            0.05,
+            0.0
+          ],
+          "up": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "debug_mode": 11,
+        "id": "quad-sphere-normal",
+        "material": null,
+        "mesh": "quad-sphere",
+        "rig": {
+          "environment": "studio_small_09",
+          "exposure_ev": 0.0,
+          "rotation_deg": 0.0
+        },
+        "size": [
+          512,
+          512
+        ],
+        "textures": "content/textures/synthetic",
+        "view": "preview"
+      },
+      "thresholds": [
+        {
+          "direction": "higher",
+          "fail_at": 0.9,
+          "metric": "green_authored",
+          "pass_at": 0.99
+        },
+        {
+          "direction": "lower",
+          "fail_at": 0.1,
+          "metric": "green_flipped",
+          "pass_at": 0.01
+        },
+        {
+          "direction": "higher",
+          "fail_at": 0.9,
+          "metric": "red_authored",
+          "pass_at": 0.99
+        },
+        {
+          "direction": "lower",
+          "fail_at": 0.1,
+          "metric": "red_flipped",
+          "pass_at": 0.01
+        },
+        {
+          "direction": "higher",
+          "fail_at": 50,
+          "metric": "green_pixels",
+          "pass_at": 150
+        },
+        {
+          "direction": "higher",
+          "fail_at": 50,
+          "metric": "red_pixels",
+          "pass_at": 150
+        }
+      ]
+    }
+  ],
+  "version": 1
+}

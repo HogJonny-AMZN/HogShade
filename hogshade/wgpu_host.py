@@ -434,6 +434,9 @@ class Scene:
     #: The document's textures in their runtime form (``hogshade.material.runtime.runtime_textures`` of the
     #: binding's ``textures`` against the document's directory); None or empty renders every slot neutral (T3b).
     textures: dict[str, RuntimeTexture] | None = None
+    #: An explicit camera ``(eye, target, up)`` in world metres, Y up. None keeps the orbit (``yaw_deg``, ``pitch_deg``,
+    #: ``distance`` about a fixed target); the comparison framework's adapter sets it from a capture request.
+    camera: tuple[tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]] | None = None
     _plan: tuple[dict[str, RuntimeTexture], MaterialPlan] | None = field(
         default=None, init=False, repr=False, compare=False
     )
@@ -453,8 +456,12 @@ class Scene:
         return self._plan[1]
 
     def view_proj(self) -> tuple[NDArray, NDArray]:
-        eye = orbit_eye(self.yaw_deg, self.pitch_deg, self.distance)
-        view = look_at(eye, np.array([0.0, 0.05, 0.0]), np.array([0.0, 1.0, 0.0]))
+        if self.camera is None:
+            eye = orbit_eye(self.yaw_deg, self.pitch_deg, self.distance)
+            target, up = np.array([0.0, 0.05, 0.0]), np.array([0.0, 1.0, 0.0])
+        else:
+            eye, target, up = (np.asarray(v, dtype=np.float64) for v in self.camera)
+        view = look_at(eye, target, up)
         proj = perspective(self.fov_y_deg, self.width / self.height, NEAR_PLANE, FAR_PLANE)
         return proj @ view, eye
 
