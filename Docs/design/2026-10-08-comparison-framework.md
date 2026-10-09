@@ -66,7 +66,8 @@ same. The host and its version belong to the adapter invocation and are recorded
 
 - the mesh (a canonical id from `hogshade.compare.meshes`, for example `shader-ball` or `quad-sphere`; each adapter maps
   the id to its own source and records the mesh's content hash in the manifest; MikkTSpace tangents, per the standard),
-- the material (a document path and hash from the library),
+- the material (a document path from the library; its hash is recorded in the manifest, so a request cannot go
+  stale when the document changes),
 - the light rig: the HDR file (the cooked IBL), rotation in degrees about +Y, exposure in EV,
 - the camera: eye, target, up, vertical field of view in degrees, near and far, in metres,
 - the image size, the debug mode (one of the model's views, or none), the view transform name.
@@ -80,12 +81,13 @@ directory, `<host>[-<version>]/<check>/<variant>/` (the existing rule), with fil
 | `scene.exr` | scene-referred ACEScg, half or float, with the colour space in the metadata (when the host can; see below) |
 | `display.png` | after the one view transform, 8-bit (the picture the gallery may list) |
 | `coverage.png` | 8-bit mask of the pixels the mesh covers, for silhouette exclusion |
-| `manifest.json` | the host, versions (Maya, driver, wgpu, naga), hashes of the inputs, the capture level reached, the wall time |
+| `manifest.json` | the host, versions (Maya, driver, wgpu, naga), the hashes of every input actually loaded (mesh, material document, textures, and the environment files the rig named), the capture level reached, the wall time |
 | `*.log` | the host's own log (kept on purpose, per the verification rule) |
 
 Which roles a set must hold depends on the level it declares (section 4), so a valid lower-level set is not
 rejected: **L2 and L2p** require `request.json`, `scene.exr`, `display.png`, `coverage.png` and `manifest.json`;
-**L1** requires `request.json`, `display.png`, `coverage.png` and `manifest.json` (no `scene.exr`); **L0** requires
+**L1** requires `request.json`, `display.png` and `manifest.json` (no `scene.exr`, and `coverage.png` optional,
+since the current Maya playblast yields a picture and no mask; a case that needs a mask refuses a set without one); **L0** requires
 `request.json`, `manifest.json` and at least one log, since a host that produced nothing must say why. Logs are
 optional at every other level and are listed in the manifest. Any role beyond the level's list is refused as
 unknown, so a typo cannot pass for an extra.
@@ -279,3 +281,19 @@ baseline revision Copilot's review forced (a baseline holds pixels):
 **G5, answered with them (owner, 2026-10-08: "as recommended"):** no. The verbatim shader ball stays the
 calibration mesh. The vertex-colour and vertex-AO features (C4) are tested with a procedural colour set with known
 values, not the legacy ball's colour sets; a separate "shader ball with CPV" mesh is an optional later row.
+
+## Amendments after acceptance
+
+Review of the C-2 spec (Copilot on #74, 2026-10-08) showed two places where this design and the spec could not
+both be implemented. A change to a locked design is the owner's, so both were put to the owner, who answered
+"Yes, host-neutral request" and "Manifest only" (2026-10-08):
+
+1. **The request names no host.** Section 2 had listed "the host and its version" in the request. The same request
+   is run through every host and hashes the same, so the host and version belong to the adapter invocation and the
+   manifest.
+2. **The request holds the material path only.** Section 2 had a path and a hash. The hash of the document the
+   adapter loaded goes in the manifest with the mesh, texture and environment hashes, so a request cannot go stale
+   when a document changes.
+
+The per-level required roles, the optional mask at L1 and the environment hash in the manifest follow from the
+level model already accepted (section 4) and are stated in section 2 so the reader and the spec agree.
