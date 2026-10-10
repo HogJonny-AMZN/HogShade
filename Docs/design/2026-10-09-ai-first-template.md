@@ -301,7 +301,7 @@ Later, not in this design: `--update`, the graph overlay, further stacks (WGSL).
 | Mock `src/` | A neutral toy domain: `core`, `app`, a headless `ui` |
 | Increment order | Core, init and Makefile; stack and mock `src/`; specimens; UX; sync check |
 | Contested files | I propose per file (the table above); the owner overrules |
-| Where this lives | HogShade's `Docs/design/` until the template repository exists |
+| Where this lives | HogShade's `Docs/design/` until increment 1's close-out (plan task 12); see *Amendments after acceptance* |
 | The template runs the framework on itself | The shippable files in `payload/`; the root is the template's own instance, synced from it |
 | Harness neutrality | `AGENTS.md` is the only context; generated adapters for Claude Code, Gemini CLI and Copilot (Codex and Cursor opt-in); skills canonical in `.agents/skills/` with generated mirrors; conformance probes |
 | When the repository is created | After the lock, as the first act of increment 1; the creation itself is outward-facing and needs the owner's go at that moment |
@@ -322,6 +322,11 @@ Later, not in this design: `--update`, the graph overlay, further stacks (WGSL).
   fixes the defects the pass found (no hook installer, substring-matched parity tests, stale counts, the `Adopted`
   status). The list is in the increment 1 spec's *What the build found*. The owner's pick, SpriteJammer as the source for
   this layer, is unchanged.
+- **2026-10-10, owner's answer to a review finding (changes a locked decision's timing).** The design, the increment 1 spec
+  and plan stay in HogShade after the template repository was created on 2026-10-09; they move at **increment 1's
+  close-out (plan task 12)**, not at creation. At task 12 the build imports them as the template's own design, spec and
+  plan and marks HogShade's copies Superseded with a pointer. Until then there is one copy, here, so no HogShade link
+  breaks and nothing drifts between two.
 
 ## Terms introduced
 
