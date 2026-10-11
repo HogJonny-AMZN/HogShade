@@ -206,6 +206,35 @@ formatter does not wrap strings or docstrings). PySide6, GPU, numba, game-loop, 
   missed** (an emitter that wrote invalid TOML for emoji, a quadratic duplicate check, a lock that could be a directory);
   mutation checks (deliberately breaking a rule and requiring a test to fail) found two dead rules and one missing test.
 
+### Task 5: what the build found (2026-10-11, template pull requests #3 to #6)
+
+Built in four pull requests: the documents (#3), the ledgers (#4), the standards (#5), the pull request template and the
+skills (#6); 159 tests; each reviewed by a fresh-eyes pass and by Copilot or by the pass alone.
+
+- **`init new` requires the `journal` and `python-uv` modules.** The always-seeded entry file and docs map link to their files,
+  and a repository made with either off had dead links and failing managed tests. A repository without them is adopted with
+  `init adopt` (increment 5). This narrows the design's "journal off for a repository that keeps none" for new repositories.
+- **`{{today}}` is a token in file names and content.** The lock keeps the day it was first used (`initialised`); a lost or older
+  lock recovers it from the earliest retained dated seed, and a dated seed is never written twice. Only `{{today}}` may appear in
+  a payload path, in the file name only, and never in a managed file; days must be real calendar days.
+- **The framework ledger is 27 entries, not 24.** The merge of the three source ledgers split three compound entries, restored
+  two lessons the first draft had dropped (citation drift, a control that varies only the favoured hypothesis), and added a
+  trigger index. Project entries are numbered `P-n`. The Python and measurement lessons are not in the core ledger (the board's
+  Icebox in the template holds both).
+- **Standards:** the extraction's picks held, and four were refined by the review: the UX mock pass is stage 1a and only for
+  something a person will touch; the check `nested-claude` is `nested-instructions`; a spike has a stated question and a frozen,
+  lint-excluded `Spikes/`; the handoff limit's range is 20 to 1000.
+- **Neutrality is a test, not a hope.** The seeds, the ledger, the skills and the template are scanned for vendor and
+  sibling-project names (and, in the ledger, for language and stack words); the `gh` examples are labelled as GitHub's by a test.
+- **Claude Code reads skills from `.claude/skills/` only**, so until the harness-adapter task (9) generates the mirror the skills
+  reach it through `AGENTS.md`'s pointer. Gemini CLI and Copilot read `.agents/skills/` directly.
+- **The seeds reference things later tasks build** (`make check`, `tools/check.py`, the docs check's named checks, the log-format
+  and hygiene checks): each is scheduled in tasks 6 to 8; task 11 (a made repository, `make check` green) is what proves they all
+  exist. Task 5's written verification (`check_docs.py` clean on a made repository) moved to task 6 for the same reason.
+- **Four more defects the author's tests missed, found by review**: a managed test that failed when a project used its own
+  ledger, a project-ledger placeholder that contradicted its first entry, a value token in a payload path that could write outside
+  the target, and a core file that depended on a module that could be off.
+
 ### Not found here
 
 Whether SJ or HS keep identity and sign-off rules in files other than their definition of done; whether HS's and LW's

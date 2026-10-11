@@ -25,12 +25,18 @@ a scratch checkout, not in HogShade.
 - [x] 4. **`init new`**: `--answers`, `--dry-run`, `--target`, idempotence, the run record, exit codes. Verify: a second run
       changes no tracked or generated file (the git-ignored run record under `logs/` is excluded); `--dry-run` writes no file
       and prints the plan; each refused input exits 1 naming the field.
-- [ ] 5. **The seed**: entry file and docs map, glossary, board, handoff ("Day 0"), journal, ADR-001, the framework ledger
-      and an empty project ledger, the standards in reconciled form, the PR template, the skills. Verify: `check_docs.py`
-      is clean on a generated repository.
+- [x] 5. **The seed**: entry file and docs map, glossary, board, handoff ("Day 0"), journal, ADR-001, the framework ledger
+      and an empty project ledger, the standards in reconciled form, the PR template, the skills. Verify: the seed tests
+      (statuses, case-exact links, indexes, the handoff's date, no unreplaced token, neutrality) pass on a generated
+      repository. *Amended 2026-10-11:* the written verification, `check_docs.py` clean on a generated repository, cannot run
+      until the checker exists, so it moved to task 6; the seed tests are its stand-in until then. Built in template PRs
+      #3 to #6 (part 1 the documents, part 2 the ledgers, part 3 the standards, the template and the skills).
 - [ ] 6. **`check_docs.py`, unified**, with the closed status set (`Proposed|Accepted|Living|Superseded|Abandoned`, in the first 12 lines, for specs and plans
       too) and the handoff limit (150 lines, `handoff_max_lines`), as the spec's *The two new docs rules* define them; port
-      the tests from HogShade and add one per new rule, including a value just over the limit and a free-form status. Verify: acceptance 4 for each rule.
+      the tests from HogShade and add one per new rule, including a value just over the limit and a free-form status. Verify: acceptance 4 for each rule, **and the checker is clean
+      on a repository generated from the payload** (task 5's moved verification), **and its check names are exactly the ones
+      `Docs/standards/definition-of-done.md` lists** (a test parses that table and compares), and each ledger entry a check
+      holds names the check.
 - [ ] 7. **`check_hygiene.py`, `check_log_format.py` and the graph generator** with their tests (the graph and its page
       are the base graph as it stands). Verify: acceptance 4; the generated page is current.
 - [ ] 8. **The gate**: `tools/check.py`, the `Makefile`, the hooks (pre-commit, `commit-msg`), the CI workflow on Windows and
