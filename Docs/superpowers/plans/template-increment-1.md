@@ -20,9 +20,9 @@ a scratch checkout, not in HogShade.
 - [x] 2. **Create the repository** (owner's go at this moment): private, `ai-first-template`, the owner's account, the
       stated "all rights reserved" notice, `payload/` and the root skeleton, the template's own board and handoff.
       Verify: the repository exists and is private (`gh repo view`).
-- [ ] 3. **Schemas and loader** (`framework.toml`, `project.json`, the answers file): validation that names the field.
+- [x] 3. **Schemas and loader** (`framework.toml`, `project.json`, the answers file): validation that names the field.
       Verify: a test per refusal; a valid file round-trips.
-- [ ] 4. **`init new`**: `--answers`, `--dry-run`, `--target`, idempotence, the run record, exit codes. Verify: a second run
+- [x] 4. **`init new`**: `--answers`, `--dry-run`, `--target`, idempotence, the run record, exit codes. Verify: a second run
       changes no tracked or generated file (the git-ignored run record under `logs/` is excluded); `--dry-run` writes no file
       and prints the plan; each refused input exits 1 naming the field.
 - [ ] 5. **The seed**: entry file and docs map, glossary, board, handoff ("Day 0"), journal, ADR-001, the framework ledger

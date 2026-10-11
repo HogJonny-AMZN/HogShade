@@ -184,6 +184,28 @@ formatter does not wrap strings or docstrings). PySide6, GPU, numba, game-loop, 
 | Pending-review and the lane ids are in the `lanes` module, off by default; `readme-current` is left out | Core | They exist for many parallel sessions and a benchmark corpus |
 | A branch per increment; worktrees optional | Worktree required (SJ) | One mechanism in the core; SJ keeps its worktrees as an override |
 
+### Tasks 3 and 4: what the build found (2026-10-10, template pull requests #1 and #2)
+
+- **The handoff limit's range is 20 to 1000 lines.** The spec fixed the default (150) and that a different value needs an
+  override with a reason, but not the bounds; `framework_config` refuses a value outside 20 to 1000 (the upper bound is
+  Copilot's soft length guideline for instruction files; the lower keeps the check meaningful).
+- **`pyproject.toml`, `uv.lock` and `.python-version` are seeds (project-owned), not parametrised.** Classed as
+  parametrised they were hash-locked, and a project's first `uv add` made every later `init new` refuse. The review
+  reproduced it; the manifest now says so and `init` seeds them once.
+- **Every payload file is described by `framework-manifest.toml`**, and a test fails on a file no rule matches and on a
+  rule that matches no file (the ledger's entry 5, "a manifest nobody registered", mechanised from the start). The first
+  run of the test caught the payload's own `README.md`.
+- **`init` takes `--target` as required, writes each file through a unique temporary name, refuses a file where a
+  directory belongs and a directory where a generated file goes before any write, writes the lock last, and leaves a run
+  record also when it fails** (exit 2). The run record is a git-ignored `logs/` file, as the spec decided.
+- **The library's strictness is wider than the spec's text.** Free text is single-line without control characters, names
+  refuse `<` and `>`, the email has a restricted alphabet, the branch has an allow-list, and the schemas refuse duplicate
+  JSON keys: each because a value is written into a `Signed-off-by` trailer, a workflow or a hook. The reasons are in
+  `framework_config.py`'s docstring.
+- **Both tasks were reviewed by a fresh-eyes pass and by Copilot, and each found real defects the author's tests had
+  missed** (an emitter that wrote invalid TOML for emoji, a quadratic duplicate check, a lock that could be a directory);
+  mutation checks (deliberately breaking a rule and requiring a test to fail) found two dead rules and one missing test.
+
 ### Not found here
 
 Whether SJ or HS keep identity and sign-off rules in files other than their definition of done; whether HS's and LW's
