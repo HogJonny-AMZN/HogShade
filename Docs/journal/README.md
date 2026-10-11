@@ -112,6 +112,7 @@ Newest first. `tools/check_docs.py` fails when a session file is missing from th
 
 | Date | Session | What happened |
 | --- | --- | --- |
+| 2026-10-11 | [Session 01](2026-10-11-session-01.md) | Template increment 1, task 5: the seed documents, the ledgers, the standards, the pull request template and the review skills, built in the template and what their reviews found |
 | 2026-10-10 | [Session 01](2026-10-10-session-01.md) | Template increment 1, tasks 3 and 4 built in the template repository (the schemas and loader, `init new`) and what their reviews found |
 | 2026-10-09 | [Session 01](2026-10-09-session-01.md) | Why an iceboxed idea was built (ledger 22), the template repository's requirements and eleven answered design questions, Copilot on #78 and #79 |
 | 2026-10-08 | [Session 01](2026-10-08-session-01.md) | Where the repository is against OpenPBR (v0.2.0; C3 blocked on G4 and the calibration capture), and the f-string pass: 71 lazy log calls converted, an AST check in CI |
